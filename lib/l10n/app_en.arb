@@ -1,0 +1,60 @@
+{
+  "@@locale": "en",
+
+  "appName": "Vmito",
+
+  "commonRetry": "Retry",
+  "commonCancel": "Cancel",
+  "commonConfirm": "Confirm",
+  "commonSave": "Save",
+  "commonClose": "Close",
+  "commonLoading": "Loading...",
+  "commonSearch": "Search",
+
+  "errorNetwork": "No network connection. Please try again.",
+  "errorTimeout": "The request timed out. Please try again.",
+  "errorUnauthorized": "Your session has expired.",
+  "errorForbidden": "You do not have permission to do that.",
+  "errorNotFound": "Not found.",
+  "errorValidation": "Invalid data.",
+  "errorServer": "The server is having trouble. Please try again later.",
+  "errorUnknown": "Something went wrong. Please try again.",
+
+  "authSignIn": "Sign in",
+  "authSignUp": "Sign up",
+  "authSignOut": "Sign out",
+  "authEmail": "Email",
+  "authPassword": "Password",
+  "authForgotPassword": "Forgot password?",
+  "authContinueWithGoogle": "Continue with Google",
+  "authContinueWithFacebook": "Continue with Facebook",
+  "authContinueAsGuest": "Continue as guest",
+  "authEmailRequired": "Please enter your email",
+  "authEmailInvalid": "Invalid email address",
+  "authPasswordRequired": "Please enter your password",
+  "authPasswordTooShort": "Password must be at least {min} characters",
+  "@authPasswordTooShort": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+
+  "navHome": "Home",
+  "navSessions": "Sessions",
+  "navTournaments": "Tournaments",
+  "navNotifications": "Notifications",
+  "navProfile": "Profile",
+
+  "courtCallTitle": "You're up!",
+  "courtCallAnnouncement": "Please go to court {courtNumber}",
+  "@courtCallAnnouncement": {
+    "placeholders": {
+      "courtNumber": {
+        "type": "int"
+      }
+    }
+  },
+  "courtCallAcknowledge": "Got it"
+}

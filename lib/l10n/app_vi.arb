@@ -1,0 +1,64 @@
+{
+  "@@locale": "vi",
+
+  "appName": "Vmito",
+  "@appName": {
+    "description": "Product name. Not translated."
+  },
+
+  "commonRetry": "Thử lại",
+  "commonCancel": "Huỷ",
+  "commonConfirm": "Xác nhận",
+  "commonSave": "Lưu",
+  "commonClose": "Đóng",
+  "commonLoading": "Đang tải...",
+  "commonSearch": "Tìm kiếm",
+
+  "errorNetwork": "Không có kết nối mạng. Vui lòng thử lại.",
+  "errorTimeout": "Yêu cầu quá thời gian chờ. Vui lòng thử lại.",
+  "errorUnauthorized": "Phiên đăng nhập đã hết hạn.",
+  "errorForbidden": "Bạn không có quyền thực hiện thao tác này.",
+  "errorNotFound": "Không tìm thấy dữ liệu.",
+  "errorValidation": "Dữ liệu không hợp lệ.",
+  "errorServer": "Máy chủ đang gặp sự cố. Vui lòng thử lại sau.",
+  "errorUnknown": "Đã có lỗi xảy ra. Vui lòng thử lại.",
+
+  "authSignIn": "Đăng nhập",
+  "authSignUp": "Đăng ký",
+  "authSignOut": "Đăng xuất",
+  "authEmail": "Email",
+  "authPassword": "Mật khẩu",
+  "authForgotPassword": "Quên mật khẩu?",
+  "authContinueWithGoogle": "Tiếp tục với Google",
+  "authContinueWithFacebook": "Tiếp tục với Facebook",
+  "authContinueAsGuest": "Tiếp tục với tư cách khách",
+  "authEmailRequired": "Vui lòng nhập email",
+  "authEmailInvalid": "Email không hợp lệ",
+  "authPasswordRequired": "Vui lòng nhập mật khẩu",
+  "authPasswordTooShort": "Mật khẩu phải có ít nhất {min} ký tự",
+  "@authPasswordTooShort": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+
+  "navHome": "Trang chủ",
+  "navSessions": "Buổi chơi",
+  "navTournaments": "Giải đấu",
+  "navNotifications": "Thông báo",
+  "navProfile": "Cá nhân",
+
+  "courtCallTitle": "Đến lượt bạn vào sân!",
+  "courtCallAnnouncement": "Mời bạn vào sân số {courtNumber}",
+  "@courtCallAnnouncement": {
+    "description": "Spoken aloud by TTS and shown in the call modal. Repeated 3 times at 1.5s gaps, matching the web app.",
+    "placeholders": {
+      "courtNumber": {
+        "type": "int"
+      }
+    }
+  },
+  "courtCallAcknowledge": "Đã hiểu"
+}

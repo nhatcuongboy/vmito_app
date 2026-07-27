@@ -1,0 +1,8 @@
+arb-dir: lib/l10n
+template-arb-file: app_vi.arb
+output-localization-file: app_localizations.dart
+output-class: AppLocalizations
+nullable-getter: false
+# The web app ships vi/en/cn with ~6,000 keys. Missing translations must be
+# visible, not silently filled from the template — see docs/I18N.md.
+untranslated-messages-file: lib/l10n/untranslated.json

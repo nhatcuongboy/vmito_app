@@ -1,0 +1,40 @@
+# Static analysis config. Run with `flutter analyze`.
+#
+# Base is very_good_analysis (stricter than flutter_lints), with the rules that
+# fight Flutter/Riverpod/freezed idioms turned off explicitly below — each with
+# a reason, so nobody has to re-litigate them.
+include: package:very_good_analysis/analysis_options.yaml
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "lib/l10n/app_localizations*.dart"
+  errors:
+    todo: ignore
+    # freezed emits annotations on generated members the analyzer flags.
+    invalid_annotation_target: ignore
+
+linter:
+  rules:
+    # Doc comments belong on decisions — services, controllers, core/ — not on
+    # every widget field. Enforced in review, not by the analyzer.
+    public_member_api_docs: false
+
+    # Flutter's own style puts `child` last; alphabetical ordering fights it.
+    always_put_required_named_parameters_first: false
+
+    # `dart format` already wraps code at 80. This rule only ever fires on
+    # comments and URLs, where breaking hurts readability.
+    lines_longer_than_80_chars: false
+
+    # pubspec.yaml is grouped by concern (state, network, storage, ...) with a
+    # comment per group. Alphabetical order would destroy that.
+    sort_pub_dependencies: false
+
+    # Kept on deliberately — these catch real bugs in an app that does this
+    # much async work behind navigation.
+    use_build_context_synchronously: true
+    unawaited_futures: true
+    cancel_subscriptions: true
+    close_sinks: true
