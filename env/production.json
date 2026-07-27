@@ -1,0 +1,6 @@
+{
+  "FLAVOR": "production",
+  "API_BASE_URL": "https://vmito.com/api",
+  "WEB_BASE_URL": "https://vmito.com",
+  "AUTH_CALLBACK_SCHEME": "vmito"
+}

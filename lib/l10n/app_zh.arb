@@ -1,0 +1,60 @@
+{
+  "@@locale": "zh",
+
+  "appName": "Vmito",
+
+  "commonRetry": "重试",
+  "commonCancel": "取消",
+  "commonConfirm": "确认",
+  "commonSave": "保存",
+  "commonClose": "关闭",
+  "commonLoading": "加载中...",
+  "commonSearch": "搜索",
+
+  "errorNetwork": "网络连接失败，请重试。",
+  "errorTimeout": "请求超时，请重试。",
+  "errorUnauthorized": "登录已过期。",
+  "errorForbidden": "您没有权限执行此操作。",
+  "errorNotFound": "未找到数据。",
+  "errorValidation": "数据无效。",
+  "errorServer": "服务器出现问题，请稍后重试。",
+  "errorUnknown": "出现错误，请重试。",
+
+  "authSignIn": "登录",
+  "authSignUp": "注册",
+  "authSignOut": "退出登录",
+  "authEmail": "电子邮箱",
+  "authPassword": "密码",
+  "authForgotPassword": "忘记密码？",
+  "authContinueWithGoogle": "使用 Google 继续",
+  "authContinueWithFacebook": "使用 Facebook 继续",
+  "authContinueAsGuest": "以访客身份继续",
+  "authEmailRequired": "请输入电子邮箱",
+  "authEmailInvalid": "电子邮箱无效",
+  "authPasswordRequired": "请输入密码",
+  "authPasswordTooShort": "密码至少需要 {min} 个字符",
+  "@authPasswordTooShort": {
+    "placeholders": {
+      "min": {
+        "type": "int"
+      }
+    }
+  },
+
+  "navHome": "首页",
+  "navSessions": "场次",
+  "navTournaments": "赛事",
+  "navNotifications": "通知",
+  "navProfile": "我的",
+
+  "courtCallTitle": "轮到您上场了！",
+  "courtCallAnnouncement": "请前往 {courtNumber} 号场地",
+  "@courtCallAnnouncement": {
+    "placeholders": {
+      "courtNumber": {
+        "type": "int"
+      }
+    }
+  },
+  "courtCallAcknowledge": "知道了"
+}
