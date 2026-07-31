@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
-import 'package:vmito_app/features/session/domain/court.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/models/court.dart';
 
 /// A court's occupancy at a glance.
 ///

@@ -4,10 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/session/domain/payment.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
-import 'package:vmito_app/features/session/domain/session_player.dart';
 import 'package:vmito_app/features/session/presentation/host_session_management_screen.dart';
 import 'package:vmito_app/features/session/presentation/player/create_session_screen.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/models/session_player.dart';
 
 void main() {
   group('host management JSON', () {

@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
-import 'package:vmito_app/features/live_session/application/live_session_controller.dart';
-import 'package:vmito_app/features/live_session/presentation/widgets/badminton_court_view.dart';
+import 'package:vmito_app/features/court/application/live_session_controller.dart';
+import 'package:vmito_app/features/court/presentation/widgets/badminton_court_view.dart';
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
-import 'package:vmito_app/features/session/domain/court.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/models/court.dart';
 
 class LiveSessionScreen extends ConsumerStatefulWidget {
   const LiveSessionScreen({required this.sessionId, super.key});

@@ -6,16 +6,16 @@ import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
-import 'package:vmito_app/features/live_session/application/live_session_controller.dart';
+import 'package:vmito_app/features/court/application/live_session_controller.dart';
+import 'package:vmito_app/features/court/presentation/widgets/court_tile.dart';
 import 'package:vmito_app/features/session/application/host_session_management_controller.dart';
 import 'package:vmito_app/features/session/application/hosted_sessions_controller.dart';
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
-import 'package:vmito_app/features/session/domain/court.dart';
 import 'package:vmito_app/features/session/domain/payment.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
-import 'package:vmito_app/features/session/domain/session_player.dart';
-import 'package:vmito_app/features/session/presentation/widgets/court_tile.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/models/court.dart';
+import 'package:vmito_app/shared/models/session_player.dart';
 
 class HostSessionManagementScreen extends ConsumerStatefulWidget {
   const HostSessionManagementScreen({required this.sessionId, super.key});

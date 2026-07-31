@@ -8,8 +8,8 @@ import 'package:vmito_app/features/auth/presentation/forgot_password_screen.dart
 import 'package:vmito_app/features/auth/presentation/reset_password_screen.dart';
 import 'package:vmito_app/features/auth/presentation/sign_in_screen.dart';
 import 'package:vmito_app/features/auth/presentation/sign_up_screen.dart';
+import 'package:vmito_app/features/court/presentation/live_session_screen.dart';
 import 'package:vmito_app/features/home/presentation/home_screen.dart';
-import 'package:vmito_app/features/live_session/presentation/live_session_screen.dart';
 import 'package:vmito_app/features/notification/presentation/notifications_screen.dart';
 import 'package:vmito_app/features/profile/presentation/profile_screen.dart';
 import 'package:vmito_app/features/session/presentation/host_session_management_screen.dart';

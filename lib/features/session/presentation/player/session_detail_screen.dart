@@ -6,15 +6,15 @@ import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/features/court/presentation/widgets/court_tile.dart';
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
-import 'package:vmito_app/features/session/domain/session_player.dart';
-import 'package:vmito_app/features/session/presentation/widgets/court_tile.dart';
 import 'package:vmito_app/features/session/presentation/widgets/section_title.dart';
 import 'package:vmito_app/features/session/presentation/widgets/session_fee_section.dart';
 import 'package:vmito_app/features/session/presentation/widgets/session_header.dart';
 import 'package:vmito_app/features/session/presentation/widgets/session_player_summary.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/models/session_player.dart';
 import 'package:vmito_app/shared/widgets/app_loading_view.dart';
 
 /// Public session detail.

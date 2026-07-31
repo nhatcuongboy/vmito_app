@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
-import 'package:vmito_app/features/session/domain/court.dart';
-import 'package:vmito_app/features/session/domain/session_player.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/models/court.dart';
+import 'package:vmito_app/shared/models/session_player.dart';
 
 /// Read-only live court board matching the web court's 13.4:6.1 geometry.
 ///

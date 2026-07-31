@@ -1,7 +1,7 @@
 import 'package:vmito_app/core/network/api_exception.dart';
-import 'package:vmito_app/features/session/domain/court.dart';
-import 'package:vmito_app/features/session/domain/session_player.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/models/court.dart';
+import 'package:vmito_app/shared/models/session_player.dart';
 
 extension LocalizedValues on AppLocalizations {
   String apiError(ApiException error) {

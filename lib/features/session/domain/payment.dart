@@ -1,4 +1,4 @@
-import 'package:vmito_app/features/session/domain/session_player.dart';
+import 'package:vmito_app/shared/models/session_player.dart';
 
 enum PaymentStatus {
   pending,

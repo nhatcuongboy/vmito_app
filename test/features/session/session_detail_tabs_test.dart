@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
-import 'package:vmito_app/features/session/domain/court.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
-import 'package:vmito_app/features/session/domain/session_player.dart';
 import 'package:vmito_app/features/session/presentation/player/session_detail_screen.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/models/court.dart';
+import 'package:vmito_app/shared/models/session_player.dart';
 
 void main() {
   testWidgets('switches between overview, courts and players tabs', (

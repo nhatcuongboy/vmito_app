@@ -1,8 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
-import 'package:vmito_app/features/session/domain/court.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
-import 'package:vmito_app/features/session/domain/session_player.dart';
+import 'package:vmito_app/shared/models/court.dart';
+import 'package:vmito_app/shared/models/session_player.dart';
 
 part 'session.freezed.dart';
 part 'session.g.dart';

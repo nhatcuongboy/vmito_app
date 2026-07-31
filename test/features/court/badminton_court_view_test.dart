@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vmito_app/features/live_session/presentation/widgets/badminton_court_view.dart';
-import 'package:vmito_app/features/session/domain/court.dart';
-import 'package:vmito_app/features/session/domain/session_player.dart';
+import 'package:vmito_app/features/court/presentation/widgets/badminton_court_view.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/models/court.dart';
+import 'package:vmito_app/shared/models/session_player.dart';
 
 void main() {
   for (final locale in const [Locale('vi'), Locale('en'), Locale('zh')]) {

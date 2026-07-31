@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:vmito_app/features/session/domain/session_player.dart';
+import 'package:vmito_app/shared/models/session_player.dart';
 
 part 'court.freezed.dart';
 part 'court.g.dart';
