@@ -19,7 +19,6 @@ class SessionRepositoryImpl implements SessionRepository {
   final ApiClient _client;
 
   @override
-
   /// Public session browse. Requires no token, which is deliberate: App Store
   /// guideline 5.1.1(i) forbids gating browsing behind registration.
   /// [limit] has no default on purpose: a silent default here and an explicit

@@ -28,7 +28,11 @@ abstract interface class SessionRepository {
   });
 
   /// Sessions this user hosts.
-  Future<Page<Session>> hostedBy(String hostId, {required int limit, int page = 1});
+  Future<Page<Session>> hostedBy(
+    String hostId, {
+    required int limit,
+    int page = 1,
+  });
 
   Future<Session> create(CreateSessionRequest request);
 

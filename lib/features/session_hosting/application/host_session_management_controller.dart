@@ -65,7 +65,8 @@ class HostSessionManagementController extends Notifier<AsyncValue<void>> {
   );
 
   Future<bool> toggleCheckIn(String playerId) => _mutate(
-    () => ref.read(sessionRepositoryProvider).toggleInactive(sessionId, playerId),
+    () =>
+        ref.read(sessionRepositoryProvider).toggleInactive(sessionId, playerId),
   );
 
   Future<bool> approvePayment(String paymentId) => _mutate(
@@ -144,7 +145,8 @@ class HostSessionManagementController extends Notifier<AsyncValue<void>> {
   );
 
   Future<bool> deleteExpense(String expenseId) => _mutate(
-    () => ref.read(paymentRepositoryProvider).deleteExpense(sessionId, expenseId),
+    () =>
+        ref.read(paymentRepositoryProvider).deleteExpense(sessionId, expenseId),
     refreshSession: false,
     refreshExpenses: true,
   );

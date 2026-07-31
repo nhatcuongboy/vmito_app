@@ -5,7 +5,7 @@ import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/home/presentation/widgets/hosted_sessions_section.dart';
-import 'package:vmito_app/features/session/application/hosted_sessions_controller.dart';
+import 'package:vmito_app/features/session_hosting/application/hosted_sessions_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 /// The host's landing screen.
