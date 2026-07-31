@@ -5,6 +5,7 @@ import 'package:vmito_app/core/network/api_options.dart';
 import 'package:vmito_app/core/network/api_response.dart';
 import 'package:vmito_app/core/network/paginated.dart';
 import 'package:vmito_app/features/session/domain/create_session_request.dart';
+import 'package:vmito_app/features/session/domain/repositories/session_repository.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 
 /// Ports `vmito-fe/src/lib/api/session.service.ts`.
@@ -12,10 +13,12 @@ import 'package:vmito_app/features/session/domain/session.dart';
 /// Only the browse endpoints so far. Add a method when a screen needs it —
 /// the web service has far more, and porting it wholesale would be dead code
 /// with an untested JSON contract.
-class SessionService {
-  const SessionService(this._client);
+class SessionRepositoryImpl implements SessionRepository {
+  const SessionRepositoryImpl(this._client);
 
   final ApiClient _client;
+
+  @override
 
   /// Public session browse. Requires no token, which is deliberate: App Store
   /// guideline 5.1.1(i) forbids gating browsing behind registration.
@@ -39,6 +42,7 @@ class SessionService {
     return unwrapPage(response.data, Session.fromJson);
   }
 
+  @override
   Future<Page<Session>> browseAvailable({
     required int limit,
     int page = 1,
@@ -67,6 +71,7 @@ class SessionService {
   ///
   /// The endpoint takes `hostId` rather than inferring it from the JWT, so an
   /// admin can list another host's sessions with the same call.
+  @override
   Future<Page<Session>> hostedBy(
     String hostId, {
     required int limit,
@@ -90,6 +95,7 @@ class SessionService {
   /// Takes the already-built request rather than a long parameter list: the
   /// backend accepts 30 optional fields, and a positional signature here would
   /// be unreadable and easy to mis-order. See [CreateSessionRequest].
+  @override
   Future<Session> create(CreateSessionRequest request) async {
     final response = await _client.post<Map<String, dynamic>>(
       ApiEndpoints.mySessions,
@@ -99,6 +105,7 @@ class SessionService {
     return unwrap(response.data, Session.fromJson);
   }
 
+  @override
   Future<Session> update(String id, CreateSessionRequest request) async {
     final response = await _client.put<Map<String, dynamic>>(
       ApiEndpoints.session(id),
@@ -108,6 +115,7 @@ class SessionService {
     return unwrap(response.data, Session.fromJson);
   }
 
+  @override
   Future<void> cancel(String id) async {
     await _client.post<void>(
       ApiEndpoints.sessionCancel(id),
@@ -115,6 +123,7 @@ class SessionService {
     );
   }
 
+  @override
   Future<Session> byId(String id) async {
     final response = await _client.get<Map<String, dynamic>>(
       ApiEndpoints.session(id),
@@ -122,6 +131,7 @@ class SessionService {
     return unwrap(response.data, Session.fromJson);
   }
 
+  @override
   Future<void> startSession(String sessionId) async {
     await _client.post<void>(
       ApiEndpoints.sessionStart(sessionId),
@@ -129,6 +139,7 @@ class SessionService {
     );
   }
 
+  @override
   Future<void> endSession(String sessionId) async {
     await _client.post<void>(
       ApiEndpoints.sessionEnd(sessionId),
@@ -136,6 +147,7 @@ class SessionService {
     );
   }
 
+  @override
   Future<void> selectPlayers(String courtId, List<String> playerIds) async {
     await _client.post<void>(
       ApiEndpoints.courtSelectPlayers(courtId),
@@ -144,6 +156,7 @@ class SessionService {
     );
   }
 
+  @override
   Future<void> deselectPlayers(String courtId) async {
     await _client.post<void>(
       ApiEndpoints.courtDeselectPlayers(courtId),
@@ -151,6 +164,7 @@ class SessionService {
     );
   }
 
+  @override
   Future<void> startMatch(String courtId) async {
     await _client.post<void>(
       ApiEndpoints.courtStartMatch(courtId),
@@ -158,6 +172,7 @@ class SessionService {
     );
   }
 
+  @override
   Future<void> endMatch(String courtId) async {
     await _client.post<void>(
       ApiEndpoints.courtEndMatch(courtId),
@@ -166,6 +181,7 @@ class SessionService {
     );
   }
 
+  @override
   Future<void> updateRegistration(
     String sessionId,
     String playerId, {
@@ -178,6 +194,7 @@ class SessionService {
     );
   }
 
+  @override
   Future<void> toggleInactive(
     String sessionId,
     String playerId,
@@ -189,6 +206,7 @@ class SessionService {
     );
   }
 
+  @override
   Future<void> removePlayer(String sessionId, String playerId) async {
     await _client.delete<void>(
       ApiEndpoints.sessionPlayer(sessionId, playerId),
@@ -207,6 +225,6 @@ class SessionService {
   };
 }
 
-final sessionServiceProvider = Provider<SessionService>(
-  (ref) => SessionService(ref.watch(apiClientProvider)),
+final sessionRepositoryProvider = Provider<SessionRepository>(
+  (ref) => SessionRepositoryImpl(ref.watch(apiClientProvider)),
 );

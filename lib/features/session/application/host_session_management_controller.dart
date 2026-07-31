@@ -5,7 +5,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/features/session/application/session_detail_controller.dart';
 import 'package:vmito_app/features/session/data/payment_service.dart';
-import 'package:vmito_app/features/session/data/session_service.dart';
+import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
 import 'package:vmito_app/features/session/domain/payment.dart';
 
 final paymentLedgerProvider = FutureProvider.family<PaymentLedger, String>(
@@ -42,7 +42,7 @@ class HostSessionManagementController extends Notifier<AsyncValue<void>> {
 
   Future<bool> selectPlayers(String courtId, List<String> playerIds) => _mutate(
     () => ref
-        .read(sessionServiceProvider)
+        .read(sessionRepositoryProvider)
         .selectPlayers(
           courtId,
           playerIds,
@@ -50,27 +50,27 @@ class HostSessionManagementController extends Notifier<AsyncValue<void>> {
   );
 
   Future<bool> startSession() => _mutate(
-    () => ref.read(sessionServiceProvider).startSession(sessionId),
+    () => ref.read(sessionRepositoryProvider).startSession(sessionId),
   );
 
   Future<bool> endSession() => _mutate(
-    () => ref.read(sessionServiceProvider).endSession(sessionId),
+    () => ref.read(sessionRepositoryProvider).endSession(sessionId),
   );
 
   Future<bool> cancelSession() => _mutate(
-    () => ref.read(sessionServiceProvider).cancel(sessionId),
+    () => ref.read(sessionRepositoryProvider).cancel(sessionId),
   );
 
   Future<bool> deselectPlayers(String courtId) => _mutate(
-    () => ref.read(sessionServiceProvider).deselectPlayers(courtId),
+    () => ref.read(sessionRepositoryProvider).deselectPlayers(courtId),
   );
 
   Future<bool> startMatch(String courtId) => _mutate(
-    () => ref.read(sessionServiceProvider).startMatch(courtId),
+    () => ref.read(sessionRepositoryProvider).startMatch(courtId),
   );
 
   Future<bool> endMatch(String courtId) => _mutate(
-    () => ref.read(sessionServiceProvider).endMatch(courtId),
+    () => ref.read(sessionRepositoryProvider).endMatch(courtId),
   );
 
   Future<bool> updateRegistration(
@@ -78,18 +78,18 @@ class HostSessionManagementController extends Notifier<AsyncValue<void>> {
     required bool approved,
   }) => _mutate(
     () => ref
-        .read(sessionServiceProvider)
+        .read(sessionRepositoryProvider)
         .updateRegistration(sessionId, playerId, approved: approved),
     refreshPayments: approved,
   );
 
   Future<bool> removePlayer(String playerId) => _mutate(
-    () => ref.read(sessionServiceProvider).removePlayer(sessionId, playerId),
+    () => ref.read(sessionRepositoryProvider).removePlayer(sessionId, playerId),
     refreshPayments: true,
   );
 
   Future<bool> toggleCheckIn(String playerId) => _mutate(
-    () => ref.read(sessionServiceProvider).toggleInactive(sessionId, playerId),
+    () => ref.read(sessionRepositoryProvider).toggleInactive(sessionId, playerId),
   );
 
   Future<bool> approvePayment(String paymentId) => _mutate(

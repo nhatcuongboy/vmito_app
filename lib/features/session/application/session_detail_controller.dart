@@ -3,7 +3,7 @@
 // ignore_for_file: specify_nonobvious_property_types
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:vmito_app/features/session/data/session_service.dart';
+import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 
 /// Loads one session by id.
@@ -21,5 +21,5 @@ final sessionDetailProvider = FutureProvider.family<Session, String>((
   ref,
   sessionId,
 ) {
-  return ref.watch(sessionServiceProvider).byId(sessionId);
+  return ref.watch(sessionRepositoryProvider).byId(sessionId);
 });

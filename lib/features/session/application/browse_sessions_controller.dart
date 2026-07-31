@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
-import 'package:vmito_app/features/session/data/session_service.dart';
+import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
+import 'package:vmito_app/features/session/domain/repositories/session_repository.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 
 enum SessionSource { all, regular, facebook }
@@ -94,7 +95,7 @@ class BrowseSessionsController extends Notifier<BrowseSessionsState> {
   @override
   BrowseSessionsState build() => const BrowseSessionsState();
 
-  SessionService get _service => ref.read(sessionServiceProvider);
+  SessionRepository get _repo => ref.read(sessionRepositoryProvider);
 
   static const _pageSize = 20;
 
@@ -125,7 +126,7 @@ class BrowseSessionsController extends Notifier<BrowseSessionsState> {
 
   Future<void> _fetch({required int page, required bool replace}) async {
     try {
-      final result = await _service.browseAvailable(
+      final result = await _repo.browseAvailable(
         page: page,
         limit: _pageSize,
         search: state.filters.search,

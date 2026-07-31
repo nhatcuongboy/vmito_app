@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:vmito_app/features/session/data/session_service.dart';
+import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
 import 'package:vmito_app/features/session/domain/create_session_request.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 
@@ -21,7 +21,7 @@ class CreateSessionController extends Notifier<AsyncValue<Session?>> {
     state = const AsyncValue.loading();
 
     final result = await AsyncValue.guard(
-      () => ref.read(sessionServiceProvider).create(request),
+      () => ref.read(sessionRepositoryProvider).create(request),
     );
     state = result;
 
@@ -31,7 +31,7 @@ class CreateSessionController extends Notifier<AsyncValue<Session?>> {
   Future<Session?> update(String id, CreateSessionRequest request) async {
     state = const AsyncValue.loading();
     final result = await AsyncValue.guard(
-      () => ref.read(sessionServiceProvider).update(id, request),
+      () => ref.read(sessionRepositoryProvider).update(id, request),
     );
     state = result;
     return result.asData?.value;

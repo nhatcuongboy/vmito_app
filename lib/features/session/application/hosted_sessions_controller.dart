@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/network/paginated.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
-import 'package:vmito_app/features/session/data/session_service.dart';
+import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 
 /// The signed-in user's own sessions, newest first.
@@ -23,5 +23,5 @@ final hostedSessionsProvider = FutureProvider<Page<Session>>((ref) async {
     );
   }
 
-  return ref.watch(sessionServiceProvider).hostedBy(user.id, limit: 20);
+  return ref.watch(sessionRepositoryProvider).hostedBy(user.id, limit: 20);
 });
