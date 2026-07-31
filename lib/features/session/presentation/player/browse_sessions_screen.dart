@@ -8,7 +8,7 @@ import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
-import 'package:vmito_app/features/session/application/browse_sessions_controller.dart';
+import 'package:vmito_app/features/session/application/player/browse_sessions_controller.dart';
 import 'package:vmito_app/features/session/presentation/widgets/session_card.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 

@@ -9,7 +9,7 @@ import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/live_session/application/live_session_controller.dart';
 import 'package:vmito_app/features/session/application/host_session_management_controller.dart';
 import 'package:vmito_app/features/session/application/hosted_sessions_controller.dart';
-import 'package:vmito_app/features/session/application/session_detail_controller.dart';
+import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
 import 'package:vmito_app/features/session/domain/court.dart';
 import 'package:vmito_app/features/session/domain/payment.dart';
 import 'package:vmito_app/features/session/domain/session.dart';

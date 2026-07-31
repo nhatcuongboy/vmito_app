@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
-import 'package:vmito_app/features/session/application/create_session_controller.dart';
+import 'package:vmito_app/features/session/application/player/create_session_controller.dart';
 import 'package:vmito_app/features/session/domain/create_session_request.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';

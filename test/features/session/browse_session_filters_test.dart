@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vmito_app/features/session/application/browse_sessions_controller.dart';
+import 'package:vmito_app/features/session/application/player/browse_sessions_controller.dart';
 
 void main() {
   test('counts non-search filters and preserves search while editing', () {

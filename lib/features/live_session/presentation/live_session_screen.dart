@@ -5,7 +5,7 @@ import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/live_session/application/live_session_controller.dart';
 import 'package:vmito_app/features/live_session/presentation/widgets/badminton_court_view.dart';
-import 'package:vmito_app/features/session/application/session_detail_controller.dart';
+import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
 import 'package:vmito_app/features/session/domain/court.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';

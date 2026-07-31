@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
-import 'package:vmito_app/features/session/application/session_detail_controller.dart';
-import 'package:vmito_app/features/session/presentation/create_session_screen.dart';
+import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
+import 'package:vmito_app/features/session/presentation/player/create_session_screen.dart';
 
 class EditSessionScreen extends ConsumerWidget {
   const EditSessionScreen({

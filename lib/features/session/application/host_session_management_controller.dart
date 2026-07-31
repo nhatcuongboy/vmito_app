@@ -3,7 +3,7 @@
 // ignore_for_file: specify_nonobvious_property_types
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:vmito_app/features/session/application/session_detail_controller.dart';
+import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
 import 'package:vmito_app/features/session/data/payment_service.dart';
 import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
 import 'package:vmito_app/features/session/domain/payment.dart';

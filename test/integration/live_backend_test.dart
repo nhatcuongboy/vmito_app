@@ -10,7 +10,7 @@ import 'package:vmito_app/core/network/api_exception.dart';
 import 'package:vmito_app/core/network/error_interceptor.dart';
 import 'package:vmito_app/core/storage/token_storage.dart';
 import 'package:vmito_app/features/auth/data/auth_service.dart';
-import 'package:vmito_app/features/session/data/session_service.dart';
+import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
 
 import '../support/fake_secure_storage.dart';
 
@@ -119,7 +119,7 @@ void _defineTests() {
     // The Session model is hand-written from vmito-fe/src/lib/api/types.ts —
     // the OpenAPI document has no response schemas, so nothing else checks it
     // against what the backend actually sends.
-    final sessions = SessionService(client);
+    final sessions = SessionRepositoryImpl(client);
     final page = await sessions.browsePublic(limit: 5);
 
     expect(page.page, 1);
@@ -131,7 +131,7 @@ void _defineTests() {
   });
 
   test('session detail decodes courts, players and fees', () async {
-    final sessions = SessionService(client);
+    final sessions = SessionRepositoryImpl(client);
     final page = await sessions.browsePublic(limit: 20);
     if (page.items.isEmpty) {
       markTestSkipped('no public sessions on this backend');

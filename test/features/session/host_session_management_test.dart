@@ -5,8 +5,8 @@ import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/session/domain/payment.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_player.dart';
-import 'package:vmito_app/features/session/presentation/create_session_screen.dart';
 import 'package:vmito_app/features/session/presentation/host_session_management_screen.dart';
+import 'package:vmito_app/features/session/presentation/player/create_session_screen.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 void main() {

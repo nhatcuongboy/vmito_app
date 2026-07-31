@@ -7,7 +7,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/realtime/socket_client.dart';
 import 'package:vmito_app/core/realtime/socket_events.dart';
-import 'package:vmito_app/features/session/application/session_detail_controller.dart';
+import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
 
 /// Connection status used by the live screen's reconnecting banner.
 final socketConnectionProvider = StreamProvider<bool>((ref) async* {
