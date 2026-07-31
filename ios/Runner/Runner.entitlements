@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!--
+	  Sign in with Apple. Mandatory (App Store Review Guideline 4.8) because the
+	  app also offers Google and Facebook login.
+
+	  This file alone is not enough: the capability must also be enabled on the
+	  App ID in the Apple Developer portal, and the entitlement must be attached
+	  to the target in Xcode (Signing & Capabilities → + Capability). Without
+	  both, `getAppleIDCredential` fails at runtime with an authorization error
+	  that looks like a code bug.
+	-->
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
+
+	<!--
+	  Time-sensitive notifications, for the court call. A player being called to
+	  a court is exactly the case Apple defines this for, and without it the
+	  notification is silenced by Focus modes — which is when a player is most
+	  likely to miss it.
+
+	  Requested here early on purpose: the entitlement needs Apple approval and
+	  has lead time, so discovering it during release prep costs a cycle.
+	-->
+	<key>com.apple.developer.usernotifications.time-sensitive</key>
+	<true/>
+</dict>
+</plist>

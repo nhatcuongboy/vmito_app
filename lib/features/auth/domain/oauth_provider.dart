@@ -1,0 +1,1 @@
+enum OAuthProvider { google, facebook }

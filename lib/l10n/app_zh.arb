@@ -1,8 +1,6 @@
 {
   "@@locale": "zh",
-
   "appName": "Vmito",
-
   "commonRetry": "重试",
   "commonCancel": "取消",
   "commonConfirm": "确认",
@@ -10,7 +8,6 @@
   "commonClose": "关闭",
   "commonLoading": "加载中...",
   "commonSearch": "搜索",
-
   "errorNetwork": "网络连接失败，请重试。",
   "errorTimeout": "请求超时，请重试。",
   "errorUnauthorized": "登录已过期。",
@@ -19,7 +16,6 @@
   "errorValidation": "数据无效。",
   "errorServer": "服务器出现问题，请稍后重试。",
   "errorUnknown": "出现错误，请重试。",
-
   "authSignIn": "登录",
   "authSignUp": "注册",
   "authSignOut": "退出登录",
@@ -28,6 +24,66 @@
   "authForgotPassword": "忘记密码？",
   "authContinueWithGoogle": "使用 Google 继续",
   "authContinueWithFacebook": "使用 Facebook 继续",
+  "authSocialFailed": "无法完成社交账号登录，请重试。",
+  "authSignUpHeading": "注册",
+  "authSignUpDescription": "加入羽毛球活动管理平台",
+  "authSignUpName": "姓名",
+  "authSignUpNamePlaceholder": "输入您的姓名",
+  "authSignUpNameRequired": "请输入姓名",
+  "authSignUpEmail": "邮箱",
+  "authSignUpEmailPlaceholder": "输入您的邮箱",
+  "authSignUpEmailRequired": "请输入邮箱",
+  "authSignUpInvalidEmail": "邮箱格式无效",
+  "authSignUpPhone": "手机号码",
+  "authSignUpPhonePlaceholder": "手机号码",
+  "authSignUpPhoneInvalid": "手机号码必须正好为 10 位数字",
+  "authSignUpGender": "性别",
+  "authSignUpMale": "男",
+  "authSignUpFemale": "女",
+  "authSignUpPassword": "密码",
+  "authSignUpPasswordPlaceholder": "创建密码",
+  "authSignUpPasswordRequirements": "至少 8 个字符，包含大写字母、小写字母、数字和特殊字符。",
+  "authSignUpPasswordRequired": "请输入密码",
+  "authSignUpPasswordWeak": "密码至少需要 8 个字符，并包含大写字母、小写字母、数字和特殊字符",
+  "authSignUpConfirmPassword": "确认密码",
+  "authSignUpConfirmPlaceholder": "再次输入密码",
+  "authSignUpConfirmRequired": "请确认密码",
+  "authSignUpPasswordsDoNotMatch": "两次输入的密码不一致",
+  "authSignUpCreateAccount": "注册",
+  "authSignUpAlreadyHaveAccount": "已有账号？登录",
+  "authSignUpAccountCreated": "注册成功！请登录以继续。",
+  "authNoAccount": "还没有账号？",
+  "authSignUpUserExists": "此邮箱已被使用",
+  "authSignUpFailed": "注册失败。请重试。",
+  "authForgotHeading": "忘记密码",
+  "authForgotDescription": "输入您的账户邮箱以接收密码重置说明。",
+  "authForgotEmail": "邮箱",
+  "authForgotEmailPlaceholder": "输入您的邮箱",
+  "authForgotSubmit": "发送说明",
+  "authForgotSuccess": "如果此邮箱有效，密码重置说明将在几分钟内发送。",
+  "authForgotInvalidEmail": "邮箱格式无效",
+  "authForgotEmailRequired": "请填写邮箱",
+  "authForgotRequestFailed": "无法发送密码重置请求。请重试。",
+  "authBackToSignIn": "返回登录",
+  "authTooManyRequests": "请求过多。请稍后重试。",
+  "authResetHeading": "重置密码",
+  "authResetDescription": "为您的账户创建新密码。",
+  "authResetDescriptionWithEmail": "为账户 {email} 创建新密码。",
+  "@authResetDescriptionWithEmail": {"placeholders": {"email": {"type": "String"}}},
+  "authResetNewPassword": "新密码",
+  "authResetNewPasswordPlaceholder": "输入新密码",
+  "authResetConfirmPassword": "确认密码",
+  "authResetConfirmPasswordPlaceholder": "确认新密码",
+  "authResetSubmit": "重置密码",
+  "authResetSuccess": "您的密码已成功重置。您可以使用新密码登录。",
+  "authResetSuccessWithEmail": "账户 {email} 的密码已成功重置。您可以使用新密码登录。",
+  "@authResetSuccessWithEmail": {"placeholders": {"email": {"type": "String"}}},
+  "authResetMissingToken": "此密码重置链接无效或缺少验证令牌。",
+  "authResetInvalidToken": "此密码重置链接无效或已过期。",
+  "authResetFailed": "无法重置密码。请重试。",
+  "authResetPasswordsDoNotMatch": "密码不匹配",
+  "authResetPasswordTooShort": "密码至少需要 6 个字符",
+  "authResetConfirmRequired": "请确认您的密码",
   "authContinueAsGuest": "以访客身份继续",
   "authEmailRequired": "请输入电子邮箱",
   "authEmailInvalid": "电子邮箱无效",
@@ -40,13 +96,11 @@
       }
     }
   },
-
   "navHome": "首页",
   "navSessions": "场次",
   "navTournaments": "赛事",
   "navNotifications": "通知",
   "navProfile": "我的",
-
   "courtCallTitle": "轮到您上场了！",
   "courtCallAnnouncement": "请前往 {courtNumber} 号场地",
   "@courtCallAnnouncement": {
@@ -56,5 +110,376 @@
       }
     }
   },
-  "courtCallAcknowledge": "知道了"
+  "courtCallAcknowledge": "知道了",
+  "navFeed": "社区",
+  "profileTitle": "我的",
+  "feedTitle": "动态",
+  "homeTitle": "首页",
+  "comingSoon": "即将推出",
+  "languageTitle": "语言",
+  "languageChangeTooltip": "切换语言",
+  "languageVietnamese": "越南语",
+  "languageEnglish": "英语",
+  "languageChinese": "中文",
+  "profileLanguage": "语言",
+  "errorCancelled": "请求已取消。",
+  "routeNotFound": "找不到页面：{uri}",
+  "@routeNotFound": {
+    "placeholders": {
+      "uri": {
+        "type": "String"
+      }
+    }
+  },
+  "homeGreeting": "你好，{userName}",
+  "@homeGreeting": {
+    "placeholders": {
+      "userName": {
+        "type": "String"
+      }
+    }
+  },
+  "homeLiveHint": "选择场次以实时查看球场。",
+  "homeBrowseSessions": "查找场次",
+  "sessionBrowseTitle": "查找场次",
+  "sessionEmpty": "未找到场次",
+  "sessionDetailTitle": "场次详情",
+  "sessionCourtsTitle": "场地",
+  "sessionPlayersTitle": "球员",
+  "sessionDescriptionTitle": "描述",
+  "sessionCourtCount": "{count} 个球场",
+  "@sessionCourtCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionCourtCapacity": "{courtCount} 个球场 · 最多 {playerCount} 人",
+  "@sessionCourtCapacity": {
+    "placeholders": {
+      "courtCount": {
+        "type": "int"
+      },
+      "playerCount": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionCrawledReadOnly": "收集自 Facebook — 仅供查看",
+  "sessionClosed": "此场次已关闭",
+  "sessionPlayingCount": "进行中：{count}",
+  "@sessionPlayingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionWaitingCount": "等待中：{count}",
+  "@sessionWaitingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courtStatusPlaying": "进行中",
+  "courtStatusInUse": "进行中",
+  "courtStatusReady": "准备就绪",
+  "courtStatusEmpty": "空闲",
+  "courtNumber": "{number} 号场地",
+  "@courtNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "playerFallback": "球员",
+  "playerNumber": "球员 {number}",
+  "@playerNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "dateToday": "今天",
+  "dateTomorrow": "明天",
+  "dateYesterday": "昨天",
+  "level1": "弱",
+  "level2": "高新",
+  "level3": "初中",
+  "level4": "中等",
+  "level5": "高中",
+  "level6": "高级",
+  "level7": "半职",
+  "level8": "职业",
+  "level9": "弱-",
+  "level10": "弱+",
+  "liveCourtTitle": "实时球场",
+  "liveCourtOpen": "查看实时球场",
+  "liveReconnecting": "正在重新连接实时更新…",
+  "liveNoCourts": "此场次尚未设置球场。",
+  "livePlayerCount": "{count} 名球员",
+  "@livePlayerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "feeNotConfigured": "尚未设置费用",
+  "sessionSearchHint": "场次、场馆或区域",
+  "sessionFiltersTitle": "筛选",
+  "sessionFiltersApply": "应用",
+  "sessionFiltersClear": "清除筛选",
+  "sessionFilterSource": "场次来源",
+  "sessionSourceAll": "全部",
+  "sessionSourceRegular": "Vmito",
+  "sessionSourceFacebook": "Facebook",
+  "sessionFilterLevel": "水平",
+  "sessionFilterAvailableSlots": "仅显示有空位",
+  "sessionTabOverview": "概览",
+  "sessionTabCourts": "场地",
+  "sessionTabPlayers": "球员",
+  "sessionTabFees": "费用",
+  "playerStatusWaiting": "等待中",
+  "playerStatusPlaying": "进行中",
+  "playerStatusFinished": "已结束",
+  "playerStatusReady": "准备就绪",
+  "playerStatusInactive": "未活动",
+  "notificationsTitle": "通知",
+  "notificationsEmpty": "您还没有通知。",
+  "notificationsMarkAllRead": "全部标为已读",
+  "accountDeleteTitle": "删除账号",
+  "accountDeleteWarning": "此操作无法撤销。",
+  "accountDeleteRemoved": "将被删除：密码、登录方式、个人信息、头像和通知。",
+  "accountDeleteRetained": "将匿名保留：您创建的场次和付款记录，因为这些同时也是其他球友的数据。",
+  "accountDeleteCannotSignIn": "您将无法再使用此账号登录。",
+  "accountDeleteConfirm": "永久删除",
+  "accountDeleteFailed": "无法删除账号，请重试。",
+  "createSessionTitle": "创建场次",
+  "createSessionName": "场次名称",
+  "createSessionNameRequired": "请输入名称",
+  "createSessionLocation": "地点",
+  "createSessionDescription": "描述",
+  "createSessionStart": "开始时间",
+  "createSessionDuration": "时长",
+  "createSessionCourts": "场地数",
+  "createSessionMaxPerCourt": "每场最多人数",
+  "createSessionLevels": "接受水平",
+  "createSessionLevelsAll": "所有水平",
+  "createSessionFees": "费用",
+  "createSessionFeeMale": "男",
+  "createSessionFeeFemale": "女",
+  "createSessionAllowGuest": "允许访客用邀请码加入",
+  "createSessionSubmit": "创建",
+  "createSessionCreated": "场次已创建",
+  "createSessionCapacity": "容纳：{count} 人",
+  "@createSessionCapacity": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "createSessionDurationMinutes": "{count} 分钟",
+  "@createSessionDurationMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeHostedSessions": "我创建的场次",
+  "homeHostedEmpty": "您还没有创建场次",
+  "authOr": "或",
+  "authSignInWithApple": "使用 Apple 登录",
+  "authAppleNoToken": "Apple 未返回身份令牌。",
+  "authAppleFailed": "Apple 登录未完成。",
+  "courtNoPlayers": "暂无球员",
+  "courtPreSelected": "已选择，等待上场",
+  "courtNumbered": "{number} 号场",
+  "@courtNumbered": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "playerNumbered": "球员 {number}",
+  "@playerNumbered": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "feeTitle": "费用",
+  "feeSplitLater": "结束后平摊",
+  "feeNotSet": "主办方尚未设置费用",
+  "feePerPerson": "每人",
+  "feeTotal": "总费用",
+  "feeMale": "男",
+  "feeFemale": "女",
+  "hostManageTitle": "管理活动",
+  "hostManageCourts": "球场",
+  "hostManageRoster": "名单",
+  "hostManagePayments": "付款账本",
+  "hostManageAssign": "安排球员",
+  "hostManageReplace": "更换球员",
+  "hostManageStartMatch": "开始比赛",
+  "hostManageEndMatch": "结束比赛",
+  "hostManageClearCourt": "清除选择",
+  "hostManageChooseTwoOrFour": "请选择恰好 2 或 4 名等待中的球员",
+  "hostManagePendingApprovals": "待审批申请",
+  "hostManageApprovedPlayers": "已批准球员",
+  "hostManageApprove": "批准",
+  "hostManageReject": "拒绝",
+  "hostManageRemove": "移除",
+  "hostManageNoPending": "没有待审批的加入申请",
+  "hostManageNoPlayers": "名单中暂无球员",
+  "hostManagePaymentSettings": "收款账户",
+  "hostManageEditSettings": "编辑账户",
+  "hostManageAddSettings": "添加账户",
+  "hostManageBank": "银行",
+  "hostManageAccountNumber": "账号",
+  "hostManageAccountHolder": "账户名称",
+  "hostManageSave": "保存",
+  "hostManagePaymentTotal": "总额",
+  "hostManagePaymentPaid": "已收",
+  "hostManagePaymentOutstanding": "未收",
+  "hostManageBulkApprove": "批准已提交付款",
+  "hostManageNoPayments": "暂无付款记录",
+  "hostManagePaymentPending": "待付款",
+  "hostManagePaymentSubmitted": "待审批",
+  "hostManagePaymentApproved": "已批准",
+  "hostManagePaymentRejected": "已拒绝",
+  "hostManageRejectReason": "拒绝原因",
+  "hostManageConfirmReject": "拒绝付款",
+  "hostManageActionFailed": "操作失败，请重试。",
+  "hostManageStartSession": "开始活动",
+  "hostManageEndSession": "结束活动",
+  "hostManageCheckIn": "签到",
+  "hostManageCheckOut": "标记缺席",
+  "editSessionTitle": "编辑活动",
+  "editSessionSave": "保存更改",
+  "cloneSessionTitle": "复制活动",
+  "cancelSessionTitle": "取消活动",
+  "cancelSessionConfirm": "要取消此活动吗？球员将无法继续加入或比赛。",
+  "cancelSessionAction": "取消活动",
+  "waitingTimeLabel": "已等待",
+  "setSplitAmount": "设置分摊总额",
+  "hostManageDeleteSettings": "删除账户",
+  "sessionExpensesTitle": "活动支出",
+  "sessionExpenseAdd": "添加支出",
+  "sessionExpenseName": "支出名称",
+  "sessionExpenseAmount": "金额",
+  "sessionExpensesEmpty": "暂无支出记录",
+  "sessionExpensesTotal": "支出总额",
+  "transactionDashboardTitle": "交易面板",
+  "transactionDashboardEmpty": "暂无球员交易",
+  "transactionSessions": "场活动",
+  "commonLoadMore": "加载更多",
+  "socialTitle": "社区",
+  "socialFeedTab": "动态",
+  "socialClubsTab": "俱乐部",
+  "socialComposerHint": "分享你的新鲜事…",
+  "socialCreatePost": "发布动态",
+  "socialPublish": "发布",
+  "socialAddPhotos": "添加照片",
+  "socialNoPosts": "暂无动态",
+  "socialPostDetail": "动态",
+  "socialPostActions": "动态操作",
+  "socialComments": "评论",
+  "socialNoComments": "暂无评论",
+  "socialCommentHint": "写评论…",
+  "socialRepost": "转发到动态",
+  "socialShareOutside": "分享到其他应用",
+  "socialClubSearch": "搜索俱乐部",
+  "socialNoClubs": "未找到俱乐部",
+  "socialClubDetail": "俱乐部",
+  "socialMemberCount": "{count} 位成员",
+  "@socialMemberCount": {"placeholders": {"count": {"type": "int"}}},
+  "socialAbout": "简介",
+  "socialVenue": "场地",
+  "socialSchedule": "活动时间",
+  "socialJoinClub": "加入俱乐部",
+  "socialInvitationOnly": "仅限受邀成员",
+  "socialJoinMessage": "给管理员留言（可选）",
+  "socialSendRequest": "发送申请",
+  "socialJoined": "你已加入俱乐部",
+  "socialRequestPending": "申请正在等待审核",
+  "socialProfile": "球员资料",
+  "socialSessions": "活动",
+  "socialRating": "评分",
+  "socialReviews": "评价",
+  "socialNoReviews": "暂无评价",
+  "socialRateSession": "评价本次活动",
+  "socialNothingToRate": "你已完成本次活动的所有评价",
+  "socialRateHost": "评价组织者",
+  "socialRatePlayer": "评价球员",
+  "socialRateName": "评价 {name}",
+  "@socialRateName": {"placeholders": {"name": {"type": "String"}}},
+  "socialRatingComment": "评价内容（可选）",
+  "socialSendRating": "提交评价",
+  "socialRatingSent": "评价已提交",
+  "socialMonday": "星期一",
+  "socialTuesday": "星期二",
+  "socialWednesday": "星期三",
+  "socialThursday": "星期四",
+  "socialFriday": "星期五",
+  "socialSaturday": "星期六",
+  "socialSunday": "星期日",
+  "commonEdit": "编辑",
+  "commonDelete": "删除",
+  "commonRemove": "移除",
+  "commonTitle": "标题",
+  "commonContent": "内容",
+  "clubManageTitle": "管理俱乐部",
+  "clubCreate": "创建俱乐部",
+  "clubEdit": "编辑俱乐部",
+  "clubManageEmpty": "你还没有管理任何俱乐部",
+  "clubStatusPending": "等待审核",
+  "clubStatusRejected": "已拒绝",
+  "clubStatusApproved": "已通过",
+  "clubDeleteTitle": "删除俱乐部",
+  "clubDeleteConfirm": "删除 {name}？此操作无法撤销。",
+  "@clubDeleteConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "clubName": "俱乐部名称",
+  "clubNameRequired": "请输入俱乐部名称",
+  "clubDescription": "简介",
+  "clubLocation": "活动区域",
+  "clubMaxMembers": "成员上限",
+  "clubMaxMembersInvalid": "请输入 1 至 500 之间的数字",
+  "clubJoinPolicy": "加入方式",
+  "clubJoinOpen": "直接加入",
+  "clubJoinApproval": "需要管理员审核",
+  "clubJoinInvitation": "仅限邀请",
+  "clubPublic": "公开俱乐部",
+  "clubPublicDescription": "允许所有人查找和查看此俱乐部",
+  "clubMembers": "成员",
+  "clubRequests": "申请",
+  "clubAnnouncements": "公告",
+  "clubAddMember": "添加成员",
+  "clubMembersEmpty": "暂无成员",
+  "clubRoleAdmin": "管理员",
+  "clubRoleModerator": "协管员",
+  "clubRoleMember": "成员",
+  "clubRemoveMember": "移除成员",
+  "clubRemoveMemberConfirm": "将 {name} 移出俱乐部？",
+  "@clubRemoveMemberConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "clubSearchUsers": "按姓名或邮箱搜索",
+  "clubSearchUsersHint": "输入姓名或邮箱查找用户",
+  "clubRequestsEmpty": "没有待处理的加入申请",
+  "clubRejectRequest": "拒绝申请",
+  "clubRejectReason": "原因（可选）",
+  "clubAnnouncementCreate": "创建公告",
+  "clubAnnouncementEdit": "编辑公告",
+  "clubAnnouncementsEmpty": "暂无公告",
+  "clubAnnouncementDelete": "删除公告",
+  "clubAnnouncementDeleteConfirm": "删除此公告？",
+  "clubAnnouncementPin": "置顶 30 天"
 }

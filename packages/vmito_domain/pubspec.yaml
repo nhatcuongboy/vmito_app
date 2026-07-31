@@ -1,0 +1,19 @@
+name: vmito_domain
+description: "Pure-Dart business rules ported from vmito-fe. No Flutter, no HTTP."
+publish_to: 'none'
+version: 0.1.0
+
+environment:
+  sdk: ^3.12.2
+
+resolution: workspace
+
+# Deliberately empty. This package must never depend on Flutter, dio, or any
+# generated wire type — that constraint is what keeps `dart test` fast and stops
+# business rules from drifting into the UI. The analyzer enforces it: adding
+# `flutter` here would be the change to reject in review.
+dependencies:
+
+dev_dependencies:
+  test: ^1.25.0
+  very_good_analysis: ^10.3.0

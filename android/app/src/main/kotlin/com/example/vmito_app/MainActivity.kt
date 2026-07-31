@@ -1,4 +1,4 @@
-package com.example.vmito_app
+package com.vmito.app
 
 import io.flutter.embedding.android.FlutterActivity
 

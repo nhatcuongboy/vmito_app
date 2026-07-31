@@ -3,6 +3,7 @@ import 'package:vmito_app/core/constants/api_endpoints.dart';
 import 'package:vmito_app/core/network/api_client.dart';
 import 'package:vmito_app/core/network/api_options.dart';
 import 'package:vmito_app/core/network/api_response.dart';
+import 'package:vmito_app/features/auth/domain/password_reset.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
 
 /// Reference implementation for every service in this app.
@@ -55,6 +56,41 @@ class AuthService {
     return unwrap(response.data, User.fromJson);
   }
 
+  /// Exchanges a verified Apple identity token for our own JWT pair.
+  ///
+  /// [givenName] and [familyName] must be passed through on the **first**
+  /// authorization and only then: Apple supplies the display name once and
+  /// never again, so dropping it here leaves the account nameless forever.
+  Future<LoginResponse> signInWithApple({
+    required String identityToken,
+    String? givenName,
+    String? familyName,
+  }) async {
+    final response = await _client.post<Map<String, dynamic>>(
+      ApiEndpoints.appleSignIn,
+      data: {
+        'identityToken': identityToken,
+        'givenName': ?givenName,
+        'familyName': ?familyName,
+      },
+      options: apiOptions(skipGlobalError: true),
+    );
+    return unwrap(response.data, LoginResponse.fromJson);
+  }
+
+  /// Permanently deletes the signed-in account.
+  ///
+  /// The backend anonymizes rather than row-deletes — hosted sessions and the
+  /// payment ledger are also other people's data — but the account can never
+  /// be signed into again and the email is freed. Irreversible either way, so
+  /// the caller must confirm before invoking this.
+  Future<void> deleteAccount() async {
+    await _client.delete<Map<String, dynamic>>(
+      ApiEndpoints.deleteAccount,
+      options: apiOptions(skipGlobalError: true),
+    );
+  }
+
   Future<User> currentUser() async {
     final response = await _client.get<Map<String, dynamic>>(
       ApiEndpoints.currentUser,
@@ -62,12 +98,40 @@ class AuthService {
     return unwrap(response.data, User.fromJson);
   }
 
-  Future<void> forgotPassword(String email) async {
+  Future<void> forgotPassword({
+    required String email,
+    required String locale,
+    required String redirectUrl,
+  }) async {
     await _client.post<Map<String, dynamic>>(
       ApiEndpoints.forgotPassword,
-      data: {'email': email},
+      data: {
+        'email': email,
+        'locale': locale,
+        'redirectUrl': redirectUrl,
+      },
       options: apiOptions(skipGlobalError: true),
     );
+  }
+
+  Future<void> resetPassword({
+    required String token,
+    required String newPassword,
+  }) async {
+    await _client.put<Map<String, dynamic>>(
+      ApiEndpoints.resetPassword,
+      data: {'token': token, 'newPassword': newPassword},
+      options: apiOptions(skipGlobalError: true),
+    );
+  }
+
+  Future<PasswordResetTokenStatus> verifyResetToken(String token) async {
+    final response = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.verifyResetToken,
+      queryParameters: {'token': token},
+      options: apiOptions(skipGlobalError: true),
+    );
+    return unwrap(response.data, PasswordResetTokenStatus.fromJson);
   }
 
   Future<void> changePassword({

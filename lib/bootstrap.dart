@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vmito_app/app.dart';
+import 'package:vmito_app/core/localization/locale_controller.dart';
 import 'package:vmito_app/core/network/api_client.dart';
 import 'package:vmito_app/core/network/error_interceptor.dart';
 import 'package:vmito_app/core/storage/token_storage.dart';
@@ -28,6 +30,7 @@ Future<void> bootstrap() async {
 
   final tokenStorage = TokenStorage();
   final errorBus = ApiErrorBus();
+  final preferences = await SharedPreferences.getInstance();
 
   // The interceptor needs to sign the user out on a failed refresh, but the
   // container does not exist yet — this late binding closes the cycle.
@@ -45,12 +48,20 @@ Future<void> bootstrap() async {
       tokenStorageProvider.overrideWithValue(tokenStorage),
       apiErrorBusProvider.overrideWithValue(errorBus),
       apiClientProvider.overrideWithValue(apiClient),
+      localeRepositoryProvider.overrideWithValue(
+        SharedPreferencesLocaleRepository(preferences),
+      ),
     ],
   );
 
   // Resolve auth before the first frame so the router never flashes sign-in
   // at a user who is in fact signed in.
   await container.read(authControllerProvider.notifier).restoreSession();
+  container
+      .read(localeControllerProvider.notifier)
+      .restore(
+        WidgetsBinding.instance.platformDispatcher.locales,
+      );
 
   runApp(
     UncontrolledProviderScope(container: container, child: const VmitoApp()),

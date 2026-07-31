@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/l10n/app_localizations.dart';
 
 /// Full-screen failure state for a load that produced nothing to show.
 ///
@@ -46,7 +47,7 @@ class AppErrorView extends StatelessWidget {
               OutlinedButton.icon(
                 onPressed: onRetry,
                 icon: const Icon(Icons.refresh_rounded),
-                label: const Text('Thử lại'),
+                label: Text(AppLocalizations.of(context).commonRetry),
               ),
             ],
           ],

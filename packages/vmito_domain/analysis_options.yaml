@@ -1,0 +1,16 @@
+include: package:very_good_analysis/analysis_options.yaml
+
+linter:
+  rules:
+    # Every class here is a value type with only final fields. The lint asks
+    # for `@immutable`, which lives in package:meta — and this package keeps
+    # zero dependencies on purpose, because that is what guarantees its tests
+    # run without Flutter and its rules cannot drift into the UI.
+    avoid_equals_and_hash_code_on_mutable_classes: false
+
+    # These are ports, not new APIs. Doc comments record the decisions and the
+    # web file each function came from; requiring one per member would bury
+    # that in noise.
+    public_member_api_docs: false
+
+    lines_longer_than_80_chars: false

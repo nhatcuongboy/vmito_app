@@ -1,0 +1,29 @@
+targets:
+  $default:
+    sources:
+      - lib/**
+      - openapi/**
+      - test/**
+      - $package$
+    builders:
+      # Generates DTOs only. The 34 service classes are hand-written, named 1:1
+      # with their vmito-fe counterparts — a generated client would be a
+      # patching treadmill against imperfect NestJS Swagger output, and the
+      # hand-tuned signatures are needed for GET de-duplication and
+      # skipGlobalError. See docs/API_INTEGRATION.md.
+      swagger_dart_code_generator:
+        options:
+          input_folder: 'openapi/'
+          output_folder: 'lib/core/api/generated/'
+          build_only_models: true
+          separate_models: true
+          # Backend nullability metadata is imperfect, so treat every field as
+          # optional and normalise at the service boundary rather than trusting
+          # the document and crashing on a null.
+          use_required_attribute_for_headers: false
+          include_if_null: false
+          enums_case_sensitive: true
+          # `PlayerLevel` values are non-contiguous (1-8, then 9 =
+          # BEGINNER_MINUS, 10 = BEGINNER_PLUS). A generated enum silently
+          # reorders them, so integer-valued enums stay integers.
+          use_default_null_for_lists: true

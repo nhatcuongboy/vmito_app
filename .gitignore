@@ -56,3 +56,7 @@ lib/l10n/untranslated.json
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist
 lib/firebase_options.dart
+
+# Generated from openapi/openapi.json. Regenerate with tool/sync_openapi.sh
+# then `dart run build_runner build`. openapi/openapi.json IS committed.
+lib/core/api/generated/

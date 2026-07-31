@@ -1,0 +1,334 @@
+[
+  {
+    "input": {
+      "sets": [],
+      "side": 1,
+      "delta": 1,
+      "rules": {
+        "pointsToWin": 21,
+        "winBy": 2,
+        "cap": 30,
+        "bestOf": 3
+      },
+      "isDoubles": false
+    },
+    "output": [
+      {
+        "setNumber": 1,
+        "player1Score": 1,
+        "player2Score": 0
+      }
+    ]
+  },
+  {
+    "input": {
+      "sets": [],
+      "side": 1,
+      "delta": -1,
+      "rules": {
+        "pointsToWin": 21,
+        "winBy": 2,
+        "cap": 30,
+        "bestOf": 3
+      },
+      "isDoubles": false
+    },
+    "output": [
+      {
+        "setNumber": 1,
+        "player1Score": 0,
+        "player2Score": 0
+      }
+    ]
+  },
+  {
+    "input": {
+      "sets": [],
+      "side": 2,
+      "delta": 1,
+      "rules": {
+        "pointsToWin": 21,
+        "winBy": 2,
+        "cap": 30,
+        "bestOf": 3
+      },
+      "isDoubles": true
+    },
+    "output": [
+      {
+        "setNumber": 1,
+        "player1Score": 0,
+        "player2Score": 1,
+        "player3Score": 0,
+        "player4Score": 1
+      }
+    ]
+  },
+  {
+    "input": {
+      "sets": [],
+      "side": 2,
+      "delta": -1,
+      "rules": {
+        "pointsToWin": 21,
+        "winBy": 2,
+        "cap": 30,
+        "bestOf": 3
+      },
+      "isDoubles": true
+    },
+    "output": [
+      {
+        "setNumber": 1,
+        "player1Score": 0,
+        "player2Score": 0,
+        "player3Score": 0,
+        "player4Score": 0
+      }
+    ]
+  },
+  {
+    "input": {
+      "sets": [
+        {
+          "setNumber": 1,
+          "player1Score": 0,
+          "player2Score": 0
+        }
+      ],
+      "side": 1,
+      "delta": 1,
+      "rules": {
+        "pointsToWin": 21,
+        "winBy": 2,
+        "cap": 30,
+        "bestOf": 3
+      },
+      "isDoubles": false
+    },
+    "output": [
+      {
+        "setNumber": 1,
+        "player1Score": 1,
+        "player2Score": 0
+      }
+    ]
+  },
+  {
+    "input": {
+      "sets": [
+        {
+          "setNumber": 1,
+          "player1Score": 0,
+          "player2Score": 0
+        }
+      ],
+      "side": 1,
+      "delta": -1,
+      "rules": {
+        "pointsToWin": 21,
+        "winBy": 2,
+        "cap": 30,
+        "bestOf": 3
+      },
+      "isDoubles": false
+    },
+    "output": [
+      {
+        "setNumber": 1,
+        "player1Score": 0,
+        "player2Score": 0
+      }
+    ]
+  },
+  {
+    "input": {
+      "sets": [
+        {
+          "setNumber": 1,
+          "player1Score": 5,
+          "player2Score": 3
+        }
+      ],
+      "side": 1,
+      "delta": 1,
+      "rules": {
+        "pointsToWin": 21,
+        "winBy": 2,
+        "cap": 30,
+        "bestOf": 3
+      },
+      "isDoubles": false
+    },
+    "output": [
+      {
+        "setNumber": 1,
+        "player1Score": 6,
+        "player2Score": 3
+      }
+    ]
+  },
+  {
+    "input": {
+      "sets": [
+        {
+          "setNumber": 1,
+          "player1Score": 5,
+          "player2Score": 3
+        }
+      ],
+      "side": 1,
+      "delta": -1,
+      "rules": {
+        "pointsToWin": 21,
+        "winBy": 2,
+        "cap": 30,
+        "bestOf": 3
+      },
+      "isDoubles": false
+    },
+    "output": [
+      {
+        "setNumber": 1,
+        "player1Score": 4,
+        "player2Score": 3
+      }
+    ]
+  },
+  {
+    "input": {
+      "sets": [
+        {
+          "setNumber": 1,
+          "player1Score": 5,
+          "player2Score": 3,
+          "player3Score": 5,
+          "player4Score": 3
+        }
+      ],
+      "side": 2,
+      "delta": 1,
+      "rules": {
+        "pointsToWin": 21,
+        "winBy": 2,
+        "cap": 30,
+        "bestOf": 3
+      },
+      "isDoubles": true
+    },
+    "output": [
+      {
+        "setNumber": 1,
+        "player1Score": 5,
+        "player2Score": 4,
+        "player3Score": 5,
+        "player4Score": 4
+      }
+    ]
+  },
+  {
+    "input": {
+      "sets": [
+        {
+          "setNumber": 1,
+          "player1Score": 5,
+          "player2Score": 3,
+          "player3Score": 5,
+          "player4Score": 3
+        }
+      ],
+      "side": 2,
+      "delta": -1,
+      "rules": {
+        "pointsToWin": 21,
+        "winBy": 2,
+        "cap": 30,
+        "bestOf": 3
+      },
+      "isDoubles": true
+    },
+    "output": [
+      {
+        "setNumber": 1,
+        "player1Score": 5,
+        "player2Score": 2,
+        "player3Score": 5,
+        "player4Score": 2
+      }
+    ]
+  },
+  {
+    "input": {
+      "sets": [
+        {
+          "setNumber": 1,
+          "player1Score": 21,
+          "player2Score": 10
+        },
+        {
+          "setNumber": 2,
+          "player1Score": 21,
+          "player2Score": 12
+        }
+      ],
+      "side": 1,
+      "delta": 1,
+      "rules": {
+        "pointsToWin": 21,
+        "winBy": 2,
+        "cap": 30,
+        "bestOf": 3
+      },
+      "isDoubles": false
+    },
+    "output": [
+      {
+        "setNumber": 1,
+        "player1Score": 21,
+        "player2Score": 10
+      },
+      {
+        "setNumber": 2,
+        "player1Score": 21,
+        "player2Score": 12
+      }
+    ]
+  },
+  {
+    "input": {
+      "sets": [
+        {
+          "setNumber": 1,
+          "player1Score": 21,
+          "player2Score": 10
+        },
+        {
+          "setNumber": 2,
+          "player1Score": 21,
+          "player2Score": 12
+        }
+      ],
+      "side": 1,
+      "delta": -1,
+      "rules": {
+        "pointsToWin": 21,
+        "winBy": 2,
+        "cap": 30,
+        "bestOf": 3
+      },
+      "isDoubles": false
+    },
+    "output": [
+      {
+        "setNumber": 1,
+        "player1Score": 21,
+        "player2Score": 10
+      },
+      {
+        "setNumber": 2,
+        "player1Score": 20,
+        "player2Score": 12
+      }
+    ]
+  }
+]

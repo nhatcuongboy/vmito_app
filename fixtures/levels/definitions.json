@@ -1,0 +1,72 @@
+[
+  {
+    "id": 9,
+    "code": "Y_MINUS",
+    "shortLabel": "Yếu-",
+    "rank": 0,
+    "sortOrder": 5
+  },
+  {
+    "id": 1,
+    "code": "Y",
+    "shortLabel": "Yếu",
+    "rank": 1,
+    "sortOrder": 10
+  },
+  {
+    "id": 10,
+    "code": "Y_PLUS",
+    "shortLabel": "Yếu+",
+    "rank": 2,
+    "sortOrder": 15
+  },
+  {
+    "id": 2,
+    "code": "TBY",
+    "shortLabel": "TBY",
+    "rank": 3,
+    "sortOrder": 20
+  },
+  {
+    "id": 3,
+    "code": "TB_MINUS",
+    "shortLabel": "TB-",
+    "rank": 4,
+    "sortOrder": 30
+  },
+  {
+    "id": 4,
+    "code": "TB",
+    "shortLabel": "TB",
+    "rank": 5,
+    "sortOrder": 40
+  },
+  {
+    "id": 5,
+    "code": "TB_PLUS",
+    "shortLabel": "TB+",
+    "rank": 6,
+    "sortOrder": 50
+  },
+  {
+    "id": 6,
+    "code": "KHA",
+    "shortLabel": "Khá",
+    "rank": 7,
+    "sortOrder": 60
+  },
+  {
+    "id": 7,
+    "code": "BC",
+    "shortLabel": "BC",
+    "rank": 8,
+    "sortOrder": 70
+  },
+  {
+    "id": 8,
+    "code": "CN",
+    "shortLabel": "CN",
+    "rank": 9,
+    "sortOrder": 80
+  }
+]

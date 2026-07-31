@@ -1,6 +1,5 @@
 {
   "FLAVOR": "dev",
   "API_BASE_URL": "http://10.0.2.2:3001/api",
-  "WEB_BASE_URL": "http://10.0.2.2:3000",
-  "AUTH_CALLBACK_SCHEME": "vmito"
+  "WEB_BASE_URL": "http://10.0.2.2:3000"
 }

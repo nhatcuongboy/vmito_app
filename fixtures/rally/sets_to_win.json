@@ -1,0 +1,29 @@
+[
+  {
+    "input": {
+      "pointsToWin": 21,
+      "winBy": 2,
+      "cap": null,
+      "bestOf": 1
+    },
+    "output": 1
+  },
+  {
+    "input": {
+      "pointsToWin": 21,
+      "winBy": 2,
+      "cap": null,
+      "bestOf": 3
+    },
+    "output": 2
+  },
+  {
+    "input": {
+      "pointsToWin": 21,
+      "winBy": 2,
+      "cap": null,
+      "bestOf": 5
+    },
+    "output": 3
+  }
+]

@@ -1,6 +1,5 @@
 {
   "FLAVOR": "staging",
   "API_BASE_URL": "https://staging.vmito.com/api",
-  "WEB_BASE_URL": "https://staging.vmito.com",
-  "AUTH_CALLBACK_SCHEME": "vmito"
+  "WEB_BASE_URL": "https://staging.vmito.com"
 }
