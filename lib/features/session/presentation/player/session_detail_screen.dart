@@ -15,6 +15,7 @@ import 'package:vmito_app/features/session/presentation/widgets/session_fee_sect
 import 'package:vmito_app/features/session/presentation/widgets/session_header.dart';
 import 'package:vmito_app/features/session/presentation/widgets/session_player_summary.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_loading_view.dart';
 
 /// Public session detail.
 ///
@@ -47,7 +48,7 @@ class SessionDetailScreen extends ConsumerWidget {
         ],
       ),
       body: session.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const AppLoadingView(),
         error: (error, _) => AppErrorView(
           error: error,
           onRetry: () => ref.invalidate(sessionDetailProvider(sessionId)),

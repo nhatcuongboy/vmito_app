@@ -11,6 +11,7 @@ import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/session/application/player/browse_sessions_controller.dart';
 import 'package:vmito_app/features/session/presentation/widgets/session_card.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_loading_view.dart';
 
 /// Public session browse — the entry point of the join funnel.
 ///
@@ -132,9 +133,7 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
               onRefresh: controller.refresh,
               child: switch (state) {
                 _ when state.isLoading && state.sessions.isEmpty =>
-                  const Center(
-                    child: CircularProgressIndicator(),
-                  ),
+                  const AppLoadingView(),
                 // Only replace the list with a full-screen error when there is
                 // nothing to show; a failed "load more" keeps the list and reports
                 // itself through the app-wide error listener.
@@ -177,7 +176,7 @@ class _SessionList extends StatelessWidget {
         if (index >= state.sessions.length) {
           return const Padding(
             padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
-            child: Center(child: CircularProgressIndicator()),
+            child: AppLoadingView(),
           );
         }
         final session = state.sessions[index];

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
 import 'package:vmito_app/features/session/presentation/player/create_session_screen.dart';
+import 'package:vmito_app/shared/widgets/app_loading_view.dart';
 
 class EditSessionScreen extends ConsumerWidget {
   const EditSessionScreen({
@@ -19,7 +20,7 @@ class EditSessionScreen extends ConsumerWidget {
     final session = ref.watch(sessionDetailProvider(sessionId));
     return session.when(
       loading: () => const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        body: AppLoadingView(),
       ),
       error: (error, _) => Scaffold(
         body: AppErrorView(
