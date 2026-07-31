@@ -1,8 +1,6 @@
 {
   "@@locale": "en",
-
   "appName": "Vmito",
-
   "commonRetry": "Retry",
   "commonCancel": "Cancel",
   "commonConfirm": "Confirm",
@@ -10,7 +8,6 @@
   "commonClose": "Close",
   "commonLoading": "Loading...",
   "commonSearch": "Search",
-
   "errorNetwork": "No network connection. Please try again.",
   "errorTimeout": "The request timed out. Please try again.",
   "errorUnauthorized": "Your session has expired.",
@@ -19,8 +16,7 @@
   "errorValidation": "Invalid data.",
   "errorServer": "The server is having trouble. Please try again later.",
   "errorUnknown": "Something went wrong. Please try again.",
-
-  "authSignIn": "Sign in",
+  "authSignIn": "Sign In",
   "authSignUp": "Sign up",
   "authSignOut": "Sign out",
   "authEmail": "Email",
@@ -28,6 +24,66 @@
   "authForgotPassword": "Forgot password?",
   "authContinueWithGoogle": "Continue with Google",
   "authContinueWithFacebook": "Continue with Facebook",
+  "authSocialFailed": "Social sign-in could not be completed. Please try again.",
+  "authSignUpHeading": "Sign up",
+  "authSignUpDescription": "Join Badminton Session Manager",
+  "authSignUpName": "Name",
+  "authSignUpNamePlaceholder": "Enter your full name",
+  "authSignUpNameRequired": "Please enter your full name",
+  "authSignUpEmail": "Email",
+  "authSignUpEmailPlaceholder": "Enter your email",
+  "authSignUpEmailRequired": "Please enter your email",
+  "authSignUpInvalidEmail": "Invalid email address",
+  "authSignUpPhone": "Phone number",
+  "authSignUpPhonePlaceholder": "Phone number",
+  "authSignUpPhoneInvalid": "Phone number must contain exactly 10 digits",
+  "authSignUpGender": "Gender",
+  "authSignUpMale": "Male",
+  "authSignUpFemale": "Female",
+  "authSignUpPassword": "Password",
+  "authSignUpPasswordPlaceholder": "Create a password",
+  "authSignUpPasswordRequirements": "At least 8 characters with uppercase, lowercase, number, and special character.",
+  "authSignUpPasswordRequired": "Please enter a password",
+  "authSignUpPasswordWeak": "Password must have at least 8 characters with uppercase, lowercase, number, and special character",
+  "authSignUpConfirmPassword": "Confirm password",
+  "authSignUpConfirmPlaceholder": "Enter your password again",
+  "authSignUpConfirmRequired": "Please confirm your password",
+  "authSignUpPasswordsDoNotMatch": "Passwords do not match",
+  "authSignUpCreateAccount": "Sign up",
+  "authSignUpAlreadyHaveAccount": "Already have an account? Sign in",
+  "authSignUpAccountCreated": "Sign-up successful! Please sign in to continue.",
+  "authNoAccount": "Don't have an account?",
+  "authSignUpUserExists": "This email is already in use",
+  "authSignUpFailed": "Sign-up failed. Please try again.",
+  "authForgotHeading": "Forgot Password",
+  "authForgotDescription": "Enter your account email to receive password reset instructions.",
+  "authForgotEmail": "Email",
+  "authForgotEmailPlaceholder": "Enter your email",
+  "authForgotSubmit": "Send instructions",
+  "authForgotSuccess": "If this email is valid, password reset instructions will arrive in a few minutes.",
+  "authForgotInvalidEmail": "Invalid email address",
+  "authForgotEmailRequired": "Please enter your email",
+  "authForgotRequestFailed": "Could not send the password reset request. Please try again.",
+  "authBackToSignIn": "Back to sign in",
+  "authTooManyRequests": "Too many requests. Please try again later.",
+  "authResetHeading": "Reset Password",
+  "authResetDescription": "Create a new password for your account.",
+  "authResetDescriptionWithEmail": "Create a new password for account {email}.",
+  "@authResetDescriptionWithEmail": {"placeholders": {"email": {"type": "String"}}},
+  "authResetNewPassword": "New password",
+  "authResetNewPasswordPlaceholder": "Enter new password",
+  "authResetConfirmPassword": "Confirm password",
+  "authResetConfirmPasswordPlaceholder": "Confirm new password",
+  "authResetSubmit": "Reset password",
+  "authResetSuccess": "Your password has been reset successfully. You can sign in with your new password.",
+  "authResetSuccessWithEmail": "The password for account {email} has been reset successfully. You can sign in with your new password.",
+  "@authResetSuccessWithEmail": {"placeholders": {"email": {"type": "String"}}},
+  "authResetMissingToken": "This password reset link is invalid or missing a verification token.",
+  "authResetInvalidToken": "This password reset link is invalid or has expired.",
+  "authResetFailed": "Could not reset your password. Please try again.",
+  "authResetPasswordsDoNotMatch": "Passwords do not match",
+  "authResetPasswordTooShort": "Password must be at least 6 characters",
+  "authResetConfirmRequired": "Please confirm your password",
   "authContinueAsGuest": "Continue as guest",
   "authEmailRequired": "Please enter your email",
   "authEmailInvalid": "Invalid email address",
@@ -40,13 +96,11 @@
       }
     }
   },
-
   "navHome": "Home",
   "navSessions": "Sessions",
   "navTournaments": "Tournaments",
   "navNotifications": "Notifications",
   "navProfile": "Profile",
-
   "courtCallTitle": "You're up!",
   "courtCallAnnouncement": "Please go to court {courtNumber}",
   "@courtCallAnnouncement": {
@@ -56,5 +110,376 @@
       }
     }
   },
-  "courtCallAcknowledge": "Got it"
+  "courtCallAcknowledge": "Got it",
+  "navFeed": "Community",
+  "profileTitle": "Profile",
+  "feedTitle": "Feed",
+  "homeTitle": "Home",
+  "comingSoon": "Coming soon",
+  "languageTitle": "Language",
+  "languageChangeTooltip": "Change language",
+  "languageVietnamese": "Vietnamese",
+  "languageEnglish": "English",
+  "languageChinese": "Chinese",
+  "profileLanguage": "Language",
+  "errorCancelled": "The request was cancelled.",
+  "routeNotFound": "Route not found: {uri}",
+  "@routeNotFound": {
+    "placeholders": {
+      "uri": {
+        "type": "String"
+      }
+    }
+  },
+  "homeGreeting": "Hello, {userName}",
+  "@homeGreeting": {
+    "placeholders": {
+      "userName": {
+        "type": "String"
+      }
+    }
+  },
+  "homeLiveHint": "Choose a session to follow its courts live.",
+  "homeBrowseSessions": "Find sessions",
+  "sessionBrowseTitle": "Find Sessions",
+  "sessionEmpty": "No sessions found",
+  "sessionDetailTitle": "Session Details",
+  "sessionCourtsTitle": "Courts",
+  "sessionPlayersTitle": "Players",
+  "sessionDescriptionTitle": "Description",
+  "sessionCourtCount": "{count, plural, =1{1 court} other{{count} courts}}",
+  "@sessionCourtCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionCourtCapacity": "{courtCount} courts · up to {playerCount} players",
+  "@sessionCourtCapacity": {
+    "placeholders": {
+      "courtCount": {
+        "type": "int"
+      },
+      "playerCount": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionCrawledReadOnly": "Collected from Facebook — view only",
+  "sessionClosed": "This session is closed",
+  "sessionPlayingCount": "Playing: {count}",
+  "@sessionPlayingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionWaitingCount": "Waiting: {count}",
+  "@sessionWaitingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courtStatusPlaying": "Playing",
+  "courtStatusInUse": "Playing",
+  "courtStatusReady": "Ready",
+  "courtStatusEmpty": "Available",
+  "courtNumber": "Court {number}",
+  "@courtNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "playerFallback": "Player",
+  "playerNumber": "Player {number}",
+  "@playerNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "dateToday": "Today",
+  "dateTomorrow": "Tomorrow",
+  "dateYesterday": "Yesterday",
+  "level1": "Yếu",
+  "level2": "TBY",
+  "level3": "TB-",
+  "level4": "TB",
+  "level5": "TB+",
+  "level6": "Khá",
+  "level7": "BC",
+  "level8": "CN",
+  "level9": "Yếu-",
+  "level10": "Yếu+",
+  "liveCourtTitle": "Live courts",
+  "liveCourtOpen": "View live courts",
+  "liveReconnecting": "Reconnecting live updates…",
+  "liveNoCourts": "This session has no courts yet.",
+  "livePlayerCount": "{count} players",
+  "@livePlayerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "feeNotConfigured": "Fees are not configured",
+  "sessionSearchHint": "Session, venue or area",
+  "sessionFiltersTitle": "Filters",
+  "sessionFiltersApply": "Apply",
+  "sessionFiltersClear": "Clear filters",
+  "sessionFilterSource": "Session source",
+  "sessionSourceAll": "All",
+  "sessionSourceRegular": "Vmito",
+  "sessionSourceFacebook": "Facebook",
+  "sessionFilterLevel": "Skill level",
+  "sessionFilterAvailableSlots": "Available slots only",
+  "sessionTabOverview": "Overview",
+  "sessionTabCourts": "Courts",
+  "sessionTabPlayers": "Players",
+  "sessionTabFees": "Fees",
+  "playerStatusWaiting": "Waiting",
+  "playerStatusPlaying": "Playing",
+  "playerStatusFinished": "Finished",
+  "playerStatusReady": "Ready",
+  "playerStatusInactive": "Inactive",
+  "notificationsTitle": "Notifications",
+  "notificationsEmpty": "You have no notifications yet.",
+  "notificationsMarkAllRead": "Mark all read",
+  "accountDeleteTitle": "Delete account",
+  "accountDeleteWarning": "This cannot be undone.",
+  "accountDeleteRemoved": "Removed: your password, sign-in links, personal details, photos and notifications.",
+  "accountDeleteRetained": "Kept anonymously: sessions you hosted and payment history, because those are also other players’ records.",
+  "accountDeleteCannotSignIn": "You will not be able to sign in with this account again.",
+  "accountDeleteConfirm": "Delete permanently",
+  "accountDeleteFailed": "Could not delete the account. Please try again.",
+  "createSessionTitle": "Create session",
+  "createSessionName": "Session name",
+  "createSessionNameRequired": "Please enter a name",
+  "createSessionLocation": "Location",
+  "createSessionDescription": "Description",
+  "createSessionStart": "Starts",
+  "createSessionDuration": "Duration",
+  "createSessionCourts": "Courts",
+  "createSessionMaxPerCourt": "Max players / court",
+  "createSessionLevels": "Skill levels",
+  "createSessionLevelsAll": "All levels",
+  "createSessionFees": "Fees",
+  "createSessionFeeMale": "Men",
+  "createSessionFeeFemale": "Women",
+  "createSessionAllowGuest": "Allow guests to join with a code",
+  "createSessionSubmit": "Create",
+  "createSessionCreated": "Session created",
+  "createSessionCapacity": "Capacity: {count} players",
+  "@createSessionCapacity": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "createSessionDurationMinutes": "{count} min",
+  "@createSessionDurationMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeHostedSessions": "Sessions I host",
+  "homeHostedEmpty": "You have not created any sessions",
+  "authOr": "or",
+  "authSignInWithApple": "Sign in with Apple",
+  "authAppleNoToken": "Apple did not return an identity token.",
+  "authAppleFailed": "Apple sign-in did not complete.",
+  "courtNoPlayers": "No players yet",
+  "courtPreSelected": "Selected, waiting to start",
+  "courtNumbered": "Court {number}",
+  "@courtNumbered": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "playerNumbered": "Player {number}",
+  "@playerNumbered": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "feeTitle": "Fees",
+  "feeSplitLater": "Split evenly afterwards",
+  "feeNotSet": "The host has not set fees yet",
+  "feePerPerson": "Per person",
+  "feeTotal": "Total cost",
+  "feeMale": "Men",
+  "feeFemale": "Women",
+  "hostManageTitle": "Manage session",
+  "hostManageCourts": "Courts",
+  "hostManageRoster": "Roster",
+  "hostManagePayments": "Payment ledger",
+  "hostManageAssign": "Assign players",
+  "hostManageReplace": "Change players",
+  "hostManageStartMatch": "Start match",
+  "hostManageEndMatch": "End match",
+  "hostManageClearCourt": "Clear selection",
+  "hostManageChooseTwoOrFour": "Select exactly 2 or 4 waiting players",
+  "hostManagePendingApprovals": "Pending approvals",
+  "hostManageApprovedPlayers": "Approved players",
+  "hostManageApprove": "Approve",
+  "hostManageReject": "Reject",
+  "hostManageRemove": "Remove",
+  "hostManageNoPending": "No pending join requests",
+  "hostManageNoPlayers": "No players in the roster",
+  "hostManagePaymentSettings": "Payment account",
+  "hostManageEditSettings": "Edit account",
+  "hostManageAddSettings": "Add account",
+  "hostManageBank": "Bank",
+  "hostManageAccountNumber": "Account number",
+  "hostManageAccountHolder": "Account holder",
+  "hostManageSave": "Save",
+  "hostManagePaymentTotal": "Total",
+  "hostManagePaymentPaid": "Collected",
+  "hostManagePaymentOutstanding": "Outstanding",
+  "hostManageBulkApprove": "Approve submitted",
+  "hostManageNoPayments": "No payment records yet",
+  "hostManagePaymentPending": "Pending",
+  "hostManagePaymentSubmitted": "Submitted",
+  "hostManagePaymentApproved": "Approved",
+  "hostManagePaymentRejected": "Rejected",
+  "hostManageRejectReason": "Reason for rejection",
+  "hostManageConfirmReject": "Reject payment",
+  "hostManageActionFailed": "Could not complete the action. Please try again.",
+  "hostManageStartSession": "Start session",
+  "hostManageEndSession": "End session",
+  "hostManageCheckIn": "Check in",
+  "hostManageCheckOut": "Mark absent",
+  "editSessionTitle": "Edit session",
+  "editSessionSave": "Save changes",
+  "cloneSessionTitle": "Clone session",
+  "cancelSessionTitle": "Cancel session",
+  "cancelSessionConfirm": "Cancel this session? Players will no longer be able to join or play.",
+  "cancelSessionAction": "Cancel session",
+  "waitingTimeLabel": "Waiting",
+  "setSplitAmount": "Set amount to split",
+  "hostManageDeleteSettings": "Delete account",
+  "sessionExpensesTitle": "Session expenses",
+  "sessionExpenseAdd": "Add expense",
+  "sessionExpenseName": "Expense name",
+  "sessionExpenseAmount": "Amount",
+  "sessionExpensesEmpty": "No expenses recorded",
+  "sessionExpensesTotal": "Total expenses",
+  "transactionDashboardTitle": "Transaction dashboard",
+  "transactionDashboardEmpty": "No player transactions yet",
+  "transactionSessions": "sessions",
+  "commonLoadMore": "Load more",
+  "socialTitle": "Community",
+  "socialFeedTab": "Feed",
+  "socialClubsTab": "Clubs",
+  "socialComposerHint": "What would you like to share?",
+  "socialCreatePost": "Create post",
+  "socialPublish": "Publish",
+  "socialAddPhotos": "Add photos",
+  "socialNoPosts": "No posts yet",
+  "socialPostDetail": "Post",
+  "socialPostActions": "Post actions",
+  "socialComments": "Comments",
+  "socialNoComments": "No comments yet",
+  "socialCommentHint": "Write a comment…",
+  "socialRepost": "Repost to feed",
+  "socialShareOutside": "Share with another app",
+  "socialClubSearch": "Search clubs",
+  "socialNoClubs": "No clubs found",
+  "socialClubDetail": "Club",
+  "socialMemberCount": "{count} members",
+  "@socialMemberCount": {"placeholders": {"count": {"type": "int"}}},
+  "socialAbout": "About",
+  "socialVenue": "Venue",
+  "socialSchedule": "Schedule",
+  "socialJoinClub": "Join club",
+  "socialInvitationOnly": "Invitation only",
+  "socialJoinMessage": "Message to the administrators (optional)",
+  "socialSendRequest": "Send request",
+  "socialJoined": "You joined the club",
+  "socialRequestPending": "Your request is pending approval",
+  "socialProfile": "Player profile",
+  "socialSessions": "Sessions",
+  "socialRating": "Rating",
+  "socialReviews": "Reviews",
+  "socialNoReviews": "No reviews yet",
+  "socialRateSession": "Rate this session",
+  "socialNothingToRate": "You have completed all ratings for this session",
+  "socialRateHost": "Rate the host",
+  "socialRatePlayer": "Rate player",
+  "socialRateName": "Rate {name}",
+  "@socialRateName": {"placeholders": {"name": {"type": "String"}}},
+  "socialRatingComment": "Comment (optional)",
+  "socialSendRating": "Submit rating",
+  "socialRatingSent": "Rating submitted",
+  "socialMonday": "Monday",
+  "socialTuesday": "Tuesday",
+  "socialWednesday": "Wednesday",
+  "socialThursday": "Thursday",
+  "socialFriday": "Friday",
+  "socialSaturday": "Saturday",
+  "socialSunday": "Sunday",
+  "commonEdit": "Edit",
+  "commonDelete": "Delete",
+  "commonRemove": "Remove",
+  "commonTitle": "Title",
+  "commonContent": "Content",
+  "clubManageTitle": "Manage clubs",
+  "clubCreate": "Create club",
+  "clubEdit": "Edit club",
+  "clubManageEmpty": "You don't manage any clubs yet",
+  "clubStatusPending": "Pending approval",
+  "clubStatusRejected": "Rejected",
+  "clubStatusApproved": "Approved",
+  "clubDeleteTitle": "Delete club",
+  "clubDeleteConfirm": "Delete {name}? This action cannot be undone.",
+  "@clubDeleteConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "clubName": "Club name",
+  "clubNameRequired": "Enter a club name",
+  "clubDescription": "Description",
+  "clubLocation": "Activity area",
+  "clubMaxMembers": "Maximum members",
+  "clubMaxMembersInvalid": "Enter a number from 1 to 500",
+  "clubJoinPolicy": "Join policy",
+  "clubJoinOpen": "Join immediately",
+  "clubJoinApproval": "Administrator approval required",
+  "clubJoinInvitation": "Invitation only",
+  "clubPublic": "Public club",
+  "clubPublicDescription": "Allow everyone to find and view this club",
+  "clubMembers": "Members",
+  "clubRequests": "Requests",
+  "clubAnnouncements": "Announcements",
+  "clubAddMember": "Add member",
+  "clubMembersEmpty": "No members yet",
+  "clubRoleAdmin": "Administrator",
+  "clubRoleModerator": "Moderator",
+  "clubRoleMember": "Member",
+  "clubRemoveMember": "Remove member",
+  "clubRemoveMemberConfirm": "Remove {name} from the club?",
+  "@clubRemoveMemberConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "clubSearchUsers": "Search by name or email",
+  "clubSearchUsersHint": "Enter a name or email to find users",
+  "clubRequestsEmpty": "No pending join requests",
+  "clubRejectRequest": "Reject request",
+  "clubRejectReason": "Reason (optional)",
+  "clubAnnouncementCreate": "Create announcement",
+  "clubAnnouncementEdit": "Edit announcement",
+  "clubAnnouncementsEmpty": "No announcements yet",
+  "clubAnnouncementDelete": "Delete announcement",
+  "clubAnnouncementDeleteConfirm": "Delete this announcement?",
+  "clubAnnouncementPin": "Pin for 30 days"
 }

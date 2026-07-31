@@ -84,10 +84,10 @@ class SocketClient {
       events.where((e) => e.name == eventName).map((e) => e.data);
 
   void joinSession(String sessionId) =>
-      _socket?.emit(SocketCommand.joinSession, {'sessionId': sessionId});
+      _socket?.emit(SocketCommand.joinSession, sessionId);
 
   void leaveSession(String sessionId) =>
-      _socket?.emit(SocketCommand.leaveSession, {'sessionId': sessionId});
+      _socket?.emit(SocketCommand.leaveSession, sessionId);
 
   void emit(String event, Map<String, dynamic> payload) =>
       _socket?.emit(event, payload);

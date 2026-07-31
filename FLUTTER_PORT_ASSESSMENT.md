@@ -11,6 +11,37 @@ Every number below was verified by direct measurement against the repo unless ex
 
 ---
 
+## Status update — 2026-07-28
+
+This document records what was measured on 2026-07-27. Two things have changed
+since; everything else below still holds.
+
+**§5 local environment is resolved.** Flutter 3.44.8, Dart 3.12.2, full Xcode
+26.3 and CocoaPods are installed. The app builds and runs on an iOS simulator,
+and on-device integration tests pass against a live backend. Android SDK is
+still absent — a deliberate deferral, blocking only APK builds and FCM push
+testing.
+
+**§4 / §10 are wrong about the response envelope.** The claim that
+`/auth/refresh` and `/auth/register` return the payload bare is incorrect.
+`TransformInterceptor` is registered **globally** in `vmito-be/src/main.ts` and
+wraps every JSON response, including those two. Verified by direct request
+against the running API. Track B item 6 is therefore **not needed**.
+
+Two error-shape facts the original assessment did not capture, both verified
+live and both load-bearing for the client:
+
+- `HttpExceptionFilter` nests the payload: the message is at `error.message`,
+  not at the top level, and is a **list** for class-validator failures.
+- The Swagger CLI plugin (Track B item 1, now enabled) crashes
+  `createDocument` at boot on `CreateCategoryRegistrationDto`, whose
+  `xorValidation?: undefined` property the plugin resolves as a self-reference.
+  Fixed with `@ApiHideProperty()`.
+
+Live progress is tracked in [docs/ROADMAP.md](docs/ROADMAP.md), not here.
+
+---
+
 ## 1. Verified codebase inventory
 
 | Metric | Value |

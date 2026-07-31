@@ -50,13 +50,6 @@ abstract final class AppConfig {
     defaultValue: 'https://vmito.com',
   );
 
-  /// Custom scheme registered on both platforms for `flutter_web_auth_2`.
-  /// Must match the backend's OAuth redirect allowlist entry.
-  static const String authCallbackScheme = String.fromEnvironment(
-    'AUTH_CALLBACK_SCHEME',
-    defaultValue: 'vmito',
-  );
-
   static const Duration connectTimeout = Duration(seconds: 15);
   static const Duration receiveTimeout = Duration(seconds: 30);
 

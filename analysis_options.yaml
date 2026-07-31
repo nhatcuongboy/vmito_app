@@ -10,6 +10,9 @@ analyzer:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
     - "lib/l10n/app_localizations*.dart"
+    # DTOs generated from openapi/openapi.json by swagger_dart_code_generator.
+    # Never edit them — rerun `tool/sync_openapi.sh` and build_runner instead.
+    - "lib/core/api/generated/**"
   errors:
     todo: ignore
     # freezed emits annotations on generated members the analyzer flags.

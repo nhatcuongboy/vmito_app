@@ -1,0 +1,76 @@
+[
+  {
+    "input": [],
+    "output": ""
+  },
+  {
+    "input": [
+      {
+        "setNumber": 1,
+        "player1Score": 0,
+        "player2Score": 0
+      }
+    ],
+    "output": "0-0"
+  },
+  {
+    "input": [
+      {
+        "setNumber": 1,
+        "player1Score": 21,
+        "player2Score": 19
+      }
+    ],
+    "output": "21-19"
+  },
+  {
+    "input": [
+      {
+        "setNumber": 1,
+        "player1Score": 21,
+        "player2Score": 19
+      },
+      {
+        "setNumber": 2,
+        "player1Score": 0,
+        "player2Score": 0
+      }
+    ],
+    "output": "21-19"
+  },
+  {
+    "input": [
+      {
+        "setNumber": 1,
+        "player1Score": 0,
+        "player2Score": 0
+      },
+      {
+        "setNumber": 2,
+        "player1Score": 21,
+        "player2Score": 5
+      }
+    ],
+    "output": "0-0, 21-5"
+  },
+  {
+    "input": [
+      {
+        "setNumber": 1,
+        "player1Score": 21,
+        "player2Score": 19
+      },
+      {
+        "setNumber": 2,
+        "player1Score": 15,
+        "player2Score": 21
+      },
+      {
+        "setNumber": 3,
+        "player1Score": 21,
+        "player2Score": 18
+      }
+    ],
+    "output": "21-19, 15-21, 21-18"
+  }
+]

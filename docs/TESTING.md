@@ -11,6 +11,44 @@ read the same corpus in CI, so changing a rule requires updating fixtures,
 which moves both languages together. This is the single most effective
 mitigation identified in the assessment.
 
+## Status
+
+| Module | Lines (TS) | Ported | Fixtures | Mutations caught |
+|---|---:|---|---:|---|
+| `rally.ts` | 260 | yes | 6,570 | 8/8 |
+| `levels.ts` | 106 | yes | 4 files | 6/6 |
+| `schedule-generator.ts` | 296 | no | — | — |
+| `standings.ts` | 313 | no | — | — |
+| `match-result-utils.ts` | 276 | no | — | — |
+| `bracketSlots.ts` | 217 | no | — | — |
+| `podium.ts` | 222 | no | — | — |
+
+Ported rules live in `packages/vmito_domain` — a **pure-Dart** package with
+zero dependencies. That is not tidiness: it is what keeps `dart test` at a few
+seconds and what stops a business rule from quietly importing a widget. Adding
+`flutter` to its pubspec is the change to reject in review.
+
+## The workflow
+
+```sh
+# 1. record from the TypeScript (in vmito-fe)
+npm run record:rally-fixtures
+
+# 2. assert Dart reproduces it
+cd ../vmito_app/packages/vmito_domain && dart test
+
+# 3. assert TypeScript still reproduces it
+cd ../../../vmito-fe && npm run test:rally-fixtures
+```
+
+Steps 2 and 3 read the **same files**. Changing a scoring rule fails step 3,
+which forces a re-record, which moves step 2. Neither implementation can drift
+alone — that is the whole mechanism.
+
+`fixtures/` lives in `vmito_app`; the JS suite reaches it by relative path, so
+the two repos must stay checked out side by side (`sync_openapi.sh` assumes the
+same).
+
 ## Building the oracle
 
 The five highest-value algorithms on web have **no tests at all**:
@@ -33,6 +71,22 @@ For these, the port must create the oracle:
 
 Porting roughly 2,900 lines of pure logic to Dart **before writing the first
 screen** is the cheapest correctness insurance in this project.
+
+### Fixtures alone are not proof — mutate to check
+
+A recorded corpus can pass for the wrong reason: too narrow an input space, or
+a comparison that never looks at the field that differs. After recording,
+deliberately break the Dart and confirm the suite fails.
+
+For `rally.dart`, eight mutations were tried and all eight were caught:
+reversing the FINAL/knockout fallback order, forcing `winBy` to 1, dropping the
+doubles player3/4 mirroring, changing the cap comparison from `>=` to `>`,
+keeping empty sets in the score string, changing `setsToWin` for best-of-5,
+misreading the `F` round, and removing the completed-match lock in `applyDelta`.
+
+The doubles mirroring one is the reason `MatchSet.toJson()` is compared rather
+than the individual fields: a field-by-field check on the common fields passes
+happily while `player3Score` is wrong.
 
 ## Existing web tests
 

@@ -29,12 +29,14 @@ flutter run --dart-define-from-file=env/staging.json      # against staging API
 
 flutter analyze                    # must be clean before every commit
 flutter test                       # unit + widget tests
+(cd packages/vmito_domain && dart test)   # ported business rules, no Flutter
 flutter test test/integration/     # needs vmito-be on :3001; self-skips otherwise
 flutter test integration_test/ -d <device-id> --dart-define-from-file=env/dev.json  # on-device
 dart format .                      # 80-column formatter
 dart fix --apply                   # auto-fix lints
 
-dart run build_runner build        # after touching any freezed/json model
+./tool/sync_openapi.sh             # re-export the API contract from vmito-be
+dart run build_runner build        # after sync, or any freezed/json model
 dart run build_runner watch        # during model work
 flutter gen-l10n                   # after touching lib/l10n/*.arb
 ```
@@ -188,6 +190,7 @@ gets **redesigned for mobile, not transliterated**. Named offenders include
 | [docs/I18N.md](docs/I18N.md) | ARB pipeline, locale codes, migration from next-intl |
 | [docs/TESTING.md](docs/TESTING.md) | Fixture oracle strategy |
 | [docs/ROADMAP.md](docs/ROADMAP.md) | Phases P0–P8, what ships when |
+| [docs/RELEASE.md](docs/RELEASE.md) | Store release: identity, signing, builds, App Store / Play compliance |
 | [FLUTTER_PORT_ASSESSMENT.md](FLUTTER_PORT_ASSESSMENT.md) | The measured assessment this plan came from |
 
 ## Backend work this app depends on

@@ -10,9 +10,20 @@ version: 1.0.0+1
 environment:
   sdk: ^3.12.2
 
+# Pub workspace. `vmito_domain` is a pure-Dart package so its tests run under
+# `dart test` in seconds without the Flutter harness, and the analyzer stops
+# business rules from importing UI code.
+workspace:
+  - packages/vmito_domain
+
+
 dependencies:
   flutter:
     sdk: flutter
+
+  # Ported business rules — the shared source of truth with vmito-fe.
+  vmito_domain:
+    path: packages/vmito_domain
   flutter_localizations:
     sdk: flutter
 
@@ -74,6 +85,7 @@ dependencies:
   # --- Misc -----------------------------------------------------------------
   collection: ^1.19.1
   logger: ^2.7.0
+  sign_in_with_apple: ^8.1.0
 
   # --- Deferred to P0-A (needs google-services.json / GoogleService-Info.plist)
   # firebase_core: ^4.x
@@ -93,6 +105,7 @@ dev_dependencies:
   very_good_analysis: ^10.3.0
   integration_test:
     sdk: flutter
+  swagger_dart_code_generator: ^4.1.1
 
 flutter:
   uses-material-design: true

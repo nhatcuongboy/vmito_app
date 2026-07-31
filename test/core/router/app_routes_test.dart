@@ -30,6 +30,14 @@ void main() {
       expect(AppRoutes.isPublic(AppRoutes.browseSessions), isTrue);
       expect(AppRoutes.isPublic(AppRoutes.join), isTrue);
       expect(AppRoutes.isPublic(AppRoutes.scanQr), isTrue);
+      expect(AppRoutes.isPublic(AppRoutes.publicProfile('u1')), isTrue);
+      expect(AppRoutes.isPublic(AppRoutes.signUp), isTrue);
+      expect(AppRoutes.isPublic(AppRoutes.forgotPassword), isTrue);
+      expect(AppRoutes.isPublic(AppRoutes.resetPassword), isTrue);
+      expect(
+        AppRoutes.isPublic('${AppRoutes.resetPassword}?token=abc'),
+        isTrue,
+      );
     });
 
     test('home requires a session', () {
@@ -37,6 +45,27 @@ void main() {
       // public and the auth gate never fired.
       expect(AppRoutes.isPublic(AppRoutes.home), isFalse);
       expect(AppRoutes.isPublic('/profile'), isFalse);
+      expect(AppRoutes.isPublic(AppRoutes.feed), isFalse);
+      expect(AppRoutes.isPublic(AppRoutes.manageClubs), isFalse);
+      expect(AppRoutes.isPublic(AppRoutes.createClub), isFalse);
+      expect(AppRoutes.isPublic(AppRoutes.manageClub('c1')), isFalse);
+      expect(AppRoutes.isPublic(AppRoutes.editClub('c1')), isFalse);
+    });
+
+    test('a protected route under a public one stays protected', () {
+      // /sessions is public and isPublic matches by prefix, so without the
+      // explicit protected list /sessions/create would open signed-out and its
+      // submit could only ever 401.
+      expect(AppRoutes.isPublic(AppRoutes.createSession), isFalse);
+      expect(AppRoutes.isPublic('/sessions/create/anything'), isFalse);
+      expect(AppRoutes.isPublic(AppRoutes.manageSession('abc')), isFalse);
+      expect(AppRoutes.isPublic(AppRoutes.editSession('abc')), isFalse);
+      expect(AppRoutes.isPublic(AppRoutes.cloneSession('abc')), isFalse);
+      expect(AppRoutes.isPublic(AppRoutes.rateSession('abc')), isFalse);
+      expect(AppRoutes.isPublic(AppRoutes.transactions), isFalse);
+
+      // The sibling detail route is still public.
+      expect(AppRoutes.isPublic('/sessions/abc'), isTrue);
     });
 
     test('only matches on a segment boundary', () {

@@ -1,19 +1,16 @@
 {
   "@@locale": "vi",
-
   "appName": "Vmito",
   "@appName": {
     "description": "Product name. Not translated."
   },
-
   "commonRetry": "Thử lại",
-  "commonCancel": "Huỷ",
+  "commonCancel": "Hủy",
   "commonConfirm": "Xác nhận",
   "commonSave": "Lưu",
   "commonClose": "Đóng",
   "commonLoading": "Đang tải...",
   "commonSearch": "Tìm kiếm",
-
   "errorNetwork": "Không có kết nối mạng. Vui lòng thử lại.",
   "errorTimeout": "Yêu cầu quá thời gian chờ. Vui lòng thử lại.",
   "errorUnauthorized": "Phiên đăng nhập đã hết hạn.",
@@ -22,7 +19,6 @@
   "errorValidation": "Dữ liệu không hợp lệ.",
   "errorServer": "Máy chủ đang gặp sự cố. Vui lòng thử lại sau.",
   "errorUnknown": "Đã có lỗi xảy ra. Vui lòng thử lại.",
-
   "authSignIn": "Đăng nhập",
   "authSignUp": "Đăng ký",
   "authSignOut": "Đăng xuất",
@@ -31,6 +27,66 @@
   "authForgotPassword": "Quên mật khẩu?",
   "authContinueWithGoogle": "Tiếp tục với Google",
   "authContinueWithFacebook": "Tiếp tục với Facebook",
+  "authSocialFailed": "Không thể hoàn tất đăng nhập mạng xã hội. Vui lòng thử lại.",
+  "authSignUpHeading": "Đăng ký",
+  "authSignUpDescription": "Tham gia Quản lý kèo cầu lông",
+  "authSignUpName": "Tên",
+  "authSignUpNamePlaceholder": "Nhập họ và tên",
+  "authSignUpNameRequired": "Vui lòng nhập họ và tên",
+  "authSignUpEmail": "Email",
+  "authSignUpEmailPlaceholder": "Nhập email của bạn",
+  "authSignUpEmailRequired": "Vui lòng nhập email",
+  "authSignUpInvalidEmail": "Email không hợp lệ",
+  "authSignUpPhone": "Số điện thoại",
+  "authSignUpPhonePlaceholder": "Số điện thoại",
+  "authSignUpPhoneInvalid": "Số điện thoại phải gồm đúng 10 chữ số",
+  "authSignUpGender": "Giới tính",
+  "authSignUpMale": "Nam",
+  "authSignUpFemale": "Nữ",
+  "authSignUpPassword": "Mật khẩu",
+  "authSignUpPasswordPlaceholder": "Tạo mật khẩu",
+  "authSignUpPasswordRequirements": "Ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.",
+  "authSignUpPasswordRequired": "Vui lòng nhập mật khẩu",
+  "authSignUpPasswordWeak": "Mật khẩu phải có ít nhất 8 ký tự và gồm chữ hoa, chữ thường, số, ký tự đặc biệt",
+  "authSignUpConfirmPassword": "Xác nhận mật khẩu",
+  "authSignUpConfirmPlaceholder": "Nhập lại mật khẩu",
+  "authSignUpConfirmRequired": "Vui lòng xác nhận mật khẩu",
+  "authSignUpPasswordsDoNotMatch": "Mật khẩu không khớp",
+  "authSignUpCreateAccount": "Đăng ký",
+  "authSignUpAlreadyHaveAccount": "Đã có tài khoản? Đăng nhập",
+  "authSignUpAccountCreated": "Đăng ký thành công! Vui lòng đăng nhập để tiếp tục.",
+  "authNoAccount": "Chưa có tài khoản?",
+  "authSignUpUserExists": "Email này đã được sử dụng",
+  "authSignUpFailed": "Đăng ký thất bại. Vui lòng thử lại.",
+  "authForgotHeading": "Quên mật khẩu",
+  "authForgotDescription": "Nhập email tài khoản của bạn để nhận hướng dẫn đặt lại mật khẩu.",
+  "authForgotEmail": "Email",
+  "authForgotEmailPlaceholder": "Nhập email của bạn",
+  "authForgotSubmit": "Gửi hướng dẫn",
+  "authForgotSuccess": "Nếu email này hợp lệ, hệ thống sẽ gửi hướng dẫn đặt lại mật khẩu trong vài phút.",
+  "authForgotInvalidEmail": "Email không hợp lệ",
+  "authForgotEmailRequired": "Vui lòng nhập email",
+  "authForgotRequestFailed": "Không thể gửi yêu cầu đặt lại mật khẩu. Vui lòng thử lại.",
+  "authBackToSignIn": "Quay lại đăng nhập",
+  "authTooManyRequests": "Quá nhiều yêu cầu. Vui lòng thử lại sau.",
+  "authResetHeading": "Đặt lại mật khẩu",
+  "authResetDescription": "Tạo mật khẩu mới cho tài khoản của bạn.",
+  "authResetDescriptionWithEmail": "Tạo mật khẩu mới cho tài khoản {email}.",
+  "@authResetDescriptionWithEmail": {"placeholders": {"email": {"type": "String"}}},
+  "authResetNewPassword": "Mật khẩu mới",
+  "authResetNewPasswordPlaceholder": "Nhập mật khẩu mới",
+  "authResetConfirmPassword": "Xác nhận mật khẩu",
+  "authResetConfirmPasswordPlaceholder": "Xác nhận mật khẩu mới",
+  "authResetSubmit": "Đặt lại mật khẩu",
+  "authResetSuccess": "Mật khẩu đã được đặt lại thành công. Bạn có thể đăng nhập bằng mật khẩu mới.",
+  "authResetSuccessWithEmail": "Mật khẩu cho tài khoản {email} đã được đặt lại thành công. Bạn có thể đăng nhập bằng mật khẩu mới.",
+  "@authResetSuccessWithEmail": {"placeholders": {"email": {"type": "String"}}},
+  "authResetMissingToken": "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã thiếu mã xác thực.",
+  "authResetInvalidToken": "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.",
+  "authResetFailed": "Không thể đặt lại mật khẩu. Vui lòng thử lại.",
+  "authResetPasswordsDoNotMatch": "Mật khẩu không khớp",
+  "authResetPasswordTooShort": "Mật khẩu phải có ít nhất 6 ký tự",
+  "authResetConfirmRequired": "Vui lòng xác nhận mật khẩu",
   "authContinueAsGuest": "Tiếp tục với tư cách khách",
   "authEmailRequired": "Vui lòng nhập email",
   "authEmailInvalid": "Email không hợp lệ",
@@ -43,13 +99,11 @@
       }
     }
   },
-
   "navHome": "Trang chủ",
   "navSessions": "Buổi chơi",
   "navTournaments": "Giải đấu",
   "navNotifications": "Thông báo",
   "navProfile": "Cá nhân",
-
   "courtCallTitle": "Đến lượt bạn vào sân!",
   "courtCallAnnouncement": "Mời bạn vào sân số {courtNumber}",
   "@courtCallAnnouncement": {
@@ -60,5 +114,376 @@
       }
     }
   },
-  "courtCallAcknowledge": "Đã hiểu"
+  "courtCallAcknowledge": "Đã hiểu",
+  "navFeed": "Cộng đồng",
+  "profileTitle": "Cá nhân",
+  "feedTitle": "Bảng tin",
+  "homeTitle": "Trang chủ",
+  "comingSoon": "Sắp có",
+  "languageTitle": "Ngôn ngữ",
+  "languageChangeTooltip": "Đổi ngôn ngữ",
+  "languageVietnamese": "Tiếng Việt",
+  "languageEnglish": "Tiếng Anh",
+  "languageChinese": "Tiếng Trung",
+  "profileLanguage": "Ngôn ngữ",
+  "errorCancelled": "Yêu cầu đã bị hủy.",
+  "routeNotFound": "Không tìm thấy đường dẫn: {uri}",
+  "@routeNotFound": {
+    "placeholders": {
+      "uri": {
+        "type": "String"
+      }
+    }
+  },
+  "homeGreeting": "Xin chào, {userName}",
+  "@homeGreeting": {
+    "placeholders": {
+      "userName": {
+        "type": "String"
+      }
+    }
+  },
+  "homeLiveHint": "Chọn một kèo để theo dõi sân đấu trực tiếp.",
+  "homeBrowseSessions": "Tìm kèo",
+  "sessionBrowseTitle": "Tìm kèo",
+  "sessionEmpty": "Không tìm thấy kèo nào",
+  "sessionDetailTitle": "Chi tiết kèo",
+  "sessionCourtsTitle": "Sân",
+  "sessionPlayersTitle": "Người chơi",
+  "sessionDescriptionTitle": "Mô tả",
+  "sessionCourtCount": "{count, plural, =1{1 sân} other{{count} sân}}",
+  "@sessionCourtCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionCourtCapacity": "{courtCount} sân · tối đa {playerCount} người",
+  "@sessionCourtCapacity": {
+    "placeholders": {
+      "courtCount": {
+        "type": "int"
+      },
+      "playerCount": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionCrawledReadOnly": "Kèo được sưu tầm từ Facebook — chỉ xem",
+  "sessionClosed": "Kèo này đã đóng",
+  "sessionPlayingCount": "Đang đấu: {count}",
+  "@sessionPlayingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionWaitingCount": "Đang chờ: {count}",
+  "@sessionWaitingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courtStatusPlaying": "Đang chơi",
+  "courtStatusInUse": "Đang chơi",
+  "courtStatusReady": "Sẵn sàng",
+  "courtStatusEmpty": "Có sẵn",
+  "courtNumber": "Sân {number}",
+  "@courtNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "playerFallback": "Người chơi",
+  "playerNumber": "Người chơi {number}",
+  "@playerNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "dateToday": "Hôm nay",
+  "dateTomorrow": "Ngày mai",
+  "dateYesterday": "Hôm qua",
+  "level1": "Yếu",
+  "level2": "TBY",
+  "level3": "TB-",
+  "level4": "TB",
+  "level5": "TB+",
+  "level6": "Khá",
+  "level7": "BC",
+  "level8": "CN",
+  "level9": "Yếu-",
+  "level10": "Yếu+",
+  "liveCourtTitle": "Sân trực tiếp",
+  "liveCourtOpen": "Xem sân trực tiếp",
+  "liveReconnecting": "Đang kết nối lại dữ liệu trực tiếp…",
+  "liveNoCourts": "Kèo chưa có sân nào.",
+  "livePlayerCount": "{count} người chơi",
+  "@livePlayerCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "feeNotConfigured": "Chưa cấu hình phí",
+  "sessionSearchHint": "Tên kèo, sân hoặc khu vực",
+  "sessionFiltersTitle": "Bộ lọc",
+  "sessionFiltersApply": "Áp dụng",
+  "sessionFiltersClear": "Xóa bộ lọc",
+  "sessionFilterSource": "Nguồn kèo",
+  "sessionSourceAll": "Tất cả",
+  "sessionSourceRegular": "Vmito",
+  "sessionSourceFacebook": "Facebook",
+  "sessionFilterLevel": "Trình độ",
+  "sessionFilterAvailableSlots": "Còn chỗ trống",
+  "sessionTabOverview": "Tổng quan",
+  "sessionTabCourts": "Sân",
+  "sessionTabPlayers": "Người chơi",
+  "sessionTabFees": "Chi phí",
+  "playerStatusWaiting": "Đang chờ",
+  "playerStatusPlaying": "Đang chơi",
+  "playerStatusFinished": "Đã xong",
+  "playerStatusReady": "Sẵn sàng",
+  "playerStatusInactive": "Không hoạt động",
+  "notificationsTitle": "Thông báo",
+  "notificationsEmpty": "Bạn chưa có thông báo nào.",
+  "notificationsMarkAllRead": "Đọc tất cả",
+  "accountDeleteTitle": "Xoá tài khoản",
+  "accountDeleteWarning": "Thao tác này không thể hoàn tác.",
+  "accountDeleteRemoved": "Sẽ bị xoá: mật khẩu, liên kết đăng nhập, thông tin cá nhân, ảnh đại diện và thông báo.",
+  "accountDeleteRetained": "Sẽ được giữ ẩn danh: các kèo bạn đã tạo và lịch sử thanh toán, vì đó cũng là dữ liệu của người chơi khác.",
+  "accountDeleteCannotSignIn": "Bạn sẽ không thể đăng nhập lại bằng tài khoản này.",
+  "accountDeleteConfirm": "Xoá vĩnh viễn",
+  "accountDeleteFailed": "Không xoá được tài khoản. Vui lòng thử lại.",
+  "createSessionTitle": "Tạo kèo",
+  "createSessionName": "Tên kèo",
+  "createSessionNameRequired": "Vui lòng nhập tên kèo",
+  "createSessionLocation": "Địa điểm",
+  "createSessionDescription": "Mô tả",
+  "createSessionStart": "Bắt đầu",
+  "createSessionDuration": "Thời lượng",
+  "createSessionCourts": "Số sân",
+  "createSessionMaxPerCourt": "Người tối đa/sân",
+  "createSessionLevels": "Trình độ nhận",
+  "createSessionLevelsAll": "Mọi trình độ",
+  "createSessionFees": "Phí tham gia",
+  "createSessionFeeMale": "Phí nam",
+  "createSessionFeeFemale": "Phí nữ",
+  "createSessionAllowGuest": "Cho phép khách vào bằng mã",
+  "createSessionSubmit": "Tạo kèo",
+  "createSessionCreated": "Đã tạo kèo",
+  "createSessionCapacity": "Sức chứa: {count} người",
+  "@createSessionCapacity": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "createSessionDurationMinutes": "{count} phút",
+  "@createSessionDurationMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeHostedSessions": "Kèo tôi tạo",
+  "homeHostedEmpty": "Bạn chưa tạo kèo nào",
+  "authOr": "hoặc",
+  "authSignInWithApple": "Đăng nhập với Apple",
+  "authAppleNoToken": "Apple không trả về mã xác thực.",
+  "authAppleFailed": "Đăng nhập Apple không thành công.",
+  "courtNoPlayers": "Chưa có người",
+  "courtPreSelected": "Đã chọn, chờ vào sân",
+  "courtNumbered": "Sân {number}",
+  "@courtNumbered": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "playerNumbered": "Người chơi {number}",
+  "@playerNumbered": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "feeTitle": "Phí tham gia",
+  "feeSplitLater": "Chia đều sau buổi chơi",
+  "feeNotSet": "Chủ kèo chưa cập nhật phí",
+  "feePerPerson": "Mỗi người",
+  "feeTotal": "Tổng chi phí",
+  "feeMale": "Nam",
+  "feeFemale": "Nữ",
+  "hostManageTitle": "Quản lý buổi chơi",
+  "hostManageCourts": "Sân",
+  "hostManageRoster": "Danh sách",
+  "hostManagePayments": "Sổ thanh toán",
+  "hostManageAssign": "Xếp người chơi",
+  "hostManageReplace": "Đổi người chơi",
+  "hostManageStartMatch": "Bắt đầu trận",
+  "hostManageEndMatch": "Kết thúc trận",
+  "hostManageClearCourt": "Bỏ lượt xếp",
+  "hostManageChooseTwoOrFour": "Chọn đúng 2 hoặc 4 người đang chờ",
+  "hostManagePendingApprovals": "Yêu cầu đang chờ duyệt",
+  "hostManageApprovedPlayers": "Người chơi đã duyệt",
+  "hostManageApprove": "Duyệt",
+  "hostManageReject": "Từ chối",
+  "hostManageRemove": "Xóa",
+  "hostManageNoPending": "Không có yêu cầu tham gia đang chờ",
+  "hostManageNoPlayers": "Danh sách chưa có người chơi",
+  "hostManagePaymentSettings": "Tài khoản nhận tiền",
+  "hostManageEditSettings": "Sửa tài khoản",
+  "hostManageAddSettings": "Thêm tài khoản",
+  "hostManageBank": "Ngân hàng",
+  "hostManageAccountNumber": "Số tài khoản",
+  "hostManageAccountHolder": "Chủ tài khoản",
+  "hostManageSave": "Lưu",
+  "hostManagePaymentTotal": "Tổng phải thu",
+  "hostManagePaymentPaid": "Đã thu",
+  "hostManagePaymentOutstanding": "Còn thiếu",
+  "hostManageBulkApprove": "Duyệt khoản đã báo trả",
+  "hostManageNoPayments": "Chưa có khoản thanh toán",
+  "hostManagePaymentPending": "Chưa thanh toán",
+  "hostManagePaymentSubmitted": "Chờ duyệt",
+  "hostManagePaymentApproved": "Đã duyệt",
+  "hostManagePaymentRejected": "Đã từ chối",
+  "hostManageRejectReason": "Lý do từ chối",
+  "hostManageConfirmReject": "Từ chối thanh toán",
+  "hostManageActionFailed": "Không thể thực hiện. Vui lòng thử lại.",
+  "hostManageStartSession": "Bắt đầu buổi chơi",
+  "hostManageEndSession": "Kết thúc buổi chơi",
+  "hostManageCheckIn": "Check-in",
+  "hostManageCheckOut": "Đánh dấu vắng",
+  "editSessionTitle": "Sửa buổi chơi",
+  "editSessionSave": "Lưu thay đổi",
+  "cloneSessionTitle": "Nhân bản buổi chơi",
+  "cancelSessionTitle": "Hủy buổi chơi",
+  "cancelSessionConfirm": "Hủy buổi chơi này? Người chơi sẽ không thể tham gia hoặc tiếp tục thi đấu.",
+  "cancelSessionAction": "Hủy buổi chơi",
+  "waitingTimeLabel": "Đã chờ",
+  "setSplitAmount": "Nhập tổng tiền cần chia",
+  "hostManageDeleteSettings": "Xóa tài khoản",
+  "sessionExpensesTitle": "Chi phí buổi chơi",
+  "sessionExpenseAdd": "Thêm chi phí",
+  "sessionExpenseName": "Tên chi phí",
+  "sessionExpenseAmount": "Số tiền",
+  "sessionExpensesEmpty": "Chưa ghi nhận chi phí",
+  "sessionExpensesTotal": "Tổng chi phí",
+  "transactionDashboardTitle": "Bảng giao dịch",
+  "transactionDashboardEmpty": "Chưa có giao dịch người chơi",
+  "transactionSessions": "buổi chơi",
+  "commonLoadMore": "Xem thêm",
+  "socialTitle": "Cộng đồng",
+  "socialFeedTab": "Bảng tin",
+  "socialClubsTab": "Câu lạc bộ",
+  "socialComposerHint": "Bạn muốn chia sẻ điều gì?",
+  "socialCreatePost": "Tạo bài viết",
+  "socialPublish": "Đăng",
+  "socialAddPhotos": "Thêm ảnh",
+  "socialNoPosts": "Chưa có bài viết nào",
+  "socialPostDetail": "Bài viết",
+  "socialPostActions": "Tương tác bài viết",
+  "socialComments": "Bình luận",
+  "socialNoComments": "Chưa có bình luận",
+  "socialCommentHint": "Viết bình luận…",
+  "socialRepost": "Chia sẻ lên bảng tin",
+  "socialShareOutside": "Chia sẻ qua ứng dụng khác",
+  "socialClubSearch": "Tìm câu lạc bộ",
+  "socialNoClubs": "Không tìm thấy câu lạc bộ",
+  "socialClubDetail": "Câu lạc bộ",
+  "socialMemberCount": "{count} thành viên",
+  "@socialMemberCount": {"placeholders": {"count": {"type": "int"}}},
+  "socialAbout": "Giới thiệu",
+  "socialVenue": "Địa điểm",
+  "socialSchedule": "Lịch sinh hoạt",
+  "socialJoinClub": "Tham gia câu lạc bộ",
+  "socialInvitationOnly": "Chỉ dành cho người được mời",
+  "socialJoinMessage": "Lời nhắn cho quản trị viên (không bắt buộc)",
+  "socialSendRequest": "Gửi yêu cầu",
+  "socialJoined": "Bạn đã tham gia câu lạc bộ",
+  "socialRequestPending": "Yêu cầu đang chờ duyệt",
+  "socialProfile": "Hồ sơ người chơi",
+  "socialSessions": "Buổi chơi",
+  "socialRating": "Điểm",
+  "socialReviews": "Đánh giá",
+  "socialNoReviews": "Chưa có đánh giá",
+  "socialRateSession": "Đánh giá sau buổi chơi",
+  "socialNothingToRate": "Bạn đã hoàn tất các đánh giá của buổi chơi này",
+  "socialRateHost": "Đánh giá chủ kèo",
+  "socialRatePlayer": "Đánh giá người chơi",
+  "socialRateName": "Đánh giá {name}",
+  "@socialRateName": {"placeholders": {"name": {"type": "String"}}},
+  "socialRatingComment": "Nhận xét (không bắt buộc)",
+  "socialSendRating": "Gửi đánh giá",
+  "socialRatingSent": "Đã gửi đánh giá",
+  "socialMonday": "Thứ Hai",
+  "socialTuesday": "Thứ Ba",
+  "socialWednesday": "Thứ Tư",
+  "socialThursday": "Thứ Năm",
+  "socialFriday": "Thứ Sáu",
+  "socialSaturday": "Thứ Bảy",
+  "socialSunday": "Chủ Nhật",
+  "commonEdit": "Sửa",
+  "commonDelete": "Xóa",
+  "commonRemove": "Gỡ",
+  "commonTitle": "Tiêu đề",
+  "commonContent": "Nội dung",
+  "clubManageTitle": "Quản lý câu lạc bộ",
+  "clubCreate": "Tạo câu lạc bộ",
+  "clubEdit": "Sửa câu lạc bộ",
+  "clubManageEmpty": "Bạn chưa quản lý câu lạc bộ nào",
+  "clubStatusPending": "Chờ duyệt",
+  "clubStatusRejected": "Đã từ chối",
+  "clubStatusApproved": "Đã duyệt",
+  "clubDeleteTitle": "Xóa câu lạc bộ",
+  "clubDeleteConfirm": "Xóa câu lạc bộ {name}? Hành động này không thể hoàn tác.",
+  "@clubDeleteConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "clubName": "Tên câu lạc bộ",
+  "clubNameRequired": "Vui lòng nhập tên câu lạc bộ",
+  "clubDescription": "Mô tả",
+  "clubLocation": "Khu vực hoạt động",
+  "clubMaxMembers": "Số thành viên tối đa",
+  "clubMaxMembersInvalid": "Nhập số từ 1 đến 500",
+  "clubJoinPolicy": "Cách tham gia",
+  "clubJoinOpen": "Tham gia ngay",
+  "clubJoinApproval": "Cần quản trị viên duyệt",
+  "clubJoinInvitation": "Chỉ nhận lời mời",
+  "clubPublic": "Câu lạc bộ công khai",
+  "clubPublicDescription": "Cho phép mọi người tìm và xem câu lạc bộ",
+  "clubMembers": "Thành viên",
+  "clubRequests": "Yêu cầu",
+  "clubAnnouncements": "Thông báo",
+  "clubAddMember": "Thêm thành viên",
+  "clubMembersEmpty": "Chưa có thành viên",
+  "clubRoleAdmin": "Quản trị viên",
+  "clubRoleModerator": "Điều hành viên",
+  "clubRoleMember": "Thành viên",
+  "clubRemoveMember": "Gỡ thành viên",
+  "clubRemoveMemberConfirm": "Gỡ {name} khỏi câu lạc bộ?",
+  "@clubRemoveMemberConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "clubSearchUsers": "Tìm theo tên hoặc email",
+  "clubSearchUsersHint": "Nhập tên hoặc email để tìm người dùng",
+  "clubRequestsEmpty": "Không có yêu cầu tham gia đang chờ",
+  "clubRejectRequest": "Từ chối yêu cầu",
+  "clubRejectReason": "Lý do (không bắt buộc)",
+  "clubAnnouncementCreate": "Tạo thông báo",
+  "clubAnnouncementEdit": "Sửa thông báo",
+  "clubAnnouncementsEmpty": "Chưa có thông báo",
+  "clubAnnouncementDelete": "Xóa thông báo",
+  "clubAnnouncementDeleteConfirm": "Xóa thông báo này?",
+  "clubAnnouncementPin": "Ghim trong 30 ngày"
 }

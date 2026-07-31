@@ -104,8 +104,10 @@ Backend-driven OAuth redirect. The web app uses a plain `<a href>` to
 `{API}/auth/{google,facebook}`, and the backend redirects back with tokens as
 **query parameters**. There is no PKCE code exchange on the client.
 
-In Flutter: `flutter_web_auth_2` with `AppConfig.authCallbackScheme`, plus one
-allowlist entry on the backend for the custom scheme.
+Flutter captures the backend's existing HTTPS `/{locale}/auth/callback`
+redirect with `flutter_web_auth_2`, then stores the returned JWT pair in secure
+storage. This keeps the callback contract identical to the web app and avoids
+an extra custom-scheme redirect in the backend.
 
 **Apple Sign-In does not exist on the backend.** Passport strategies present:
 `google`, `facebook`, `local`, `jwt`. Because Google and Facebook login are
@@ -180,22 +182,65 @@ All amounts are **integer VND with no minor units** — format with
 who plays next. **Server-side.** The app renders suggestions and never computes
 them.
 
-## Codegen from OpenAPI (planned)
+## Codegen from OpenAPI
 
-`@nestjs/swagger` ^11.2.3 is already configured in `vmito-be`
-(`DocumentBuilder` at `src/main.ts:72`), so exporting `openapi.json` is a
-script, not a setup task.
+**Generate DTOs, hand-write services.** 180 interfaces and roughly 4,500 fields
+make hand-transcription weeks of work plus permanent drift risk. But generated
+*clients* are a patching treadmill against imperfect Swagger output, and
+hand-tuned signatures are needed for GET de-duplication and `skipGlobalError`.
 
-Two caveats:
+### The pipeline
 
-1. **`nest-cli.json` does not enable the Swagger CLI plugin.** Without it
-   NestJS cannot infer types or nullability from DTOs, and the generated Dart
-   DTOs will be useless. **Enable it before running codegen even once.**
-2. Swagger is gated on `NODE_ENV !== 'production'` (`src/main.ts:103`), so the
-   CI job that exports the document must run in a non-production environment.
+```sh
+./tool/sync_openapi.sh          # re-export from vmito-be into openapi/
+dart run build_runner build     # -> lib/core/api/generated/
+```
 
-The decision is **generate DTOs, hand-write services**: 180 interfaces and
-roughly 4,500 fields make hand-transcription weeks of work plus permanent drift
-risk, but generated *clients* are a patching treadmill against imperfect
-Swagger output, and hand-tuned signatures are needed for de-duplication and
-`skipGlobalError`.
+`openapi/openapi.json` is **committed**. That makes codegen reproducible and
+turns every backend contract change into a reviewable diff here.
+
+Generated output is git-ignored and excluded from analysis. Never edit it.
+
+Current contract: 309 paths, 158 schemas, 825 properties.
+
+### Two things the export script does that matter
+
+**It refuses to write a plugin-less document.** The `@nestjs/swagger` CLI
+plugin is a `nest build` transformer, so running the exporter through `ts-node`
+silently produces a document where 104 of 133 schemas have no properties at
+all — and Dart classes generated from that are empty. The script fails when
+more than 10% of schemas are empty.
+
+**It renames the `Object` schema.** The plugin emits
+`$ref: '#/components/schemas/Object'` for any parameter it cannot resolve —
+here, every query parameter typed with a Prisma enum, because Prisma generates
+those as a const object plus a type alias rather than a TypeScript enum. The
+schema carries no information, but a Dart class named `Object` shadows
+`dart:core`'s inside the generated library and breaks every
+`operator ==(Object other)`: 1,979 analyzer errors. It is renamed to
+`UntypedParameterValue`.
+
+Affected query parameters — untyped in the contract, so take their types from
+the TypeScript source when hand-writing a service: `type`, `status`,
+`matchType`, `sportType`, `customerType`, `page`, `limit`.
+
+### Every numeric field is a `double`
+
+TypeScript has one number type, so the plugin emits `type: number` for all of
+them. There is **not a single `type: integer`** in the document — all 163
+numeric fields generate as `double?` in Dart.
+
+This is wire-level reality, not a preference. **Convert at the service
+boundary**, before anything reaches a controller or a widget:
+
+```dart
+final level = dto.level?.toInt();      // not dto.level
+```
+
+It matters most for money. VND amounts are integers with no minor units, and
+`'${dto.amount}'` renders `120000.0`. Pinned by
+`test/core/api/generated_dto_test.dart`.
+
+The backend fix would be `@ApiProperty({ type: 'integer' })` on each integer
+field — 163 of them, so treat boundary conversion as the standing rule rather
+than something to wait on.

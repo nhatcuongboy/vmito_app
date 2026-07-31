@@ -5,6 +5,8 @@
 /// dead listener.
 abstract final class SessionEvent {
   static const sessionUpdated = 'session_updated';
+  static const sessionStarted = 'session_started';
+  static const sessionCancelled = 'session_cancelled';
   static const playerCreated = 'player_created';
   static const playerUpdated = 'player_updated';
   static const playerRemoved = 'player_removed';
@@ -26,6 +28,8 @@ abstract final class SessionEvent {
 
   static const all = <String>[
     sessionUpdated,
+    sessionStarted,
+    sessionCancelled,
     playerCreated,
     playerUpdated,
     playerRemoved,
@@ -44,8 +48,8 @@ abstract final class SessionEvent {
 
 /// Client-emitted events.
 abstract final class SocketCommand {
-  static const joinSession = 'join_session';
-  static const leaveSession = 'leave_session';
+  static const joinSession = 'joinSession';
+  static const leaveSession = 'leaveSession';
   static const joinTournament = 'join_tournament';
   static const leaveTournament = 'leave_tournament';
 }

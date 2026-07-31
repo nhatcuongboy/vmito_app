@@ -11,6 +11,7 @@ class ApiException implements Exception {
     required this.message,
     this.statusCode,
     this.raw,
+    this.hasServerMessage = false,
   });
 
   factory ApiException.fromDio(DioException e) {
@@ -25,11 +26,13 @@ class ApiException implements Exception {
       _ => _kindForStatus(status),
     };
 
+    final serverMessage = _extractMessage(e.response?.data);
     return ApiException(
       kind: kind,
-      message: _extractMessage(e.response?.data) ?? kind.defaultMessage,
+      message: serverMessage ?? kind.defaultMessage,
       statusCode: status,
       raw: e.response?.data ?? e.message,
+      hasServerMessage: serverMessage != null,
     );
   }
 
@@ -41,6 +44,7 @@ class ApiException implements Exception {
 
   /// Unsanitised body — for logs only, never for the UI.
   final Object? raw;
+  final bool hasServerMessage;
 
   bool get isUnauthorized => statusCode == 401;
   bool get isForbidden => statusCode == 403;
