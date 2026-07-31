@@ -3,8 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
-import 'package:vmito_app/features/session/application/host_session_management_controller.dart';
-import 'package:vmito_app/features/session/domain/payment.dart';
+import 'package:vmito_app/features/payment/application/payment_providers.dart';
+import 'package:vmito_app/features/payment/domain/payment.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 class TransactionDashboardScreen extends ConsumerWidget {

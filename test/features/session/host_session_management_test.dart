@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
-import 'package:vmito_app/features/session/domain/payment.dart';
+import 'package:vmito_app/features/payment/domain/payment.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/host_session_management_screen.dart';
 import 'package:vmito_app/features/session/presentation/player/create_session_screen.dart';

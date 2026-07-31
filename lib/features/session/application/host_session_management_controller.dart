@@ -3,34 +3,10 @@
 // ignore_for_file: specify_nonobvious_property_types
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/features/payment/application/payment_providers.dart';
+import 'package:vmito_app/features/payment/data/repositories/payment_repository_impl.dart';
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
-import 'package:vmito_app/features/session/data/payment_service.dart';
 import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
-import 'package:vmito_app/features/session/domain/payment.dart';
-
-final paymentLedgerProvider = FutureProvider.family<PaymentLedger, String>(
-  (ref, sessionId) => ref.watch(paymentServiceProvider).ledger(sessionId),
-);
-
-final paymentSettingsProvider = FutureProvider<List<HostPaymentSettings>>(
-  (ref) => ref.watch(paymentServiceProvider).settings(),
-);
-
-final sessionExpensesProvider =
-    FutureProvider.family<List<SessionExpense>, String>(
-      (ref, sessionId) => ref.watch(paymentServiceProvider).expenses(sessionId),
-    );
-
-final hostTransactionSummaryProvider =
-    FutureProvider<List<HostTransactionSummary>>(
-      (ref) => ref.watch(paymentServiceProvider).hostSummary(),
-    );
-
-final hostUserTransactionsProvider =
-    FutureProvider.family<List<PaymentRecord>, String>(
-      (ref, userId) =>
-          ref.watch(paymentServiceProvider).transactionsForUser(userId),
-    );
 
 class HostSessionManagementController extends Notifier<AsyncValue<void>> {
   HostSessionManagementController(this.sessionId);
@@ -93,19 +69,19 @@ class HostSessionManagementController extends Notifier<AsyncValue<void>> {
   );
 
   Future<bool> approvePayment(String paymentId) => _mutate(
-    () => ref.read(paymentServiceProvider).approve(paymentId),
+    () => ref.read(paymentRepositoryProvider).approve(paymentId),
     refreshSession: false,
     refreshPayments: true,
   );
 
   Future<bool> rejectPayment(String paymentId, String reason) => _mutate(
-    () => ref.read(paymentServiceProvider).reject(paymentId, reason),
+    () => ref.read(paymentRepositoryProvider).reject(paymentId, reason),
     refreshSession: false,
     refreshPayments: true,
   );
 
   Future<bool> bulkApprove(List<String> paymentIds) => _mutate(
-    () => ref.read(paymentServiceProvider).bulkApprove(paymentIds),
+    () => ref.read(paymentRepositoryProvider).bulkApprove(paymentIds),
     refreshSession: false,
     refreshPayments: true,
   );
@@ -117,7 +93,7 @@ class HostSessionManagementController extends Notifier<AsyncValue<void>> {
     required String accountHolder,
   }) => _mutate(
     () => ref
-        .read(paymentServiceProvider)
+        .read(paymentRepositoryProvider)
         .saveSettings(
           id: id,
           bankName: bankName,
@@ -129,20 +105,20 @@ class HostSessionManagementController extends Notifier<AsyncValue<void>> {
   );
 
   Future<bool> setDefaultSettings(String id) => _mutate(
-    () => ref.read(paymentServiceProvider).setDefault(id),
+    () => ref.read(paymentRepositoryProvider).setDefault(id),
     refreshSession: false,
     refreshSettings: true,
   );
 
   Future<bool> deleteSettings(String id) => _mutate(
-    () => ref.read(paymentServiceProvider).deleteSettings(id),
+    () => ref.read(paymentRepositoryProvider).deleteSettings(id),
     refreshSession: false,
     refreshSettings: true,
   );
 
   Future<bool> setSplitAmount(int totalAmount) => _mutate(
     () => ref
-        .read(paymentServiceProvider)
+        .read(paymentRepositoryProvider)
         .setSplitAmount(
           sessionId,
           totalAmount,
@@ -156,7 +132,7 @@ class HostSessionManagementController extends Notifier<AsyncValue<void>> {
     required int amount,
   }) => _mutate(
     () => ref
-        .read(paymentServiceProvider)
+        .read(paymentRepositoryProvider)
         .saveExpense(
           sessionId,
           expenseId: expenseId,
@@ -168,7 +144,7 @@ class HostSessionManagementController extends Notifier<AsyncValue<void>> {
   );
 
   Future<bool> deleteExpense(String expenseId) => _mutate(
-    () => ref.read(paymentServiceProvider).deleteExpense(sessionId, expenseId),
+    () => ref.read(paymentRepositoryProvider).deleteExpense(sessionId, expenseId),
     refreshSession: false,
     refreshExpenses: true,
   );

@@ -1,0 +1,46 @@
+import 'package:vmito_app/features/payment/domain/payment.dart';
+
+/// The payment resource's data boundary — the manual bank-transfer ledger.
+///
+/// There is no payment gateway: a host records what a player transferred and
+/// approves or rejects it, so every method here is a ledger operation rather
+/// than a charge.
+abstract interface class PaymentRepository {
+  Future<PaymentLedger> ledger(String sessionId);
+
+  Future<List<HostPaymentSettings>> settings();
+
+  Future<void> approve(String paymentId);
+
+  Future<void> reject(String paymentId, String reason);
+
+  Future<void> bulkApprove(List<String> paymentIds);
+
+  Future<void> saveSettings({
+    String? id,
+    required String bankName,
+    required String accountNumber,
+    required String accountHolder,
+  });
+
+  Future<void> setDefault(String id);
+
+  Future<void> deleteSettings(String id);
+
+  Future<void> setSplitAmount(String sessionId, int totalAmount);
+
+  Future<List<SessionExpense>> expenses(String sessionId);
+
+  Future<void> saveExpense(
+    String sessionId, {
+    String? expenseId,
+    required String name,
+    required int amount,
+  });
+
+  Future<void> deleteExpense(String sessionId, String expenseId);
+
+  Future<List<HostTransactionSummary>> hostSummary();
+
+  Future<List<PaymentRecord>> transactionsForUser(String userId);
+}
