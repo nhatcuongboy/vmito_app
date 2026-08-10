@@ -1,9 +1,11 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/widgets/level_range_chips.dart';
+import 'package:vmito_app/l10n/app_localizations.dart';
 
 /// One session in the browse list.
 ///
@@ -14,11 +16,27 @@ import 'package:vmito_app/features/session/presentation/widgets/level_range_chip
 ///
 /// `BaseSessionCard` on web is 1,482 lines because it serves every context at
 /// once. This is the browse card only.
+enum _MoreAction { clone, downloadImage, share, delete }
+
 class SessionCard extends StatelessWidget {
-  const SessionCard({required this.session, this.onTap, super.key});
+  const SessionCard({
+    required this.session,
+    this.onTap,
+    this.onHost,
+    this.onClone,
+    this.onDownloadImage,
+    this.onShare,
+    this.onDelete,
+    super.key,
+  });
 
   final Session session;
   final VoidCallback? onTap;
+  final VoidCallback? onHost;
+  final VoidCallback? onClone;
+  final VoidCallback? onDownloadImage;
+  final VoidCallback? onShare;
+  final VoidCallback? onDelete;
 
   static const _coverWidth = 108.0;
 
@@ -26,6 +44,11 @@ class SessionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = theme.extension<AppPalette>()!;
+    final showActions = onHost != null ||
+        onClone != null ||
+        onDownloadImage != null ||
+        onShare != null ||
+        onDelete != null;
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -56,15 +79,13 @@ class SessionCard extends StatelessWidget {
                         _HostLine(session: session),
                       if (session.timeRangeLabel case final time?)
                         _MetaLine(
-                          icon: Icons.schedule_rounded,
+                          icon: AppIcons.clock,
                           text: time,
-                          // Time is the first thing scanned; give it the
-                          // accent the rest of the metadata does not have.
                           color: palette.warning,
                         ),
                       if (session.displayPlace.isNotEmpty)
                         _MetaLine(
-                          icon: Icons.place_outlined,
+                          icon: AppIcons.location,
                           text: session.displayPlace,
                           trailing: session.distance == null
                               ? null
@@ -88,12 +109,193 @@ class SessionCard extends StatelessWidget {
                             ),
                         ],
                       ),
+                      if (showActions) ...[
+                        const SizedBox(height: AppSpacing.xs),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            if (onHost != null)
+                              FilledButton.icon(
+                                key: ValueKey('session-host-button-${session.id}'),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: const Color(0xFF166534),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  minimumSize: const Size(0, 34),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      AppRadius.md,
+                                    ),
+                                  ),
+                                ),
+                                icon: const Icon(AppIcons.settings, size: 16),
+                                label: const Text(
+                                  'Host',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                onPressed: onHost,
+                              ),
+                            const SizedBox(width: AppSpacing.xs),
+                            PopupMenuButton<_MoreAction>(
+                              key: ValueKey('session-more-button-${session.id}'),
+                              style: ButtonStyle(
+                                padding: WidgetStateProperty.all(EdgeInsets.zero),
+                                minimumSize: WidgetStateProperty.all(
+                                  const Size(34, 34),
+                                ),
+                              ),
+                              icon: Container(
+                                width: 34,
+                                height: 34,
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: theme.colorScheme.outline.withValues(
+                                      alpha: 0.3,
+                                    ),
+                                  ),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.md,
+                                  ),
+                                ),
+                                child: const Icon(AppIcons.moreVert, size: 18),
+                              ),
+                              itemBuilder: (context) {
+                                final l10n = AppLocalizations.of(context);
+                                return [
+                                  PopupMenuItem(
+                                    value: _MoreAction.clone,
+                                    child: Row(
+                                      children: [
+                                        const Icon(AppIcons.copy, size: 18),
+                                        const SizedBox(width: AppSpacing.sm),
+                                        Text(l10n.mySessionsClone),
+                                      ],
+                                    ),
+                                  ),
+                                  PopupMenuItem(
+                                    value: _MoreAction.downloadImage,
+                                    child: Row(
+                                      children: [
+                                        const Icon(AppIcons.download, size: 18),
+                                        const SizedBox(width: AppSpacing.sm),
+                                        Text(l10n.mySessionsDownloadImage),
+                                      ],
+                                    ),
+                                  ),
+                                  PopupMenuItem(
+                                    value: _MoreAction.share,
+                                    child: Row(
+                                      children: [
+                                        const Icon(AppIcons.share, size: 18),
+                                        const SizedBox(width: AppSpacing.sm),
+                                        Text(l10n.mySessionsShare),
+                                      ],
+                                    ),
+                                  ),
+                                  PopupMenuItem(
+                                    value: _MoreAction.delete,
+                                    child: Builder(
+                                      builder: (context) {
+                                        final errorColor =
+                                            Theme.of(context).colorScheme.error;
+                                        return Row(
+                                          children: [
+                                            Icon(
+                                              AppIcons.delete,
+                                              size: 18,
+                                              color: errorColor,
+                                            ),
+                                            const SizedBox(width: AppSpacing.sm),
+                                            Text(
+                                              l10n.mySessionsDelete,
+                                              style: TextStyle(
+                                                color: errorColor,
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ];
+                              },
+                              onSelected: (action) => switch (action) {
+                                _MoreAction.clone => onClone?.call(),
+                                _MoreAction.downloadImage => onDownloadImage?.call(),
+                                _MoreAction.share => onShare?.call(),
+                                _MoreAction.delete => onDelete?.call(),
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SlotsBadge extends StatelessWidget {
+  const _SlotsBadge({required this.session});
+
+  final Session session;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
+    final l10n = AppLocalizations.of(context);
+
+    if (session.status == SessionStatus.finished) {
+      return Container(
+        key: const Key('session-finished-badge'),
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(AppRadius.sm),
+          boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 4)],
+        ),
+        child: Text(
+          l10n.mySessionsEnded,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: const Color(0xFF1E293B),
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      );
+    }
+
+    final slots = session.availableSlots ?? 0;
+    final closed = !session.status.isOpen;
+    final full = slots == 0;
+    final label = closed
+        ? l10n.sessionRegistrationClosed
+        : full
+        ? l10n.sessionSlotsFull
+        : l10n.sessionSlotsLeft(slots);
+    final color = closed || full ? palette.mutedForeground : palette.success;
+    return Container(
+      key: const Key('session-slots-badge'),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+        boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 4)],
+      ),
+      child: Text(
+        label,
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
@@ -108,26 +310,33 @@ class _Cover extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final palette = Theme.of(context).extension<AppPalette>()!;
-    final url = session.coverPhoto;
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
+    final url = session.coverPhoto?.trim().isNotEmpty ?? false
+        ? session.coverPhoto!.trim()
+        : Session.defaultCoverPhoto;
 
     return SizedBox(
       width: width,
       child: Stack(
         fit: StackFit.expand,
         children: [
-          if (url != null && url.isNotEmpty)
-            CachedNetworkImage(
-              imageUrl: url,
-              fit: BoxFit.cover,
-              placeholder: (context, _) => ColoredBox(color: palette.muted),
-              errorWidget: (context, _, _) => _Placeholder(palette: palette),
-            )
-          else
-            _Placeholder(palette: palette),
-          if (session.isCrawled)
+          CachedNetworkImage(
+            imageUrl: url,
+            fit: BoxFit.cover,
+            placeholder: (context, _) => ColoredBox(color: palette.muted),
+            errorWidget: (context, _, _) => _Placeholder(palette: palette),
+          ),
+          if (session.availableSlots != null ||
+              session.status == SessionStatus.finished)
             Positioned(
               top: AppSpacing.xs,
+              left: AppSpacing.xs,
+              child: _SlotsBadge(session: session),
+            ),
+          if (session.isCrawled)
+            Positioned(
+              bottom: AppSpacing.xs,
               left: AppSpacing.xs,
               child: _CrawledBadge(source: session.externalSource),
             ),
@@ -147,7 +356,7 @@ class _Placeholder extends StatelessWidget {
     return ColoredBox(
       color: palette.muted,
       child: Icon(
-        Icons.sports_tennis_rounded,
+        AppIcons.sessions,
         color: palette.mutedForeground,
       ),
     );
@@ -203,7 +412,7 @@ class _HostLine extends StatelessWidget {
                 ? null
                 : CachedNetworkImageProvider(image),
             child: Icon(
-              Icons.person_rounded,
+              AppIcons.profile,
               size: 11,
               color: palette.mutedForeground,
             ),

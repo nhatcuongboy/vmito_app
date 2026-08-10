@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/theme/app_typography.dart';
 
 /// Light and dark [ThemeData] built from the ported design tokens.
 ///
@@ -48,9 +49,14 @@ abstract final class AppTheme {
     required Color scaffoldBackground,
     required AppPalette palette,
   }) {
-    final base = ThemeData(brightness: brightness, colorScheme: scheme);
+    final base = ThemeData(
+      brightness: brightness,
+      colorScheme: scheme,
+      useMaterial3: true,
+    );
 
     return base.copyWith(
+      textTheme: AppTypography.build(base.textTheme, scheme.onSurface),
       scaffoldBackgroundColor: scaffoldBackground,
       extensions: [palette],
       appBarTheme: AppBarTheme(
@@ -76,7 +82,7 @@ abstract final class AppTheme {
       dividerTheme: DividerThemeData(color: palette.border, space: 1),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: const Size.fromHeight(AppSizes.minTapTarget),
+          minimumSize: const Size(0, AppSizes.minTapTarget),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
@@ -85,7 +91,7 @@ abstract final class AppTheme {
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size.fromHeight(AppSizes.minTapTarget),
+          minimumSize: const Size(0, AppSizes.minTapTarget),
           side: BorderSide(color: palette.border),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.lg),

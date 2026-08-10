@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/auth/application/password_reset_controller.dart';
 import 'package:vmito_app/features/auth/domain/password_reset.dart';
@@ -243,8 +244,8 @@ class _ResetForm extends ConsumerWidget {
                 onPressed: onTogglePassword,
                 icon: Icon(
                   obscurePassword
-                      ? Icons.visibility_off_rounded
-                      : Icons.visibility_rounded,
+                      ? AppIcons.eyeOff
+                      : AppIcons.eye,
                 ),
               ),
             ),
@@ -268,8 +269,8 @@ class _ResetForm extends ConsumerWidget {
                 onPressed: onToggleConfirmation,
                 icon: Icon(
                   obscureConfirmation
-                      ? Icons.visibility_off_rounded
-                      : Icons.visibility_rounded,
+                      ? AppIcons.eyeOff
+                      : AppIcons.eye,
                 ),
               ),
             ),

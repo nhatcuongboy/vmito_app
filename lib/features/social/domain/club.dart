@@ -1,5 +1,6 @@
 class ClubVenue {
   const ClubVenue({
+    this.id,
     required this.name,
     required this.address,
     this.latitude,
@@ -7,12 +8,14 @@ class ClubVenue {
   });
 
   factory ClubVenue.fromJson(Map<String, dynamic> json) => ClubVenue(
+    id: json['id'] as String?,
     name: json['name'] as String? ?? '',
     address: (json['newAddress'] ?? json['address']) as String? ?? '',
     latitude: (json['lat'] as num?)?.toDouble(),
     longitude: (json['lng'] as num?)?.toDouble(),
   );
 
+  final String? id;
   final String name;
   final String address;
   final double? latitude;
@@ -57,6 +60,14 @@ class ClubSummary {
     this.isPublic = true,
     this.maxMembers,
     this.status = 'APPROVED',
+    this.slug,
+    this.images = const [],
+    this.socialLinks = const {},
+    this.members = const [],
+    this.scheduleVenues = const [],
+    this.hostId,
+    this.hostImage,
+    this.distance,
   });
 
   factory ClubSummary.fromJson(Map<String, dynamic> json) {
@@ -87,6 +98,33 @@ class ClubSummary {
       isPublic: json['isPublic'] as bool? ?? true,
       maxMembers: (json['maxMembers'] as num?)?.toInt(),
       status: json['status'] as String? ?? 'APPROVED',
+      slug: json['slug'] as String?,
+      images: (json['images'] as List<dynamic>? ?? const [])
+          .map(
+            (item) => item is String
+                ? item
+                : item is Map
+                ? item['url'] as String?
+                : null,
+          )
+          .whereType<String>()
+          .toList(growable: false),
+      socialLinks:
+          (json['socialLinks'] as Map?)?.map(
+            (key, value) => MapEntry('$key', '$value'),
+          ) ??
+          const {},
+      members: (json['members'] as List<dynamic>? ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .map(ClubMember.fromJson)
+          .toList(growable: false),
+      scheduleVenues: (json['scheduleVenues'] as List<dynamic>? ?? const [])
+          .whereType<Map<String, dynamic>>()
+          .map(ClubVenue.fromJson)
+          .toList(growable: false),
+      hostId: host?['id'] as String?,
+      hostImage: host?['image'] as String?,
+      distance: (json['distance'] as num?)?.toDouble(),
     );
   }
 
@@ -106,8 +144,20 @@ class ClubSummary {
   final bool isPublic;
   final int? maxMembers;
   final String status;
+  final String? slug;
+  final List<String> images;
+  final Map<String, String> socialLinks;
+  final List<ClubMember> members;
+  final List<ClubVenue> scheduleVenues;
+  final String? hostId;
+  final String? hostImage;
+  final double? distance;
 
   String? get heroImage => image ?? logo;
+  List<String> get gallery => [
+    if (image?.isNotEmpty ?? false) image!,
+    ...images.where((url) => url != image),
+  ];
   bool get isInvitationOnly => joinPolicy == 'INVITATION_ONLY';
 }
 

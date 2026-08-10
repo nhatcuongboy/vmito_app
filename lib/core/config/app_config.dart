@@ -27,6 +27,24 @@ abstract final class AppConfig {
   static bool get isProduction => flavor == AppFlavor.production;
   static bool get isDev => flavor == AppFlavor.dev;
 
+  /// Lets developers exercise authenticated UI without calling `/auth/login`.
+  ///
+  /// This requires an explicit build define and is deliberately unavailable in
+  /// staging and production, even if the define is accidentally set there.
+  static const bool _authBypassRequested = bool.fromEnvironment(
+    'ENABLE_AUTH_BYPASS',
+  );
+
+  static bool get enableAuthBypass => isAuthBypassAllowed(
+    flavor: flavor,
+    requested: _authBypassRequested,
+  );
+
+  static bool isAuthBypassAllowed({
+    required AppFlavor flavor,
+    required bool requested,
+  }) => flavor == AppFlavor.dev && requested;
+
   /// REST base URL, including the `/api` suffix.
   ///
   /// Mirrors `NEXT_PUBLIC_API_URL` in vmito-fe. On Android the emulator
@@ -49,6 +67,22 @@ abstract final class AppConfig {
     'WEB_BASE_URL',
     defaultValue: 'https://vmito.com',
   );
+
+  /// Google Places API (New) key, used only by the address autocomplete on the
+  /// create-session form.
+  ///
+  /// This ships inside the binary, so it must be a **mobile-only** key with
+  /// application restrictions (Android package + SHA-1, iOS bundle id) and an
+  /// API restriction to Places API (New). Reusing the web's browser key would
+  /// effectively unrestrict it — HTTP-referrer restrictions do not apply to a
+  /// mobile client.
+  ///
+  /// Empty is a supported state: the address field degrades to plain text.
+  static const String googlePlacesApiKey = String.fromEnvironment(
+    'GOOGLE_PLACES_API_KEY',
+  );
+
+  static bool get hasGooglePlaces => googlePlacesApiKey.isNotEmpty;
 
   static const Duration connectTimeout = Duration(seconds: 15);
   static const Duration receiveTimeout = Duration(seconds: 30);

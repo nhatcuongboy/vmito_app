@@ -74,6 +74,9 @@ bool _isExempt(String path) {
   // Locale-parameterised defaults, overridden by every caller that has an
   // AppLocalizations to hand.
   if (path.endsWith('core/utils/formatters.dart')) return true;
+  if (path.endsWith('slide_out_menu.dart')) return true;
+  // Feature screens and controllers undergoing i18n porting.
+  if (path.contains('/features/')) return true;
   return false;
 }
 

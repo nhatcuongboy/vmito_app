@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
@@ -30,18 +31,18 @@ class SessionHeader extends StatelessWidget {
         const SizedBox(height: AppSpacing.sm),
         if (session.displayStartTime case final time?)
           _InfoRow(
-            icon: Icons.schedule_rounded,
+            icon: AppIcons.clock,
             text: Dates.dayAndTime(time, locale: locale),
           ),
         if (session.location case final location? when location.isNotEmpty)
-          _InfoRow(icon: Icons.place_outlined, text: location),
+          _InfoRow(icon: AppIcons.location, text: location),
         if (session.displayHostName.isNotEmpty)
           _InfoRow(
-            icon: Icons.person_outline_rounded,
+            icon: AppIcons.profile,
             text: session.displayHostName,
           ),
         _InfoRow(
-          icon: Icons.grid_view_rounded,
+          icon: AppIcons.grid,
           text: session.capacity > 0
               ? l10n.sessionCourtCapacity(
                   session.numberOfCourts,

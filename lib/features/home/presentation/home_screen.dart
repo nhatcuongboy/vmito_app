@@ -1,74 +1,147 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
-import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/shell/app_shell_scaffold_key.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
-import 'package:vmito_app/features/home/presentation/widgets/hosted_sessions_section.dart';
-import 'package:vmito_app/features/session_hosting/application/hosted_sessions_controller.dart';
+import 'package:vmito_app/features/home/presentation/widgets/home_discovery_tabs.dart';
+import 'package:vmito_app/features/session/presentation/player/public_sessions_content.dart';
+import 'package:vmito_app/features/social/presentation/browse_clubs_screen.dart';
+import 'package:vmito_app/features/tournament/presentation/browse_tournaments_content.dart';
+import 'package:vmito_app/features/venue/presentation/browse_venues_screen.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
-/// The host's landing screen.
+/// The app's discovery landing page.
 ///
-/// P3 entry point: the sessions this user runs, and the way to create another.
-/// A player with no hosted sessions sees the browse call-to-action instead, so
-/// the screen is never an empty shell.
-class HomeScreen extends ConsumerWidget {
+/// It mirrors the web discovery navigation: sessions are the default content,
+/// while venues, clubs and tournaments are fetched when their segment is
+/// selected. A keyed subtree deliberately recreates the active browser on
+/// every selection (including a re-tap), so the selected data is revalidated.
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(currentUserProvider);
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  HomeDiscoveryTab _selectedTab = HomeDiscoveryTab.sessions;
+  var _contentRevision = 0;
+  bool _isFabExtended = true;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final isAuthenticated =
+        ref.watch(authControllerProvider).status == AuthStatus.authenticated;
+    final discoveryHeader = HomeDiscoveryTabs(
+      selected: _selectedTab,
+      onSelected: (tab) => setState(() {
+        _selectedTab = tab;
+        _contentRevision++;
+        _isFabExtended = true;
+      }),
+    );
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Vmito'),
+        leading: IconButton(
+          tooltip: l10n.menuOpenTooltip,
+          icon: const Icon(AppIcons.menu),
+          onPressed: () =>
+              ref.read(appShellScaffoldKeyProvider).currentState?.openDrawer(),
+        ),
+        title: Text(_selectedTab.label(l10n)),
         actions: [
-          IconButton(
-            tooltip: l10n.notificationsTitle,
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => context.push(AppRoutes.notifications),
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout_rounded),
-            onPressed: () =>
-                ref.read(authControllerProvider.notifier).signOut(),
-          ),
+          if (isAuthenticated) ...[
+            IconButton(
+              tooltip: l10n.notificationsTitle,
+              icon: const Icon(AppIcons.notifications),
+              onPressed: () => context.go(AppRoutes.notifications),
+            ),
+            IconButton(
+              tooltip: l10n.authSignOut,
+              icon: const Icon(AppIcons.logout),
+              onPressed: () =>
+                  ref.read(authControllerProvider.notifier).signOut(),
+            ),
+          ] else
+            IconButton(
+              tooltip: l10n.authSignIn,
+              icon: const Icon(AppIcons.login),
+              onPressed: () => context.push(AppRoutes.signIn),
+            ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () async => ref.invalidate(hostedSessionsProvider),
-        child: ListView(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          children: [
-            Text(
-              l10n.homeGreeting(user?.displayName ?? ''),
-              style: Theme.of(context).textTheme.titleLarge,
+      body: NotificationListener<ScrollNotification>(
+        onNotification: (notification) {
+          if (notification.metrics.axis == Axis.vertical) {
+            if (notification.metrics.pixels <= 0) {
+              if (!_isFabExtended) {
+                setState(() => _isFabExtended = true);
+              }
+            } else if (notification is UserScrollNotification) {
+              if (notification.direction == ScrollDirection.reverse) {
+                if (_isFabExtended) {
+                  setState(() => _isFabExtended = false);
+                }
+              } else if (notification.direction == ScrollDirection.forward) {
+                if (!_isFabExtended) {
+                  setState(() => _isFabExtended = true);
+                }
+              }
+            }
+          }
+          return false;
+        },
+        child: KeyedSubtree(
+          key: ValueKey('${_selectedTab.name}-$_contentRevision'),
+          child: switch (_selectedTab) {
+            HomeDiscoveryTab.sessions => BrowseSessionsContent(
+              discoveryHeader: discoveryHeader,
             ),
-            const SizedBox(height: AppSpacing.lg),
-            const HostedSessionsSection(),
-            const SizedBox(height: AppSpacing.lg),
-            OutlinedButton.icon(
-              onPressed: () => context.push(AppRoutes.transactions),
-              icon: const Icon(Icons.receipt_long_outlined),
-              label: Text(l10n.transactionDashboardTitle),
+            HomeDiscoveryTab.venues => BrowseVenuesScreen(
+              embedded: true,
+              discoveryHeader: discoveryHeader,
             ),
-            const SizedBox(height: AppSpacing.sm),
-            OutlinedButton.icon(
-              onPressed: () => context.go(AppRoutes.browseSessions),
-              icon: const Icon(Icons.stadium_outlined),
-              label: Text(l10n.homeBrowseSessions),
+            HomeDiscoveryTab.clubs => BrowseClubsScreen(
+              embedded: true,
+              discoveryHeader: discoveryHeader,
             ),
-            const SizedBox(height: AppSpacing.xxl),
-          ],
+            HomeDiscoveryTab.tournaments => BrowseTournamentsContent(
+              discoveryHeader: discoveryHeader,
+            ),
+          },
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push(AppRoutes.createSession),
-        icon: const Icon(Icons.add_rounded),
-        label: Text(l10n.createSessionTitle),
-      ),
+      floatingActionButton:
+          (isAuthenticated && _selectedTab == HomeDiscoveryTab.sessions)
+              ? SizedBox(
+                  height: 40,
+                  child: FloatingActionButton.extended(
+                    key: const Key('home-create-session-fab'),
+                    isExtended: _isFabExtended,
+                    onPressed: () => context.push(AppRoutes.createSession),
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                    elevation: 2,
+                    extendedPadding: const EdgeInsets.symmetric(horizontal: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    icon: const Icon(AppIcons.add, size: 18),
+                    label: Text(
+                      l10n.createSessionTitle,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                )
+              : null,
     );
   }
 }

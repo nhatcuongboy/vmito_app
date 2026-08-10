@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
@@ -95,7 +96,7 @@ class _SummaryList extends StatelessWidget {
               ),
               trailing: item.userId == 'guest'
                   ? null
-                  : const Icon(Icons.chevron_right_rounded),
+                  : const Icon(AppIcons.chevronRight),
               onTap: item.userId == 'guest'
                   ? null
                   : () => showModalBottomSheet<void>(

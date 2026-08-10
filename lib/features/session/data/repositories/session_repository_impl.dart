@@ -1,12 +1,22 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/core/config/app_config.dart';
 import 'package:vmito_app/core/constants/api_endpoints.dart';
 import 'package:vmito_app/core/network/api_client.dart';
 import 'package:vmito_app/core/network/api_options.dart';
 import 'package:vmito_app/core/network/api_response.dart';
 import 'package:vmito_app/core/network/paginated.dart';
+import 'package:vmito_app/core/utils/logger.dart';
+import 'package:vmito_app/features/registration/domain/pending_join_request.dart';
+import 'package:vmito_app/features/session/domain/bulk_create_session.dart';
 import 'package:vmito_app/features/session/domain/create_session_request.dart';
+import 'package:vmito_app/features/session/domain/player_detail.dart';
+import 'package:vmito_app/features/session/domain/player_statistics.dart';
 import 'package:vmito_app/features/session/domain/repositories/session_repository.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
+import 'package:vmito_app/features/session/domain/session_list_query.dart';
+// Shadows `dart:core`'s `Match` in this file. Intentional — the model mirrors
+// the backend entity, and no regex work happens here.
+import 'package:vmito_app/shared/models/match.dart';
 
 /// Ports `vmito-fe/src/lib/api/session.service.ts`.
 ///
@@ -50,19 +60,30 @@ class SessionRepositoryImpl implements SessionRepository {
     bool? hasSlots,
     String? sessionType,
   }) async {
+    final queryParameters = {
+      'page': page,
+      'limit': limit,
+      if (search != null && search.trim().isNotEmpty)
+        'searchQuery': search.trim(),
+      'level': ?level,
+      'hasSlots': ?hasSlots,
+      if (sessionType != null && sessionType != 'all')
+        'sessionType': sessionType,
+    };
+    final url =
+        Uri.parse(
+          '${AppConfig.apiBaseUrl}${ApiEndpoints.availableSessions}',
+        ).replace(
+          queryParameters: queryParameters.map(
+            (key, value) => MapEntry(key, value.toString()),
+          ),
+        );
+    AppLogger.network('GET $url');
     final response = await _client.get<Map<String, dynamic>>(
       ApiEndpoints.availableSessions,
-      queryParameters: {
-        'page': page,
-        'limit': limit,
-        if (search != null && search.trim().isNotEmpty)
-          'searchQuery': search.trim(),
-        'level': ?level,
-        'hasSlots': ?hasSlots,
-        if (sessionType != null && sessionType != 'all')
-          'sessionType': sessionType,
-      },
+      queryParameters: queryParameters,
     );
+    AppLogger.network('GET $url -> ${response.statusCode}');
     return unwrapPage(response.data, Session.fromJson);
   }
 
@@ -75,19 +96,69 @@ class SessionRepositoryImpl implements SessionRepository {
     String hostId, {
     required int limit,
     int page = 1,
+    SessionListQuery? query,
   }) async {
+    final effective = query ?? SessionListQuery(page: page, limit: limit);
     final response = await _client.get<Map<String, dynamic>>(
       ApiEndpoints.mySessions,
-      queryParameters: {
-        'hostId': hostId,
-        'page': page,
-        'limit': limit,
-        'sortBy': 'startTime',
-        'sortOrder': 'desc',
-      },
+      queryParameters: _sessionListParameters(effective, hostId: hostId),
     );
     return unwrapPage(response.data, Session.fromJson);
   }
+
+  @override
+  Future<Page<Session>> joinedByCurrentUser(SessionListQuery query) async {
+    final response = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.joinedSessions,
+      queryParameters: _sessionListParameters(query),
+    );
+    return unwrapPage(response.data, Session.fromJson);
+  }
+
+  @override
+  Future<Page<PendingJoinRequest>> pendingJoinRequests({
+    required int page,
+    required int limit,
+    String? search,
+  }) async {
+    final response = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.pendingJoinRequests,
+      queryParameters: {
+        'page': page,
+        'limit': limit,
+        if (search != null && search.trim().isNotEmpty)
+          'searchQuery': search.trim(),
+      },
+    );
+    return unwrapPage(response.data, PendingJoinRequest.fromJson);
+  }
+
+  @override
+  Future<int> pendingJoinRequestCount() async {
+    final response = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.pendingJoinRequestCount,
+    );
+    final body = response.data ?? const <String, dynamic>{};
+    final payload = body['success'] == null ? body : body['data'];
+    if (payload is Map) return (payload['count'] as num?)?.toInt() ?? 0;
+    return 0;
+  }
+
+  Map<String, dynamic> _sessionListParameters(
+    SessionListQuery query, {
+    String? hostId,
+  }) => {
+    'hostId': ?hostId,
+    'page': query.page,
+    'limit': query.limit,
+    'sortBy': query.sortBy,
+    'sortOrder': query.sortOrder,
+    if (query.search != null && query.search!.trim().isNotEmpty)
+      'searchQuery': query.search!.trim(),
+    if (query.status != null) 'status': _statusParam(query.status!),
+    if (query.excludedStatuses.isNotEmpty)
+      'excludeStatuses': query.excludedStatuses.map(_statusParam).join(','),
+  };
 
   /// Creates a session and returns it as the backend stored it.
   ///
@@ -102,6 +173,18 @@ class SessionRepositoryImpl implements SessionRepository {
       options: apiOptions(skipGlobalError: true),
     );
     return unwrap(response.data, Session.fromJson);
+  }
+
+  @override
+  Future<BulkCreateSessionResult> createBulk(
+    BulkCreateSessionRequest request,
+  ) async {
+    final response = await _client.post<Map<String, dynamic>>(
+      ApiEndpoints.sessionsBulk,
+      data: request.toJson(),
+      options: apiOptions(skipGlobalError: true),
+    );
+    return unwrap(response.data, BulkCreateSessionResult.fromJson);
   }
 
   @override
@@ -131,6 +214,22 @@ class SessionRepositoryImpl implements SessionRepository {
   }
 
   @override
+  Future<Page<Session>> recommendations(
+    String sessionId, {
+    required int limit,
+    String? userId,
+  }) async {
+    final response = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.sessionRecommendations(sessionId),
+      queryParameters: {'limit': limit, 'userId': ?userId},
+    );
+    // The rows are sessions plus `relevanceScore`/`matchReasons`/`distance`.
+    // Only `distance` is rendered, and [Session] already carries it; the
+    // scoring fields stay unmodelled until a screen shows them.
+    return unwrapPage(response.data, Session.fromJson);
+  }
+
+  @override
   Future<void> startSession(String sessionId) async {
     await _client.post<void>(
       ApiEndpoints.sessionStart(sessionId),
@@ -147,37 +246,44 @@ class SessionRepositoryImpl implements SessionRepository {
   }
 
   @override
-  Future<void> selectPlayers(String courtId, List<String> playerIds) async {
-    await _client.post<void>(
-      ApiEndpoints.courtSelectPlayers(courtId),
-      data: {'playerIds': playerIds},
-      options: apiOptions(skipGlobalError: true),
+  Future<List<Match>> matches(String sessionId) async {
+    final response = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.sessionMatches(sessionId),
     );
+    return unwrapList(response.data, Match.fromJson);
   }
 
   @override
-  Future<void> deselectPlayers(String courtId) async {
-    await _client.post<void>(
-      ApiEndpoints.courtDeselectPlayers(courtId),
-      options: apiOptions(skipGlobalError: true),
+  Future<List<PlayerStatistics>> playerStatistics(String sessionId) async {
+    final response = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.sessionPlayerStatistics(sessionId),
     );
+    final body = response.data ?? const <String, dynamic>{};
+    final payload = body.containsKey('success') ? body['data'] : body;
+    final map = payload as Map<String, dynamic>? ?? const {};
+    final rows = map['playerStats'] as List<dynamic>? ?? const [];
+    return rows
+        .whereType<Map<String, dynamic>>()
+        .map(PlayerStatistics.fromJson)
+        .toList(growable: false);
   }
 
   @override
-  Future<void> startMatch(String courtId) async {
-    await _client.post<void>(
-      ApiEndpoints.courtStartMatch(courtId),
-      options: apiOptions(skipGlobalError: true),
+  Future<PlayerDetail> playerById(String playerId) async {
+    final response = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.player(playerId),
     );
+    return unwrap(response.data, PlayerDetail.fromJson);
   }
 
   @override
-  Future<void> endMatch(String courtId) async {
-    await _client.post<void>(
-      ApiEndpoints.courtEndMatch(courtId),
-      data: const <String, dynamic>{},
-      options: apiOptions(skipGlobalError: true),
+  Future<bool> showShuttlecockCount() async {
+    final response = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.featureFlags,
     );
+    final body = response.data ?? const <String, dynamic>{};
+    final payload = body.containsKey('success') ? body['data'] : body;
+    return payload is Map && payload['SHOW_SHUTTLECOCK_COUNT'] == true;
   }
 
   @override

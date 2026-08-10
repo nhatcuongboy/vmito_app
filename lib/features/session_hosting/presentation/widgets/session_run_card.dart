@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session_hosting/application/host_session_management_controller.dart';
@@ -16,32 +17,52 @@ class SessionRunCard extends ConsumerWidget {
     final controller = ref.read(
       hostSessionManagementControllerProvider(session.id).notifier,
     );
+    final action = switch (session.status) {
+      SessionStatus.preparing => FilledButton.icon(
+        key: const ValueKey('start-session'),
+        onPressed: controller.startSession,
+        icon: const Icon(AppIcons.play),
+        label: Text(l10n.hostManageStartSession),
+      ),
+      SessionStatus.inProgress => OutlinedButton.icon(
+        key: const ValueKey('end-session'),
+        onPressed: controller.endSession,
+        icon: const Icon(AppIcons.stop),
+        label: Text(l10n.hostManageEndSession),
+      ),
+      _ => null,
+    };
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                session.name,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-            ),
-            if (session.status == SessionStatus.preparing)
-              FilledButton.icon(
-                key: const ValueKey('start-session'),
-                onPressed: controller.startSession,
-                icon: const Icon(Icons.play_arrow_rounded),
-                label: Text(l10n.hostManageStartSession),
-              )
-            else if (session.status == SessionStatus.inProgress)
-              OutlinedButton.icon(
-                key: const ValueKey('end-session'),
-                onPressed: controller.endSession,
-                icon: const Icon(Icons.stop_rounded),
-                label: Text(l10n.hostManageEndSession),
-              ),
-          ],
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final title = Text(
+              session.name,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.titleMedium,
+            );
+            if (action == null) return title;
+            if (constraints.maxWidth < 420) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  title,
+                  const SizedBox(height: AppSpacing.sm),
+                  action,
+                ],
+              );
+            }
+            return Row(
+              children: [
+                Expanded(child: title),
+                const SizedBox(width: AppSpacing.md),
+                action,
+              ],
+            );
+          },
         ),
       ),
     );

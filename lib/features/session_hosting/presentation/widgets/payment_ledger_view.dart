@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/features/payment/domain/payment.dart';
@@ -37,7 +38,7 @@ class PaymentLedgerView extends ConsumerWidget {
         if (session.feeConfig?.isSplitEvenly ?? false) ...[
           FilledButton.tonalIcon(
             onPressed: () => _setSplitAmount(context, controller),
-            icon: const Icon(Icons.calculate_outlined),
+            icon: const Icon(AppIcons.calculator),
             label: Text(l10n.setSplitAmount),
           ),
           const SizedBox(height: AppSpacing.sm),
@@ -67,7 +68,7 @@ class PaymentLedgerView extends ConsumerWidget {
           const SizedBox(height: AppSpacing.sm),
           FilledButton.tonalIcon(
             onPressed: () => controller.bulkApprove(submitted),
-            icon: const Icon(Icons.done_all_rounded),
+            icon: const Icon(AppIcons.checkAll),
             label: Text(l10n.hostManageBulkApprove),
           ),
         ],
@@ -100,12 +101,12 @@ class PaymentLedgerView extends ConsumerWidget {
                             );
                           }
                         },
-                        icon: const Icon(Icons.close_rounded),
+                        icon: const Icon(AppIcons.close),
                       ),
                       IconButton(
                         tooltip: l10n.hostManageApprove,
                         onPressed: () => controller.approvePayment(payment.id),
-                        icon: const Icon(Icons.check_rounded),
+                        icon: const Icon(AppIcons.check),
                       ),
                     ],
                   ],

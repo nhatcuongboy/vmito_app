@@ -1,17 +1,18 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/shell/app_shell_scaffold_key.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
-import 'package:vmito_app/features/social/domain/club.dart';
+import 'package:vmito_app/features/social/presentation/widgets/post_avatar.dart';
 import 'package:vmito_app/features/social/presentation/widgets/social_post_card.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
@@ -26,27 +27,21 @@ class _SocialHubScreenState extends State<SocialHubScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.socialTitle),
-          actions: [
-            IconButton(
-              tooltip: l10n.clubManageTitle,
-              onPressed: () => context.push(AppRoutes.manageClubs),
-              icon: const Icon(Icons.admin_panel_settings_outlined),
-            ),
-          ],
-          bottom: TabBar(
-            tabs: [
-              Tab(text: l10n.socialFeedTab),
-              Tab(text: l10n.socialClubsTab),
-            ],
+    return Scaffold(
+      appBar: AppBar(
+        leading: Consumer(
+          builder: (context, ref, _) => IconButton(
+            tooltip: l10n.menuOpenTooltip,
+            icon: const Icon(AppIcons.menu),
+            onPressed: () => ref
+                .read(appShellScaffoldKeyProvider)
+                .currentState
+                ?.openDrawer(),
           ),
         ),
-        body: const TabBarView(children: [_FeedTab(), _ClubsTab()]),
+        title: Text(l10n.socialTitle),
       ),
+      body: const _FeedTab(),
     );
   }
 }
@@ -106,22 +101,21 @@ class _FeedTabState extends ConsumerState<_FeedTab> {
         controller: _scrollController,
         slivers: [
           SliverPadding(
-            padding: const EdgeInsets.all(AppSpacing.screenPadding),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.screenPadding,
+              AppSpacing.screenPadding,
+              AppSpacing.screenPadding,
+              0,
+            ),
             sliver: SliverToBoxAdapter(
-              child: Card(
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundImage: user?.image == null
-                        ? null
-                        : CachedNetworkImageProvider(user!.image!),
-                    child: user?.image == null
-                        ? const Icon(Icons.person_outline_rounded)
-                        : null,
-                  ),
-                  title: Text(l10n.socialComposerHint),
-                  trailing: const Icon(Icons.add_photo_alternate_outlined),
-                  onTap: _showComposer,
-                ),
+              child: _ComposerCard(
+                userName: user?.name ?? '',
+                userImage: user?.image,
+                hint: user?.name != null
+                    ? l10n.socialComposerNameHint(user!.name ?? '')
+                    : l10n.socialComposerHint,
+                onTap: _showComposer,
+                onImageTap: _showComposer,
               ),
             ),
           ),
@@ -134,7 +128,7 @@ class _FeedTabState extends ConsumerState<_FeedTab> {
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.screenPadding,
-                0,
+                AppSpacing.md,
                 AppSpacing.screenPadding,
                 AppSpacing.lg,
               ),
@@ -185,6 +179,95 @@ class _PostDraft {
 
   final String content;
   final List<String> imagePaths;
+}
+
+/// Composer prompt card — matches the web newsfeed composer card.
+class _ComposerCard extends StatelessWidget {
+  const _ComposerCard({
+    required this.userName,
+    required this.hint,
+    required this.onTap,
+    required this.onImageTap,
+    this.userImage,
+  });
+
+  final String userName;
+  final String? userImage;
+  final String hint;
+  final VoidCallback onTap;
+  final VoidCallback onImageTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1F2937) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.12)
+                : const Color(0xFFE5E7EB),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+              blurRadius: 6,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              PostAvatar(
+                name: userName,
+                imageUrl: userImage,
+                size: 40,
+                bordered: true,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  hint,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: isDark ? const Color(0xFF6B7280) : const Color(0xFF9CA3AF),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 8),
+              // Image button
+              GestureDetector(
+                onTap: onImageTap,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : const Color(0xFFF0FDF4),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(
+                    AppIcons.imagePlus,
+                    size: 20,
+                    color: Color(0xFF16A34A),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _PostComposerDialog extends StatefulWidget {
@@ -251,7 +334,7 @@ class _PostComposerDialogState extends State<_PostComposerDialog> {
                             visualDensity: VisualDensity.compact,
                             onPressed: () =>
                                 setState(() => _images.removeAt(index)),
-                            icon: const Icon(Icons.close_rounded, size: 18),
+                            icon: const Icon(AppIcons.close, size: 18),
                           ),
                         ),
                       ],
@@ -262,7 +345,7 @@ class _PostComposerDialogState extends State<_PostComposerDialog> {
                 alignment: Alignment.centerLeft,
                 child: TextButton.icon(
                   onPressed: _images.length >= 10 ? null : _pickImages,
-                  icon: const Icon(Icons.add_photo_alternate_outlined),
+                  icon: const Icon(AppIcons.imagePlus),
                   label: Text(l10n.socialAddPhotos),
                 ),
               ),
@@ -302,142 +385,4 @@ class _PostComposerDialogState extends State<_PostComposerDialog> {
   }
 }
 
-class _ClubsTab extends ConsumerStatefulWidget {
-  const _ClubsTab();
 
-  @override
-  ConsumerState<_ClubsTab> createState() => _ClubsTabState();
-}
-
-class _ClubsTabState extends ConsumerState<_ClubsTab> {
-  final _searchController = TextEditingController();
-  Timer? _debounce;
-
-  @override
-  void initState() {
-    super.initState();
-    unawaited(
-      Future<void>.microtask(
-        () => ref.read(clubsControllerProvider.notifier).load(),
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _debounce?.cancel();
-    _searchController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final state = ref.watch(clubsControllerProvider);
-    final l10n = AppLocalizations.of(context);
-    return RefreshIndicator(
-      onRefresh: () =>
-          ref.read(clubsControllerProvider.notifier).load(search: state.search),
-      child: ListView.separated(
-        padding: const EdgeInsets.all(AppSpacing.screenPadding),
-        itemCount: state.clubs.length + 2,
-        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
-        itemBuilder: (context, index) {
-          if (index == 0) {
-            return SearchBar(
-              controller: _searchController,
-              hintText: l10n.socialClubSearch,
-              leading: const Icon(Icons.search_rounded),
-              onChanged: _search,
-            );
-          }
-          if (index == state.clubs.length + 1) {
-            if (state.isLoading) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (state.error != null && state.clubs.isEmpty) {
-              return AppErrorView(
-                error: state.error!,
-                onRetry: () => ref
-                    .read(clubsControllerProvider.notifier)
-                    .load(search: state.search),
-              );
-            }
-            if (state.clubs.isEmpty) {
-              return Center(child: Text(l10n.socialNoClubs));
-            }
-            if (state.hasMore) {
-              return OutlinedButton(
-                onPressed: ref.read(clubsControllerProvider.notifier).loadMore,
-                child: Text(l10n.commonLoadMore),
-              );
-            }
-            return const SizedBox.shrink();
-          }
-          return _ClubCard(club: state.clubs[index - 1]);
-        },
-      ),
-    );
-  }
-
-  void _search(String value) {
-    _debounce?.cancel();
-    _debounce = Timer(
-      const Duration(milliseconds: 350),
-      () => ref.read(clubsControllerProvider.notifier).load(search: value),
-    );
-  }
-}
-
-class _ClubCard extends StatelessWidget {
-  const _ClubCard({required this.club});
-
-  final ClubSummary club;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => context.push(AppRoutes.socialClub(club.id)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (club.heroImage != null)
-              CachedNetworkImage(
-                imageUrl: club.heroImage!,
-                height: 150,
-                fit: BoxFit.cover,
-                errorWidget: (_, _, _) => const SizedBox(height: 80),
-              ),
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    club.name,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    l10n.socialMemberCount(club.memberCount),
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  if (club.location != null) ...[
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      club.location!,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

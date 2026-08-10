@@ -13,6 +13,7 @@ abstract final class AppRoutes {
 
   static const home = '/home';
   static const browseSessions = '/sessions';
+  static const pendingRequests = '/sessions/pending-requests';
   static String sessionDetail(String id) => '/sessions/$id';
   static String liveSession(String id) => '/sessions/$id/live';
   static String manageSession(String id) => '/sessions/$id/manage';
@@ -29,6 +30,10 @@ abstract final class AppRoutes {
   static const transactions = '/transactions';
   static const profile = '/profile';
   static const feed = '/feed';
+  static const venues = '/venues';
+  static String venueDetail(String id) => '/venues/$id';
+  static const clubs = '/clubs';
+  static String clubDetail(String id) => '/clubs/$id';
   static String socialPost(String id) => '/feed/$id';
   static String socialClub(String id) => '/feed/clubs/$id';
   static const manageClubs = '/feed/manage';
@@ -43,6 +48,7 @@ abstract final class AppRoutes {
     home,
     browseSessions,
     feed,
+    notifications,
     profile,
   ];
 
@@ -57,8 +63,8 @@ abstract final class AppRoutes {
 
   /// Routes reachable without an account.
   ///
-  /// App Store guideline 5.1.1(i) forbids gating browsing behind
-  /// registration, so browse and join must stay on this list.
+  /// App Store guideline 5.1.1(i) forbids gating discovery behind
+  /// registration, so Home and public entity pages stay on this list.
   /// [splash] is deliberately absent: it is matched exactly by [isPublic], not
   /// by prefix — `'/'` is a prefix of every path.
   static const publicPaths = <String>[
@@ -66,18 +72,21 @@ abstract final class AppRoutes {
     signUp,
     forgotPassword,
     resetPassword,
-    browseSessions,
+    home,
+    venues,
+    clubs,
     join,
     scanQr,
   ];
 
   /// Routes that sit *under* a public path but still need an account.
   ///
-  /// `/sessions` is public so anyone can browse, and [isPublic] matches by
-  /// prefix — which would otherwise make `/sessions/create` public too and
-  /// hand a signed-out user a form whose submit can only ever 401.
-  /// Checked before [publicPaths]; the more specific rule wins.
-  static const protectedPaths = <String>[createSession, manageClubs];
+  static const protectedPaths = <String>[
+    browseSessions,
+    createSession,
+    pendingRequests,
+    manageClubs,
+  ];
 
   /// A prefix match only counts on a segment boundary, so `/sessions` does not
   /// make `/sessionsecret` public.
@@ -85,10 +94,13 @@ abstract final class AppRoutes {
     final path = Uri.tryParse(location)?.path ?? location;
     if (path == splash) return true;
     if (RegExp(r'^/user/[^/]+(?:/|$)').hasMatch(path)) return true;
-    if (RegExp(
-      r'^/sessions/[^/]+/(manage|edit|clone|rate)(?:/|$)',
-    ).hasMatch(path)) {
-      return false;
+    final publicSession = RegExp(
+      r'^/sessions/([^/]+)(?:/(live))?$',
+    ).firstMatch(path);
+    if (publicSession != null &&
+        publicSession.group(1) != 'create' &&
+        publicSession.group(1) != 'pending-requests') {
+      return true;
     }
     if (protectedPaths.any(
       (protectedPath) =>

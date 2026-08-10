@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/court.dart';
+import 'package:vmito_app/shared/models/session_player.dart';
 
 /// A court's occupancy at a glance.
 ///
@@ -11,9 +13,20 @@ import 'package:vmito_app/shared/models/court.dart';
 /// directions — belongs to the live session screen and is built separately.
 /// This tile is what a public detail page needs: who is on, who is next.
 class CourtTile extends StatelessWidget {
-  const CourtTile({required this.court, super.key});
+  const CourtTile({
+    required this.court,
+    this.preSelectedPlayers = const [],
+    super.key,
+  });
 
   final Court court;
+
+  /// The court's pre-selected seats, already resolved to players.
+  ///
+  /// `court.preSelectedPlayers` is only `{playerId, position}` — the join
+  /// against the roster needs the session, which a tile does not have. Callers
+  /// use `Session.preSelectedPlayersFor`.
+  final List<SessionPlayer> preSelectedPlayers;
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +42,7 @@ class CourtTile extends StatelessWidget {
 
     final occupants = court.currentPlayers.isNotEmpty
         ? court.currentPlayers
-        : court.preSelectedPlayers;
+        : preSelectedPlayers;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -58,8 +71,8 @@ class CourtTile extends StatelessWidget {
               // Icon plus text, never colour alone.
               Icon(
                 court.isPlaying
-                    ? Icons.play_circle_fill_rounded
-                    : Icons.circle_outlined,
+                    ? AppIcons.playCircle
+                    : AppIcons.circle,
                 size: 14,
                 color: color,
               ),

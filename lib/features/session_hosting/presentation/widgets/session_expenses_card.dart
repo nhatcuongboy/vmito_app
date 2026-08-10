@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
@@ -49,7 +50,7 @@ class SessionExpensesCard extends ConsumerWidget {
                       context: context,
                       builder: (_) => ExpenseDialog(sessionId: sessionId),
                     ),
-                    icon: const Icon(Icons.add_rounded),
+                    icon: const Icon(AppIcons.add),
                   ),
                 ],
               ),
@@ -73,7 +74,7 @@ class SessionExpensesCard extends ConsumerWidget {
                               expense: expense,
                             ),
                           ),
-                          icon: const Icon(Icons.edit_outlined),
+                          icon: const Icon(AppIcons.edit),
                         ),
                         IconButton(
                           tooltip: l10n.hostManageRemove,
@@ -84,7 +85,7 @@ class SessionExpensesCard extends ConsumerWidget {
                                 ).notifier,
                               )
                               .deleteExpense(expense.id),
-                          icon: const Icon(Icons.delete_outline_rounded),
+                          icon: const Icon(AppIcons.delete),
                         ),
                       ],
                     ),

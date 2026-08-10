@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_domain/vmito_domain.dart';
 
@@ -35,7 +36,7 @@ class LevelRangeChips extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
             child: Icon(
-              Icons.arrow_forward_rounded,
+              AppIcons.arrowForward,
               size: 12,
               color: palette.mutedForeground,
             ),

@@ -27,9 +27,14 @@ flutter run --dart-define-from-file=env/dev.android.json  # Android emulator
 flutter run --dart-define-from-file=env/staging.json      # staging API
 ```
 
-`env/dev.json` points at `http://localhost:3001/api`, so `vmito-be` must be
-running. Android emulators reach the host at `10.0.2.2` — hence the separate
-file.
+`env/dev.json` targets the staging API. `env/dev.android.json` targets a
+backend running on the host machine; Android emulators reach it at
+`10.0.2.2`.
+
+The development files enable a client-side auth bypass. It starts the app as a
+hardcoded admin user and never stores fake tokens. This is intentionally
+disabled for staging and production, and protected backend APIs still require
+a real JWT.
 
 ## Checks
 

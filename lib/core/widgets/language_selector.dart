@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/localization/locale_controller.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 class LanguageButton extends StatelessWidget {
@@ -10,7 +11,7 @@ class LanguageButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return IconButton(
-      icon: const Icon(Icons.language_rounded),
+      icon: const Icon(AppIcons.language),
       tooltip: l10n.languageChangeTooltip,
       onPressed: () => showLanguageSelector(context),
     );
@@ -56,7 +57,7 @@ class _LanguageSelectorSheet extends ConsumerWidget {
               ListTile(
                 title: Text(label),
                 trailing: selected == code
-                    ? const Icon(Icons.check_rounded)
+                    ? const Icon(AppIcons.check)
                     : null,
                 selected: selected == code,
                 onTap: () async {

@@ -110,6 +110,12 @@ class SocialService {
     required int page,
     int limit = 20,
     String? search,
+    String? city,
+    String? district,
+    String? sortBy,
+    bool favoriteOnly = false,
+    double? latitude,
+    double? longitude,
   }) async {
     final response = await _client.get<Map<String, dynamic>>(
       ApiEndpoints.clubs,
@@ -117,6 +123,12 @@ class SocialService {
         'page': page,
         'limit': limit,
         if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
+        if (city?.trim().isNotEmpty ?? false) 'city': city!.trim(),
+        if (district?.trim().isNotEmpty ?? false) 'district': district!.trim(),
+        'sortBy': ?sortBy,
+        if (favoriteOnly) 'favoriteOnly': true,
+        'lat': ?latitude,
+        'lng': ?longitude,
       },
     );
     return ClubPage.fromJson(_payload(response.data));
@@ -140,6 +152,16 @@ class SocialService {
     );
     return _mapPayload(response.data)['status'] as String? ?? 'pending';
   }
+
+  Future<void> leaveClub(String id) => _client.delete<void>(
+    ApiEndpoints.clubLeave(id),
+    options: apiOptions(skipGlobalError: true),
+  );
+
+  Future<void> cancelClubJoinRequest(String id) => _client.delete<void>(
+    '/clubs/$id/join-request',
+    options: apiOptions(skipGlobalError: true),
+  );
 
   Future<List<ClubSummary>> managedClubs() async {
     final response = await _client.get<dynamic>(ApiEndpoints.managedClubs);

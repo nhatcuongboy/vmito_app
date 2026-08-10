@@ -8,8 +8,10 @@ import 'package:vmito_app/core/localization/locale_controller.dart';
 import 'package:vmito_app/core/network/api_client.dart';
 import 'package:vmito_app/core/network/error_interceptor.dart';
 import 'package:vmito_app/core/storage/token_storage.dart';
+import 'package:vmito_app/core/theme/theme_mode_controller.dart';
 import 'package:vmito_app/core/utils/logger.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
+import 'package:vmito_app/features/court/application/court_display_mode_controller.dart';
 
 /// Composition root: builds every long-lived singleton, restores the session,
 /// then hands control to [VmitoApp].
@@ -51,6 +53,12 @@ Future<void> bootstrap() async {
       localeRepositoryProvider.overrideWithValue(
         SharedPreferencesLocaleRepository(preferences),
       ),
+      themeRepositoryProvider.overrideWithValue(
+        SharedPreferencesThemeRepository(preferences),
+      ),
+      courtDisplayModeRepositoryProvider.overrideWithValue(
+        SharedPreferencesCourtDisplayModeRepository(preferences),
+      ),
     ],
   );
 
@@ -62,6 +70,7 @@ Future<void> bootstrap() async {
       .restore(
         WidgetsBinding.instance.platformDispatcher.locales,
       );
+  container.read(themeModeControllerProvider.notifier).restore();
 
   runApp(
     UncontrolledProviderScope(container: container, child: const VmitoApp()),

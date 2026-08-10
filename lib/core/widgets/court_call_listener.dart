@@ -1,12 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/notifications/court_call_effects.dart';
 import 'package:vmito_app/core/realtime/socket_client.dart';
 import 'package:vmito_app/core/realtime/socket_events.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_domain/vmito_domain.dart';
@@ -62,11 +64,19 @@ class _CourtCallListenerState extends ConsumerState<CourtCallListener> {
 
     if (_dialogOpen) return;
     _dialogOpen = true;
+    // Socket events land mid-frame; pushing a dialog route right away can
+    // race the semantics tree and trip a framework assertion. Wait for the
+    // frame to settle first.
+    await SchedulerBinding.instance.endOfFrame;
+    if (!mounted) {
+      _dialogOpen = false;
+      return;
+    }
     await showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
-        icon: const Icon(Icons.campaign_rounded, size: 42),
+        icon: const Icon(AppIcons.campaign, size: 42),
         title: Text(l10n.courtCallTitle),
         content: Text(message, textAlign: TextAlign.center),
         actions: [

@@ -32,6 +32,8 @@
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Vmito uses selected photos when you add images to a community post.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Vmito uses your location to sort venues and clubs near you.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>

@@ -1,26 +1,47 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vmito_app/features/session/domain/create_session_request.dart';
+import 'package:vmito_app/features/session/domain/form/session_form_drafts.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
+import 'package:vmito_app/features/session/domain/session_location_payload.dart';
+import 'package:vmito_app/shared/models/match.dart';
 
 CreateSessionRequest _request({
   String name = 'Kèo tối thứ 6',
-  String? description,
-  String? location,
+  SessionLocationPayload? location,
+  String hostName = 'Cường',
+  String description = '',
+  String? referenceVideoUrl,
+  String hostPhone = '',
+  String? clubId,
+  int? numberOfCourts = 2,
+  List<SessionCourtDraft>? courts,
+  int? sessionDuration = 120,
   DateTime? startTime,
+  DateTime? endTime,
   List<int> requiredLevels = const [],
   SessionFeeConfig? feeConfig,
-  String? hostPhone,
+  MatchType defaultMatchType = MatchType.doubles,
+  String shuttlecock = '',
+  List<String> images = const [],
 }) => CreateSessionRequest(
   name: name,
-  numberOfCourts: 2,
+  location: location ?? const VenueLocation('venue-1'),
+  hostName: hostName,
   maxPlayersPerCourt: 8,
-  sessionDuration: 120,
   description: description,
-  location: location,
+  referenceVideoUrl: referenceVideoUrl,
+  hostPhone: hostPhone,
+  clubId: clubId,
+  numberOfCourts: numberOfCourts,
+  courts: courts,
+  sessionDuration: sessionDuration,
   startTime: startTime,
+  endTime: endTime,
   requiredLevels: requiredLevels,
   feeConfig: feeConfig,
-  hostPhone: hostPhone,
+  defaultMatchType: defaultMatchType,
+  shuttlecock: shuttlecock,
+  images: images,
 );
 
 void main() {
@@ -29,6 +50,7 @@ void main() {
       final json = _request().toJson();
 
       expect(json['name'], 'Kèo tối thứ 6');
+      expect(json['hostName'], 'Cường');
       expect(json['numberOfCourts'], 2);
       expect(json['maxPlayersPerCourt'], 8);
       expect(json['sessionDuration'], 120);
@@ -45,58 +67,141 @@ void main() {
       expect(json['sessionDuration'], isA<int>());
     });
 
-    test('the name is trimmed', () {
-      expect(_request(name: '  Kèo tối  ').toJson()['name'], 'Kèo tối');
+    test('the name and host name are trimmed', () {
+      final json = _request(name: '  Kèo tối  ', hostName: ' Cường ').toJson();
+
+      expect(json['name'], 'Kèo tối');
+      expect(json['hostName'], 'Cường');
     });
   });
 
-  group('optional fields', () {
-    test('are omitted rather than sent as null', () {
-      // An explicit null would overwrite a backend default; an absent key
-      // leaves it alone.
+  group('clearable fields', () {
+    test('are sent explicitly, so an edit can blank them', () {
+      // Unlike the fields this request does not collect, these are always
+      // present: omitting `description` on a PUT would make it impossible to
+      // clear one that was set on web.
       final json = _request().toJson();
 
-      expect(json.containsKey('description'), isFalse);
-      expect(json.containsKey('location'), isFalse);
-      expect(json.containsKey('startTime'), isFalse);
-      expect(json.containsKey('feeConfig'), isFalse);
-      expect(json.containsKey('hostPhone'), isFalse);
+      expect(json['description'], '');
+      expect(json['hostPhone'], '');
+      expect(json['shuttlecock'], '');
+      expect(json['referenceVideoUrl'], isNull);
+      expect(json['clubId'], isNull);
+      expect(json['feeConfig'], isNull);
     });
 
-    test('blank strings count as absent', () {
-      final json = _request(location: '   ', description: '').toJson();
+    test('blank strings normalise to empty or null, never whitespace', () {
+      final json = _request(
+        description: '   ',
+        hostPhone: '  ',
+        referenceVideoUrl: '  ',
+        clubId: '',
+      ).toJson();
 
-      expect(json.containsKey('location'), isFalse);
-      expect(json.containsKey('description'), isFalse);
-    });
-
-    test('present values are trimmed and included', () {
-      final json = _request(location: '  18B Cộng Hòa ').toJson();
-
-      expect(json['location'], '18B Cộng Hòa');
+      expect(json['description'], '');
+      expect(json['hostPhone'], '');
+      expect(json['referenceVideoUrl'], isNull);
+      expect(json['clubId'], isNull);
     });
   });
 
-  group('startTime', () {
-    test('is converted to UTC ISO-8601', () {
+  group('location', () {
+    test('a venue sends venueId and no customLocation', () {
+      final json = _request(location: const VenueLocation('venue-9')).toJson();
+
+      expect(json['locationType'], 'VENUE');
+      expect(json['venueId'], 'venue-9');
+      expect(json.containsKey('customLocation'), isFalse);
+    });
+
+    test('a custom place sends customLocation and no venueId', () {
+      final json = _request(
+        location: const CustomLocation(
+          name: 'Sân Bàu Cát',
+          address: ' 18B Cộng Hòa ',
+          placeId: 'ChIJabc',
+          lat: 10.79,
+          lng: 106.65,
+        ),
+      ).toJson();
+
+      expect(json['locationType'], 'CUSTOM');
+      expect(json.containsKey('venueId'), isFalse);
+
+      final custom = json['customLocation']! as Map<String, dynamic>;
+      expect(custom['name'], 'Sân Bàu Cát');
+      expect(custom['address'], '18B Cộng Hòa');
+      expect(custom['placeId'], 'ChIJabc');
+      expect(custom['lat'], 10.79);
+    });
+
+    test('a typed address carries no placeId or coordinates', () {
+      // A stale pin is worse than none: it sends players to the wrong court.
+      final json = _request(
+        location: const CustomLocation(name: 'Sân trường', address: 'Gò Vấp'),
+      ).toJson();
+      final custom = json['customLocation']! as Map<String, dynamic>;
+
+      expect(custom.containsKey('placeId'), isFalse);
+      expect(custom.containsKey('lat'), isFalse);
+      expect(custom.containsKey('lng'), isFalse);
+    });
+  });
+
+  group('courts and schedule', () {
+    test('are omitted when null, so a running session keeps them', () {
+      final json = _request(
+        numberOfCourts: null,
+        sessionDuration: null,
+      ).toJson();
+
+      expect(json.containsKey('numberOfCourts'), isFalse);
+      expect(json.containsKey('courts'), isFalse);
+      expect(json.containsKey('sessionDuration'), isFalse);
+      expect(json.containsKey('startTime'), isFalse);
+    });
+
+    test('court rows carry a horizontal direction and drop blank names', () {
+      final json = _request(
+        courts: const [
+          SessionCourtDraft(key: 'a', courtNumber: 1, courtName: ' Sân A '),
+          SessionCourtDraft(key: 'b', courtNumber: 2),
+        ],
+      ).toJson();
+      final courts = json['courts']! as List<dynamic>;
+
+      expect(courts, hasLength(2));
+      expect((courts.first as Map)['courtName'], 'Sân A');
+      expect((courts.first as Map)['direction'], 'HORIZONTAL');
+      expect((courts.last as Map).containsKey('courtName'), isFalse);
+    });
+
+    test('an existing court keeps its id, so its matches survive an edit', () {
+      final json = _request(
+        courts: const [
+          SessionCourtDraft(key: 'a', courtNumber: 1, courtId: 'court-7'),
+        ],
+      ).toJson();
+
+      expect(((json['courts']! as List).first as Map)['id'], 'court-7');
+    });
+
+    test('times are converted to UTC ISO-8601', () {
       // The form collects local wall time; the API speaks UTC. Sending local
       // time would shift every session by the device's offset.
       final local = DateTime(2026, 7, 10, 18, 30);
-      final json = _request(startTime: local).toJson();
+      final json = _request(startTime: local, endTime: local).toJson();
 
       expect(json['startTime'], endsWith('Z'));
-      expect(
-        DateTime.parse(json['startTime'] as String).toLocal(),
-        local,
-      );
+      expect(DateTime.parse(json['startTime'] as String).toLocal(), local);
     });
   });
 
   group('requiredLevels', () {
-    test('an empty list is omitted — "all levels welcome"', () {
-      // Sending [] could read as "no level is acceptable". Absence is the
-      // documented way to say there is no restriction.
-      expect(_request().toJson().containsKey('requiredLevels'), isFalse);
+    test('an empty list is sent — it is how a host reopens a session', () {
+      // Unlike the old create-only request, this one also serves PUT, where an
+      // absent key would leave a previous restriction in place.
+      expect(_request().toJson()['requiredLevels'], isEmpty);
     });
 
     test('a non-empty band is sent verbatim, in the order given', () {
@@ -130,12 +235,27 @@ void main() {
       expect(fees.containsKey('femaleFee'), isFalse);
     });
 
-    test('maps the split-evenly type', () {
+    test('a split-evenly config carries no fixed prices', () {
+      // The per-player number is computed after the session ends; sending the
+      // fixed fields alongside SPLIT_EVENLY would show players a price the
+      // backend will not honour.
       final json = _request(
-        feeConfig: const SessionFeeConfig(feeType: FeeType.splitEvenly),
+        feeConfig: const SessionFeeConfig(
+          feeType: FeeType.splitEvenly,
+          maleFee: 90000,
+        ),
       ).toJson();
+      final fees = json['feeConfig']! as Map<String, dynamic>;
 
-      expect((json['feeConfig']! as Map)['feeType'], 'SPLIT_EVENLY');
+      expect(fees['feeType'], 'SPLIT_EVENLY');
+      expect(fees.containsKey('maleFee'), isFalse);
     });
+  });
+
+  test('the match type is sent as the backend enum', () {
+    expect(
+      _request(defaultMatchType: MatchType.singles).toJson()['defaultMatchType'],
+      'SINGLES',
+    );
   });
 }

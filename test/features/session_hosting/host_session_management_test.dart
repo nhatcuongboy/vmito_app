@@ -5,7 +5,6 @@ import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/payment/domain/payment.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/player/create_session_screen.dart';
-import 'package:vmito_app/features/session_hosting/presentation/widgets/player_selection_dialog.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 
@@ -115,47 +114,5 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.text('Save changes'), findsOneWidget);
-  });
-
-  testWidgets('court assignment requires exactly two or four players', (
-    tester,
-  ) async {
-    final players = List.generate(
-      4,
-      (index) => SessionPlayer(
-        id: 'p$index',
-        name: 'Player $index',
-        playerNumber: index + 1,
-      ),
-    );
-
-    await tester.pumpWidget(
-      MaterialApp(
-        theme: AppTheme.light,
-        locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(body: PlayerSelectionDialog(players: players)),
-      ),
-    );
-
-    final confirm = find.byKey(const ValueKey('confirm-player-selection'));
-    expect(tester.widget<FilledButton>(confirm).onPressed, isNull);
-
-    await tester.tap(find.byType(CheckboxListTile).at(0));
-    await tester.pump();
-    expect(tester.widget<FilledButton>(confirm).onPressed, isNull);
-
-    await tester.tap(find.byType(CheckboxListTile).at(1));
-    await tester.pump();
-    expect(tester.widget<FilledButton>(confirm).onPressed, isNotNull);
-
-    await tester.tap(find.byType(CheckboxListTile).at(2));
-    await tester.pump();
-    expect(tester.widget<FilledButton>(confirm).onPressed, isNull);
-
-    await tester.tap(find.byType(CheckboxListTile).at(3));
-    await tester.pump();
-    expect(tester.widget<FilledButton>(confirm).onPressed, isNotNull);
   });
 }

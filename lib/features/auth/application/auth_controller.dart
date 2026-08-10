@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/core/config/app_config.dart';
 import 'package:vmito_app/core/network/api_exception.dart' show ApiException;
 import 'package:vmito_app/core/storage/token_storage.dart';
 import 'package:vmito_app/core/utils/logger.dart';
@@ -51,6 +52,21 @@ class AuthController extends Notifier<AuthState> {
   /// A stored token may be expired; `/users/me` either succeeds, or the
   /// interceptor refreshes transparently, or we fall back to signed-out.
   Future<void> restoreSession() async {
+    if (AppConfig.enableAuthBypass) {
+      // This is a UI-only development session. Do not persist invented tokens:
+      // protected backend endpoints must still require real authentication.
+      state = const AuthState(
+        status: AuthStatus.authenticated,
+        user: User(
+          id: 'development-bypass-user',
+          email: 'developer@vmito.local',
+          name: 'Development User',
+          role: UserRole.admin,
+        ),
+      );
+      return;
+    }
+
     await _tokens.hydrate();
 
     if (!_tokens.hasAccessToken) {
@@ -61,9 +77,12 @@ class AuthController extends Notifier<AuthState> {
     try {
       final user = await _service.currentUser();
       state = AuthState(status: AuthStatus.authenticated, user: user);
+    } on ApiException catch (error) {
+      AppLogger.warn('session restore failed', error: error);
+      if (error.isUnauthorized) await _tokens.clear();
+      state = const AuthState(status: AuthStatus.unauthenticated);
     } on Object catch (error) {
       AppLogger.warn('session restore failed', error: error);
-      await _tokens.clear();
       state = const AuthState(status: AuthStatus.unauthenticated);
     }
   }

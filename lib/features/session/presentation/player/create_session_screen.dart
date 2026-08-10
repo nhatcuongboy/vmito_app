@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
+import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/session/application/player/create_session_controller.dart';
 import 'package:vmito_app/features/session/domain/create_session_request.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
+import 'package:vmito_app/features/session/domain/session_location_payload.dart';
 import 'package:vmito_app/features/session/presentation/widgets/level_band_picker.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
@@ -122,7 +125,8 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
     final request = CreateSessionRequest(
       name: _nameController.text,
       description: _descriptionController.text,
-      location: _locationController.text,
+      hostName: ref.read(currentUserProvider)?.name ?? '',
+      location: CustomLocation(name: _locationController.text),
       startTime: _startTime,
       sessionDuration: _durationMinutes,
       numberOfCourts: _numberOfCourts,
@@ -194,10 +198,10 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
 
             ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.schedule_rounded),
+              leading: const Icon(AppIcons.clock),
               title: Text(l10n.createSessionStart),
               subtitle: Text(Dates.dayWithRange(_startTime, _plannedEnd)),
-              trailing: const Icon(Icons.chevron_right_rounded),
+              trailing: const Icon(AppIcons.chevronRight),
               onTap: isSubmitting ? null : _pickStart,
             ),
 
@@ -331,7 +335,7 @@ class _Stepper extends StatelessWidget {
           Expanded(child: Text(label)),
           IconButton(
             onPressed: onDecrease,
-            icon: const Icon(Icons.remove_circle_outline),
+            icon: const Icon(AppIcons.removeCircle),
           ),
           SizedBox(
             width: 72,
@@ -343,7 +347,7 @@ class _Stepper extends StatelessWidget {
           ),
           IconButton(
             onPressed: onIncrease,
-            icon: const Icon(Icons.add_circle_outline),
+            icon: const Icon(AppIcons.addCircle),
           ),
         ],
       ),

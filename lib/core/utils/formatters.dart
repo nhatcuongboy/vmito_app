@@ -141,4 +141,43 @@ abstract final class Dates {
         ? '$hours$hourSuffix'
         : '$hours$hourSuffix $rest$minuteSuffix';
   }
+
+  /// Returns a human-readable relative time string (e.g. "2 giờ trước"),
+  /// matching the web's `formatDistanceToNow` from date-fns.
+  static String timeAgo(DateTime time, {String locale = 'vi'}) {
+    final diff = DateTime.now().difference(time.toLocal());
+    final seconds = diff.inSeconds.abs();
+    final minutes = diff.inMinutes.abs();
+    final hours = diff.inHours.abs();
+    final days = diff.inDays.abs();
+
+    if (locale == 'zh') {
+      if (seconds < 60) return '刚刚';
+      if (minutes < 60) return '$minutes分钟前';
+      if (hours < 24) return '$hours小时前';
+      if (days < 7) return '$days天前';
+      if (days < 30) return '${days ~/ 7}周前';
+      if (days < 365) return '${days ~/ 30}个月前';
+      return '${days ~/ 365}年前';
+    }
+
+    if (locale == 'en') {
+      if (seconds < 60) return 'just now';
+      if (minutes < 60) return '${minutes}m ago';
+      if (hours < 24) return '${hours}h ago';
+      if (days < 7) return '${days}d ago';
+      if (days < 30) return '${days ~/ 7}w ago';
+      if (days < 365) return '${days ~/ 30}mo ago';
+      return '${days ~/ 365}y ago';
+    }
+
+    // Vietnamese (default)
+    if (seconds < 60) return 'vừa xong';
+    if (minutes < 60) return '$minutes phút trước';
+    if (hours < 24) return '$hours giờ trước';
+    if (days < 7) return '$days ngày trước';
+    if (days < 30) return '${days ~/ 7} tuần trước';
+    if (days < 365) return '${days ~/ 30} tháng trước';
+    return '${days ~/ 365} năm trước';
+  }
 }

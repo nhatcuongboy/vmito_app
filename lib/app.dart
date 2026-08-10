@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/localization/locale_controller.dart';
 import 'package:vmito_app/core/router/app_router.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
+import 'package:vmito_app/core/theme/theme_mode_controller.dart';
 import 'package:vmito_app/core/widgets/app_error_listener.dart';
 import 'package:vmito_app/core/widgets/court_call_listener.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -16,6 +17,7 @@ class VmitoApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(appRouterProvider);
     final locale = ref.watch(localeControllerProvider);
+    final themeMode = ref.watch(themeModeControllerProvider);
 
     return MaterialApp.router(
       title: 'Vmito',
@@ -24,6 +26,7 @@ class VmitoApp extends ConsumerWidget {
 
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
+      themeMode: themeMode,
 
       locale: locale,
       supportedLocales: AppLocalizations.supportedLocales,

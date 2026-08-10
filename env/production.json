@@ -1,5 +1,6 @@
 {
   "FLAVOR": "production",
   "API_BASE_URL": "https://vmito.com/api",
-  "WEB_BASE_URL": "https://vmito.com"
+  "WEB_BASE_URL": "https://vmito.com",
+  "GOOGLE_PLACES_API_KEY": ""
 }

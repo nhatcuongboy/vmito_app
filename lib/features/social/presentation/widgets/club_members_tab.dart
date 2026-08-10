@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/social/application/club_management_controller.dart';
@@ -22,7 +23,7 @@ class ClubMembersTab extends ConsumerWidget {
           context: context,
           builder: (_) => _AddMemberDialog(clubId: clubId),
         ),
-        icon: const Icon(Icons.person_add_alt_1_rounded),
+        icon: const Icon(AppIcons.userPlus),
         label: Text(l10n.clubAddMember),
       ),
       body: members.when(
@@ -75,7 +76,7 @@ class _MemberTile extends ConsumerWidget {
             ? null
             : CachedNetworkImageProvider(member.image!),
         child: member.image == null
-            ? const Icon(Icons.person_outline_rounded)
+            ? const Icon(AppIcons.profile)
             : null,
       ),
       title: Text(member.name),
@@ -177,7 +178,7 @@ class _AddMemberDialogState extends ConsumerState<_AddMemberDialog> {
                 hintText: l10n.clubSearchUsers,
                 suffixIcon: IconButton(
                   onPressed: _search,
-                  icon: const Icon(Icons.search_rounded),
+                  icon: const Icon(AppIcons.search),
                 ),
               ),
             ),
@@ -197,7 +198,7 @@ class _AddMemberDialogState extends ConsumerState<_AddMemberDialog> {
                           trailing: IconButton(
                             tooltip: l10n.clubAddMember,
                             onPressed: () => _add(user),
-                            icon: const Icon(Icons.person_add_alt_1_rounded),
+                            icon: const Icon(AppIcons.userPlus),
                           ),
                         );
                       },

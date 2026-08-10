@@ -60,3 +60,6 @@ lib/firebase_options.dart
 # Generated from openapi/openapi.json. Regenerate with tool/sync_openapi.sh
 # then `dart run build_runner build`. openapi/openapi.json IS committed.
 lib/core/api/generated/
+
+# Real API keys for local runs. Copy an env/*.json and fill in the blanks.
+env/*.local.json

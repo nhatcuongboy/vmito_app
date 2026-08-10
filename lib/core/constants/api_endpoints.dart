@@ -40,6 +40,9 @@ abstract final class ApiEndpoints {
   static String postComments(String id) => '/posts/$id/comments';
   static String postShare(String id) => '/posts/$id/share';
   static String userPosts(String userId) => '/posts/user/$userId';
+  static const leaderboard = '/leaderboard';
+  static String userAchievements(String userId) =>
+      '/leaderboard/users/$userId/achievements';
 
   static const clubs = '/clubs';
   static String clubDetails(String id) => '/clubs/$id/details';
@@ -75,6 +78,13 @@ abstract final class ApiEndpoints {
   static const checkCode = '/players/check-code';
   static const joinByCode = '/players/join-by-code';
 
+  /// One registration row. `DELETE` here is how a player withdraws — the
+  /// backend has no dedicated withdraw endpoint.
+  static String player(String id) => '/players/$id';
+  static const joinedSessions = '/players/me/sessions';
+  static const pendingJoinRequests = '/players/pending-requests';
+  static const pendingJoinRequestCount = '/players/pending-requests/count';
+
   // --- Sessions -------------------------------------------------------------
   static const sessions = '/sessions';
 
@@ -86,17 +96,34 @@ abstract final class ApiEndpoints {
   /// Authenticated list. Filter by `hostId` for the caller's own sessions;
   /// `POST` to the same path creates one.
   static const mySessions = '/sessions';
+
+  /// Clones one draft across several dates in a single call. Body carries the
+  /// whole `baseSession` plus either `specificDates` or `recurringWeekdays`.
+  static const sessionsBulk = '/sessions/bulk';
   static String session(String id) => '/sessions/$id';
+  static String sessionRecommendations(String id) =>
+      '/sessions/$id/recommendations';
   static String sessionStart(String id) => '/sessions/$id/start';
   static String sessionEnd(String id) => '/sessions/$id/end';
   static String sessionCancel(String id) => '/sessions/$id/cancel';
   static String sessionPlayers(String id) => '/sessions/$id/players';
+  static String sessionPlayerStatistics(String id) =>
+      '/sessions/$id/players/statistics';
+
+  /// Self-service registration. Body is wrapped: `{"players": [...]}`.
+  static String sessionRegister(String id) => '/sessions/$id/players/register';
+
+  /// The caller's own rows for a session, plus any guests they registered.
+  static String sessionMyPlayers(String id) => '/sessions/$id/players/me';
   static String sessionPlayer(String sessionId, String playerId) =>
       '/sessions/$sessionId/players/$playerId';
   static String sessionPlayerStatus(String sessionId, String playerId) =>
       '/sessions/$sessionId/players/$playerId/status';
   static String sessionPlayerToggleInactive(String sessionId) =>
       '/sessions/$sessionId/players/toggle-inactive';
+
+  /// Finished matches for a session. Feeds the repeat-pairing warning.
+  static String sessionMatches(String id) => '/sessions/$id/matches';
 
   // --- Courts ---------------------------------------------------------------
   static String court(String id) => '/courts/$id';
@@ -105,6 +132,11 @@ abstract final class ApiEndpoints {
       '/courts/$id/deselect-players';
   static String courtStartMatch(String id) => '/courts/$id/start-match';
   static String courtEndMatch(String id) => '/courts/$id/end-match';
+  static String courtCurrentMatch(String id) => '/courts/$id/current-match';
+
+  /// The next match's line-up, booked while the current one still runs.
+  /// `GET` reads it, `POST` sets it, `DELETE` clears it.
+  static String courtPreSelect(String id) => '/courts/$id/pre-select';
 
   /// Server-side matchmaking. The app renders what this returns and never
   /// computes suggestions locally.
@@ -135,7 +167,44 @@ abstract final class ApiEndpoints {
   static const notificationUnreadCount = '/notifications/unread-count';
   static const notificationReadAll = '/notifications/read-all';
   static String notificationRead(String id) => '/notifications/$id/read';
+  static String notificationDelete(String id) => '/notifications/$id';
 
   /// Not implemented on the backend yet — P0 task, see docs/ROADMAP.md.
   static const notificationDevices = '/notifications/devices';
+
+  // --- Reference data -------------------------------------------------------
+  /// Public. The host-authored blurb for each skill level.
+  static const levelDescriptions = '/level-descriptions';
+  static const featureFlags = '/feature-flags';
+
+  // --- Favorites ------------------------------------------------------------
+  static const favorites = '/favorites';
+
+  /// `type` is the wire enum — `SESSION`, `VENUE`, `CLUB`, `TOURNAMENT`.
+  static String favorite(String type, String targetId) =>
+      '/favorites/$type/$targetId';
+  static String favoriteSummary(String type, String targetId) =>
+      '/favorites/$type/$targetId/summary';
+
+  // --- Venues ---------------------------------------------------------------
+  static const venues = '/venues';
+  static const venueSearch = '/venues/search';
+  static String venue(String id) => '/venues/$id';
+  static String venuePriceBooks(String id) => '/venues/$id/price-books';
+  static const venueRequests = '/venue-requests';
+  static const venueAdminUnits = '/venues/new-admin-units';
+
+  // --- Tournaments ---------------------------------------------------------
+  /// Public tournament discovery. The backend filters drafts when
+  /// `publishedOnly=true`; the client also checks `isPublished` defensively.
+  static const tournaments = '/tournaments';
+
+  // --- User images ----------------------------------------------------------
+  static const userImages = '/user-images';
+
+  // --- AI -------------------------------------------------------------------
+
+  /// Turns a pasted recruitment post into a session draft. Body:
+  /// `{articleContent, language}` where language is `vi | en | cn`.
+  static const aiExtractSession = '/ai/extract-session';
 }

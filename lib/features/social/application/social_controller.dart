@@ -182,6 +182,12 @@ class ClubsState {
     this.totalPages = 0,
     this.isLoading = false,
     this.error,
+    this.city,
+    this.district,
+    this.sortBy = 'sessionCount',
+    this.favoriteOnly = false,
+    this.latitude,
+    this.longitude,
   });
 
   final List<ClubSummary> clubs;
@@ -190,6 +196,12 @@ class ClubsState {
   final int totalPages;
   final bool isLoading;
   final Object? error;
+  final String? city;
+  final String? district;
+  final String sortBy;
+  final bool favoriteOnly;
+  final double? latitude;
+  final double? longitude;
 
   bool get hasMore => page > 0 && page < totalPages;
 }
@@ -198,24 +210,68 @@ class ClubsController extends Notifier<ClubsState> {
   @override
   ClubsState build() => const ClubsState();
 
-  Future<void> load({String search = ''}) async {
+  Future<void> load({
+    String search = '',
+    String? city,
+    String? district,
+    String? sortBy,
+    bool? favoriteOnly,
+    double? latitude,
+    double? longitude,
+  }) async {
+    final nextCity = city ?? state.city;
+    final nextDistrict = district ?? state.district;
+    final nextSort = sortBy ?? state.sortBy;
+    final nextFavorite = favoriteOnly ?? state.favoriteOnly;
+    final nextLatitude = latitude ?? state.latitude;
+    final nextLongitude = longitude ?? state.longitude;
     state = ClubsState(
       clubs: state.clubs,
       search: search,
       isLoading: true,
+      city: nextCity,
+      district: nextDistrict,
+      sortBy: nextSort,
+      favoriteOnly: nextFavorite,
+      latitude: nextLatitude,
+      longitude: nextLongitude,
     );
     try {
       final result = await ref
           .read(socialServiceProvider)
-          .browseClubs(page: 1, search: search);
+          .browseClubs(
+            page: 1,
+            search: search,
+            city: nextCity,
+            district: nextDistrict,
+            sortBy: nextSort,
+            favoriteOnly: nextFavorite,
+            latitude: nextLatitude,
+            longitude: nextLongitude,
+          );
       state = ClubsState(
         clubs: result.clubs,
         search: search,
         page: result.page,
         totalPages: result.totalPages,
+        city: nextCity,
+        district: nextDistrict,
+        sortBy: nextSort,
+        favoriteOnly: nextFavorite,
+        latitude: nextLatitude,
+        longitude: nextLongitude,
       );
     } on Object catch (error) {
-      state = ClubsState(search: search, error: error);
+      state = ClubsState(
+        search: search,
+        error: error,
+        city: nextCity,
+        district: nextDistrict,
+        sortBy: nextSort,
+        favoriteOnly: nextFavorite,
+        latitude: nextLatitude,
+        longitude: nextLongitude,
+      );
     }
   }
 
@@ -228,16 +284,37 @@ class ClubsController extends Notifier<ClubsState> {
       page: current.page,
       totalPages: current.totalPages,
       isLoading: true,
+      city: current.city,
+      district: current.district,
+      sortBy: current.sortBy,
+      favoriteOnly: current.favoriteOnly,
+      latitude: current.latitude,
+      longitude: current.longitude,
     );
     try {
       final result = await ref
           .read(socialServiceProvider)
-          .browseClubs(page: current.page + 1, search: current.search);
+          .browseClubs(
+            page: current.page + 1,
+            search: current.search,
+            city: current.city,
+            district: current.district,
+            sortBy: current.sortBy,
+            favoriteOnly: current.favoriteOnly,
+            latitude: current.latitude,
+            longitude: current.longitude,
+          );
       state = ClubsState(
         clubs: [...current.clubs, ...result.clubs],
         search: current.search,
         page: result.page,
         totalPages: result.totalPages,
+        city: current.city,
+        district: current.district,
+        sortBy: current.sortBy,
+        favoriteOnly: current.favoriteOnly,
+        latitude: current.latitude,
+        longitude: current.longitude,
       );
     } on Object catch (error) {
       state = ClubsState(
@@ -246,6 +323,12 @@ class ClubsController extends Notifier<ClubsState> {
         page: current.page,
         totalPages: current.totalPages,
         error: error,
+        city: current.city,
+        district: current.district,
+        sortBy: current.sortBy,
+        favoriteOnly: current.favoriteOnly,
+        latitude: current.latitude,
+        longitude: current.longitude,
       );
     }
   }

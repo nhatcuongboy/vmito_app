@@ -11,6 +11,7 @@ import 'package:vmito_app/core/network/error_interceptor.dart';
 import 'package:vmito_app/core/storage/token_storage.dart';
 import 'package:vmito_app/features/auth/data/auth_service.dart';
 import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
+import 'package:vmito_app/shared/models/court.dart';
 
 import '../support/fake_secure_storage.dart';
 
@@ -159,6 +160,55 @@ void _defineTests() {
     if (detail.feeConfig case final fees?) {
       expect(fees.maleFee, anyOf(isNull, isA<int>()));
     }
+  });
+
+  test('court payloads decode the shapes the host board depends on', () async {
+    // Read-only, like the rest of this file: it asserts what the API sends,
+    // not what a mutation does. Everything here was wrong in the model at some
+    // point, and only a live payload catches it.
+    final sessions = SessionRepositoryImpl(client);
+    final page = await sessions.browsePublic(limit: 20);
+    if (page.items.isEmpty) {
+      markTestSkipped('no public sessions on this backend');
+      return;
+    }
+
+    var sawCourt = false;
+    for (final summary in page.items) {
+      final detail = await sessions.byId(summary.id);
+      for (final court in detail.courts) {
+        sawCourt = true;
+
+        // `preSelectedPlayers` is a raw `{playerId, position}` JSON array, not
+        // a player list. Typing it as players threw on the missing `id` and
+        // took the whole session-detail parse down with it.
+        for (final slot in court.preSelectedPlayers) {
+          expect(slot.playerId, isNotEmpty);
+          expect(slot.position, isA<int>());
+          // Every pre-selected id must resolve against the roster, or the
+          // preview would silently drop a player the host already called.
+          expect(
+            detail.players.map((p) => p.id),
+            contains(slot.playerId),
+            reason: 'pre-selected ${slot.playerId} is not on the roster',
+          );
+        }
+
+        // The elapsed badge counts from here; without it the timer cannot run.
+        if (court.status == CourtStatus.inUse) {
+          expect(court.currentMatch, isNotNull);
+          expect(court.currentMatch?.startTime, isNotNull);
+        }
+
+        // The backend normalises a `position` onto every court player. The
+        // board seats by it, so a court that lost it would stack players.
+        for (final player in court.currentPlayers) {
+          expect(player.slotPosition, inInclusiveRange(0, 3));
+        }
+      }
+    }
+
+    if (!sawCourt) markTestSkipped('no session on this backend has courts');
   });
 
   test('Apple sign-in rejects a token it cannot verify', () async {

@@ -1,0 +1,467 @@
+import 'package:flutter/material.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/theme/app_theme.dart';
+import 'package:vmito_app/features/auth/application/auth_controller.dart';
+import 'package:vmito_app/features/auth/domain/user.dart';
+import 'package:vmito_app/features/favorite/data/favorite_repository.dart';
+import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
+import 'package:vmito_app/features/registration/data/registration_repository.dart';
+import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
+import 'package:vmito_app/features/session/application/player/session_recommendations_controller.dart';
+import 'package:vmito_app/features/session/domain/session.dart';
+import 'package:vmito_app/features/session/domain/session_fee_config.dart';
+import 'package:vmito_app/features/session/presentation/player/session_detail_screen.dart';
+import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/models/court.dart';
+import 'package:vmito_app/shared/models/session_player.dart';
+
+const _host = SessionHost(id: 'h1', name: 'Admin', email: 'admin@vmito.com');
+
+/// Today at 20:00-22:00.
+///
+/// Relative, not a fixed calendar date: the screen renders "Today"/"Tomorrow"
+/// against the wall clock, so a hardcoded date silently starts asserting
+/// "Yesterday" once that day passes.
+final _today = DateTime(
+  DateTime.now().year,
+  DateTime.now().month,
+  DateTime.now().day,
+);
+
+Session _session({
+  SessionStatus status = SessionStatus.preparing,
+  List<SessionPlayer> players = const [],
+  List<int> requiredLevels = const [9, 1, 10, 2],
+}) => Session(
+  id: 's1',
+  name: 'Kèo test chuẩn',
+  status: status,
+  host: _host,
+  numberOfCourts: 2,
+  maxPlayersPerCourt: 8,
+  startTime: _today.add(const Duration(hours: 20)),
+  scheduledEndTime: _today.add(const Duration(hours: 22)),
+  courts: const [
+    Court(id: 'c1', courtNumber: 1),
+    Court(id: 'c2', courtNumber: 2),
+  ],
+  players: players,
+  requiredLevels: requiredLevels,
+  shuttlecock: 'Vina',
+  venue: const SessionVenue(
+    id: 'v1',
+    name: 'Sân The B Hòa Bình',
+    address: '259 Hòa Bình, Phú Thạnh',
+  ),
+);
+
+/// Keeps the screen off the network: the hero and the rail both fetch, and
+/// neither is what these tests are about.
+class _StubFavoriteRepository implements FavoriteRepository {
+  const _StubFavoriteRepository();
+
+  @override
+  Future<FavoriteSummary> summary(FavoriteType type, String targetId) async =>
+      const FavoriteSummary(favoriteCount: 3);
+
+  @override
+  Future<void> add(FavoriteType type, String targetId) async {}
+
+  @override
+  Future<void> remove(FavoriteType type, String targetId) async {}
+}
+
+class _StubRegistrationRepository implements RegistrationRepository {
+  const _StubRegistrationRepository(this.players);
+
+  final List<SessionPlayer> players;
+
+  @override
+  Future<List<SessionPlayer>> myPlayers(String sessionId) async => players;
+
+  @override
+  Future<void> register(String s, List<Map<String, dynamic>> p) async {}
+
+  @override
+  Future<void> withdraw(String playerId) async {}
+}
+
+Future<void> _pump(
+  WidgetTester tester,
+  Session session, {
+  User? currentUser,
+  List<Session> recommendations = const [],
+  List<SessionPlayer> myPlayers = const [],
+  double width = 390,
+}) async {
+  // A phone-width but very tall viewport: the page is one long scroll, and
+  // asserting on content below the fold is what these tests are for. Height
+  // only — the width is what drives the two-column fact grid, so widen it only
+  // for the tests that are about a wide layout.
+  tester.view
+    ..physicalSize = Size(width * 3, 9000)
+    ..devicePixelRatio = 3;
+  addTearDown(tester.view.reset);
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        sessionDetailProvider.overrideWith((ref, id) async => session),
+        currentUserProvider.overrideWithValue(currentUser),
+        isSignedInProvider.overrideWithValue(currentUser != null),
+        favoriteRepositoryProvider.overrideWithValue(
+          const _StubFavoriteRepository(),
+        ),
+        sessionRecommendationsProvider.overrideWith(
+          (ref, id) async => recommendations,
+        ),
+        registrationRepositoryProvider.overrideWithValue(
+          _StubRegistrationRepository(myPlayers),
+        ),
+      ],
+      child: MaterialApp(
+        theme: AppTheme.light,
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: SessionDetailScreen(sessionId: session.id),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+void main() {
+  testWidgets('renders the session as one scroll, not tabs', (tester) async {
+    await _pump(
+      tester,
+      _session(
+        players: const [SessionPlayer(id: 'p1', name: 'Linh', level: 4)],
+      ),
+    );
+
+    // The tabbed layout this screen replaced.
+    expect(find.text('Overview'), findsNothing);
+    expect(find.text('Courts'), findsNothing);
+
+    expect(find.text('Kèo test chuẩn'), findsOneWidget);
+    // Clock range and day share one rich Text, so match the plain-text run.
+    expect(find.textContaining('20:00 - 22:00'), findsOneWidget);
+    expect(find.textContaining('Today'), findsOneWidget);
+    expect(find.text('Sân The B Hòa Bình'), findsOneWidget);
+    expect(find.text('259 Hòa Bình, Phú Thạnh'), findsOneWidget);
+    expect(find.text('Admin'), findsOneWidget);
+    expect(find.text('Linh · TB'), findsOneWidget);
+
+    // Court numbers ride along with the count as a muted suffix.
+    expect(find.textContaining('(1, 2)'), findsOneWidget);
+    expect(find.text('Up to 16 players'), findsOneWidget);
+    expect(find.text('Vina shuttlecock'), findsOneWidget);
+
+    // One badge per accepted level, in display-rank order.
+    expect(find.text('Yếu-'), findsOneWidget);
+    expect(find.text('Yếu+'), findsOneWidget);
+    expect(find.text('TBY'), findsOneWidget);
+  });
+
+  testWidgets('empty roster shows the empty state, not a bare zero', (
+    tester,
+  ) async {
+    await _pump(tester, _session());
+
+    expect(find.text('No players yet'), findsOneWidget);
+    expect(find.text("Who's playing with you?"), findsOneWidget);
+    expect(find.text('0/16'), findsOneWidget);
+  });
+
+  testWidgets('all-levels session states no restriction', (tester) async {
+    await _pump(tester, _session(requiredLevels: const []));
+
+    expect(find.text('All levels'), findsOneWidget);
+    expect(find.text('Yếu-'), findsNothing);
+  });
+
+  group('bottom bar branches, in web precedence order', () {
+    const visitor = User(
+      id: 'someone-else',
+      email: 'player@vmito.com',
+      role: UserRole.player,
+    );
+
+    testWidgets('1. a crawled session only offers the original post', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _session().copyWith(
+          isCrawled: true,
+          externalUrl: 'https://facebook.com/post/1',
+        ),
+        currentUser: visitor,
+      );
+
+      expect(find.text('View original'), findsOneWidget);
+      expect(find.text('Register now'), findsNothing);
+    });
+
+    testWidgets('2. the host gets manage, even on a finished session', (
+      tester,
+    ) async {
+      // Branch order matters: "Host" must beat the disabled "Session ended".
+      await _pump(
+        tester,
+        _session(status: SessionStatus.finished),
+        currentUser: const User(
+          id: 'h1',
+          email: 'admin@vmito.com',
+          role: UserRole.host,
+        ),
+      );
+
+      expect(find.widgetWithText(FilledButton, 'Host'), findsOneWidget);
+      expect(find.text('Session ended'), findsNothing);
+    });
+
+    testWidgets("2b. an admin gets manage on someone else's session", (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _session(),
+        currentUser: const User(
+          id: 'not-the-host',
+          email: 'admin@vmito.com',
+          role: UserRole.admin,
+        ),
+      );
+
+      expect(find.widgetWithText(FilledButton, 'Host'), findsOneWidget);
+    });
+
+    testWidgets('3. a finished session is closed to a visitor', (tester) async {
+      await _pump(
+        tester,
+        _session(status: SessionStatus.finished),
+        currentUser: visitor,
+      );
+
+      final button = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Session ended'),
+      );
+      expect(button.onPressed, isNull);
+    });
+
+    testWidgets('4. approved gets board + ticket + add guest', (tester) async {
+      await _pump(
+        tester,
+        _session(),
+        currentUser: visitor,
+        myPlayers: const [SessionPlayer(id: 'p1', name: 'Linh')],
+      );
+
+      expect(find.text('Board'), findsOneWidget);
+      expect(find.byIcon(AppIcons.ticket), findsOneWidget);
+      expect(find.byIcon(AppIcons.userPlus), findsOneWidget);
+    });
+
+    testWidgets('5. pending shows the ticket, not the board', (tester) async {
+      await _pump(
+        tester,
+        _session(),
+        currentUser: visitor,
+        myPlayers: const [
+          SessionPlayer(
+            id: 'p1',
+            name: 'Linh',
+            registrationStatus: RegistrationStatus.pending,
+          ),
+        ],
+      );
+
+      expect(find.text('View registration'), findsOneWidget);
+      expect(find.text('Board'), findsNothing);
+      expect(find.text('Register now'), findsNothing);
+    });
+
+    testWidgets('5b. rejected shares the pending branch', (tester) async {
+      await _pump(
+        tester,
+        _session(),
+        currentUser: visitor,
+        myPlayers: const [
+          SessionPlayer(
+            id: 'p1',
+            name: 'Linh',
+            registrationStatus: RegistrationStatus.rejected,
+          ),
+        ],
+      );
+
+      expect(find.text('View registration'), findsOneWidget);
+    });
+
+    testWidgets('6. a visitor who has not registered gets Register', (
+      tester,
+    ) async {
+      await _pump(tester, _session(), currentUser: visitor);
+
+      expect(find.text('Register now'), findsOneWidget);
+    });
+
+    testWidgets('6b. a full session disables Register', (tester) async {
+      await _pump(
+        tester,
+        _session().copyWith(counts: const SessionCounts(players: 16)),
+        currentUser: visitor,
+      );
+
+      final button = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Full'),
+      );
+      expect(button.onPressed, isNull);
+    });
+
+    testWidgets('6c. signed out still sees Register (auth gate is on tap)', (
+      tester,
+    ) async {
+      await _pump(tester, _session());
+
+      expect(find.text('Register now'), findsOneWidget);
+    });
+
+    testWidgets('the actions hug the right edge next to a short price', (
+      tester,
+    ) async {
+      // Wide on purpose: the price and the actions split the row's free space
+      // evenly, so at phone width the buttons overflow their half and land on
+      // the edge by accident. Only a tablet-width bar leaves the half unfilled
+      // and exposes whether the slack sits before or after the buttons.
+      await _pump(
+        tester,
+        _session().copyWith(
+          feeConfig: const SessionFeeConfig(maleFee: 70000, femaleFee: 80000),
+        ),
+        currentUser: visitor,
+        width: 900,
+        myPlayers: const [
+          SessionPlayer(
+            id: 'p1',
+            name: 'Linh',
+            registrationStatus: RegistrationStatus.pending,
+          ),
+        ],
+      );
+
+      final addGuest = tester.getRect(
+        find.byIcon(AppIcons.userPlus),
+      );
+
+      // The icon draws inside a 48pt tap target, so its glyph stops a little
+      // short of the button's own edge; the bar's padding is AppSpacing.md.
+      expect(addGuest.right, greaterThan(900 - AppSpacing.md - 24));
+      expect(addGuest.right, lessThan(900 - AppSpacing.md));
+    });
+  });
+
+  testWidgets('hero shows the favorite count from the summary', (tester) async {
+    await _pump(
+      tester,
+      _session(),
+      currentUser: const User(
+        id: 'someone-else',
+        email: 'player@vmito.com',
+        role: UserRole.player,
+      ),
+    );
+
+    expect(find.byIcon(AppIcons.favorite), findsOneWidget);
+    expect(find.text('3'), findsOneWidget);
+  });
+
+  testWidgets('signed out: the heart reads zero without calling the API', (
+    tester,
+  ) async {
+    await _pump(tester, _session());
+
+    expect(find.byIcon(AppIcons.favorite), findsOneWidget);
+    expect(find.text('0'), findsOneWidget);
+  });
+
+  testWidgets('signed-out heart asks for sign-in instead of writing', (
+    tester,
+  ) async {
+    await _pump(tester, _session());
+
+    await tester.tap(find.byIcon(AppIcons.favorite));
+    await tester.pumpAndSettle();
+
+    // Still empty (not favorited), so the icon color remains white rather than error color.
+    expect(
+      (tester.widget(find.byIcon(AppIcons.favorite)) as Icon).color,
+      Colors.white,
+    );
+  });
+
+  testWidgets('no reference video means no video section', (tester) async {
+    await _pump(tester, _session());
+
+    expect(find.text('Reference video'), findsNothing);
+  });
+
+  testWidgets('a YouTube link renders the reference video card', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _session().copyWith(
+        referenceVideoUrl: 'https://youtu.be/abc123',
+      ),
+    );
+    expect(find.text('Reference video'), findsOneWidget);
+    expect(find.byIcon(AppIcons.playCircle), findsOneWidget);
+  });
+
+  testWidgets('no recommendations means no rail at all', (tester) async {
+    await _pump(tester, _session());
+
+    // Not a spinner and not an empty-state card: this is a tail-end upsell,
+    // and either would look like the page itself failed.
+    expect(find.text('Suggested for you'), findsNothing);
+  });
+
+  testWidgets('recommendations render as a rail of cards', (tester) async {
+    await _pump(
+      tester,
+      _session(),
+      recommendations: [
+        _session().copyWith(id: 's2', name: 'Kèo tối thứ 5'),
+      ],
+    );
+
+    expect(find.text('Suggested for you'), findsOneWidget);
+    expect(find.text('Kèo tối thứ 5'), findsOneWidget);
+  });
+
+  testWidgets('a recommendation card fits a two-line title', (tester) async {
+    // The rail has a fixed height, so a name that wraps used to overflow it.
+    // A widget test fails on overflow, which is the assertion here.
+    await _pump(
+      tester,
+      _session(),
+      recommendations: [
+        _session().copyWith(
+          id: 's2',
+          name: 'Kèo sáng chủ nhật ở sân The B Hòa Bình',
+        ),
+      ],
+    );
+
+    expect(
+      find.text('Kèo sáng chủ nhật ở sân The B Hòa Bình'),
+      findsOneWidget,
+    );
+  });
+}

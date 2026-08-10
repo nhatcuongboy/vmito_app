@@ -1,6 +1,12 @@
 import 'package:vmito_app/core/network/paginated.dart';
+import 'package:vmito_app/features/registration/domain/pending_join_request.dart';
+import 'package:vmito_app/features/session/domain/bulk_create_session.dart';
 import 'package:vmito_app/features/session/domain/create_session_request.dart';
+import 'package:vmito_app/features/session/domain/player_detail.dart';
+import 'package:vmito_app/features/session/domain/player_statistics.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
+import 'package:vmito_app/features/session/domain/session_list_query.dart';
+import 'package:vmito_app/shared/models/match.dart';
 
 /// The `Session` entity's data boundary. `presentation/` and `application/`
 /// depend on this, never on `SessionRepositoryImpl` or `ApiClient` directly.
@@ -32,9 +38,28 @@ abstract interface class SessionRepository {
     String hostId, {
     required int limit,
     int page = 1,
+    SessionListQuery? query,
   });
 
+  /// Sessions where the current user has a PENDING or APPROVED registration.
+  Future<Page<Session>> joinedByCurrentUser(SessionListQuery query);
+
+  Future<Page<PendingJoinRequest>> pendingJoinRequests({
+    required int page,
+    required int limit,
+    String? search,
+  });
+
+  Future<int> pendingJoinRequestCount();
+
   Future<Session> create(CreateSessionRequest request);
+
+  /// Clones one draft across several dates in a single call.
+  ///
+  /// Partial success is normal and is reported in the result rather than
+  /// thrown — a date colliding with an existing session must not discard the
+  /// dates that did work.
+  Future<BulkCreateSessionResult> createBulk(BulkCreateSessionRequest request);
 
   Future<Session> update(String id, CreateSessionRequest request);
 
@@ -42,17 +67,30 @@ abstract interface class SessionRepository {
 
   Future<Session> byId(String id);
 
+  /// Sessions similar to [sessionId], ranked by the backend.
+  ///
+  /// [userId] personalises the ranking; omit it for a signed-out viewer.
+  Future<Page<Session>> recommendations(
+    String sessionId, {
+    required int limit,
+    String? userId,
+  });
+
   Future<void> startSession(String sessionId);
 
   Future<void> endSession(String sessionId);
 
-  Future<void> selectPlayers(String courtId, List<String> playerIds);
+  /// Matches played in this session.
+  ///
+  /// Court *actions* live on `CourtRepository` — courts are their own backend
+  /// resource — but match history belongs to the session that owns it.
+  Future<List<Match>> matches(String sessionId);
 
-  Future<void> deselectPlayers(String courtId);
+  Future<List<PlayerStatistics>> playerStatistics(String sessionId);
 
-  Future<void> startMatch(String courtId);
+  Future<PlayerDetail> playerById(String playerId);
 
-  Future<void> endMatch(String courtId);
+  Future<bool> showShuttlecockCount();
 
   Future<void> updateRegistration(
     String sessionId,

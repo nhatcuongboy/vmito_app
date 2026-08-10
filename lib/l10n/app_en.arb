@@ -69,7 +69,13 @@
   "authResetHeading": "Reset Password",
   "authResetDescription": "Create a new password for your account.",
   "authResetDescriptionWithEmail": "Create a new password for account {email}.",
-  "@authResetDescriptionWithEmail": {"placeholders": {"email": {"type": "String"}}},
+  "@authResetDescriptionWithEmail": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
   "authResetNewPassword": "New password",
   "authResetNewPasswordPlaceholder": "Enter new password",
   "authResetConfirmPassword": "Confirm password",
@@ -77,7 +83,13 @@
   "authResetSubmit": "Reset password",
   "authResetSuccess": "Your password has been reset successfully. You can sign in with your new password.",
   "authResetSuccessWithEmail": "The password for account {email} has been reset successfully. You can sign in with your new password.",
-  "@authResetSuccessWithEmail": {"placeholders": {"email": {"type": "String"}}},
+  "@authResetSuccessWithEmail": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
   "authResetMissingToken": "This password reset link is invalid or missing a verification token.",
   "authResetInvalidToken": "This password reset link is invalid or has expired.",
   "authResetFailed": "Could not reset your password. Please try again.",
@@ -97,10 +109,22 @@
     }
   },
   "navHome": "Home",
-  "navSessions": "Sessions",
+  "navSessions": "Matches",
   "navTournaments": "Tournaments",
   "navNotifications": "Notifications",
   "navProfile": "Profile",
+  "menuOpenTooltip": "Open menu",
+  "footerCopyright": "© {year} {appName}. All rights reserved.",
+  "@footerCopyright": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      },
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
   "courtCallTitle": "You're up!",
   "courtCallAnnouncement": "Please go to court {courtNumber}",
   "@courtCallAnnouncement": {
@@ -111,7 +135,7 @@
     }
   },
   "courtCallAcknowledge": "Got it",
-  "navFeed": "Community",
+  "navFeed": "Feed",
   "profileTitle": "Profile",
   "feedTitle": "Feed",
   "homeTitle": "Home",
@@ -122,6 +146,11 @@
   "languageEnglish": "English",
   "languageChinese": "Chinese",
   "profileLanguage": "Language",
+  "profileTheme": "Theme",
+  "themeTitle": "Theme",
+  "themeModeLight": "Light",
+  "themeModeDark": "Dark",
+  "themeModeSystem": "System",
   "errorCancelled": "The request was cancelled.",
   "routeNotFound": "Route not found: {uri}",
   "@routeNotFound": {
@@ -141,6 +170,16 @@
   },
   "homeLiveHint": "Choose a session to follow its courts live.",
   "homeBrowseSessions": "Find sessions",
+  "homeDiscoverySessions": "Find sessions",
+  "homeDiscoveryVenues": "Find venues",
+  "homeDiscoveryClubs": "Find groups",
+  "homeDiscoveryTournaments": "Find tournaments",
+  "tournamentSearchHint": "Search tournaments...",
+  "tournamentEmpty": "No tournaments found",
+  "tournamentStatusPreparing": "Upcoming",
+  "tournamentStatusInProgress": "In progress",
+  "tournamentStatusFinished": "Finished",
+  "tournamentStatusCancelled": "Cancelled",
   "sessionBrowseTitle": "Find Sessions",
   "sessionEmpty": "No sessions found",
   "sessionDetailTitle": "Session Details",
@@ -168,6 +207,116 @@
   },
   "sessionCrawledReadOnly": "Collected from Facebook — view only",
   "sessionClosed": "This session is closed",
+  "sessionSlotsLeft": "{count} slots left",
+  "@sessionSlotsLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionSlotsFull": "Full",
+  "sessionRegistrationClosed": "Registration closed",
+  "sessionStatusPreparing": "Upcoming",
+  "sessionStatusInProgress": "In progress",
+  "sessionStatusFinished": "Finished",
+  "sessionStatusCancelled": "Cancelled",
+  "sessionHostLabel": "Host",
+  "sessionParticipantsQuestion": "Who's playing with you?",
+  "sessionNoPlayersYet": "No players yet",
+  "sessionMaxPlayers": "Up to {count} players",
+  "@sessionMaxPlayers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionRegisteredCount": "{count} registered",
+  "@sessionRegisteredCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionGenderBreakdown": "👨 {male} male • 👩 {female} female",
+  "@sessionGenderBreakdown": {
+    "placeholders": {
+      "male": {
+        "type": "int"
+      },
+      "female": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionShuttlecock": "{name} shuttlecock",
+  "@sessionShuttlecock": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sessionAllLevels": "All levels",
+  "sessionGetDirections": "Directions",
+  "sessionShareAction": "Share",
+  "sessionLinkCopied": "Link copied",
+  "sessionContactZalo": "Message host on Zalo",
+  "sessionCallHost": "Call host",
+  "sessionPerSlot": "/slot",
+  "sessionManageAction": "Host",
+  "sessionReferenceVideoTitle": "Reference video",
+  "sessionRecommendationsTitle": "Suggested for you",
+  "sessionSuggestedBadge": "Suggested",
+  "favoriteAdd": "Save session",
+  "favoriteRemove": "Unsave session",
+  "levelDescriptionsTitle": "Skill levels",
+  "levelDescriptionMissing": "No description yet",
+  "sessionRegisterAction": "Register now",
+  "sessionViewOriginalPost": "View original",
+  "sessionEnded": "Session ended",
+  "sessionViewBoard": "Board",
+  "sessionViewMyRegistration": "View registration",
+  "sessionAddGuest": "Add guest",
+  "registrationTitle": "Join session",
+  "registrationSubmit": "Submit registration ({count})",
+  "@registrationSubmit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "registrationYou": "You",
+  "registrationGuest": "Guest",
+  "registrationRemoveGuest": "Remove guest",
+  "registrationNameRequired": "Please enter a name",
+  "registrationLevel": "Level",
+  "registrationLevelHint": "Select level",
+  "registrationLevelRequired": "Please select a level",
+  "registrationLevelDescription": "Level description",
+  "registrationLevelDescriptionHint": "Optional notes about the level",
+  "registrationRequiredLevels": "Accepted levels",
+  "registrationSuccessPending": "Registration request sent. Please wait for the host to approve.",
+  "registrationMyTitle": "My registration",
+  "registrationEmpty": "You have not registered for this session",
+  "registrationStatusApproved": "Approved",
+  "registrationStatusPending": "Pending",
+  "registrationStatusRejected": "Rejected",
+  "registrationWithdraw": "Withdraw request",
+  "registrationWithdrawConfirm": "Are you sure you want to withdraw your registration request?",
+  "registrationWithdrawDone": "Registration request withdrawn",
+  "registrationWithdrawPartial": "Could not withdraw {count} slot(s)",
+  "@registrationWithdrawPartial": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "registrationGenderOther": "Other",
   "sessionPlayingCount": "Playing: {count}",
   "@sessionPlayingCount": {
     "placeholders": {
@@ -187,7 +336,7 @@
   "courtStatusPlaying": "Playing",
   "courtStatusInUse": "Playing",
   "courtStatusReady": "Ready",
-  "courtStatusEmpty": "Available",
+  "courtStatusEmpty": "Empty",
   "courtNumber": "Court {number}",
   "@courtNumber": {
     "placeholders": {
@@ -253,6 +402,231 @@
   "notificationsTitle": "Notifications",
   "notificationsEmpty": "You have no notifications yet.",
   "notificationsMarkAllRead": "Mark all read",
+  "notificationMarkAsRead": "Mark as read",
+  "notificationDelete": "Delete",
+  "notificationDeleted": "Notification deleted",
+  "notificationStartReminderTitle": "Session starting soon!",
+  "notificationStartReminderMessage": "It's time for session \"{sessionName}\". Are you at the venue? Tap to start.",
+  "@notificationStartReminderMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationPlayerStartReminderTitle": "Session starting soon!",
+  "notificationPlayerStartReminderMessage": "Session \"{sessionName}\" is about to start. Head to the courts!",
+  "@notificationPlayerStartReminderMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationYourTurnTitle": "Your turn!",
+  "notificationYourTurnMessage": "Please go to {courtName}. Your match is starting soon.",
+  "@notificationYourTurnMessage": {
+    "placeholders": {
+      "courtName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationAutoStartedTitle": "Session auto-started",
+  "notificationAutoStartedMessage": "Session \"{sessionName}\" has been automatically started at the scheduled time.",
+  "@notificationAutoStartedMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationSessionAutoStartedTitle": "Session started!",
+  "notificationSessionAutoStartedMessage": "Session \"{sessionName}\" has started. Time to play!",
+  "@notificationSessionAutoStartedMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationAutoCancelledTitle": "Session auto-cancelled",
+  "notificationAutoCancelledMessage": "Session \"{sessionName}\" was automatically cancelled as it wasn't started within 30 minutes.",
+  "@notificationAutoCancelledMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationSessionCancelledTitle": "Session cancelled",
+  "notificationSessionCancelledMessage": "Session \"{sessionName}\" was cancelled by the system. The host didn't start on time.",
+  "@notificationSessionCancelledMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationEndWarningTitle": "Session ending soon",
+  "notificationEndWarningMessage": "Session \"{sessionName}\" will end in about 15 minutes.",
+  "@notificationEndWarningMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationAutoFinalizedTitle": "Session auto-finalized",
+  "notificationAutoFinalizedMessage": "Session \"{sessionName}\" has been automatically finalized after the grace period expired.",
+  "@notificationAutoFinalizedMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationClubCreationPendingTitle": "Club pending approval",
+  "notificationClubCreationPendingMessage": "Your club \"{clubName}\" is pending admin approval.",
+  "@notificationClubCreationPendingMessage": {
+    "placeholders": {
+      "clubName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationAdminNewPendingClubTitle": "New club pending approval",
+  "notificationAdminNewPendingClubMessage": "Club \"{clubName}\" is pending approval.",
+  "@notificationAdminNewPendingClubMessage": {
+    "placeholders": {
+      "clubName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationClubCreationApprovedTitle": "Club created successfully",
+  "notificationClubCreationApprovedMessage": "Club \"{clubName}\" has been created and approved.",
+  "@notificationClubCreationApprovedMessage": {
+    "placeholders": {
+      "clubName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationClubApprovedTitle": "Club approved",
+  "notificationClubApprovedMessage": "Your club \"{clubName}\" has been approved.",
+  "@notificationClubApprovedMessage": {
+    "placeholders": {
+      "clubName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationClubRejectedTitle": "Club rejected",
+  "notificationClubRejectedMessage": "Your club \"{clubName}\" has been rejected. Reason: {rejectionReason}",
+  "@notificationClubRejectedMessage": {
+    "placeholders": {
+      "clubName": {
+        "type": "String"
+      },
+      "rejectionReason": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationPlayerAddedTitle": "You were added to a session",
+  "notificationPlayerAddedMessage": "You have been added to session \"{sessionName}\".",
+  "@notificationPlayerAddedMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationPlayerRemovedTitle": "You were removed from a session",
+  "notificationPlayerRemovedMessage": "You have been removed from session \"{sessionName}\".",
+  "@notificationPlayerRemovedMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationPostLikedTitle": "Someone liked your post",
+  "notificationPostLikedMessage": "{actorName} liked your post.",
+  "@notificationPostLikedMessage": {
+    "placeholders": {
+      "actorName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationPostCommentedTitle": "New comment on your post",
+  "notificationPostCommentedMessage": "{actorName} commented on your post.",
+  "@notificationPostCommentedMessage": {
+    "placeholders": {
+      "actorName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationSessionFavoritedTitle": "Someone favorited your session",
+  "notificationSessionFavoritedMessage": "{actorName} favorited session \"{sessionName}\".",
+  "@notificationSessionFavoritedMessage": {
+    "placeholders": {
+      "actorName": {
+        "type": "String"
+      },
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationClubFavoritedTitle": "Someone favorited your club",
+  "notificationClubFavoritedMessage": "{actorName} favorited club \"{clubName}\".",
+  "@notificationClubFavoritedMessage": {
+    "placeholders": {
+      "actorName": {
+        "type": "String"
+      },
+      "clubName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationTournamentFavoritedTitle": "Someone favorited your tournament",
+  "notificationTournamentFavoritedMessage": "{actorName} favorited tournament \"{tournamentName}\".",
+  "@notificationTournamentFavoritedMessage": {
+    "placeholders": {
+      "actorName": {
+        "type": "String"
+      },
+      "tournamentName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationVenueRequestApprovedTitle": "Venue request approved",
+  "notificationVenueRequestApprovedMessage": "Your proposal for venue \"{venueName}\" has been approved by administrators.",
+  "@notificationVenueRequestApprovedMessage": {
+    "placeholders": {
+      "venueName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationVenueRequestRejectedTitle": "Venue request rejected",
+  "notificationVenueRequestRejectedMessage": "Your proposal for venue \"{venueName}\" was rejected. Reason: {rejectionReason}",
+  "@notificationVenueRequestRejectedMessage": {
+    "placeholders": {
+      "venueName": {
+        "type": "String"
+      },
+      "rejectionReason": {
+        "type": "String"
+      }
+    }
+  },
   "accountDeleteTitle": "Delete account",
   "accountDeleteWarning": "This cannot be undone.",
   "accountDeleteRemoved": "Removed: your password, sign-in links, personal details, photos and notifications.",
@@ -325,15 +699,11 @@
   "feeMale": "Men",
   "feeFemale": "Women",
   "hostManageTitle": "Manage session",
+  "hostManageOverview": "Overview",
   "hostManageCourts": "Courts",
-  "hostManageRoster": "Roster",
-  "hostManagePayments": "Payment ledger",
-  "hostManageAssign": "Assign players",
-  "hostManageReplace": "Change players",
-  "hostManageStartMatch": "Start match",
-  "hostManageEndMatch": "End match",
-  "hostManageClearCourt": "Clear selection",
-  "hostManageChooseTwoOrFour": "Select exactly 2 or 4 waiting players",
+  "hostManageRoster": "Players",
+  "hostManageResults": "Results",
+  "hostManagePayments": "Payments",
   "hostManagePendingApprovals": "Pending approvals",
   "hostManageApprovedPlayers": "Approved players",
   "hostManageApprove": "Approve",
@@ -383,10 +753,22 @@
   "transactionDashboardEmpty": "No player transactions yet",
   "transactionSessions": "sessions",
   "commonLoadMore": "Load more",
-  "socialTitle": "Community",
+  "socialTitle": "Feed",
   "socialFeedTab": "Feed",
   "socialClubsTab": "Clubs",
   "socialComposerHint": "What would you like to share?",
+  "socialComposerNameHint": "What's on your mind, {name}?",
+  "@socialComposerNameHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "socialLikeAction": "Like",
+  "socialLikedAction": "Liked",
+  "socialCommentAction": "Comment",
+  "socialShareAction": "Share",
   "socialCreatePost": "Create post",
   "socialPublish": "Publish",
   "socialAddPhotos": "Add photos",
@@ -398,11 +780,18 @@
   "socialCommentHint": "Write a comment…",
   "socialRepost": "Repost to feed",
   "socialShareOutside": "Share with another app",
+  "socialOriginalPostUnavailable": "The original post is no longer available.",
   "socialClubSearch": "Search clubs",
   "socialNoClubs": "No clubs found",
   "socialClubDetail": "Club",
   "socialMemberCount": "{count} members",
-  "@socialMemberCount": {"placeholders": {"count": {"type": "int"}}},
+  "@socialMemberCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "socialAbout": "About",
   "socialVenue": "Venue",
   "socialSchedule": "Schedule",
@@ -422,7 +811,13 @@
   "socialRateHost": "Rate the host",
   "socialRatePlayer": "Rate player",
   "socialRateName": "Rate {name}",
-  "@socialRateName": {"placeholders": {"name": {"type": "String"}}},
+  "@socialRateName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "socialRatingComment": "Comment (optional)",
   "socialSendRating": "Submit rating",
   "socialRatingSent": "Rating submitted",
@@ -447,7 +842,13 @@
   "clubStatusApproved": "Approved",
   "clubDeleteTitle": "Delete club",
   "clubDeleteConfirm": "Delete {name}? This action cannot be undone.",
-  "@clubDeleteConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "@clubDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "clubName": "Club name",
   "clubNameRequired": "Enter a club name",
   "clubDescription": "Description",
@@ -470,7 +871,13 @@
   "clubRoleMember": "Member",
   "clubRemoveMember": "Remove member",
   "clubRemoveMemberConfirm": "Remove {name} from the club?",
-  "@clubRemoveMemberConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "@clubRemoveMemberConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "clubSearchUsers": "Search by name or email",
   "clubSearchUsersHint": "Enter a name or email to find users",
   "clubRequestsEmpty": "No pending join requests",
@@ -481,5 +888,248 @@
   "clubAnnouncementsEmpty": "No announcements yet",
   "clubAnnouncementDelete": "Delete announcement",
   "clubAnnouncementDeleteConfirm": "Delete this announcement?",
-  "clubAnnouncementPin": "Pin for 30 days"
+  "clubAnnouncementPin": "Pin for 30 days",
+  "courtAssignPlayers": "Assign players",
+  "courtStartMatch": "Start",
+  "courtEndMatch": "End",
+  "courtCancelSelection": "Cancel",
+  "courtPreSelectNext": "Pre-select next match",
+  "courtViewNextMatch": "View next match",
+  "courtNeedMorePlayers": "Need {count} more waiting players to assign",
+  "@courtNeedMorePlayers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courtsStartSessionToBegin": "Start the session to begin matches",
+  "courtsSessionHasEnded": "The session has ended",
+  "courtDisplayModeLabel": "Display",
+  "courtDisplayModeNumber": "Number",
+  "courtDisplayModeName": "Name",
+  "courtElapsedMinutes": "{minutes}m",
+  "@courtElapsedMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "courtElapsedJustStarted": "Just started",
+  "courtWaitingPlayers": "Waiting players",
+  "courtNoPlayersWaiting": "No players are waiting right now",
+  "playerWaitMinutes": "{minutes}m",
+  "@playerWaitMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "playerWaitHoursMinutes": "{hours}h{minutes}m",
+  "@playerWaitHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "playerMatchesCount": "{count} matches",
+  "@playerMatchesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courtSelectionTitle": "Assign players - Court {courtNumber}",
+  "@courtSelectionTitle": {
+    "placeholders": {
+      "courtNumber": {
+        "type": "int"
+      }
+    }
+  },
+  "courtSelectionDescription": "Choose the players for this court:",
+  "courtMatchTypeDoubles": "Doubles",
+  "courtMatchTypeSingles": "Singles",
+  "courtManualSelection": "Manual",
+  "courtAutoAssign": "Auto-assign",
+  "courtAiPoweredMatching": "AI matching",
+  "courtAiMatchingHint": "Pairs players by skill level",
+  "courtAiAnalyzing": "AI is analysing…",
+  "courtAiReasoning": "Reasoning",
+  "courtAvailablePlayers": "Available players:",
+  "courtSearchPlayers": "Search players…",
+  "courtNoPlayersFound": "No players found",
+  "courtPositionNumber": "Position {number}",
+  "@courtPositionNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "courtPair1": "Pair 1",
+  "courtPair2": "Pair 2",
+  "courtPairGapLabel": "Gap:",
+  "courtConfirmMatch": "Confirm",
+  "courtSelectRequiredPlayers": "Select {total} players to confirm",
+  "@courtSelectRequiredPlayers": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "courtLoadingSuggestions": "Loading suggestions…",
+  "courtErrorSuggestions": "Could not load suggested players",
+  "courtNextMatchPreviewTitle": "Next match - Court {courtNumber}",
+  "@courtNextMatchPreviewTitle": {
+    "placeholders": {
+      "courtNumber": {
+        "type": "int"
+      }
+    }
+  },
+  "courtNextMatchPreviewDescription": "The players booked for the next match on this court.",
+  "courtNoPreSelectedPlayers": "No players are pre-selected yet.",
+  "courtCancelPreSelect": "Clear pre-selection",
+  "courtConfirmCancelPreSelectTitle": "Clear the pre-selection?",
+  "courtConfirmCancelPreSelectMessage": "This removes the players booked for the next match on this court.",
+  "matchResultTitle": "Match result",
+  "matchResultScore": "Score",
+  "matchResultIsDraw": "Draw",
+  "matchResultNotes": "Notes",
+  "matchResultNotesPlaceholder": "Add a note about this match…",
+  "matchResultShuttlecockCount": "Shuttlecocks used",
+  "matchResultShuttlecockPlaceholder": "e.g. 3, 2.5, 1.25…",
+  "matchResultSubmit": "Submit",
+  "matchResultSkip": "Skip the result",
+  "matchResultSelectWinnerHint": "Tap a team to mark it the winner (optional for a draw)",
+  "matchRepeatOpenDetails": "View repeat-pairing warning",
+  "matchRepeatTitle": "Repeat pairings",
+  "matchRepeatDescription": "Some pairings in this match have already happened more than twice.",
+  "matchRepeatHostNote": "Advisory only — it never blocks you from confirming the match.",
+  "matchRepeatTeammatesTitle": "Partnered more than twice",
+  "matchRepeatOpponentsTitle": "Faced each other more than twice",
+  "matchRepeatNoTeammates": "No repeated partnerships.",
+  "matchRepeatNoOpponents": "No repeated match-ups.",
+  "matchRepeatMatchCount": "{count} matches",
+  "@matchRepeatMatchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courtAnnounceButton": "Announce out loud",
+  "@courtAnnounceButton": {
+    "description": "Tooltip on the speaker button that reads the court's line-up aloud."
+  },
+  "courtAnnounceReadyIntro": "The following players are called to court number",
+  "@courtAnnounceReadyIntro": {
+    "description": "Spoken aloud. Precedes the court number, so it must end mid-sentence."
+  },
+  "courtAnnouncePlayingIntro": "The following players are playing on court number",
+  "@courtAnnouncePlayingIntro": {
+    "description": "Spoken aloud. Precedes the court number, so it must end mid-sentence."
+  },
+  "courtAnnounceDetail": "{courtNumber}: {names}",
+  "@courtAnnounceDetail": {
+    "description": "Spoken aloud. The court number followed by the players on it.",
+    "placeholders": {
+      "courtNumber": {
+        "type": "int"
+      },
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "courtAnnounceAnd": "and",
+  "@courtAnnounceAnd": {
+    "description": "Spoken aloud. Joins two players on the same side."
+  },
+  "mySessionsTitle": "Matches",
+  "mySessionsHosted": "Manage sessions",
+  "mySessionsJoined": "Joined matches",
+  "mySessionsActive": "Open",
+  "mySessionsEnded": "Finished",
+  "mySessionsAll": "All",
+  "mySessionsPendingRequests": "Join requests",
+  "pendingRequestsEmptySub": "Join requests from other players will appear here.",
+  "mySessionsSearchHint": "Search matches or venues...",
+  "mySessionsEmpty": "No matching sessions",
+  "mySessionsUnknownPlayer": "Player",
+  "mySessionsPendingBadge": "Pending",
+  "mySessionsClone": "Duplicate session",
+  "mySessionsDownloadImage": "Download image",
+  "mySessionsShare": "Share",
+  "mySessionsDelete": "Delete",
+  "mySessionsDeleteConfirmTitle": "Delete session",
+  "mySessionsDeleteConfirmMessage": "Are you sure you want to delete this session?",
+  "mySessionsDeleteSuccess": "Session deleted successfully",
+  "mySessionsDownloadSuccess": "Session image downloaded",
+  "hostPlayerStatsTitle": "Player statistics",
+  "hostPlayerStatsInfo": "View player ranking rules",
+  "hostPlayerStatsGenderMvp": "Split MVP by gender",
+  "hostPlayerStatsError": "Could not load player statistics.",
+  "hostPlayerStatsEmpty": "No player statistics available.",
+  "hostPlayerStatsRetry": "Try again",
+  "hostPlayerStatsNo": "No.",
+  "hostPlayerStatsName": "Name",
+  "hostPlayerStatsGender": "Gender",
+  "hostPlayerGenderMale": "Male",
+  "hostPlayerGenderFemale": "Female",
+  "hostPlayerGenderOther": "Other",
+  "hostPlayerStatsLevel": "Level",
+  "hostPlayerStatsMatches": "Matches",
+  "hostPlayerStatsWins": "Wins",
+  "hostPlayerStatsLosses": "Losses",
+  "hostPlayerStatsWinRate": "Win rate",
+  "hostPlayerStatsPointDiff": "Avg. point diff",
+  "hostPlayerStatsShuttlecocks": "Shuttlecocks",
+  "hostPlayerStatsCount": "{count} players",
+  "@hostPlayerStatsCount": {"placeholders": {"count": {"type": "int"}}},
+  "hostPlayerStatsMvp": "MVP",
+  "hostPlayerStatsSharedMvp": "Shared MVP",
+  "hostPlayerStatsMaleMvp": "Male MVP",
+  "hostPlayerStatsFemaleMvp": "Female MVP",
+  "hostPlayerStatsExport": "Export image",
+  "hostPlayerStatsExportColumns": "Export columns",
+  "hostPlayerStatsShare": "Share image",
+  "hostPlayerStatsRankingTitle": "Player ranking rules",
+  "hostPlayerStatsEligibilityTitle": "MVP eligibility",
+  "hostPlayerStatsEligibility": "A player must play at least 50% of the highest match count, capped at 3 required matches, and have at least one win.",
+  "hostPlayerStatsOrderTitle": "Ranking order",
+  "hostPlayerStatsOrder": "1. Win rate.\n2. Wins.\n3. Average point differential when the whole tied group has data.\n4. Total matches.\n5. Player name.",
+  "hostPlayerStatsPointDiffHelp": "Average point differential = total points scored minus points conceded, divided by scored matches.",
+  "hostPlayerDetailTitle": "Player details",
+  "hostPlayerDetailStatus": "Status",
+  "hostPlayerDetailPhone": "Phone",
+  "hostPlayerDetailLevelDescription": "Level description",
+  "hostPlayerDetailDesire": "Preference",
+  "hostPlayerDetailCurrentWait": "Current wait time",
+  "hostPlayerDetailTotalWait": "Total wait time",
+  "hostPlayerDetailCurrentCourt": "Current court",
+  "hostPlayerDetailRating": "Rating",
+  "hostPlayerDetailMember": "Member",
+  "hostPlayerDetailGuest": "Guest",
+  "hostPlayerDetailViewProfile": "View profile",
+  "hostPlayerDetailReviews": "Recent reviews",
+  "hostPlayerDetailJoinInfo": "Join information",
+  "hostPlayerDetailCopyLink": "Copy link",
+  "hostPlayerDetailCopyCode": "Copy code",
+  "hostPlayerDetailCopied": "Copied",
+  "hostPlayerDetailPause": "Pause",
+  "hostPlayerDetailContinue": "Continue",
+  "hostPlayerDetailClose": "Close",
+  "hostPlayerDetailError": "Could not load player details.",
+  "hostPlayerStatsMinutes": "{count} min",
+  "@hostPlayerStatsMinutes": {"placeholders": {"count": {"type": "int"}}}
 }

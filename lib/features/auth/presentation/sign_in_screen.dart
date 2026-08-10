@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/logger.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
@@ -168,8 +169,8 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
-                                ? Icons.visibility_off_rounded
-                                : Icons.visibility_rounded,
+                                ? AppIcons.eyeOff
+                                : AppIcons.eye,
                           ),
                           onPressed: () => setState(
                             () => _obscurePassword = !_obscurePassword,

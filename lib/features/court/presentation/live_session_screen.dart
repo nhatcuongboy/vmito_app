@@ -9,6 +9,7 @@ import 'package:vmito_app/features/session/application/player/session_detail_con
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/court.dart';
+import 'package:vmito_app/shared/models/session_player.dart';
 
 class LiveSessionScreen extends ConsumerStatefulWidget {
   const LiveSessionScreen({required this.sessionId, super.key});
@@ -147,7 +148,10 @@ class _CourtBoard extends StatelessWidget {
                 for (final court in courts)
                   SizedBox(
                     width: width,
-                    child: _CourtCard(court: court),
+                    child: _CourtCard(
+                      court: court,
+                      preSelectedPlayers: session.preSelectedPlayersFor(court),
+                    ),
                   ),
               ],
             ),
@@ -160,16 +164,17 @@ class _CourtBoard extends StatelessWidget {
 }
 
 class _CourtCard extends StatelessWidget {
-  const _CourtCard({required this.court});
+  const _CourtCard({required this.court, required this.preSelectedPlayers});
 
   final Court court;
+  final List<SessionPlayer> preSelectedPlayers;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final players = court.currentPlayers.isNotEmpty
         ? court.currentPlayers
-        : court.preSelectedPlayers;
+        : preSelectedPlayers;
     final status = switch (court.status) {
       CourtStatus.inUse => l10n.courtStatusInUse,
       CourtStatus.ready => l10n.courtStatusReady,
@@ -195,7 +200,10 @@ class _CourtCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
-            BadmintonCourtView(court: court),
+            BadmintonCourtView(
+              court: court,
+              preSelectedPlayers: preSelectedPlayers,
+            ),
             const SizedBox(height: AppSpacing.xs),
             Text(l10n.livePlayerCount(players.length)),
           ],

@@ -1,5 +1,7 @@
 {
   "FLAVOR": "dev",
-  "API_BASE_URL": "http://localhost:3001/api",
-  "WEB_BASE_URL": "http://localhost:3000"
+  "ENABLE_AUTH_BYPASS": true,
+  "API_BASE_URL": "https://staging.vmito.com/api",
+  "WEB_BASE_URL": "https://staging.vmito.com",
+  "GOOGLE_PLACES_API_KEY": ""
 }

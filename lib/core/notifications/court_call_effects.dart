@@ -15,7 +15,15 @@ abstract interface class CourtCallEffects {
     required String payload,
   });
 
+  /// Calls a player to their court. Repeats — see the implementation.
   Future<void> speak(String message, String languageCode);
+
+  /// Reads [phrases] aloud once, in order.
+  ///
+  /// Distinct from [speak], which repeats three times because it is chasing a
+  /// player who is not looking at their phone. This one is the host tapping a
+  /// speaker button with the gym in earshot; repeating it would be noise.
+  Future<void> announce(List<String> phrases, String languageCode);
 }
 
 class PlatformCourtCallEffects implements CourtCallEffects {
@@ -106,6 +114,30 @@ class PlatformCourtCallEffects implements CourtCallEffects {
 
   @override
   Future<void> speak(String message, String languageCode) async {
+    await _prepare(languageCode);
+    for (var repeat = 0; repeat < 3; repeat++) {
+      await _tts.speak(message);
+      if (repeat < 2) {
+        await Future<void>.delayed(const Duration(milliseconds: 1500));
+      }
+    }
+  }
+
+  @override
+  Future<void> announce(List<String> phrases, String languageCode) async {
+    await _prepare(languageCode);
+    // Cancel first: a host tapping two courts in a row should hear the second,
+    // not the second queued behind the first.
+    await _tts.stop();
+    for (final phrase in phrases) {
+      if (phrase.trim().isEmpty) continue;
+      await _tts.speak(phrase);
+    }
+  }
+
+  /// The engine's voice follows the app's locale, not a hardcoded Vietnamese —
+  /// see docs/I18N.md on the web app's hardcoding.
+  Future<void> _prepare(String languageCode) async {
     final language = switch (languageCode) {
       'en' => 'en-US',
       'zh' => 'zh-CN',
@@ -114,12 +146,6 @@ class PlatformCourtCallEffects implements CourtCallEffects {
     await _tts.setLanguage(language);
     await _tts.setSpeechRate(.48);
     await _tts.awaitSpeakCompletion(true);
-    for (var repeat = 0; repeat < 3; repeat++) {
-      await _tts.speak(message);
-      if (repeat < 2) {
-        await Future<void>.delayed(const Duration(milliseconds: 1500));
-      }
-    }
   }
 }
 

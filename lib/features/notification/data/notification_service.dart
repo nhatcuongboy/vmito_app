@@ -49,6 +49,9 @@ class NotificationService {
 
   Future<void> markAllRead() =>
       _client.patch<void>(ApiEndpoints.notificationReadAll);
+
+  Future<void> delete(String id) =>
+      _client.delete<void>(ApiEndpoints.notificationDelete(id));
 }
 
 final notificationServiceProvider = Provider<NotificationService>(

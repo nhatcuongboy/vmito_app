@@ -72,7 +72,13 @@
   "authResetHeading": "Đặt lại mật khẩu",
   "authResetDescription": "Tạo mật khẩu mới cho tài khoản của bạn.",
   "authResetDescriptionWithEmail": "Tạo mật khẩu mới cho tài khoản {email}.",
-  "@authResetDescriptionWithEmail": {"placeholders": {"email": {"type": "String"}}},
+  "@authResetDescriptionWithEmail": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
   "authResetNewPassword": "Mật khẩu mới",
   "authResetNewPasswordPlaceholder": "Nhập mật khẩu mới",
   "authResetConfirmPassword": "Xác nhận mật khẩu",
@@ -80,7 +86,13 @@
   "authResetSubmit": "Đặt lại mật khẩu",
   "authResetSuccess": "Mật khẩu đã được đặt lại thành công. Bạn có thể đăng nhập bằng mật khẩu mới.",
   "authResetSuccessWithEmail": "Mật khẩu cho tài khoản {email} đã được đặt lại thành công. Bạn có thể đăng nhập bằng mật khẩu mới.",
-  "@authResetSuccessWithEmail": {"placeholders": {"email": {"type": "String"}}},
+  "@authResetSuccessWithEmail": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
   "authResetMissingToken": "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã thiếu mã xác thực.",
   "authResetInvalidToken": "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn.",
   "authResetFailed": "Không thể đặt lại mật khẩu. Vui lòng thử lại.",
@@ -100,10 +112,22 @@
     }
   },
   "navHome": "Trang chủ",
-  "navSessions": "Buổi chơi",
+  "navSessions": "Kèo",
   "navTournaments": "Giải đấu",
   "navNotifications": "Thông báo",
   "navProfile": "Cá nhân",
+  "menuOpenTooltip": "Mở menu",
+  "footerCopyright": "© {year} {appName}. Bảo lưu mọi quyền.",
+  "@footerCopyright": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      },
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
   "courtCallTitle": "Đến lượt bạn vào sân!",
   "courtCallAnnouncement": "Mời bạn vào sân số {courtNumber}",
   "@courtCallAnnouncement": {
@@ -115,7 +139,7 @@
     }
   },
   "courtCallAcknowledge": "Đã hiểu",
-  "navFeed": "Cộng đồng",
+  "navFeed": "Bảng tin",
   "profileTitle": "Cá nhân",
   "feedTitle": "Bảng tin",
   "homeTitle": "Trang chủ",
@@ -126,6 +150,11 @@
   "languageEnglish": "Tiếng Anh",
   "languageChinese": "Tiếng Trung",
   "profileLanguage": "Ngôn ngữ",
+  "profileTheme": "Giao diện",
+  "themeTitle": "Giao diện",
+  "themeModeLight": "Sáng",
+  "themeModeDark": "Tối",
+  "themeModeSystem": "Theo hệ thống",
   "errorCancelled": "Yêu cầu đã bị hủy.",
   "routeNotFound": "Không tìm thấy đường dẫn: {uri}",
   "@routeNotFound": {
@@ -145,6 +174,16 @@
   },
   "homeLiveHint": "Chọn một kèo để theo dõi sân đấu trực tiếp.",
   "homeBrowseSessions": "Tìm kèo",
+  "homeDiscoverySessions": "Tìm kèo",
+  "homeDiscoveryVenues": "Tìm sân",
+  "homeDiscoveryClubs": "Tìm nhóm",
+  "homeDiscoveryTournaments": "Tìm giải",
+  "tournamentSearchHint": "Tìm giải đấu...",
+  "tournamentEmpty": "Không tìm thấy giải đấu nào",
+  "tournamentStatusPreparing": "Sắp diễn ra",
+  "tournamentStatusInProgress": "Đang diễn ra",
+  "tournamentStatusFinished": "Đã kết thúc",
+  "tournamentStatusCancelled": "Đã hủy",
   "sessionBrowseTitle": "Tìm kèo",
   "sessionEmpty": "Không tìm thấy kèo nào",
   "sessionDetailTitle": "Chi tiết kèo",
@@ -172,6 +211,116 @@
   },
   "sessionCrawledReadOnly": "Kèo được sưu tầm từ Facebook — chỉ xem",
   "sessionClosed": "Kèo này đã đóng",
+  "sessionSlotsLeft": "Còn {count} slot",
+  "@sessionSlotsLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionSlotsFull": "Hết slot",
+  "sessionRegistrationClosed": "Đã đóng đăng ký",
+  "sessionStatusPreparing": "Sắp diễn ra",
+  "sessionStatusInProgress": "Đang diễn ra",
+  "sessionStatusFinished": "Đã kết thúc",
+  "sessionStatusCancelled": "Đã hủy",
+  "sessionHostLabel": "Host",
+  "sessionParticipantsQuestion": "Ai sẽ chơi cùng bạn?",
+  "sessionNoPlayersYet": "Chưa có người chơi nào",
+  "sessionMaxPlayers": "Tối đa {count} người",
+  "@sessionMaxPlayers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionRegisteredCount": "{count} người đã đăng ký",
+  "@sessionRegisteredCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionGenderBreakdown": "👨 {male} Nam • 👩 {female} Nữ",
+  "@sessionGenderBreakdown": {
+    "placeholders": {
+      "male": {
+        "type": "int"
+      },
+      "female": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionShuttlecock": "Cầu {name}",
+  "@sessionShuttlecock": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sessionAllLevels": "Mọi trình độ",
+  "sessionGetDirections": "Chỉ đường",
+  "sessionShareAction": "Chia sẻ",
+  "sessionLinkCopied": "Đã sao chép liên kết",
+  "sessionContactZalo": "Nhắn Zalo cho chủ kèo",
+  "sessionCallHost": "Gọi chủ kèo",
+  "sessionPerSlot": "/slot",
+  "sessionManageAction": "Host",
+  "sessionReferenceVideoTitle": "Video tham khảo",
+  "sessionRecommendationsTitle": "Gợi ý cho bạn",
+  "sessionSuggestedBadge": "Gợi ý",
+  "favoriteAdd": "Lưu kèo",
+  "favoriteRemove": "Bỏ lưu kèo",
+  "levelDescriptionsTitle": "Mô tả trình độ",
+  "levelDescriptionMissing": "Chưa có mô tả",
+  "sessionRegisterAction": "Đăng ký",
+  "sessionViewOriginalPost": "Xem bài gốc",
+  "sessionEnded": "Kèo đã kết thúc",
+  "sessionViewBoard": "Vào sân",
+  "sessionViewMyRegistration": "Xem vé",
+  "sessionAddGuest": "Thêm khách",
+  "registrationTitle": "Đăng ký kèo",
+  "registrationSubmit": "Gửi đăng ký ({count})",
+  "@registrationSubmit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "registrationYou": "Bạn",
+  "registrationGuest": "Khách",
+  "registrationRemoveGuest": "Xóa khách",
+  "registrationNameRequired": "Vui lòng nhập tên",
+  "registrationLevel": "Trình độ",
+  "registrationLevelHint": "Chọn trình độ",
+  "registrationLevelRequired": "Vui lòng chọn trình độ",
+  "registrationLevelDescription": "Mô tả trình độ",
+  "registrationLevelDescriptionHint": "Ghi chú thêm về trình độ (không bắt buộc)",
+  "registrationRequiredLevels": "Kèo này nhận trình độ",
+  "registrationSuccessPending": "Yêu cầu đăng ký đã được gửi. Vui lòng chờ chủ kèo duyệt.",
+  "registrationMyTitle": "Đăng ký của tôi",
+  "registrationEmpty": "Bạn chưa đăng ký kèo này",
+  "registrationStatusApproved": "Đã duyệt",
+  "registrationStatusPending": "Chờ duyệt",
+  "registrationStatusRejected": "Bị từ chối",
+  "registrationWithdraw": "Thu hồi yêu cầu",
+  "registrationWithdrawConfirm": "Bạn có chắc muốn thu hồi yêu cầu đăng ký?",
+  "registrationWithdrawDone": "Đã thu hồi yêu cầu đăng ký",
+  "registrationWithdrawPartial": "Không thu hồi được {count} vé",
+  "@registrationWithdrawPartial": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "registrationGenderOther": "Khác",
   "sessionPlayingCount": "Đang đấu: {count}",
   "@sessionPlayingCount": {
     "placeholders": {
@@ -191,7 +340,7 @@
   "courtStatusPlaying": "Đang chơi",
   "courtStatusInUse": "Đang chơi",
   "courtStatusReady": "Sẵn sàng",
-  "courtStatusEmpty": "Có sẵn",
+  "courtStatusEmpty": "Trống",
   "courtNumber": "Sân {number}",
   "@courtNumber": {
     "placeholders": {
@@ -257,6 +406,231 @@
   "notificationsTitle": "Thông báo",
   "notificationsEmpty": "Bạn chưa có thông báo nào.",
   "notificationsMarkAllRead": "Đọc tất cả",
+  "notificationMarkAsRead": "Đánh dấu đã đọc",
+  "notificationDelete": "Xóa",
+  "notificationDeleted": "Đã xóa thông báo",
+  "notificationStartReminderTitle": "Kèo sắp bắt đầu!",
+  "notificationStartReminderMessage": "Đã đến giờ cho kèo \"{sessionName}\". Bạn đã có mặt tại sân chưa? Nhấn để bắt đầu.",
+  "@notificationStartReminderMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationPlayerStartReminderTitle": "Kèo sắp bắt đầu!",
+  "notificationPlayerStartReminderMessage": "Kèo \"{sessionName}\" sắp bắt đầu. Hãy di chuyển ra sân!",
+  "@notificationPlayerStartReminderMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationYourTurnTitle": "Đến lượt bạn!",
+  "notificationYourTurnMessage": "Vui lòng vào {courtName}. Trận của bạn sắp bắt đầu.",
+  "@notificationYourTurnMessage": {
+    "placeholders": {
+      "courtName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationAutoStartedTitle": "Kèo đã tự động bắt đầu",
+  "notificationAutoStartedMessage": "Kèo \"{sessionName}\" đã được tự động bắt đầu đúng giờ đã lên lịch.",
+  "@notificationAutoStartedMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationSessionAutoStartedTitle": "Kèo đã bắt đầu!",
+  "notificationSessionAutoStartedMessage": "Kèo \"{sessionName}\" đã bắt đầu. Hãy ra sân thôi!",
+  "@notificationSessionAutoStartedMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationAutoCancelledTitle": "Kèo đã bị huỷ tự động",
+  "notificationAutoCancelledMessage": "Kèo \"{sessionName}\" đã bị huỷ tự động vì không được bắt đầu trong vòng 30 phút.",
+  "@notificationAutoCancelledMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationSessionCancelledTitle": "Kèo đã bị huỷ",
+  "notificationSessionCancelledMessage": "Kèo \"{sessionName}\" đã bị hệ thống huỷ. Chủ kèo không bắt đầu đúng giờ.",
+  "@notificationSessionCancelledMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationEndWarningTitle": "Kèo sắp kết thúc",
+  "notificationEndWarningMessage": "Kèo \"{sessionName}\" sẽ kết thúc sau khoảng 15 phút.",
+  "@notificationEndWarningMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationAutoFinalizedTitle": "Kèo đã được hoàn tất",
+  "notificationAutoFinalizedMessage": "Kèo \"{sessionName}\" đã được hệ thống tự động hoàn tất sau khi hết thời gian gia hạn.",
+  "@notificationAutoFinalizedMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationClubCreationPendingTitle": "Nhóm đang chờ phê duyệt",
+  "notificationClubCreationPendingMessage": "Nhóm \"{clubName}\" của bạn đang chờ Admin phê duyệt.",
+  "@notificationClubCreationPendingMessage": {
+    "placeholders": {
+      "clubName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationAdminNewPendingClubTitle": "Nhóm mới đang chờ duyệt",
+  "notificationAdminNewPendingClubMessage": "Nhóm \"{clubName}\" đang chờ phê duyệt.",
+  "@notificationAdminNewPendingClubMessage": {
+    "placeholders": {
+      "clubName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationClubCreationApprovedTitle": "Nhóm đã được tạo thành công",
+  "notificationClubCreationApprovedMessage": "Nhóm \"{clubName}\" đã được tạo và phê duyệt thành công.",
+  "@notificationClubCreationApprovedMessage": {
+    "placeholders": {
+      "clubName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationClubApprovedTitle": "Nhóm đã được phê duyệt",
+  "notificationClubApprovedMessage": "Nhóm \"{clubName}\" của bạn đã được phê duyệt.",
+  "@notificationClubApprovedMessage": {
+    "placeholders": {
+      "clubName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationClubRejectedTitle": "Nhóm đã bị từ chối",
+  "notificationClubRejectedMessage": "Nhóm \"{clubName}\" của bạn đã bị từ chối. Lý do: {rejectionReason}",
+  "@notificationClubRejectedMessage": {
+    "placeholders": {
+      "clubName": {
+        "type": "String"
+      },
+      "rejectionReason": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationPlayerAddedTitle": "Bạn đã được thêm vào kèo",
+  "notificationPlayerAddedMessage": "Bạn đã được thêm vào kèo \"{sessionName}\".",
+  "@notificationPlayerAddedMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationPlayerRemovedTitle": "Bạn đã bị xóa khỏi kèo",
+  "notificationPlayerRemovedMessage": "Bạn đã bị xóa khỏi kèo \"{sessionName}\".",
+  "@notificationPlayerRemovedMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationPostLikedTitle": "Có người thích bài viết của bạn",
+  "notificationPostLikedMessage": "{actorName} đã thích bài viết của bạn.",
+  "@notificationPostLikedMessage": {
+    "placeholders": {
+      "actorName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationPostCommentedTitle": "Bình luận mới về bài viết của bạn",
+  "notificationPostCommentedMessage": "{actorName} đã bình luận về bài viết của bạn.",
+  "@notificationPostCommentedMessage": {
+    "placeholders": {
+      "actorName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationSessionFavoritedTitle": "Có người Thích kèo của bạn",
+  "notificationSessionFavoritedMessage": "{actorName} đã Thích kèo \"{sessionName}\".",
+  "@notificationSessionFavoritedMessage": {
+    "placeholders": {
+      "actorName": {
+        "type": "String"
+      },
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationClubFavoritedTitle": "Có người Thích nhóm của bạn",
+  "notificationClubFavoritedMessage": "{actorName} đã Thích nhóm \"{clubName}\".",
+  "@notificationClubFavoritedMessage": {
+    "placeholders": {
+      "actorName": {
+        "type": "String"
+      },
+      "clubName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationTournamentFavoritedTitle": "Có người Thích giải đấu của bạn",
+  "notificationTournamentFavoritedMessage": "{actorName} đã Thích giải đấu \"{tournamentName}\".",
+  "@notificationTournamentFavoritedMessage": {
+    "placeholders": {
+      "actorName": {
+        "type": "String"
+      },
+      "tournamentName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationVenueRequestApprovedTitle": "Yêu cầu thông tin sân đã được phê duyệt",
+  "notificationVenueRequestApprovedMessage": "Đề xuất về sân \"{venueName}\" của bạn đã được quản trị viên phê duyệt.",
+  "@notificationVenueRequestApprovedMessage": {
+    "placeholders": {
+      "venueName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationVenueRequestRejectedTitle": "Yêu cầu thông tin sân bị từ chối",
+  "notificationVenueRequestRejectedMessage": "Đề xuất về sân \"{venueName}\" của bạn bị từ chối. Lý do: {rejectionReason}",
+  "@notificationVenueRequestRejectedMessage": {
+    "placeholders": {
+      "venueName": {
+        "type": "String"
+      },
+      "rejectionReason": {
+        "type": "String"
+      }
+    }
+  },
   "accountDeleteTitle": "Xoá tài khoản",
   "accountDeleteWarning": "Thao tác này không thể hoàn tác.",
   "accountDeleteRemoved": "Sẽ bị xoá: mật khẩu, liên kết đăng nhập, thông tin cá nhân, ảnh đại diện và thông báo.",
@@ -329,15 +703,11 @@
   "feeMale": "Nam",
   "feeFemale": "Nữ",
   "hostManageTitle": "Quản lý buổi chơi",
+  "hostManageOverview": "Tổng quan",
   "hostManageCourts": "Sân",
-  "hostManageRoster": "Danh sách",
-  "hostManagePayments": "Sổ thanh toán",
-  "hostManageAssign": "Xếp người chơi",
-  "hostManageReplace": "Đổi người chơi",
-  "hostManageStartMatch": "Bắt đầu trận",
-  "hostManageEndMatch": "Kết thúc trận",
-  "hostManageClearCourt": "Bỏ lượt xếp",
-  "hostManageChooseTwoOrFour": "Chọn đúng 2 hoặc 4 người đang chờ",
+  "hostManageRoster": "Người chơi",
+  "hostManageResults": "Kết quả",
+  "hostManagePayments": "Thanh toán",
   "hostManagePendingApprovals": "Yêu cầu đang chờ duyệt",
   "hostManageApprovedPlayers": "Người chơi đã duyệt",
   "hostManageApprove": "Duyệt",
@@ -387,10 +757,22 @@
   "transactionDashboardEmpty": "Chưa có giao dịch người chơi",
   "transactionSessions": "buổi chơi",
   "commonLoadMore": "Xem thêm",
-  "socialTitle": "Cộng đồng",
+  "socialTitle": "Bảng tin",
   "socialFeedTab": "Bảng tin",
   "socialClubsTab": "Câu lạc bộ",
   "socialComposerHint": "Bạn muốn chia sẻ điều gì?",
+  "socialComposerNameHint": "Bạn đang nghĩ gì, {name}?",
+  "@socialComposerNameHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "socialLikeAction": "Thích",
+  "socialLikedAction": "Đã thích",
+  "socialCommentAction": "Bình luận",
+  "socialShareAction": "Chia sẻ",
   "socialCreatePost": "Tạo bài viết",
   "socialPublish": "Đăng",
   "socialAddPhotos": "Thêm ảnh",
@@ -402,11 +784,18 @@
   "socialCommentHint": "Viết bình luận…",
   "socialRepost": "Chia sẻ lên bảng tin",
   "socialShareOutside": "Chia sẻ qua ứng dụng khác",
+  "socialOriginalPostUnavailable": "Bài viết gốc không còn khả dụng",
   "socialClubSearch": "Tìm câu lạc bộ",
   "socialNoClubs": "Không tìm thấy câu lạc bộ",
   "socialClubDetail": "Câu lạc bộ",
   "socialMemberCount": "{count} thành viên",
-  "@socialMemberCount": {"placeholders": {"count": {"type": "int"}}},
+  "@socialMemberCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "socialAbout": "Giới thiệu",
   "socialVenue": "Địa điểm",
   "socialSchedule": "Lịch sinh hoạt",
@@ -426,7 +815,13 @@
   "socialRateHost": "Đánh giá chủ kèo",
   "socialRatePlayer": "Đánh giá người chơi",
   "socialRateName": "Đánh giá {name}",
-  "@socialRateName": {"placeholders": {"name": {"type": "String"}}},
+  "@socialRateName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "socialRatingComment": "Nhận xét (không bắt buộc)",
   "socialSendRating": "Gửi đánh giá",
   "socialRatingSent": "Đã gửi đánh giá",
@@ -451,7 +846,13 @@
   "clubStatusApproved": "Đã duyệt",
   "clubDeleteTitle": "Xóa câu lạc bộ",
   "clubDeleteConfirm": "Xóa câu lạc bộ {name}? Hành động này không thể hoàn tác.",
-  "@clubDeleteConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "@clubDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "clubName": "Tên câu lạc bộ",
   "clubNameRequired": "Vui lòng nhập tên câu lạc bộ",
   "clubDescription": "Mô tả",
@@ -474,7 +875,13 @@
   "clubRoleMember": "Thành viên",
   "clubRemoveMember": "Gỡ thành viên",
   "clubRemoveMemberConfirm": "Gỡ {name} khỏi câu lạc bộ?",
-  "@clubRemoveMemberConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "@clubRemoveMemberConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "clubSearchUsers": "Tìm theo tên hoặc email",
   "clubSearchUsersHint": "Nhập tên hoặc email để tìm người dùng",
   "clubRequestsEmpty": "Không có yêu cầu tham gia đang chờ",
@@ -485,5 +892,248 @@
   "clubAnnouncementsEmpty": "Chưa có thông báo",
   "clubAnnouncementDelete": "Xóa thông báo",
   "clubAnnouncementDeleteConfirm": "Xóa thông báo này?",
-  "clubAnnouncementPin": "Ghim trong 30 ngày"
+  "clubAnnouncementPin": "Ghim trong 30 ngày",
+  "courtAssignPlayers": "Ghép đôi",
+  "courtStartMatch": "Bắt đầu",
+  "courtEndMatch": "Kết thúc",
+  "courtCancelSelection": "Hủy",
+  "courtPreSelectNext": "Chọn trước trận tiếp theo",
+  "courtViewNextMatch": "Xem trận tiếp theo",
+  "courtNeedMorePlayers": "Cần thêm {count} người đang chờ để ghép đôi",
+  "@courtNeedMorePlayers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courtsStartSessionToBegin": "Bắt đầu kèo để bắt đầu các trận đấu",
+  "courtsSessionHasEnded": "Kèo đã kết thúc",
+  "courtDisplayModeLabel": "Hiển thị",
+  "courtDisplayModeNumber": "Số áo",
+  "courtDisplayModeName": "Tên",
+  "courtElapsedMinutes": "{minutes}p",
+  "@courtElapsedMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "courtElapsedJustStarted": "Vừa bắt đầu",
+  "courtWaitingPlayers": "Người chơi đang chờ",
+  "courtNoPlayersWaiting": "Hiện tại không có người chơi nào đang chờ",
+  "playerWaitMinutes": "{minutes}p",
+  "@playerWaitMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "playerWaitHoursMinutes": "{hours}g{minutes}p",
+  "@playerWaitHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "playerMatchesCount": "{count} trận",
+  "@playerMatchesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courtSelectionTitle": "Ghép đôi - Sân {courtNumber}",
+  "@courtSelectionTitle": {
+    "placeholders": {
+      "courtNumber": {
+        "type": "int"
+      }
+    }
+  },
+  "courtSelectionDescription": "Chọn người chơi để phân bổ vào sân này:",
+  "courtMatchTypeDoubles": "Đánh đôi",
+  "courtMatchTypeSingles": "Đánh đơn",
+  "courtManualSelection": "Chọn thủ công",
+  "courtAutoAssign": "Tự động ghép đôi",
+  "courtAiPoweredMatching": "Ghép đôi bằng AI",
+  "courtAiMatchingHint": "Ghép cặp tự động theo trình độ",
+  "courtAiAnalyzing": "AI đang phân tích...",
+  "courtAiReasoning": "Phân tích",
+  "courtAvailablePlayers": "Người chơi có sẵn:",
+  "courtSearchPlayers": "Tìm người chơi…",
+  "courtNoPlayersFound": "Không tìm thấy người chơi",
+  "courtPositionNumber": "Vị trí {number}",
+  "@courtPositionNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "courtPair1": "Cặp 1",
+  "courtPair2": "Cặp 2",
+  "courtPairGapLabel": "Lệch:",
+  "courtConfirmMatch": "Xác nhận",
+  "courtSelectRequiredPlayers": "Chọn đủ {total} người để xác nhận",
+  "@courtSelectRequiredPlayers": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "courtLoadingSuggestions": "Đang tải gợi ý người chơi...",
+  "courtErrorSuggestions": "Lỗi lấy danh sách người chơi được đề xuất",
+  "courtNextMatchPreviewTitle": "Trận tiếp theo - Sân {courtNumber}",
+  "@courtNextMatchPreviewTitle": {
+    "placeholders": {
+      "courtNumber": {
+        "type": "int"
+      }
+    }
+  },
+  "courtNextMatchPreviewDescription": "Xem danh sách người chơi đã chọn trước cho trận tiếp theo.",
+  "courtNoPreSelectedPlayers": "Chưa có người chơi được chọn trước.",
+  "courtCancelPreSelect": "Hủy chọn trước",
+  "courtConfirmCancelPreSelectTitle": "Xác nhận hủy chọn trước",
+  "courtConfirmCancelPreSelectMessage": "Bạn có chắc chắn muốn hủy chọn trước các người chơi cho trận tiếp theo không?",
+  "matchResultTitle": "Kết quả trận đấu",
+  "matchResultScore": "Điểm số",
+  "matchResultIsDraw": "Trận đấu hòa",
+  "matchResultNotes": "Ghi chú",
+  "matchResultNotesPlaceholder": "Thêm ghi chú về trận đấu...",
+  "matchResultShuttlecockCount": "Số lượng cầu",
+  "matchResultShuttlecockPlaceholder": "VD: 3, 2.5, 1.25...",
+  "matchResultSubmit": "Gửi",
+  "matchResultSkip": "Bỏ qua kết quả",
+  "matchResultSelectWinnerHint": "Nhấn vào một đội để chọn đội thắng (tùy chọn nếu hòa)",
+  "matchRepeatOpenDetails": "Xem cảnh báo trùng cặp đấu",
+  "matchRepeatTitle": "Cảnh báo cặp đấu",
+  "matchRepeatDescription": "Một số quan hệ người chơi trong trận này đã lặp lại hơn 2 trận.",
+  "matchRepeatHostNote": "Cảnh báo này chỉ để host cân nhắc chọn lại cặp đấu khác, không chặn xác nhận trận.",
+  "matchRepeatTeammatesTitle": "Các cặp đã chung đôi hơn 2 trận",
+  "matchRepeatOpponentsTitle": "Các cặp đã đối đầu hơn 2 trận",
+  "matchRepeatNoTeammates": "Không có cặp chung đôi bị lặp.",
+  "matchRepeatNoOpponents": "Không có cặp đối đầu bị lặp.",
+  "matchRepeatMatchCount": "{count} trận",
+  "@matchRepeatMatchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courtAnnounceButton": "Thông báo qua loa",
+  "@courtAnnounceButton": {
+    "description": "Tooltip on the speaker button that reads the court's line-up aloud."
+  },
+  "courtAnnounceReadyIntro": "Mời những người chơi sau vào sân số",
+  "@courtAnnounceReadyIntro": {
+    "description": "Spoken aloud. Precedes the court number, so it must end mid-sentence."
+  },
+  "courtAnnouncePlayingIntro": "Những người chơi sau đang chơi trên sân số",
+  "@courtAnnouncePlayingIntro": {
+    "description": "Spoken aloud. Precedes the court number, so it must end mid-sentence."
+  },
+  "courtAnnounceDetail": "{courtNumber}: {names}",
+  "@courtAnnounceDetail": {
+    "description": "Spoken aloud. The court number followed by the players on it.",
+    "placeholders": {
+      "courtNumber": {
+        "type": "int"
+      },
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "courtAnnounceAnd": "và",
+  "@courtAnnounceAnd": {
+    "description": "Spoken aloud. Joins two players on the same side."
+  },
+  "mySessionsTitle": "Kèo",
+  "mySessionsHosted": "Quản lý kèo",
+  "mySessionsJoined": "Kèo tham gia",
+  "mySessionsActive": "Đang mở",
+  "mySessionsEnded": "Đã kết thúc",
+  "mySessionsAll": "Tất cả",
+  "mySessionsPendingRequests": "Yêu cầu tham gia",
+  "pendingRequestsEmptySub": "Các yêu cầu xin tham gia từ người chơi khác sẽ hiển thị tại đây.",
+  "mySessionsSearchHint": "Tìm theo tên kèo hoặc sân...",
+  "mySessionsEmpty": "Không có kèo phù hợp",
+  "mySessionsUnknownPlayer": "Người chơi",
+  "mySessionsPendingBadge": "Chờ duyệt",
+  "mySessionsClone": "Nhân bản kèo",
+  "mySessionsDownloadImage": "Tải ảnh",
+  "mySessionsShare": "Chia sẻ",
+  "mySessionsDelete": "Xóa",
+  "mySessionsDeleteConfirmTitle": "Xóa kèo",
+  "mySessionsDeleteConfirmMessage": "Bạn có chắc chắn muốn xóa kèo này không?",
+  "mySessionsDeleteSuccess": "Đã xóa kèo thành công",
+  "mySessionsDownloadSuccess": "Đã tải ảnh kèo thành công",
+  "hostPlayerStatsTitle": "Thống kê người chơi",
+  "hostPlayerStatsInfo": "Xem cách tính xếp hạng người chơi",
+  "hostPlayerStatsGenderMvp": "Chia MVP theo giới tính",
+  "hostPlayerStatsError": "Không thể tải thống kê người chơi.",
+  "hostPlayerStatsEmpty": "Không có thống kê người chơi.",
+  "hostPlayerStatsRetry": "Thử lại",
+  "hostPlayerStatsNo": "STT",
+  "hostPlayerStatsName": "Tên",
+  "hostPlayerStatsGender": "Giới tính",
+  "hostPlayerGenderMale": "Nam",
+  "hostPlayerGenderFemale": "Nữ",
+  "hostPlayerGenderOther": "Khác",
+  "hostPlayerStatsLevel": "Trình độ",
+  "hostPlayerStatsMatches": "Tổng trận",
+  "hostPlayerStatsWins": "Thắng",
+  "hostPlayerStatsLosses": "Thua",
+  "hostPlayerStatsWinRate": "Tỷ lệ thắng",
+  "hostPlayerStatsPointDiff": "Hiệu điểm TB/trận",
+  "hostPlayerStatsShuttlecocks": "Số lượng cầu",
+  "hostPlayerStatsCount": "{count} người chơi",
+  "@hostPlayerStatsCount": {"placeholders": {"count": {"type": "int"}}},
+  "hostPlayerStatsMvp": "MVP",
+  "hostPlayerStatsSharedMvp": "Đồng MVP",
+  "hostPlayerStatsMaleMvp": "MVP Nam",
+  "hostPlayerStatsFemaleMvp": "MVP Nữ",
+  "hostPlayerStatsExport": "Xuất ảnh",
+  "hostPlayerStatsExportColumns": "Cột xuất ảnh",
+  "hostPlayerStatsShare": "Chia sẻ ảnh",
+  "hostPlayerStatsRankingTitle": "Cách tính xếp hạng người chơi",
+  "hostPlayerStatsEligibilityTitle": "Điều kiện xét MVP",
+  "hostPlayerStatsEligibility": "Người chơi cần có ít nhất 50% số trận của người chơi thi đấu nhiều nhất, tối đa yêu cầu 3 trận và phải có ít nhất một trận thắng.",
+  "hostPlayerStatsOrderTitle": "Thứ tự xếp hạng",
+  "hostPlayerStatsOrder": "1. Tỷ lệ thắng.\n2. Số trận thắng.\n3. Hiệu điểm trung bình khi cả nhóm có dữ liệu.\n4. Tổng số trận.\n5. Tên người chơi.",
+  "hostPlayerStatsPointDiffHelp": "Hiệu điểm trung bình = tổng (điểm được − điểm mất) / số trận có đủ tỷ số.",
+  "hostPlayerDetailTitle": "Chi tiết người chơi",
+  "hostPlayerDetailStatus": "Trạng thái",
+  "hostPlayerDetailPhone": "Điện thoại",
+  "hostPlayerDetailLevelDescription": "Mô tả trình độ",
+  "hostPlayerDetailDesire": "Mong muốn",
+  "hostPlayerDetailCurrentWait": "Thời gian chờ hiện tại",
+  "hostPlayerDetailTotalWait": "Tổng thời gian chờ",
+  "hostPlayerDetailCurrentCourt": "Sân hiện tại",
+  "hostPlayerDetailRating": "Đánh giá",
+  "hostPlayerDetailMember": "Thành viên",
+  "hostPlayerDetailGuest": "Khách",
+  "hostPlayerDetailViewProfile": "Xem hồ sơ",
+  "hostPlayerDetailReviews": "Nhận xét gần đây",
+  "hostPlayerDetailJoinInfo": "Thông tin tham gia",
+  "hostPlayerDetailCopyLink": "Sao chép liên kết",
+  "hostPlayerDetailCopyCode": "Sao chép mã",
+  "hostPlayerDetailCopied": "Đã sao chép",
+  "hostPlayerDetailPause": "Tạm dừng",
+  "hostPlayerDetailContinue": "Tiếp tục",
+  "hostPlayerDetailClose": "Đóng",
+  "hostPlayerDetailError": "Không thể tải chi tiết người chơi.",
+  "hostPlayerStatsMinutes": "{count} phút",
+  "@hostPlayerStatsMinutes": {"placeholders": {"count": {"type": "int"}}}
 }

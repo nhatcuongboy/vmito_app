@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -65,12 +66,12 @@ void main() {
 
     expect(find.text('Kèo cầu lông tối nay'), findsOneWidget);
     expect(find.text('2'), findsOneWidget);
-    expect(find.byIcon(Icons.favorite_border_rounded), findsOneWidget);
+    expect(find.byIcon(AppIcons.favorite), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('like-p1')));
     await tester.pump();
 
     expect(find.text('3'), findsOneWidget);
-    expect(find.byIcon(Icons.favorite_rounded), findsOneWidget);
+    expect(find.byIcon(AppIcons.favorite), findsOneWidget);
   });
 }

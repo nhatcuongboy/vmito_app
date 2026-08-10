@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
@@ -70,7 +71,7 @@ class _RequestCard extends ConsumerWidget {
                     ? null
                     : CachedNetworkImageProvider(request.userImage!),
                 child: request.userImage == null
-                    ? const Icon(Icons.person_outline_rounded)
+                    ? const Icon(AppIcons.profile)
                     : null,
               ),
               title: Text(request.userName),

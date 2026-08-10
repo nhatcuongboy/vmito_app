@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vmito_app/core/localization/locale_controller.dart';
@@ -55,7 +56,7 @@ void main() {
     );
 
     expect(find.text('Trang chủ'), findsOneWidget);
-    await tester.tap(find.byIcon(Icons.language_rounded));
+    await tester.tap(find.byIcon(AppIcons.language));
     await tester.pumpAndSettle();
 
     expect(find.text('Tiếng Việt'), findsOneWidget);

@@ -17,6 +17,7 @@ mitigation identified in the assessment.
 |---|---:|---|---:|---|
 | `rally.ts` | 260 | yes | 6,570 | 8/8 |
 | `levels.ts` | 106 | yes | 4 files | 6/6 |
+| `match-repeat-warning.ts` | 228 | yes | 15 cases | 4/4 |
 | `schedule-generator.ts` | 296 | no | — | — |
 | `standings.ts` | 313 | no | — | — |
 | `match-result-utils.ts` | 276 | no | — | — |
@@ -32,14 +33,19 @@ seconds and what stops a business rule from quietly importing a widget. Adding
 
 ```sh
 # 1. record from the TypeScript (in vmito-fe)
-npm run record:rally-fixtures
+npm run record:match-repeat-fixtures
 
 # 2. assert Dart reproduces it
 cd ../vmito_app/packages/vmito_domain && dart test
 
 # 3. assert TypeScript still reproduces it
-cd ../../../vmito-fe && npm run test:rally-fixtures
+cd ../../../vmito-fe && npm run test:match-repeat
 ```
+
+Node reads `tsconfig.json` for nothing, not even `paths`, so both scripts load
+`scripts/ts-alias-hook.mjs` to resolve `@/…`. A module the recorder imports
+must split its type imports (`import type { … }`) — Node strips types without
+a type checker and cannot tell a type from a value in a mixed import clause.
 
 Steps 2 and 3 read the **same files**. Changing a scoring rule fails step 3,
 which forces a re-record, which moves step 2. Neither implementation can drift

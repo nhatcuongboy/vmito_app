@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -5,6 +6,7 @@ import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 import 'package:vmito_app/features/session/presentation/widgets/session_card.dart';
+import 'package:vmito_app/l10n/app_localizations.dart';
 
 Session _session({
   List<int> requiredLevels = const [],
@@ -34,7 +36,10 @@ Session _session({
 Future<void> _pump(WidgetTester tester, Session session) async {
   await tester.pumpWidget(
     MaterialApp(
+      locale: const Locale('vi'),
       theme: AppTheme.light,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: Scaffold(body: SessionCard(session: session)),
     ),
   );
@@ -166,11 +171,71 @@ void main() {
 
       expect(find.text('18B Cộng Hòa'), findsOneWidget);
     });
+
+    testWidgets('prefers the current ward and removes its prefix', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _session(
+          venue: const SessionVenue(
+            id: 'v1',
+            name: 'Sân ABC',
+            district: 'Quận cũ',
+            newDistrict: 'Phường Tân Phú',
+          ),
+        ),
+      );
+
+      expect(find.text('Sân ABC • Tân Phú'), findsOneWidget);
+    });
+  });
+
+  testWidgets('uses the web default cover when cover photo is missing', (
+    tester,
+  ) async {
+    await _pump(tester, _session());
+
+    final image = tester.widget<CachedNetworkImage>(
+      find.byType(CachedNetworkImage),
+    );
+    expect(image.imageUrl, contains('badminton/session-covers'));
   });
 
   testWidgets('marks a crawled session', (tester) async {
     await _pump(tester, _session(isCrawled: true));
 
     expect(find.text('Facebook'), findsOneWidget);
+  });
+
+  group('availability badge', () {
+    testWidgets('shows slots left when capacity is configured', (tester) async {
+      await _pump(
+        tester,
+        _session().copyWith(
+          numberOfCourts: 2,
+          maxPlayersPerCourt: 4,
+          counts: const SessionCounts(players: 5),
+        ),
+      );
+
+      expect(find.byKey(const Key('session-slots-badge')), findsOneWidget);
+      expect(find.text('Còn 3 slot'), findsOneWidget);
+      expect(
+        find.ancestor(
+          of: find.byKey(const Key('session-slots-badge')),
+          matching: find.byType(Stack),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('does not invent a badge when capacity is unknown', (
+      tester,
+    ) async {
+      await _pump(tester, _session());
+
+      expect(find.byKey(const Key('session-slots-badge')), findsNothing);
+    });
   });
 }

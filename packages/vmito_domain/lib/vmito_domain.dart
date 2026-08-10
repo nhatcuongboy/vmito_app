@@ -8,6 +8,9 @@
 /// TypeScript — see `docs/TESTING.md`.
 library;
 
+export 'src/court/court_pairs.dart';
+export 'src/court/match_repeat_warning.dart';
+export 'src/court/pair_balance.dart';
 export 'src/notifications/court_call.dart';
 
 export 'src/reference/player_level.dart';

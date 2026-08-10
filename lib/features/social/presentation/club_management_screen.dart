@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/social/application/club_management_controller.dart';
@@ -20,7 +21,7 @@ class ClubManagementScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(l10n.clubManageTitle)),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push(AppRoutes.createClub),
-        icon: const Icon(Icons.add_rounded),
+        icon: const Icon(AppIcons.add),
         label: Text(l10n.clubCreate),
       ),
       body: clubs.when(
@@ -74,7 +75,7 @@ class _ManagedClubCard extends ConsumerWidget {
               ? null
               : CachedNetworkImageProvider(club.heroImage!),
           child: club.heroImage == null
-              ? const Icon(Icons.groups_outlined)
+              ? const Icon(AppIcons.clubs)
               : null,
         ),
         title: Text(club.name),

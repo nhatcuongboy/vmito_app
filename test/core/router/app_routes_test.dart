@@ -25,25 +25,30 @@ void main() {
   });
 
   group('isPublic', () {
-    test('browse and join are reachable without an account', () {
-      // App Store guideline 5.1.1(i): browsing must not require registration.
-      expect(AppRoutes.isPublic(AppRoutes.browseSessions), isTrue);
-      expect(AppRoutes.isPublic(AppRoutes.join), isTrue);
-      expect(AppRoutes.isPublic(AppRoutes.scanQr), isTrue);
-      expect(AppRoutes.isPublic(AppRoutes.publicProfile('u1')), isTrue);
-      expect(AppRoutes.isPublic(AppRoutes.signUp), isTrue);
-      expect(AppRoutes.isPublic(AppRoutes.forgotPassword), isTrue);
-      expect(AppRoutes.isPublic(AppRoutes.resetPassword), isTrue);
-      expect(
-        AppRoutes.isPublic('${AppRoutes.resetPassword}?token=abc'),
-        isTrue,
-      );
-    });
+    test(
+      'home, public details, live and join are reachable without account',
+      () {
+        // App Store guideline 5.1.1(i): browsing must not require registration.
+        expect(AppRoutes.isPublic(AppRoutes.home), isTrue);
+        expect(AppRoutes.isPublic(AppRoutes.sessionDetail('s1')), isTrue);
+        expect(AppRoutes.isPublic(AppRoutes.liveSession('s1')), isTrue);
+        expect(AppRoutes.isPublic(AppRoutes.join), isTrue);
+        expect(AppRoutes.isPublic(AppRoutes.scanQr), isTrue);
+        expect(AppRoutes.isPublic(AppRoutes.publicProfile('u1')), isTrue);
+        expect(AppRoutes.isPublic(AppRoutes.signUp), isTrue);
+        expect(AppRoutes.isPublic(AppRoutes.forgotPassword), isTrue);
+        expect(AppRoutes.isPublic(AppRoutes.resetPassword), isTrue);
+        expect(
+          AppRoutes.isPublic('${AppRoutes.resetPassword}?token=abc'),
+          isTrue,
+        );
+      },
+    );
 
-    test('home requires a session', () {
+    test('personal destinations require a session', () {
       // Regression: splash is '/', so a naive startsWith made every route
       // public and the auth gate never fired.
-      expect(AppRoutes.isPublic(AppRoutes.home), isFalse);
+      expect(AppRoutes.isPublic(AppRoutes.browseSessions), isFalse);
       expect(AppRoutes.isPublic('/profile'), isFalse);
       expect(AppRoutes.isPublic(AppRoutes.feed), isFalse);
       expect(AppRoutes.isPublic(AppRoutes.manageClubs), isFalse);
@@ -53,9 +58,7 @@ void main() {
     });
 
     test('a protected route under a public one stays protected', () {
-      // /sessions is public and isPublic matches by prefix, so without the
-      // explicit protected list /sessions/create would open signed-out and its
-      // submit could only ever 401.
+      // Public detail/live are exact matches, so sibling actions stay gated.
       expect(AppRoutes.isPublic(AppRoutes.createSession), isFalse);
       expect(AppRoutes.isPublic('/sessions/create/anything'), isFalse);
       expect(AppRoutes.isPublic(AppRoutes.manageSession('abc')), isFalse);
@@ -66,6 +69,7 @@ void main() {
 
       // The sibling detail route is still public.
       expect(AppRoutes.isPublic('/sessions/abc'), isTrue);
+      expect(AppRoutes.isPublic('/sessions/abc/live'), isTrue);
     });
 
     test('only matches on a segment boundary', () {

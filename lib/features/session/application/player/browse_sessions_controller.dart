@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
+import 'package:vmito_app/core/utils/logger.dart';
 import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
 import 'package:vmito_app/features/session/domain/repositories/session_repository.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
@@ -140,7 +141,11 @@ class BrowseSessionsController extends Notifier<BrowseSessionsState> {
         totalPages: result.totalPages,
         filters: state.filters,
       );
+      AppLogger.debug(
+        '[Tìm kèo] loaded page=${result.page}/${result.totalPages}, items=${result.items.length}, total=${result.total}',
+      );
     } on ApiException catch (error) {
+      AppLogger.warn('[Tìm kèo] API request failed', error: error);
       // A failed "load more" must not discard the pages already on screen.
       state = BrowseSessionsState(
         sessions: replace ? const [] : state.sessions,

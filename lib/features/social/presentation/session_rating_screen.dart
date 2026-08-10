@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
@@ -32,11 +33,11 @@ class SessionRatingScreen extends ConsumerWidget {
                   Card(
                     child: ListTile(
                       leading: const CircleAvatar(
-                        child: Icon(Icons.verified_user_outlined),
+                        child: Icon(AppIcons.verified),
                       ),
                       title: Text(sessionValue.displayHostName),
                       subtitle: Text(l10n.socialRateHost),
-                      trailing: const Icon(Icons.chevron_right_rounded),
+                      trailing: const Icon(AppIcons.chevronRight),
                       onTap: () => _showRatingDialog(
                         context,
                         ref,
@@ -92,11 +93,11 @@ class _RatePlayerTile extends ConsumerWidget {
       data: (value) => Card(
         child: ListTile(
           leading: const CircleAvatar(
-            child: Icon(Icons.person_outline_rounded),
+            child: Icon(AppIcons.profile),
           ),
           title: Text(value.name),
           subtitle: Text(AppLocalizations.of(context).socialRatePlayer),
-          trailing: const Icon(Icons.chevron_right_rounded),
+          trailing: const Icon(AppIcons.chevronRight),
           onTap: () => showRatingDialog(
             context,
             ref,
@@ -146,8 +147,8 @@ Future<void> showRatingDialog(
                   onPressed: () => setState(() => stars = index + 1),
                   icon: Icon(
                     index < stars
-                        ? Icons.star_rounded
-                        : Icons.star_border_rounded,
+                        ? AppIcons.star
+                        : AppIcons.star,
                     color: Colors.amber.shade700,
                   ),
                 ),

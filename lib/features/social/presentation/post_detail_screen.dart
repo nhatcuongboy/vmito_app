@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
@@ -26,7 +27,7 @@ class PostDetailScreen extends ConsumerWidget {
             const SizedBox(height: AppSpacing.md),
             FilledButton.icon(
               onPressed: () => showCommentsSheet(context, postId),
-              icon: const Icon(Icons.chat_bubble_outline_rounded),
+              icon: const Icon(AppIcons.chat),
               label: Text(AppLocalizations.of(context).socialComments),
             ),
           ],

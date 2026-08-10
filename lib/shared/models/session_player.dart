@@ -54,6 +54,16 @@ abstract class SessionPlayer with _$SessionPlayer {
     @Default(PlayerStatus.waiting) PlayerStatus status,
     int? playerNumber,
     String? currentCourtId,
+
+    /// The court slot the backend resolved for this player, sent only inside
+    /// `courts[].currentPlayers` on `GET /sessions/:id`. It normalises over
+    /// `MatchPlayer.position` for a running match and [courtPosition] for a
+    /// READY one, so prefer it — see [slotPosition].
+    int? position,
+
+    /// The stored slot on the player row. Set while a court is READY, before a
+    /// match exists to own the positions.
+    int? courtPosition,
     @Default(RegistrationStatus.approved) RegistrationStatus registrationStatus,
     String? phone,
     @Default(false) bool isJoined,
@@ -75,6 +85,12 @@ abstract class SessionPlayer with _$SessionPlayer {
   /// model must not build localized labels.
   String? get displayName =>
       name?.trim().isNotEmpty ?? false ? name!.trim() : null;
+
+  /// The court slot to draw this player in, 0-based.
+  ///
+  /// Prefers the backend-normalised [position]; falls back to the stored
+  /// [courtPosition], then to slot 0.
+  int get slotPosition => position ?? courtPosition ?? 0;
 
   bool get isOnCourt => status == PlayerStatus.playing;
   bool get isWaiting =>

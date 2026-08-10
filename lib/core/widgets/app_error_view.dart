@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
@@ -31,8 +32,8 @@ class AppErrorView extends StatelessWidget {
           children: [
             Icon(
               apiError?.kind == ApiErrorKind.network
-                  ? Icons.wifi_off_rounded
-                  : Icons.error_outline_rounded,
+                  ? AppIcons.wifiOff
+                  : AppIcons.error,
               size: 48,
               color: palette.mutedForeground,
             ),
@@ -46,7 +47,7 @@ class AppErrorView extends StatelessWidget {
               const SizedBox(height: AppSpacing.lg),
               OutlinedButton.icon(
                 onPressed: onRetry,
-                icon: const Icon(Icons.refresh_rounded),
+                icon: const Icon(AppIcons.refresh),
                 label: Text(AppLocalizations.of(context).commonRetry),
               ),
             ],

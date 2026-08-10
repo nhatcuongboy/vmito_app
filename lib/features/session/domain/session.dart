@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 import 'package:vmito_app/shared/models/court.dart';
+import 'package:vmito_app/shared/models/match.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 
 part 'session.freezed.dart';
@@ -31,6 +32,13 @@ abstract class SessionVenue with _$SessionVenue {
     required String id,
     String? name,
 
+    /// Street address as entered. `newAddress` is the post-merger rewrite the
+    /// backend derives; prefer it when present — see [displayAddress].
+    String? address,
+    String? newAddress,
+    String? city,
+    String? newCity,
+
     /// Pre-merger district, which is what people still say out loud.
     String? district,
 
@@ -43,9 +51,31 @@ abstract class SessionVenue with _$SessionVenue {
 
   const SessionVenue._();
 
-  /// `Gò Vấp` — the old district reads better on a card than the new ward.
-  String? get displayArea =>
-      district?.trim().isNotEmpty ?? false ? district : newDistrict;
+  /// Uses the current ward/commune when available, matching the web card.
+  /// Administrative prefixes are omitted so the compact card reads
+  /// `Sân ABC • Tân Phú` rather than wrapping on `Phường`/`Xã`.
+  String? get displayArea {
+    final value = (newDistrict?.trim().isNotEmpty ?? false)
+        ? newDistrict
+        : district;
+    if (value == null || value.trim().isEmpty) return null;
+    return value.trim().replaceFirst(
+      RegExp(r'^(Phường|Xã|Thị trấn)\s+', caseSensitive: false),
+      '',
+    );
+  }
+
+  /// The full street line for the detail screen, post-merger wording first.
+  ///
+  /// Unlike [displayArea] this prefers the *new* address: on a detail screen
+  /// the address is what someone navigates by, and the merged ward names are
+  /// what map apps now resolve.
+  String? get displayAddress {
+    final preferred = newAddress?.trim();
+    if (preferred != null && preferred.isNotEmpty) return preferred;
+    final fallback = address?.trim();
+    return fallback == null || fallback.isEmpty ? null : fallback;
+  }
 }
 
 /// The host, as embedded in a session payload.
@@ -93,6 +123,17 @@ abstract class Session with _$Session {
     String? hostName,
     String? coverPhoto,
 
+    String? coverPhotoPublicId,
+
+    /// Gallery for the detail hero. Empty on most sessions, in which case the
+    /// hero falls back to [coverPhoto] — see [galleryImages].
+    @Default(<String>[]) List<String> images,
+
+    /// Cloudinary ids parallel to [images]. The edit form needs them to send
+    /// the gallery back unchanged; without them a re-save drops every id and
+    /// orphans the assets.
+    @Default(<String>[]) List<String> imagePublicIds,
+
     /// Configured court count. `counts.courts` is how many exist; these differ
     /// while a session is being set up.
     @Default(0) int numberOfCourts,
@@ -118,6 +159,28 @@ abstract class Session with _$Session {
     String? externalSource,
     SessionVenue? venue,
 
+    /// Club the session is billed against, so members get the club's fixed fee
+    /// automatically. Null means the session stands alone.
+    String? clubId,
+
+    /// `VENUE` when [venue] is the source of truth, `CUSTOM` when the host
+    /// typed a one-off place into the seven `customLocation*` columns below.
+    /// Null on older rows, which are all `VENUE`.
+    String? locationType,
+
+    // A place the host named themselves, stored flat rather than as a relation
+    // because it belongs to this one session and is never looked up again.
+    String? customLocationName,
+    String? customLocationAddress,
+
+    /// Google Places id, present only when the host picked a suggestion rather
+    /// than typing free text.
+    String? customLocationPlaceId,
+    double? customLocationLat,
+    double? customLocationLng,
+    String? customLocationDistrict,
+    String? customLocationCity,
+
     // Detail-only. `GET /sessions/public` omits these; `GET /sessions/:id`
     // includes them. One model serves both rather than a parallel
     // SessionDetail that would drift from this one.
@@ -128,7 +191,31 @@ abstract class Session with _$Session {
     String? notes,
     String? hostPhone,
     @Default(false) bool allowGuestJoin,
+
+    /// Whether a guest must supply name and level to register. The web form
+    /// hides both of these behind a disabled section; they exist here so an
+    /// edit round-trip does not reset what the web set.
+    @Default(false) bool requirePlayerInfo,
+    @Default(true) bool allowNewPlayers,
+
+    /// Whether the host agreed to be contacted on Zalo. Gates the Zalo button
+    /// only — the plain call button follows [hostPhone] alone.
+    @Default(false) bool allowZaloContact,
+
+    /// Free text, e.g. `Vina`. The host's shuttlecock brand for the session.
+    String? shuttlecock,
+
+    /// A clip the host wants players to watch — usually a YouTube link.
+    String? referenceVideoUrl,
     @Default(0) int sessionDuration,
+
+    /// What an empty court defaults to. Courts store no type of their own —
+    /// see `Court.matchTypeOr`.
+    @Default(MatchType.doubles) MatchType defaultMatchType,
+
+    /// The host's court colour, as a CSS hex string. The backend defaults it,
+    /// so this is only null on payloads that omit the field entirely.
+    String? courtColor,
   }) = _Session;
 
   factory Session.fromJson(Map<String, dynamic> json) =>
@@ -136,7 +223,41 @@ abstract class Session with _$Session {
 
   const Session._();
 
+  static const defaultCoverPhoto =
+      'https://res.cloudinary.com/dzehhkd9m/image/upload/f_auto,q_auto,w_800,c_limit/v1778918839/badminton/session-covers/vtwinrsl4ffness0os42.jpg';
+
   int get playerCount => counts?.players ?? 0;
+
+  /// Every image the hero can page through, cover photo included.
+  ///
+  /// Falls back to the single cover so the carousel always has one page —
+  /// callers must not special-case an empty gallery.
+  List<String> get galleryImages {
+    final gallery = images.where((url) => url.trim().isNotEmpty).toList();
+    if (gallery.isNotEmpty) return gallery;
+    final cover = coverPhoto?.trim();
+    return cover == null || cover.isEmpty ? const <String>[] : [cover];
+  }
+
+  /// Seats left, or null when [capacity] is unknown.
+  ///
+  /// Null and zero mean different things — "not configured" versus "full" —
+  /// so this must not collapse them into a bare int.
+  int? get availableSlots {
+    if (capacity <= 0) return null;
+    final left = capacity - playerCount;
+    return left < 0 ? 0 : left;
+  }
+
+  bool get isFull => availableSlots == 0;
+
+  /// Approved registrations only. [players] also carries pending rows once a
+  /// host is looking at their own session.
+  List<SessionPlayer> get approvedPlayers => players
+      .where(
+        (player) => player.registrationStatus == RegistrationStatus.approved,
+      )
+      .toList();
 
   /// Capacity as configured, not as filled. Zero when either factor is unset,
   /// which the UI must treat as "unknown" rather than "full".
@@ -160,8 +281,32 @@ abstract class Session with _$Session {
   List<SessionPlayer> get playingPlayers =>
       players.where((player) => player.isOnCourt).toList();
 
+  /// Resolves a court's pre-selected seats into real players, in slot order.
+  ///
+  /// `Court.preSelectedPlayers` is only `{playerId, position}` — the backend
+  /// stores it as raw JSON on the court row and never joins it. Ids with no
+  /// matching roster entry are dropped rather than rendered as blanks.
+  List<SessionPlayer> preSelectedPlayersFor(Court court) {
+    final byId = {for (final player in players) player.id: player};
+    final slots = [...court.preSelectedPlayers]
+      ..sort((a, b) => a.position.compareTo(b.position));
+    return [
+      for (final slot in slots) ?byId[slot.playerId],
+    ];
+  }
+
   List<SessionPlayer> get waitingPlayers =>
       players.where((player) => player.isWaiting).toList();
+
+  /// Who the host can actually put on a court next, longest wait first.
+  ///
+  /// Narrower than [waitingPlayers], which also counts READY players already
+  /// assigned to a court. Mirrors `getWaitingPlayers` in
+  /// `vmito-fe/src/utils/session-utils.ts` exactly, because the "need 4 players
+  /// to assign" gate counts this list.
+  List<SessionPlayer> get waitingQueue =>
+      players.where((player) => player.status == PlayerStatus.waiting).toList()
+        ..sort((a, b) => b.currentWaitTime.compareTo(a.currentWaitTime));
 
   /// `Hôm nay, 08:00-10:00`, or null when no time is set.
   ///
@@ -210,6 +355,11 @@ abstract class Session with _$Session {
     if (venueName != null && venueName.isNotEmpty) {
       return area == null || area.isEmpty ? venueName : '$venueName • $area';
     }
-    return location ?? '';
+    final customArea = customLocationDistrict?.trim();
+    final rawLocation = location?.trim() ?? '';
+    if (rawLocation.isEmpty) return '';
+    return customArea == null || customArea.isEmpty
+        ? rawLocation
+        : '$rawLocation • $customArea';
   }
 }

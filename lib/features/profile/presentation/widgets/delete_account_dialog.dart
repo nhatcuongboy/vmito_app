@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -77,15 +78,15 @@ class _DeleteAccountDialogState extends ConsumerState<_DeleteAccountDialog> {
             ),
             const SizedBox(height: AppSpacing.md),
             _Bullet(
-              icon: Icons.delete_outline_rounded,
+              icon: AppIcons.delete,
               text: l10n.accountDeleteRemoved,
             ),
             _Bullet(
-              icon: Icons.visibility_off_outlined,
+              icon: AppIcons.eyeOff,
               text: l10n.accountDeleteRetained,
             ),
             _Bullet(
-              icon: Icons.lock_outline_rounded,
+              icon: AppIcons.lock,
               text: l10n.accountDeleteCannotSignIn,
             ),
             if (_error != null) ...[

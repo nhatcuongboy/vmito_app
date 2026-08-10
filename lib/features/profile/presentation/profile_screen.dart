@@ -3,8 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/localization/locale_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/shell/app_shell_scaffold_key.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/theme/theme_mode_controller.dart';
 import 'package:vmito_app/core/widgets/language_selector.dart';
+import 'package:vmito_app/core/widgets/theme_mode_selector.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/profile/presentation/widgets/delete_account_dialog.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -21,10 +25,24 @@ class ProfileScreen extends ConsumerWidget {
       'zh' => l10n.languageChinese,
       _ => l10n.languageVietnamese,
     };
+    final themeMode = ref.watch(themeModeControllerProvider);
+    final themeModeName = switch (themeMode) {
+      ThemeMode.light => l10n.themeModeLight,
+      ThemeMode.dark => l10n.themeModeDark,
+      ThemeMode.system => l10n.themeModeSystem,
+    };
     final user = ref.watch(currentUserProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.profileTitle)),
+      appBar: AppBar(
+        leading: IconButton(
+          tooltip: l10n.menuOpenTooltip,
+          icon: const Icon(AppIcons.menu),
+          onPressed: () =>
+              ref.read(appShellScaffoldKeyProvider).currentState?.openDrawer(),
+        ),
+        title: Text(l10n.profileTitle),
+      ),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
         children: [
@@ -35,7 +53,7 @@ class ProfileScreen extends ConsumerWidget {
                     ? null
                     : NetworkImage(user.image!),
                 child: user.image == null
-                    ? const Icon(Icons.person_outline_rounded)
+                    ? const Icon(AppIcons.profile)
                     : null,
               ),
               title: Text(user.displayName),
@@ -44,22 +62,29 @@ class ProfileScreen extends ConsumerWidget {
             const Divider(),
           ],
           ListTile(
-            leading: const Icon(Icons.notifications_outlined),
+            leading: const Icon(AppIcons.notifications),
             title: Text(l10n.notificationsTitle),
-            trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () => context.push(AppRoutes.notifications),
+            trailing: const Icon(AppIcons.chevronRight),
+            onTap: () => context.go(AppRoutes.notifications),
           ),
           ListTile(
-            leading: const Icon(Icons.language_rounded),
+            leading: const Icon(AppIcons.language),
             title: Text(l10n.profileLanguage),
             subtitle: Text(languageName),
-            trailing: const Icon(Icons.chevron_right_rounded),
+            trailing: const Icon(AppIcons.chevronRight),
             onTap: () => showLanguageSelector(context),
+          ),
+          ListTile(
+            leading: const Icon(AppIcons.dark),
+            title: Text(l10n.profileTheme),
+            subtitle: Text(themeModeName),
+            trailing: const Icon(AppIcons.chevronRight),
+            onTap: () => showThemeModeSelector(context),
           ),
           const Divider(),
           ListTile(
             leading: Icon(
-              Icons.logout_rounded,
+              AppIcons.logout,
               color: Theme.of(context).colorScheme.error,
             ),
             title: Text(
@@ -72,7 +97,7 @@ class ProfileScreen extends ConsumerWidget {
           // in-app. Two taps from here, not buried behind a web link.
           ListTile(
             leading: Icon(
-              Icons.person_remove_outlined,
+              AppIcons.userMinus,
               color: Theme.of(context).colorScheme.error,
             ),
             title: Text(

@@ -69,7 +69,13 @@
   "authResetHeading": "重置密码",
   "authResetDescription": "为您的账户创建新密码。",
   "authResetDescriptionWithEmail": "为账户 {email} 创建新密码。",
-  "@authResetDescriptionWithEmail": {"placeholders": {"email": {"type": "String"}}},
+  "@authResetDescriptionWithEmail": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
   "authResetNewPassword": "新密码",
   "authResetNewPasswordPlaceholder": "输入新密码",
   "authResetConfirmPassword": "确认密码",
@@ -77,7 +83,13 @@
   "authResetSubmit": "重置密码",
   "authResetSuccess": "您的密码已成功重置。您可以使用新密码登录。",
   "authResetSuccessWithEmail": "账户 {email} 的密码已成功重置。您可以使用新密码登录。",
-  "@authResetSuccessWithEmail": {"placeholders": {"email": {"type": "String"}}},
+  "@authResetSuccessWithEmail": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
   "authResetMissingToken": "此密码重置链接无效或缺少验证令牌。",
   "authResetInvalidToken": "此密码重置链接无效或已过期。",
   "authResetFailed": "无法重置密码。请重试。",
@@ -97,10 +109,22 @@
     }
   },
   "navHome": "首页",
-  "navSessions": "场次",
+  "navSessions": "约球",
   "navTournaments": "赛事",
   "navNotifications": "通知",
   "navProfile": "我的",
+  "menuOpenTooltip": "打开菜单",
+  "footerCopyright": "© {year} {appName}。保留所有权利。",
+  "@footerCopyright": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      },
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
   "courtCallTitle": "轮到您上场了！",
   "courtCallAnnouncement": "请前往 {courtNumber} 号场地",
   "@courtCallAnnouncement": {
@@ -111,7 +135,7 @@
     }
   },
   "courtCallAcknowledge": "知道了",
-  "navFeed": "社区",
+  "navFeed": "动态",
   "profileTitle": "我的",
   "feedTitle": "动态",
   "homeTitle": "首页",
@@ -122,6 +146,11 @@
   "languageEnglish": "英语",
   "languageChinese": "中文",
   "profileLanguage": "语言",
+  "profileTheme": "主题",
+  "themeTitle": "主题",
+  "themeModeLight": "浅色",
+  "themeModeDark": "深色",
+  "themeModeSystem": "跟随系统",
   "errorCancelled": "请求已取消。",
   "routeNotFound": "找不到页面：{uri}",
   "@routeNotFound": {
@@ -141,6 +170,16 @@
   },
   "homeLiveHint": "选择场次以实时查看球场。",
   "homeBrowseSessions": "查找场次",
+  "homeDiscoverySessions": "找场次",
+  "homeDiscoveryVenues": "找场馆",
+  "homeDiscoveryClubs": "找群组",
+  "homeDiscoveryTournaments": "找赛事",
+  "tournamentSearchHint": "搜索赛事...",
+  "tournamentEmpty": "未找到赛事",
+  "tournamentStatusPreparing": "即将开始",
+  "tournamentStatusInProgress": "进行中",
+  "tournamentStatusFinished": "已结束",
+  "tournamentStatusCancelled": "已取消",
   "sessionBrowseTitle": "查找场次",
   "sessionEmpty": "未找到场次",
   "sessionDetailTitle": "场次详情",
@@ -168,6 +207,116 @@
   },
   "sessionCrawledReadOnly": "收集自 Facebook — 仅供查看",
   "sessionClosed": "此场次已关闭",
+  "sessionSlotsLeft": "剩余 {count} 个名额",
+  "@sessionSlotsLeft": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionSlotsFull": "已满",
+  "sessionRegistrationClosed": "报名已截止",
+  "sessionStatusPreparing": "即将开始",
+  "sessionStatusInProgress": "进行中",
+  "sessionStatusFinished": "已结束",
+  "sessionStatusCancelled": "已取消",
+  "sessionHostLabel": "主办",
+  "sessionParticipantsQuestion": "谁和你一起打？",
+  "sessionNoPlayersYet": "暂无球友",
+  "sessionMaxPlayers": "最多 {count} 人",
+  "@sessionMaxPlayers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionRegisteredCount": "{count} 人已报名",
+  "@sessionRegisteredCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionGenderBreakdown": "👨 {male} 男 • 👩 {female} 女",
+  "@sessionGenderBreakdown": {
+    "placeholders": {
+      "male": {
+        "type": "int"
+      },
+      "female": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionShuttlecock": "{name} 羽毛球",
+  "@sessionShuttlecock": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sessionAllLevels": "所有水平",
+  "sessionGetDirections": "导航",
+  "sessionShareAction": "分享",
+  "sessionLinkCopied": "链接已复制",
+  "sessionContactZalo": "用 Zalo 联系主办",
+  "sessionCallHost": "致电主办",
+  "sessionPerSlot": "/名额",
+  "sessionManageAction": "管理",
+  "sessionReferenceVideoTitle": "参考视频",
+  "sessionRecommendationsTitle": "为你推荐",
+  "sessionSuggestedBadge": "推荐",
+  "favoriteAdd": "收藏场次",
+  "favoriteRemove": "取消收藏",
+  "levelDescriptionsTitle": "水平说明",
+  "levelDescriptionMissing": "暂无说明",
+  "sessionRegisterAction": "报名",
+  "sessionViewOriginalPost": "查看原帖",
+  "sessionEnded": "已结束",
+  "sessionViewBoard": "进入球场",
+  "sessionViewMyRegistration": "查看报名",
+  "sessionAddGuest": "添加访客",
+  "registrationTitle": "报名场次",
+  "registrationSubmit": "提交报名 ({count})",
+  "@registrationSubmit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "registrationYou": "你",
+  "registrationGuest": "访客",
+  "registrationRemoveGuest": "移除访客",
+  "registrationNameRequired": "请输入姓名",
+  "registrationLevel": "水平",
+  "registrationLevelHint": "选择水平",
+  "registrationLevelRequired": "请选择水平",
+  "registrationLevelDescription": "水平说明",
+  "registrationLevelDescriptionHint": "关于水平的补充说明（选填）",
+  "registrationRequiredLevels": "可参加水平",
+  "registrationSuccessPending": "报名申请已发送，请等待主办审核。",
+  "registrationMyTitle": "我的报名",
+  "registrationEmpty": "你尚未报名此场次",
+  "registrationStatusApproved": "已通过",
+  "registrationStatusPending": "待审核",
+  "registrationStatusRejected": "已拒绝",
+  "registrationWithdraw": "撤回申请",
+  "registrationWithdrawConfirm": "确定要撤回报名申请吗？",
+  "registrationWithdrawDone": "已撤回报名申请",
+  "registrationWithdrawPartial": "有 {count} 个名额无法撤回",
+  "@registrationWithdrawPartial": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "registrationGenderOther": "其他",
   "sessionPlayingCount": "进行中：{count}",
   "@sessionPlayingCount": {
     "placeholders": {
@@ -253,6 +402,231 @@
   "notificationsTitle": "通知",
   "notificationsEmpty": "您还没有通知。",
   "notificationsMarkAllRead": "全部标为已读",
+  "notificationMarkAsRead": "标为已读",
+  "notificationDelete": "删除",
+  "notificationDeleted": "通知已删除",
+  "notificationStartReminderTitle": "即将开始!",
+  "notificationStartReminderMessage": "\"{sessionName}\" 即将开始。您到达场地了吗？点击开始。",
+  "@notificationStartReminderMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationPlayerStartReminderTitle": "即将开始!",
+  "notificationPlayerStartReminderMessage": "\"{sessionName}\" 即将开始。请前往球场！",
+  "@notificationPlayerStartReminderMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationYourTurnTitle": "轮到你了!",
+  "notificationYourTurnMessage": "请前往 {courtName}。您的比赛即将开始。",
+  "@notificationYourTurnMessage": {
+    "placeholders": {
+      "courtName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationAutoStartedTitle": "自动开始",
+  "notificationAutoStartedMessage": "\"{sessionName}\" 已在计划时间自动开始。",
+  "@notificationAutoStartedMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationSessionAutoStartedTitle": "已开始!",
+  "notificationSessionAutoStartedMessage": "\"{sessionName}\" 已开始。开始游戏吧！",
+  "@notificationSessionAutoStartedMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationAutoCancelledTitle": "自动取消",
+  "notificationAutoCancelledMessage": "\"{sessionName}\" 已自动取消，因为30分钟内未开始。",
+  "@notificationAutoCancelledMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationSessionCancelledTitle": "已取消",
+  "notificationSessionCancelledMessage": "\"{sessionName}\" 已被系统取消。主持人未按时开始。",
+  "@notificationSessionCancelledMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationEndWarningTitle": "即将结束",
+  "notificationEndWarningMessage": "\"{sessionName}\" 将在约15分钟后结束。",
+  "@notificationEndWarningMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationAutoFinalizedTitle": "自动完成",
+  "notificationAutoFinalizedMessage": "\"{sessionName}\" 已在宽限期结束后自动完成。",
+  "@notificationAutoFinalizedMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationClubCreationPendingTitle": "等待审批",
+  "notificationClubCreationPendingMessage": "您的俱乐部 \"{clubName}\" 正在等待管理员审批。",
+  "@notificationClubCreationPendingMessage": {
+    "placeholders": {
+      "clubName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationAdminNewPendingClubTitle": "新俱乐部等待审批",
+  "notificationAdminNewPendingClubMessage": "俱乐部 \"{clubName}\" 正在等待审批。",
+  "@notificationAdminNewPendingClubMessage": {
+    "placeholders": {
+      "clubName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationClubCreationApprovedTitle": "创建成功",
+  "notificationClubCreationApprovedMessage": "俱乐部 \"{clubName}\" 已创建并批准。",
+  "@notificationClubCreationApprovedMessage": {
+    "placeholders": {
+      "clubName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationClubApprovedTitle": "已批准",
+  "notificationClubApprovedMessage": "您的俱乐部 \"{clubName}\" 已获批准。",
+  "@notificationClubApprovedMessage": {
+    "placeholders": {
+      "clubName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationClubRejectedTitle": "已拒绝",
+  "notificationClubRejectedMessage": "您的俱乐部 \"{clubName}\" 已被拒绝。原因：{rejectionReason}",
+  "@notificationClubRejectedMessage": {
+    "placeholders": {
+      "clubName": {
+        "type": "String"
+      },
+      "rejectionReason": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationPlayerAddedTitle": "已添加到会话",
+  "notificationPlayerAddedMessage": "您已被添加到会话 \"{sessionName}\"。",
+  "@notificationPlayerAddedMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationPlayerRemovedTitle": "已从会话中移除",
+  "notificationPlayerRemovedMessage": "您已从会话 \"{sessionName}\" 中移除。",
+  "@notificationPlayerRemovedMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationPostLikedTitle": "有人喜欢你的帖子",
+  "notificationPostLikedMessage": "{actorName} 喜欢了你的帖子。",
+  "@notificationPostLikedMessage": {
+    "placeholders": {
+      "actorName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationPostCommentedTitle": "新评论",
+  "notificationPostCommentedMessage": "{actorName} 评论了你的帖子。",
+  "@notificationPostCommentedMessage": {
+    "placeholders": {
+      "actorName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationSessionFavoritedTitle": "有人收藏了你的会话",
+  "notificationSessionFavoritedMessage": "{actorName} 收藏了会话 \"{sessionName}\"。",
+  "@notificationSessionFavoritedMessage": {
+    "placeholders": {
+      "actorName": {
+        "type": "String"
+      },
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationClubFavoritedTitle": "有人收藏了你的俱乐部",
+  "notificationClubFavoritedMessage": "{actorName} 收藏了俱乐部 \"{clubName}\"。",
+  "@notificationClubFavoritedMessage": {
+    "placeholders": {
+      "actorName": {
+        "type": "String"
+      },
+      "clubName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationTournamentFavoritedTitle": "有人收藏了你的锦标赛",
+  "notificationTournamentFavoritedMessage": "{actorName} 收藏了锦标赛 \"{tournamentName}\"。",
+  "@notificationTournamentFavoritedMessage": {
+    "placeholders": {
+      "actorName": {
+        "type": "String"
+      },
+      "tournamentName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationVenueRequestApprovedTitle": "场地请求已批准",
+  "notificationVenueRequestApprovedMessage": "您关于场地 \"{venueName}\" 的提案已被管理员批准。",
+  "@notificationVenueRequestApprovedMessage": {
+    "placeholders": {
+      "venueName": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationVenueRequestRejectedTitle": "场地请求被拒绝",
+  "notificationVenueRequestRejectedMessage": "您关于场地 \"{venueName}\" 的提案被拒绝。原因：{rejectionReason}",
+  "@notificationVenueRequestRejectedMessage": {
+    "placeholders": {
+      "venueName": {
+        "type": "String"
+      },
+      "rejectionReason": {
+        "type": "String"
+      }
+    }
+  },
   "accountDeleteTitle": "删除账号",
   "accountDeleteWarning": "此操作无法撤销。",
   "accountDeleteRemoved": "将被删除：密码、登录方式、个人信息、头像和通知。",
@@ -325,15 +699,11 @@
   "feeMale": "男",
   "feeFemale": "女",
   "hostManageTitle": "管理活动",
+  "hostManageOverview": "概览",
   "hostManageCourts": "球场",
-  "hostManageRoster": "名单",
-  "hostManagePayments": "付款账本",
-  "hostManageAssign": "安排球员",
-  "hostManageReplace": "更换球员",
-  "hostManageStartMatch": "开始比赛",
-  "hostManageEndMatch": "结束比赛",
-  "hostManageClearCourt": "清除选择",
-  "hostManageChooseTwoOrFour": "请选择恰好 2 或 4 名等待中的球员",
+  "hostManageRoster": "球员",
+  "hostManageResults": "结果",
+  "hostManagePayments": "付款",
   "hostManagePendingApprovals": "待审批申请",
   "hostManageApprovedPlayers": "已批准球员",
   "hostManageApprove": "批准",
@@ -383,10 +753,22 @@
   "transactionDashboardEmpty": "暂无球员交易",
   "transactionSessions": "场活动",
   "commonLoadMore": "加载更多",
-  "socialTitle": "社区",
+  "socialTitle": "动态",
   "socialFeedTab": "动态",
   "socialClubsTab": "俱乐部",
   "socialComposerHint": "分享你的新鲜事…",
+  "socialComposerNameHint": "{name}，你在想什么？",
+  "@socialComposerNameHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "socialLikeAction": "点赞",
+  "socialLikedAction": "已点赞",
+  "socialCommentAction": "评论",
+  "socialShareAction": "分享",
   "socialCreatePost": "发布动态",
   "socialPublish": "发布",
   "socialAddPhotos": "添加照片",
@@ -398,11 +780,18 @@
   "socialCommentHint": "写评论…",
   "socialRepost": "转发到动态",
   "socialShareOutside": "分享到其他应用",
+  "socialOriginalPostUnavailable": "原帖已不再可用。",
   "socialClubSearch": "搜索俱乐部",
   "socialNoClubs": "未找到俱乐部",
   "socialClubDetail": "俱乐部",
   "socialMemberCount": "{count} 位成员",
-  "@socialMemberCount": {"placeholders": {"count": {"type": "int"}}},
+  "@socialMemberCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "socialAbout": "简介",
   "socialVenue": "场地",
   "socialSchedule": "活动时间",
@@ -422,7 +811,13 @@
   "socialRateHost": "评价组织者",
   "socialRatePlayer": "评价球员",
   "socialRateName": "评价 {name}",
-  "@socialRateName": {"placeholders": {"name": {"type": "String"}}},
+  "@socialRateName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "socialRatingComment": "评价内容（可选）",
   "socialSendRating": "提交评价",
   "socialRatingSent": "评价已提交",
@@ -447,7 +842,13 @@
   "clubStatusApproved": "已通过",
   "clubDeleteTitle": "删除俱乐部",
   "clubDeleteConfirm": "删除 {name}？此操作无法撤销。",
-  "@clubDeleteConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "@clubDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "clubName": "俱乐部名称",
   "clubNameRequired": "请输入俱乐部名称",
   "clubDescription": "简介",
@@ -470,7 +871,13 @@
   "clubRoleMember": "成员",
   "clubRemoveMember": "移除成员",
   "clubRemoveMemberConfirm": "将 {name} 移出俱乐部？",
-  "@clubRemoveMemberConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "@clubRemoveMemberConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "clubSearchUsers": "按姓名或邮箱搜索",
   "clubSearchUsersHint": "输入姓名或邮箱查找用户",
   "clubRequestsEmpty": "没有待处理的加入申请",
@@ -481,5 +888,247 @@
   "clubAnnouncementsEmpty": "暂无公告",
   "clubAnnouncementDelete": "删除公告",
   "clubAnnouncementDeleteConfirm": "删除此公告？",
-  "clubAnnouncementPin": "置顶 30 天"
+  "clubAnnouncementPin": "置顶 30 天",
+  "courtAssignPlayers": "配对",
+  "courtStartMatch": "开始",
+  "courtEndMatch": "结束",
+  "courtCancelSelection": "取消",
+  "courtPreSelectNext": "预选下一场",
+  "courtViewNextMatch": "查看下一场",
+  "courtNeedMorePlayers": "还需 {count} 位等待的球员才能配对",
+  "@courtNeedMorePlayers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courtsStartSessionToBegin": "开始活动以进行比赛",
+  "courtsSessionHasEnded": "活动已结束",
+  "courtDisplayModeLabel": "显示",
+  "courtDisplayModeNumber": "号码",
+  "courtDisplayModeName": "姓名",
+  "courtElapsedMinutes": "{minutes}分",
+  "@courtElapsedMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "courtElapsedJustStarted": "刚开始",
+  "courtWaitingPlayers": "等待中的球员",
+  "courtNoPlayersWaiting": "目前没有球员在等待",
+  "playerWaitMinutes": "{minutes}分",
+  "@playerWaitMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "playerWaitHoursMinutes": "{hours}时{minutes}分",
+  "@playerWaitHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "playerMatchesCount": "{count} 场",
+  "@playerMatchesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courtSelectionTitle": "配对 - 场地 {courtNumber}",
+  "@courtSelectionTitle": {
+    "placeholders": {
+      "courtNumber": {
+        "type": "int"
+      }
+    }
+  },
+  "courtSelectionDescription": "选择要分配到该场地的球员：",
+  "courtMatchTypeDoubles": "双打",
+  "courtMatchTypeSingles": "单打",
+  "courtManualSelection": "手动选择",
+  "courtAutoAssign": "自动配对",
+  "courtAiPoweredMatching": "AI 配对",
+  "courtAiMatchingHint": "按水平自动配对",
+  "courtAiAnalyzing": "AI 分析中…",
+  "courtAiReasoning": "分析",
+  "courtAvailablePlayers": "可选球员：",
+  "courtSearchPlayers": "搜索球员…",
+  "courtNoPlayersFound": "未找到球员",
+  "courtPositionNumber": "位置 {number}",
+  "@courtPositionNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "courtPair1": "第一对",
+  "courtPair2": "第二对",
+  "courtPairGapLabel": "差距：",
+  "courtConfirmMatch": "确认",
+  "courtSelectRequiredPlayers": "请选满 {total} 人以确认",
+  "@courtSelectRequiredPlayers": {
+    "placeholders": {
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "courtLoadingSuggestions": "正在加载建议…",
+  "courtErrorSuggestions": "无法获取推荐球员",
+  "courtNextMatchPreviewTitle": "下一场 - 场地 {courtNumber}",
+  "@courtNextMatchPreviewTitle": {
+    "placeholders": {
+      "courtNumber": {
+        "type": "int"
+      }
+    }
+  },
+  "courtNextMatchPreviewDescription": "该场地下一场已预选的球员。",
+  "courtNoPreSelectedPlayers": "尚未预选球员。",
+  "courtCancelPreSelect": "取消预选",
+  "courtConfirmCancelPreSelectTitle": "确认取消预选",
+  "courtConfirmCancelPreSelectMessage": "确定要取消该场地下一场的预选球员吗？",
+  "matchResultTitle": "比赛结果",
+  "matchResultScore": "比分",
+  "matchResultIsDraw": "平局",
+  "matchResultNotes": "备注",
+  "matchResultNotesPlaceholder": "添加关于这场比赛的备注…",
+  "matchResultShuttlecockCount": "羽毛球数量",
+  "matchResultShuttlecockPlaceholder": "例如 3、2.5、1.25…",
+  "matchResultSubmit": "提交",
+  "matchResultSkip": "跳过结果",
+  "matchResultSelectWinnerHint": "点击一队标记为获胜方（平局可不选）",
+  "matchRepeatOpenDetails": "查看重复配对提醒",
+  "matchRepeatTitle": "配对提醒",
+  "matchRepeatDescription": "本场比赛中的一些配对已重复超过两场。",
+  "matchRepeatHostNote": "仅供参考，不会阻止确认比赛。",
+  "matchRepeatTeammatesTitle": "搭档超过两场的组合",
+  "matchRepeatOpponentsTitle": "对阵超过两场的组合",
+  "matchRepeatNoTeammates": "没有重复的搭档。",
+  "matchRepeatNoOpponents": "没有重复的对阵。",
+  "matchRepeatMatchCount": "{count} 场",
+  "@matchRepeatMatchCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "courtAnnounceButton": "语音播报",
+  "@courtAnnounceButton": {
+    "description": "Tooltip on the speaker button that reads the court's line-up aloud."
+  },
+  "courtAnnounceReadyIntro": "请以下球员上场，场地号",
+  "@courtAnnounceReadyIntro": {
+    "description": "Spoken aloud. Precedes the court number, so it must end mid-sentence."
+  },
+  "courtAnnouncePlayingIntro": "以下球员正在场地",
+  "@courtAnnouncePlayingIntro": {
+    "description": "Spoken aloud. Precedes the court number, so it must end mid-sentence."
+  },
+  "courtAnnounceDetail": "{courtNumber}：{names}",
+  "@courtAnnounceDetail": {
+    "description": "Spoken aloud. The court number followed by the players on it.",
+    "placeholders": {
+      "courtNumber": {
+        "type": "int"
+      },
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "courtAnnounceAnd": "和",
+  "@courtAnnounceAnd": {
+    "description": "Spoken aloud. Joins two players on the same side."
+  },
+  "mySessionsTitle": "约球",
+  "mySessionsHosted": "管理约球",
+  "mySessionsJoined": "我参加的约球",
+  "mySessionsActive": "进行中",
+  "mySessionsEnded": "已结束",
+  "mySessionsAll": "全部",
+  "mySessionsPendingRequests": "参加申请",
+  "mySessionsSearchHint": "搜索约球或场馆...",
+  "mySessionsEmpty": "没有符合条件的约球",
+  "mySessionsUnknownPlayer": "球员",
+  "mySessionsPendingBadge": "待审核",
+  "mySessionsClone": "复制约球",
+  "mySessionsDownloadImage": "下载图片",
+  "mySessionsShare": "分享",
+  "mySessionsDelete": "删除",
+  "mySessionsDeleteConfirmTitle": "删除约球",
+  "mySessionsDeleteConfirmMessage": "确定要删除该约球吗？",
+  "mySessionsDeleteSuccess": "约球已成功删除",
+  "mySessionsDownloadSuccess": "约球图片已下载",
+  "hostPlayerStatsTitle": "球员统计",
+  "hostPlayerStatsInfo": "查看球员排名规则",
+  "hostPlayerStatsGenderMvp": "按性别评选 MVP",
+  "hostPlayerStatsError": "无法加载球员统计。",
+  "hostPlayerStatsEmpty": "暂无球员统计。",
+  "hostPlayerStatsRetry": "重试",
+  "hostPlayerStatsNo": "序号",
+  "hostPlayerStatsName": "姓名",
+  "hostPlayerStatsGender": "性别",
+  "hostPlayerGenderMale": "男",
+  "hostPlayerGenderFemale": "女",
+  "hostPlayerGenderOther": "其他",
+  "hostPlayerStatsLevel": "水平",
+  "hostPlayerStatsMatches": "总场次",
+  "hostPlayerStatsWins": "胜",
+  "hostPlayerStatsLosses": "负",
+  "hostPlayerStatsWinRate": "胜率",
+  "hostPlayerStatsPointDiff": "场均净胜分",
+  "hostPlayerStatsShuttlecocks": "羽毛球数",
+  "hostPlayerStatsCount": "{count} 位球员",
+  "@hostPlayerStatsCount": {"placeholders": {"count": {"type": "int"}}},
+  "hostPlayerStatsMvp": "MVP",
+  "hostPlayerStatsSharedMvp": "并列 MVP",
+  "hostPlayerStatsMaleMvp": "男子 MVP",
+  "hostPlayerStatsFemaleMvp": "女子 MVP",
+  "hostPlayerStatsExport": "导出图片",
+  "hostPlayerStatsExportColumns": "导出列",
+  "hostPlayerStatsShare": "分享图片",
+  "hostPlayerStatsRankingTitle": "球员排名规则",
+  "hostPlayerStatsEligibilityTitle": "MVP 资格",
+  "hostPlayerStatsEligibility": "球员至少需达到最高参赛场次的 50%，要求最多为 3 场，并且至少获胜一场。",
+  "hostPlayerStatsOrderTitle": "排名顺序",
+  "hostPlayerStatsOrder": "1. 胜率。\n2. 胜场数。\n3. 同组均有数据时比较场均净胜分。\n4. 总场次。\n5. 球员姓名。",
+  "hostPlayerStatsPointDiffHelp": "场均净胜分 =（总得分 − 总失分）/ 有完整比分的场次。",
+  "hostPlayerDetailTitle": "球员详情",
+  "hostPlayerDetailStatus": "状态",
+  "hostPlayerDetailPhone": "电话",
+  "hostPlayerDetailLevelDescription": "水平说明",
+  "hostPlayerDetailDesire": "偏好",
+  "hostPlayerDetailCurrentWait": "当前等待时间",
+  "hostPlayerDetailTotalWait": "总等待时间",
+  "hostPlayerDetailCurrentCourt": "当前场地",
+  "hostPlayerDetailRating": "评分",
+  "hostPlayerDetailMember": "会员",
+  "hostPlayerDetailGuest": "访客",
+  "hostPlayerDetailViewProfile": "查看资料",
+  "hostPlayerDetailReviews": "最近评价",
+  "hostPlayerDetailJoinInfo": "加入信息",
+  "hostPlayerDetailCopyLink": "复制链接",
+  "hostPlayerDetailCopyCode": "复制代码",
+  "hostPlayerDetailCopied": "已复制",
+  "hostPlayerDetailPause": "暂停",
+  "hostPlayerDetailContinue": "继续",
+  "hostPlayerDetailClose": "关闭",
+  "hostPlayerDetailError": "无法加载球员详情。",
+  "hostPlayerStatsMinutes": "{count} 分钟",
+  "@hostPlayerStatsMinutes": {"placeholders": {"count": {"type": "int"}}}
 }

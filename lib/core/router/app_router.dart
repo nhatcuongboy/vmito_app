@@ -16,8 +16,10 @@ import 'package:vmito_app/features/profile/presentation/profile_screen.dart';
 import 'package:vmito_app/features/session/presentation/player/browse_sessions_screen.dart';
 import 'package:vmito_app/features/session/presentation/player/create_session_screen.dart';
 import 'package:vmito_app/features/session/presentation/player/edit_session_screen.dart';
+import 'package:vmito_app/features/session/presentation/player/pending_requests_screen.dart';
 import 'package:vmito_app/features/session/presentation/player/session_detail_screen.dart';
 import 'package:vmito_app/features/session_hosting/presentation/host_session_management_screen.dart';
+import 'package:vmito_app/features/social/presentation/browse_clubs_screen.dart';
 import 'package:vmito_app/features/social/presentation/club_detail_screen.dart';
 import 'package:vmito_app/features/social/presentation/club_form_screen.dart';
 import 'package:vmito_app/features/social/presentation/club_management_detail_screen.dart';
@@ -27,6 +29,8 @@ import 'package:vmito_app/features/social/presentation/public_profile_screen.dar
 import 'package:vmito_app/features/social/presentation/session_rating_screen.dart';
 import 'package:vmito_app/features/social/presentation/social_hub_screen.dart';
 import 'package:vmito_app/features/splash/presentation/splash_screen.dart';
+import 'package:vmito_app/features/venue/presentation/browse_venues_screen.dart';
+import 'package:vmito_app/features/venue/presentation/venue_detail_screen.dart';
 
 /// Keys the shell's own navigator so full-screen routes (splash, sign-in) can
 /// push *above* the bottom bar rather than inside a tab.
@@ -55,7 +59,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return location == AppRoutes.splash ? null : AppRoutes.splash;
       }
 
-      if (auth.isSignedIn) {
+      if (auth.status == AuthStatus.authenticated) {
         // Signed in but sitting on splash or an auth screen — move on.
         if (location == AppRoutes.splash || location.startsWith('/auth/')) {
           return AppRoutes.home;
@@ -63,14 +67,38 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return null;
       }
 
-      // Signed out but browsing is allowed. Land on the sessions tab rather
-      // than home, which has nothing to show without an account.
-      if (location == AppRoutes.splash) return AppRoutes.browseSessions;
+      // Signed-out and join-code guests land on public discovery. Protected
+      // session management requires a full account, not merely guest state.
+      if (location == AppRoutes.splash) return AppRoutes.home;
       if (AppRoutes.isPublic(location)) return null;
 
       return AppRoutes.signIn;
     },
     routes: [
+      GoRoute(
+        path: AppRoutes.venues,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const BrowseVenuesScreen(),
+        routes: [
+          GoRoute(
+            path: ':id',
+            builder: (context, state) =>
+                VenueDetailScreen(venueId: state.pathParameters['id']!),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: AppRoutes.clubs,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const BrowseClubsScreen(),
+        routes: [
+          GoRoute(
+            path: ':id',
+            builder: (context, state) =>
+                ClubDetailScreen(clubId: state.pathParameters['id']!),
+          ),
+        ],
+      ),
       GoRoute(
         path: AppRoutes.splash,
         name: AppRoutes.nameSplash,
@@ -102,11 +130,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => ResetPasswordScreen(
           token: state.uri.queryParameters['token'] ?? '',
         ),
-      ),
-      GoRoute(
-        path: AppRoutes.notifications,
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const NotificationsScreen(),
       ),
       GoRoute(
         path: AppRoutes.transactions,
@@ -144,9 +167,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   // Declared before ':id' — go_router matches in order, so the
                   // parameterised route would otherwise capture "create".
+                  // Off the shell: the form owns the bottom of the screen with
+                  // its own submit bar, and stacking that on the 64pt tab bar
+                  // would put the safe-area inset on the wrong one.
                   GoRoute(
                     path: 'create',
+                    parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) => const CreateSessionScreen(),
+                  ),
+                  GoRoute(
+                    path: 'pending-requests',
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const PendingRequestsScreen(),
                   ),
                   GoRoute(
                     path: ':id',
@@ -157,12 +189,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     routes: [
                       GoRoute(
                         path: 'edit',
+                        parentNavigatorKey: _rootNavigatorKey,
                         builder: (context, state) => EditSessionScreen(
                           sessionId: state.pathParameters['id']!,
                         ),
                       ),
                       GoRoute(
                         path: 'clone',
+                        parentNavigatorKey: _rootNavigatorKey,
                         builder: (context, state) => EditSessionScreen(
                           sessionId: state.pathParameters['id']!,
                           isClone: true,
@@ -226,9 +260,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   ),
                   GoRoute(
                     path: 'clubs/:id',
-                    builder: (context, state) => ClubDetailScreen(
-                      clubId: state.pathParameters['id']!,
-                    ),
+                    redirect: (context, state) =>
+                        AppRoutes.clubDetail(state.pathParameters['id']!),
                   ),
                   GoRoute(
                     path: ':postId',
@@ -237,6 +270,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     ),
                   ),
                 ],
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.notifications,
+                builder: (context, state) => const NotificationsScreen(),
               ),
             ],
           ),

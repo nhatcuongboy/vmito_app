@@ -7,11 +7,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
-import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/domain/social_post.dart';
+import 'package:vmito_app/features/social/presentation/widgets/activity_post_content.dart';
+import 'package:vmito_app/features/social/presentation/widgets/post_avatar.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+
+// ---------------------------------------------------------------------------
+// Public entry point
+// ---------------------------------------------------------------------------
 
 class SocialPostCard extends ConsumerWidget {
   SocialPostCard({required this.post, this.onOpen, super.key})
@@ -23,144 +29,662 @@ class SocialPostCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final isActivity = post.activityType != null;
+    final hasEngagement =
+        post.likeCount > 0 || post.commentCount > 0 || post.shareCount > 0;
+
     return RepaintBoundary(
       key: _shareCardKey,
-      child: Card(
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1F2937) : Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.12)
+                : const Color(0xFFE5E7EB),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
         clipBehavior: Clip.antiAlias,
-        margin: EdgeInsets.zero,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            ListTile(
-              leading: CircleAvatar(
-                backgroundImage: post.author.image == null
-                    ? null
-                    : CachedNetworkImageProvider(post.author.image!),
-                child: post.author.image == null
-                    ? const Icon(Icons.person_outline_rounded)
-                    : null,
-              ),
-              title: Text(post.author.name),
-              subtitle: Text(
-                Dates.dayAndTime(
-                  post.createdAt,
-                  locale: Localizations.localeOf(context).languageCode,
-                ),
-              ),
-              onTap: post.author.id.isEmpty
-                  ? null
-                  : () => context.push(AppRoutes.publicProfile(post.author.id)),
-            ),
-            if (post.content.trim().isNotEmpty)
-              InkWell(
-                onTap: onOpen,
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md,
-                    0,
-                    AppSpacing.md,
-                    AppSpacing.md,
-                  ),
-                  child: Text(post.content, style: theme.textTheme.bodyLarge),
-                ),
-              ),
-            if (post.locationName != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                child: Row(
-                  children: [
-                    const Icon(Icons.location_on_outlined, size: 18),
-                    const SizedBox(width: AppSpacing.xs),
-                    Expanded(child: Text(post.locationName!)),
-                  ],
-                ),
-              ),
-            if (post.images.isNotEmpty)
-              AspectRatio(
-                aspectRatio: 4 / 3,
-                child: PageView.builder(
-                  itemCount: post.images.length,
-                  itemBuilder: (context, index) => CachedNetworkImage(
-                    imageUrl: post.images[index].url,
-                    fit: BoxFit.cover,
-                    errorWidget: (_, _, _) => const ColoredBox(
-                      color: Colors.black12,
-                      child: Icon(Icons.broken_image_outlined),
-                    ),
-                  ),
-                ),
-              ),
+            // ── Shared-post banner ─────────────────────────────────────────
+            if (post.originalPost != null) _SharedBanner(authorName: post.author.name, isDark: isDark),
+
+            // ── Header ─────────────────────────────────────────────────────
+            _PostHeader(post: post, isDark: isDark, ref: ref, shareCardKey: _shareCardKey),
+
+            // ── Activity headline / body ────────────────────────────────────
+            if (isActivity)
+              ActivityPostContent(post: post),
+
+            // ── Regular text content ────────────────────────────────────────
+            if (!isActivity && post.content.trim().isNotEmpty)
+              _PostContent(content: post.content, onTap: onOpen, isDark: isDark),
+
+            // ── Location badge ──────────────────────────────────────────────
+            if (!isActivity && post.locationName != null)
+              _LocationBadge(name: post.locationName!, isDark: isDark),
+
+            // ── Image grid ─────────────────────────────────────────────────
+            if (!isActivity && post.images.isNotEmpty)
+              _ImageGrid(images: post.images),
+
+            // ── Original (shared) post ──────────────────────────────────────
             if (post.originalPost case final original?)
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: DecoratedBox(
-                  decoration: BoxDecoration(
-                    border: Border.all(color: theme.dividerColor),
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          original.author.name,
-                          style: theme.textTheme.titleSmall,
-                        ),
-                        if (original.content.isNotEmpty) ...[
-                          const SizedBox(height: AppSpacing.sm),
-                          Text(original.content),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextButton.icon(
-                      key: Key('like-${post.id}'),
-                      onPressed: () => _toggleLike(context, ref),
-                      icon: Icon(
-                        post.isLiked
-                            ? Icons.favorite_rounded
-                            : Icons.favorite_border_rounded,
-                        color: post.isLiked ? theme.colorScheme.error : null,
-                      ),
-                      label: Text('${post.likeCount}'),
-                    ),
-                  ),
-                  Expanded(
-                    child: TextButton.icon(
-                      key: Key('comments-${post.id}'),
-                      onPressed: () => showCommentsSheet(context, post.id),
-                      icon: const Icon(Icons.chat_bubble_outline_rounded),
-                      label: Text('${post.commentCount}'),
-                    ),
-                  ),
-                  Expanded(
-                    child: TextButton.icon(
-                      onPressed: () => _showShareActions(context, ref),
-                      icon: const Icon(Icons.share_outlined),
-                      label: Text('${post.shareCount}'),
-                    ),
-                  ),
-                ],
-              ),
+              _OriginalPostCard(post: original, isDark: isDark),
+
+            // ── Engagement counts ───────────────────────────────────────────
+            if (hasEngagement)
+              _EngagementRow(post: post, isDark: isDark, l10n: l10n),
+
+            // ── Divider ─────────────────────────────────────────────────────
+            Divider(
+              height: 1,
+              thickness: 1,
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.08)
+                  : const Color(0xFFE5E7EB),
             ),
-            Semantics(label: l10n.socialPostActions, child: const SizedBox()),
+
+            // ── Action bar ──────────────────────────────────────────────────
+            _ActionBar(
+              post: post,
+              isDark: isDark,
+              l10n: l10n,
+              ref: ref,
+              shareCardKey: _shareCardKey,
+            ),
+
+            // Accessibility label
+            Semantics(label: l10n.socialPostActions, child: const SizedBox.shrink()),
           ],
         ),
       ),
     );
   }
+}
 
-  Future<void> _toggleLike(BuildContext context, WidgetRef ref) async {
+// ---------------------------------------------------------------------------
+// Internal sub-widgets
+// ---------------------------------------------------------------------------
+
+class _SharedBanner extends StatelessWidget {
+  const _SharedBanner({required this.authorName, required this.isDark});
+
+  final String authorName;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, right: 16, top: 12),
+      child: Row(
+        children: [
+          const Icon(
+            AppIcons.share,
+            size: 14,
+            color: Color(0xFF16A34A),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              authorName,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Post header: avatar + author name + timestamp + globe + optional menu.
+class _PostHeader extends StatelessWidget {
+  const _PostHeader({
+    required this.post,
+    required this.isDark,
+    required this.ref,
+    required this.shareCardKey,
+  });
+
+  final SocialPost post;
+  final bool isDark;
+  final WidgetRef ref;
+  final GlobalKey shareCardKey;
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context).languageCode;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 8, 0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Avatar with gradient ring
+          GestureDetector(
+            onTap: post.author.id.isEmpty
+                ? null
+                : () => context.push(AppRoutes.publicProfile(post.author.id)),
+            child: PostAvatar(
+              name: post.author.name,
+              imageUrl: post.author.image,
+              size: 40,
+              bordered: true,
+            ),
+          ),
+          const SizedBox(width: 12),
+          // Name + meta
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GestureDetector(
+                  onTap: post.author.id.isEmpty
+                      ? null
+                      : () => context.push(AppRoutes.publicProfile(post.author.id)),
+                  child: Text(
+                    post.author.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      height: 1.25,
+                      color: isDark ? const Color(0xFFF9FAFB) : const Color(0xFF111827),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Text(
+                      Dates.timeAgo(post.createdAt, locale: locale),
+                      style: TextStyle(
+                        fontSize: 13,
+                        height: 1.25,
+                        color: isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '·',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Icon(
+                      AppIcons.language,
+                      size: 12,
+                      color: isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          // More button (placeholder — no delete implemented on mobile yet)
+          const SizedBox(width: 4),
+        ],
+      ),
+    );
+  }
+}
+
+
+/// Regular post text.
+class _PostContent extends StatelessWidget {
+  const _PostContent({
+    required this.content,
+    required this.isDark,
+    this.onTap,
+  });
+
+  final String content;
+  final bool isDark;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+        child: Text(
+          content,
+          style: TextStyle(
+            fontSize: 17,
+            height: 1.6,
+            color: isDark ? const Color(0xFFF9FAFB) : const Color(0xFF111827),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Location chip — matches the web's red pill badge.
+class _LocationBadge extends StatelessWidget {
+  const _LocationBadge({required this.name, required this.isDark});
+
+  final String name;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF450A0A).withValues(alpha: 0.4) : const Color(0xFFFEF2F2),
+            borderRadius: BorderRadius.circular(999),
+            border: Border.all(
+              color: isDark ? const Color(0xFF7F1D1D).withValues(alpha: 0.5) : const Color(0xFFFECACA),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                AppIcons.location,
+                size: 13,
+                color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C),
+              ),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Image grid — 1 image full width, 2+ images in a 2-column grid.
+class _ImageGrid extends StatelessWidget {
+  const _ImageGrid({required this.images});
+
+  final List<SocialPostImage> images;
+
+  @override
+  Widget build(BuildContext context) {
+    final isSingle = images.length == 1;
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: isSingle
+          ? _SingleImage(url: images.first.url)
+          : _MultiImageGrid(images: images),
+    );
+  }
+}
+
+class _SingleImage extends StatelessWidget {
+  const _SingleImage({required this.url});
+  final String url;
+  @override
+  Widget build(BuildContext context) => CachedNetworkImage(
+    imageUrl: url,
+    height: 320,
+    width: double.infinity,
+    fit: BoxFit.cover,
+    errorWidget: (_, _, _) => const _ImgError(),
+  );
+}
+
+class _MultiImageGrid extends StatelessWidget {
+  const _MultiImageGrid({required this.images});
+  final List<SocialPostImage> images;
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 2,
+        crossAxisSpacing: 2,
+      ),
+      itemCount: images.length > 4 ? 4 : images.length,
+      itemBuilder: (_, index) {
+        final isLast = index == 3 && images.length > 4;
+        return Stack(
+          fit: StackFit.expand,
+          children: [
+            CachedNetworkImage(
+              imageUrl: images[index].url,
+              fit: BoxFit.cover,
+              errorWidget: (_, _, _) => const _ImgError(),
+            ),
+            if (isLast)
+              ColoredBox(
+                color: Colors.black54,
+                child: Center(
+                  child: Text(
+                    '+${images.length - 4}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ImgError extends StatelessWidget {
+  const _ImgError();
+  @override
+  Widget build(BuildContext context) => const ColoredBox(
+    color: Color(0xFFE5E7EB),
+    child: Center(child: Icon(AppIcons.imageOff, color: Color(0xFF9CA3AF))),
+  );
+}
+
+/// Nested card for the shared/original post.
+class _OriginalPostCard extends StatelessWidget {
+  const _OriginalPostCard({required this.post, required this.isDark});
+
+  final SocialPost post;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    final locale = Localizations.localeOf(context).languageCode;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : const Color(0xFFF9FAFB),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.10)
+                : const Color(0xFFE5E7EB),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Original author + timestamp
+            Row(
+              children: [
+                PostAvatar(
+                  name: post.author.name,
+                  imageUrl: post.author.image,
+                  size: 32,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        post.author.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: isDark ? const Color(0xFFF9FAFB) : const Color(0xFF111827),
+                        ),
+                      ),
+                      Text(
+                        Dates.timeAgo(post.createdAt, locale: locale),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if (post.content.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                post.content,
+                style: TextStyle(
+                  fontSize: 16,
+                  height: 1.6,
+                  color: isDark ? const Color(0xFFE5E7EB) : const Color(0xFF374151),
+                ),
+              ),
+            ],
+            if (post.images.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: CachedNetworkImage(
+                  imageUrl: post.images.first.url,
+                  height: 160,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorWidget: (_, _, _) => const _ImgError(),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+/// Engagement counts row (likes heart icon + count; comments · shares).
+class _EngagementRow extends StatelessWidget {
+  const _EngagementRow({
+    required this.post,
+    required this.isDark,
+    required this.l10n,
+  });
+
+  final SocialPost post;
+  final bool isDark;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    final mutedColor = isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+      child: Row(
+        children: [
+          // Likes
+          if (post.likeCount > 0) ...[
+            Container(
+              width: 18,
+              height: 18,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFF43F5E), Color(0xFFEF4444)],
+                ),
+              ),
+              child: const Icon(
+                AppIcons.favorite,
+                size: 10,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 5),
+            Text(
+              '${post.likeCount}',
+              style: TextStyle(fontSize: 14, color: mutedColor),
+            ),
+          ],
+          const Spacer(),
+          // Comments
+          if (post.commentCount > 0) ...[
+            GestureDetector(
+              onTap: () => showCommentsSheet(context, post.id),
+              child: Text(
+                '${post.commentCount} ${l10n.socialCommentAction}',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: mutedColor,
+                  decoration: TextDecoration.none,
+                ),
+              ),
+            ),
+          ],
+          if (post.commentCount > 0 && post.shareCount > 0) ...[
+            const SizedBox(width: 6),
+            Text('·', style: TextStyle(color: mutedColor)),
+            const SizedBox(width: 6),
+          ],
+          if (post.shareCount > 0)
+            Text(
+              '${post.shareCount} ${l10n.socialShareAction}',
+              style: TextStyle(fontSize: 14, color: mutedColor),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 3-button action bar: Like · Comment · Share.
+class _ActionBar extends StatelessWidget {
+  const _ActionBar({
+    required this.post,
+    required this.isDark,
+    required this.l10n,
+    required this.ref,
+    required this.shareCardKey,
+  });
+
+  final SocialPost post;
+  final bool isDark;
+  final AppLocalizations l10n;
+  final WidgetRef ref;
+  final GlobalKey shareCardKey;
+
+  @override
+  Widget build(BuildContext context) {
+    final likeActive = post.isLiked;
+    final mutedTextColor =
+        isDark ? const Color(0xFFD1D5DB) : const Color(0xFF4B5563);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      child: Row(
+        children: [
+          // ── Like ────────────────────────────────────────────────────────
+          Expanded(
+            child: _ActionButton(
+              key: Key('like-${post.id}'),
+              onPressed: () => _toggleLike(context),
+              isDark: isDark,
+              activeColor: const Color(0xFFDC2626),
+              hoverColor: const Color(0xFFFFF1F2),
+              hoverColorDark: const Color(0xFF450A0A),
+              isActive: likeActive,
+              icon: likeActive
+                  ? _LikedIcon()
+                  : Icon(AppIcons.favorite, size: 18, color: mutedTextColor),
+              label: Text(
+                likeActive ? l10n.socialLikedAction : l10n.socialLikeAction,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: likeActive ? const Color(0xFFDC2626) : mutedTextColor,
+                ),
+              ),
+            ),
+          ),
+          // ── Comment ──────────────────────────────────────────────────────
+          Expanded(
+            child: _ActionButton(
+              key: Key('comments-${post.id}'),
+              onPressed: () => showCommentsSheet(context, post.id),
+              isDark: isDark,
+              activeColor: const Color(0xFF16A34A),
+              hoverColor: const Color(0xFFF0FDF4),
+              hoverColorDark: const Color(0xFF052E16),
+              isActive: false,
+              icon: Icon(AppIcons.chat, size: 18, color: mutedTextColor),
+              label: Text(
+                l10n.socialCommentAction,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: mutedTextColor,
+                ),
+              ),
+            ),
+          ),
+          // ── Share ─────────────────────────────────────────────────────────
+          Expanded(
+            child: _ActionButton(
+              onPressed: () => _showShareActions(context),
+              isDark: isDark,
+              activeColor: const Color(0xFF2563EB),
+              hoverColor: const Color(0xFFEFF6FF),
+              hoverColorDark: const Color(0xFF1E3A5F),
+              isActive: false,
+              icon: Icon(AppIcons.share, size: 18, color: mutedTextColor),
+              label: Text(
+                l10n.socialShareAction,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: mutedTextColor,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _toggleLike(BuildContext context) async {
     try {
       await ref.read(feedControllerProvider.notifier).toggleLike(post.id);
     } on Object catch (error) {
@@ -172,7 +696,7 @@ class SocialPostCard extends ConsumerWidget {
     }
   }
 
-  Future<void> _showShareActions(BuildContext context, WidgetRef ref) async {
+  Future<void> _showShareActions(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
     await showModalBottomSheet<void>(
       context: context,
@@ -182,15 +706,17 @@ class SocialPostCard extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              leading: const Icon(Icons.repeat_rounded),
+              leading: const Icon(AppIcons.repeat),
               title: Text(l10n.socialRepost),
               onTap: () async {
                 Navigator.pop(sheetContext);
-                await ref.read(feedControllerProvider.notifier).repost(post.id);
+                await ref
+                    .read(feedControllerProvider.notifier)
+                    .repost(post.id);
               },
             ),
             ListTile(
-              leading: const Icon(Icons.ios_share_rounded),
+              leading: const Icon(AppIcons.share),
               title: Text(l10n.socialShareOutside),
               onTap: () async {
                 Navigator.pop(sheetContext);
@@ -205,17 +731,14 @@ class SocialPostCard extends ConsumerWidget {
 
   Future<void> _shareCard(BuildContext context) async {
     final link = 'https://vmito.com/newsfeed/${post.id}';
-    final boundary = _shareCardKey.currentContext?.findRenderObject();
+    final boundary = shareCardKey.currentContext?.findRenderObject();
     final renderBox = context.findRenderObject();
     final origin = renderBox is RenderBox
         ? renderBox.localToGlobal(Offset.zero) & renderBox.size
         : null;
     if (boundary is! RenderRepaintBoundary) {
       await SharePlus.instance.share(
-        ShareParams(
-          text: '${post.content}\n$link',
-          sharePositionOrigin: origin,
-        ),
+        ShareParams(text: '${post.content}\n$link', sharePositionOrigin: origin),
       );
       return;
     }
@@ -223,10 +746,7 @@ class SocialPostCard extends ConsumerWidget {
     final data = await image.toByteData(format: ui.ImageByteFormat.png);
     if (data == null) {
       await SharePlus.instance.share(
-        ShareParams(
-          text: '${post.content}\n$link',
-          sharePositionOrigin: origin,
-        ),
+        ShareParams(text: '${post.content}\n$link', sharePositionOrigin: origin),
       );
       return;
     }
@@ -245,6 +765,76 @@ class SocialPostCard extends ConsumerWidget {
     );
   }
 }
+
+/// Reusable action button for the action bar.
+class _ActionButton extends StatelessWidget {
+  const _ActionButton({
+    required this.onPressed,
+    required this.isDark,
+    required this.activeColor,
+    required this.hoverColor,
+    required this.hoverColorDark,
+    required this.isActive,
+    required this.icon,
+    required this.label,
+    super.key,
+  });
+
+  final VoidCallback onPressed;
+  final bool isDark;
+  final Color activeColor;
+  final Color hoverColor;
+  final Color hoverColorDark;
+  final bool isActive;
+  final Widget icon;
+  final Widget label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(8),
+        splashColor: (isDark ? hoverColorDark : hoverColor).withValues(alpha: 0.5),
+        highlightColor: (isDark ? hoverColorDark : hoverColor).withValues(alpha: 0.3),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              icon,
+              const SizedBox(width: 6),
+              label,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Filled red-gradient circle with a heart icon — the "liked" state.
+class _LikedIcon extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => Container(
+    width: 22,
+    height: 22,
+    decoration: const BoxDecoration(
+      shape: BoxShape.circle,
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [Color(0xFFF43F5E), Color(0xFFEF4444)],
+      ),
+    ),
+    child: const Icon(AppIcons.favorite, size: 12, color: Colors.white),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Comments sheet (unchanged from original)
+// ---------------------------------------------------------------------------
 
 Future<void> showCommentsSheet(BuildContext context, String postId) =>
     showModalBottomSheet<void>(
@@ -280,9 +870,9 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
     return SafeArea(
       child: Padding(
         padding: EdgeInsets.only(
-          left: AppSpacing.md,
-          right: AppSpacing.md,
-          bottom: MediaQuery.viewInsetsOf(context).bottom + AppSpacing.sm,
+          left: 16,
+          right: 16,
+          bottom: MediaQuery.viewInsetsOf(context).bottom + 8,
         ),
         child: SizedBox(
           height: MediaQuery.sizeOf(context).height * .72,
@@ -292,7 +882,7 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
                 l10n.socialComments,
                 style: Theme.of(context).textTheme.titleLarge,
               ),
-              const SizedBox(height: AppSpacing.sm),
+              const SizedBox(height: 8),
               Expanded(
                 child: comments.when(
                   data: (items) => items.isEmpty
@@ -302,15 +892,10 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
                           itemBuilder: (context, index) {
                             final comment = items[index];
                             return ListTile(
-                              leading: CircleAvatar(
-                                backgroundImage: comment.user.image == null
-                                    ? null
-                                    : CachedNetworkImageProvider(
-                                        comment.user.image!,
-                                      ),
-                                child: comment.user.image == null
-                                    ? const Icon(Icons.person_outline_rounded)
-                                    : null,
+                              leading: PostAvatar(
+                                name: comment.user.name,
+                                imageUrl: comment.user.image,
+                                size: 36,
                               ),
                               title: Text(comment.user.name),
                               subtitle: Text(comment.content),
@@ -342,7 +927,7 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
                             dimension: 20,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Icon(Icons.send_rounded),
+                        : const Icon(AppIcons.send),
                   ),
                 ],
               ),

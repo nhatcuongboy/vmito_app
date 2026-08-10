@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/payment/application/payment_providers.dart';
@@ -94,7 +95,7 @@ class PaymentSettingsCard extends ConsumerWidget {
                             sessionId: sessionId,
                           ),
                         ),
-                        icon: const Icon(Icons.add_rounded),
+                        icon: const Icon(AppIcons.add),
                       ),
                     if (current != null)
                       IconButton(
@@ -106,7 +107,7 @@ class PaymentSettingsCard extends ConsumerWidget {
                               ).notifier,
                             )
                             .deleteSettings(current!.id),
-                        icon: const Icon(Icons.delete_outline_rounded),
+                        icon: const Icon(AppIcons.delete),
                       ),
                     OutlinedButton.icon(
                       onPressed: () => showDialog<void>(
@@ -116,7 +117,7 @@ class PaymentSettingsCard extends ConsumerWidget {
                           current: current,
                         ),
                       ),
-                      icon: const Icon(Icons.account_balance_outlined),
+                      icon: const Icon(AppIcons.bank),
                       label: Text(
                         current == null
                             ? l10n.hostManageAddSettings

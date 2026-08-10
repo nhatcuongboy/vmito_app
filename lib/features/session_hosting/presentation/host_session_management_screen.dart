@@ -1,16 +1,21 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/court/application/live_session_controller.dart';
 import 'package:vmito_app/features/payment/application/payment_providers.dart';
+import 'package:vmito_app/features/session/application/player/my_sessions_controller.dart';
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session_hosting/application/host_session_management_controller.dart';
-import 'package:vmito_app/features/session_hosting/application/hosted_sessions_controller.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/host_courts_tab.dart';
+import 'package:vmito_app/features/session_hosting/presentation/widgets/host_overview_tab.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/host_payment_ledger_tab.dart';
+import 'package:vmito_app/features/session_hosting/presentation/widgets/host_results_tab.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/host_roster_tab.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
@@ -68,13 +73,24 @@ class _HostSessionManagementScreenState
       });
 
     return DefaultTabController(
-      length: 3,
+      length: 5,
       child: Scaffold(
         appBar: AppBar(
-          title: Text(l10n.hostManageTitle),
+          title: session.maybeWhen(
+            data: (value) => Text(
+              value.name,
+              key: const Key('host-session-title'),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+            orElse: () => Text(l10n.hostManageTitle),
+          ),
           actions: [
             session.maybeWhen(
               data: (value) => PopupMenuButton<_SessionAction>(
+                key: const Key('host-session-more-menu'),
+                icon: const Icon(AppIcons.moreVert),
+                tooltip: MaterialLocalizations.of(context).moreButtonTooltip,
                 onSelected: (action) => _handleAction(value, action),
                 itemBuilder: (context) => [
                   if (value.status == SessionStatus.preparing)
@@ -96,15 +112,18 @@ class _HostSessionManagementScreenState
               orElse: SizedBox.shrink,
             ),
           ],
-          bottom: TabBar(
-            tabs: [
-              Tab(text: l10n.hostManageCourts),
-              Tab(text: l10n.hostManageRoster),
-              Tab(text: l10n.hostManagePayments),
+          bottom: _HostManagementTabBar(
+            labels: [
+              l10n.hostManageOverview,
+              l10n.hostManageRoster,
+              l10n.hostManageCourts,
+              l10n.hostManageResults,
+              l10n.hostManagePayments,
             ],
           ),
         ),
         body: Stack(
+          fit: StackFit.expand,
           children: [
             session.when(
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -115,10 +134,28 @@ class _HostSessionManagementScreenState
                 ),
               ),
               data: (value) => TabBarView(
+                key: const Key('host-session-tab-view'),
                 children: [
-                  HostCourtsTab(session: value),
-                  HostRosterTab(session: value),
-                  HostPaymentLedgerTab(session: value),
+                  HostOverviewTab(
+                    key: const Key('host-tab-overview-content'),
+                    session: value,
+                  ),
+                  HostRosterTab(
+                    key: const Key('host-tab-roster-content'),
+                    session: value,
+                  ),
+                  HostCourtsTab(
+                    key: const Key('host-tab-courts-content'),
+                    session: value,
+                  ),
+                  HostResultsTab(
+                    key: const Key('host-tab-results-content'),
+                    session: value,
+                  ),
+                  HostPaymentLedgerTab(
+                    key: const Key('host-tab-payments-content'),
+                    session: value,
+                  ),
                 ],
               ),
             ),
@@ -170,11 +207,60 @@ class _HostSessionManagementScreenState
             .read(hostSessionManagementControllerProvider(session.id).notifier)
             .cancelSession();
         if (!cancelled || !mounted) return;
-        ref.invalidate(hostedSessionsProvider);
-        context.go(AppRoutes.home);
+        await ref
+            .read(
+              mySessionsControllerProvider(MySessionScope.hosted).notifier,
+            )
+            .refreshIfLoaded();
+        if (!mounted) return;
+        context.go(AppRoutes.browseSessions);
         return;
     }
   }
+}
+
+class _HostManagementTabBar extends StatelessWidget
+    implements PreferredSizeWidget {
+  const _HostManagementTabBar({required this.labels});
+
+  final List<String> labels;
+
+  @override
+  Size get preferredSize => const Size.fromHeight(49);
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final textScale = MediaQuery.textScalerOf(context).scale(1).clamp(1, 1.4);
+      final contentWidth = math
+          .max(
+            constraints.maxWidth,
+            340 * textScale,
+          )
+          .toDouble();
+      return SingleChildScrollView(
+        key: const Key('host-session-tabs-scroll'),
+        scrollDirection: Axis.horizontal,
+        child: SizedBox(
+          width: contentWidth,
+          child: TabBar(
+            key: const Key('host-session-tabs'),
+            labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+            tabs: [
+              for (var index = 0; index < labels.length; index++)
+                Tab(
+                  key: ValueKey('host-session-tab-$index'),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Text(labels[index], maxLines: 1),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
 }
 
 enum _SessionAction { edit, clone, cancel }

@@ -148,6 +148,38 @@ class NotificationController extends Notifier<NotificationState> {
     );
   }
 
+  Future<void> delete(String id) async {
+    // Find notification in current state
+    final index = state.items.indexWhere((item) => item.id == id);
+    if (index == -1) {
+      // Notification not found in state, skip
+      return;
+    }
+    final notification = state.items[index];
+
+    try {
+      await _service.delete(id);
+    } on ApiException catch (error) {
+      state = NotificationState(
+        items: state.items,
+        unreadCount: state.unreadCount,
+        page: state.page,
+        totalPages: state.totalPages,
+        error: error,
+      );
+      return;
+    }
+
+    state = NotificationState(
+      items: state.items.where((item) => item.id != id).toList(),
+      unreadCount: notification.isRead
+          ? state.unreadCount
+          : (state.unreadCount > 0 ? state.unreadCount - 1 : 0),
+      page: state.page,
+      totalPages: state.totalPages,
+    );
+  }
+
   void _add(Map<String, dynamic> payload) {
     final raw = payload['notification'] is Map
         ? Map<String, dynamic>.from(payload['notification'] as Map)

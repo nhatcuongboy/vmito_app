@@ -16,15 +16,6 @@ class HostSessionManagementController extends Notifier<AsyncValue<void>> {
   @override
   AsyncValue<void> build() => const AsyncValue.data(null);
 
-  Future<bool> selectPlayers(String courtId, List<String> playerIds) => _mutate(
-    () => ref
-        .read(sessionRepositoryProvider)
-        .selectPlayers(
-          courtId,
-          playerIds,
-        ),
-  );
-
   Future<bool> startSession() => _mutate(
     () => ref.read(sessionRepositoryProvider).startSession(sessionId),
   );
@@ -35,18 +26,6 @@ class HostSessionManagementController extends Notifier<AsyncValue<void>> {
 
   Future<bool> cancelSession() => _mutate(
     () => ref.read(sessionRepositoryProvider).cancel(sessionId),
-  );
-
-  Future<bool> deselectPlayers(String courtId) => _mutate(
-    () => ref.read(sessionRepositoryProvider).deselectPlayers(courtId),
-  );
-
-  Future<bool> startMatch(String courtId) => _mutate(
-    () => ref.read(sessionRepositoryProvider).startMatch(courtId),
-  );
-
-  Future<bool> endMatch(String courtId) => _mutate(
-    () => ref.read(sessionRepositoryProvider).endMatch(courtId),
   );
 
   Future<bool> updateRegistration(

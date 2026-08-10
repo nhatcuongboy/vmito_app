@@ -42,6 +42,7 @@ class SocialPost {
     this.originalPost,
     this.locationName,
     this.activityType,
+    this.metadata,
   });
 
   factory SocialPost.fromJson(Map<String, dynamic> json) {
@@ -71,6 +72,7 @@ class SocialPost {
       originalPost: original == null ? null : SocialPost.fromJson(original),
       locationName: location?['name'] as String?,
       activityType: json['activityType'] as String?,
+      metadata: json['metadata'] as Map<String, dynamic>?,
     );
   }
 
@@ -86,6 +88,8 @@ class SocialPost {
   final SocialPost? originalPost;
   final String? locationName;
   final String? activityType;
+  /// Raw metadata map from the API (session, club, tournament details).
+  final Map<String, dynamic>? metadata;
 
   SocialPost copyWith({
     int? likeCount,
@@ -105,6 +109,7 @@ class SocialPost {
     originalPost: originalPost,
     locationName: locationName,
     activityType: activityType,
+    metadata: metadata,
   );
 }
 
