@@ -85,7 +85,6 @@ class _VenueDetailState extends ConsumerState<_VenueDetail>
               ),
             ),
           SliverFillRemaining(
-            hasScrollBody: false,
             child: venue.images.isEmpty
                 ? _about(venue)
                 : TabBarView(
