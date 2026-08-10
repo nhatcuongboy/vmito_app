@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vmito_app/core/constants/image_constants.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -12,6 +13,7 @@ import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
+import 'package:vmito_app/shared/widgets/app_empty_filter_sheet.dart';
 
 class BrowseClubsScreen extends ConsumerStatefulWidget {
   const BrowseClubsScreen({
@@ -58,22 +60,20 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(clubsControllerProvider);
     final discoveryHeader = widget.discoveryHeader;
-    final headerCount = discoveryHeader == null ? 0 : 1;
-    final footerIndex = state.clubs.length + headerCount + 1;
-    final body = RefreshIndicator(
-      onRefresh: () =>
-          ref.read(clubsControllerProvider.notifier).load(search: state.search),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 720),
-          child: ListView.separated(
-            controller: _scroll,
-            padding: const EdgeInsets.all(AppSpacing.screenPadding),
-            itemCount: state.clubs.length + headerCount + 2,
-            separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
-            itemBuilder: (context, index) {
-              if (index == 0) {
-                return SearchBar(
+
+    final content = Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.sm,
+            AppSpacing.md,
+            AppSpacing.sm,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: SearchBar(
                   controller: _search,
                   hintText: 'Tìm câu lạc bộ',
                   leading: const Icon(AppIcons.search),
@@ -86,49 +86,76 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
                           .load(search: value),
                     );
                   },
-                );
-              }
-              if (index == 1 && discoveryHeader != null) {
-                return discoveryHeader;
-              }
-              if (index == footerIndex) {
-                if (state.isLoading && state.clubs.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.all(32),
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
-                if (state.error != null && state.clubs.isEmpty) {
-                  return AppErrorView(
-                    error: state.error!,
-                    onRetry: () => ref
-                        .read(clubsControllerProvider.notifier)
-                        .load(search: state.search),
-                  );
-                }
-                if (state.clubs.isEmpty) {
-                  return const Padding(
-                    padding: EdgeInsets.all(32),
-                    child: Center(child: Text('Không tìm thấy câu lạc bộ.')),
-                  );
-                }
-                return state.isLoading && state.clubs.isNotEmpty
-                    ? const Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Center(child: CircularProgressIndicator()),
-                      )
-                    : const SizedBox.shrink();
-              }
-              return _ClubBrowseCard(
-                club: state.clubs[index - headerCount - 1],
-              );
-            },
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              IconButton.filledTonal(
+                tooltip: 'Bộ lọc',
+                icon: const Icon(AppIcons.tune),
+                onPressed: () => AppEmptyFilterSheet.show(context),
+              ),
+            ],
           ),
         ),
-      ),
+        if (discoveryHeader != null) discoveryHeader,
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: () => ref
+                .read(clubsControllerProvider.notifier)
+                .load(search: state.search),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 720),
+                child: ListView.separated(
+                  controller: _scroll,
+                  padding: const EdgeInsets.all(AppSpacing.screenPadding),
+                  itemCount: state.clubs.length + 1,
+                  separatorBuilder: (_, _) =>
+                      const SizedBox(height: AppSpacing.md),
+                  itemBuilder: (context, index) {
+                    if (index == state.clubs.length) {
+                      if (state.isLoading && state.clubs.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.all(32),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+                      if (state.error != null && state.clubs.isEmpty) {
+                        return AppErrorView(
+                          error: state.error!,
+                          onRetry: () => ref
+                              .read(clubsControllerProvider.notifier)
+                              .load(search: state.search),
+                        );
+                      }
+                      if (state.clubs.isEmpty) {
+                        return const Padding(
+                          padding: EdgeInsets.all(32),
+                          child:
+                              Center(child: Text('Không tìm thấy câu lạc bộ.')),
+                        );
+                      }
+                      return state.isLoading && state.clubs.isNotEmpty
+                          ? const Padding(
+                              padding: EdgeInsets.all(16),
+                              child:
+                                  Center(child: CircularProgressIndicator()),
+                            )
+                          : const SizedBox.shrink();
+                    }
+                    return _ClubBrowseCard(
+                      club: state.clubs[index],
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
 
-    if (widget.embedded) return body;
+    if (widget.embedded) return content;
 
     return Scaffold(
       appBar: AppBar(
@@ -141,7 +168,7 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
           ),
         ],
       ),
-      body: body,
+      body: content,
     );
   }
 
@@ -197,10 +224,21 @@ class _ClubBrowseCard extends StatelessWidget {
                   CachedNetworkImage(
                     imageUrl: club.heroImage!,
                     fit: BoxFit.cover,
+                    errorWidget: (_, _, _) => CachedNetworkImage(
+                      imageUrl: kDefaultCoverPhoto,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, _, _) => ColoredBox(
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                      ),
+                    ),
                   )
                 else
-                  ColoredBox(
-                    color: Theme.of(context).colorScheme.primaryContainer,
+                  CachedNetworkImage(
+                    imageUrl: kDefaultCoverPhoto,
+                    fit: BoxFit.cover,
+                    errorWidget: (_, _, _) => ColoredBox(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                    ),
                   ),
                 Positioned(
                   top: 10,

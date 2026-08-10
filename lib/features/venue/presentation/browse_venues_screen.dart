@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vmito_app/core/constants/image_constants.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -14,6 +15,7 @@ import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/venue/application/venue_controller.dart';
 import 'package:vmito_app/features/venue/data/venue_service.dart';
 import 'package:vmito_app/features/venue/domain/venue.dart';
+import 'package:vmito_app/shared/widgets/app_empty_filter_sheet.dart';
 
 class BrowseVenuesScreen extends ConsumerStatefulWidget {
   const BrowseVenuesScreen({
@@ -159,72 +161,92 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
 
   Widget _body(VenueBrowseState state) {
     final discoveryHeader = widget.discoveryHeader;
-    final headerCount = discoveryHeader == null ? 0 : 1;
-    final footerIndex = state.venues.length + headerCount + 1;
 
-    return ListView.separated(
-      controller: _scroll,
-      padding: const EdgeInsets.all(AppSpacing.screenPadding),
-      itemCount: state.venues.length + headerCount + 2,
-      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
-      itemBuilder: (context, index) {
-        if (index == 0) {
-          return SearchBar(
-            controller: _search,
-            hintText: 'Tìm sân, địa chỉ',
-            leading: const Icon(AppIcons.search),
-            onChanged: (value) {
-              _debounce?.cancel();
-              _debounce = Timer(
-                const Duration(milliseconds: 400),
-                () => ref
-                    .read(venueBrowseControllerProvider.notifier)
-                    .load(
-                      filter: state.filter.copyWith(
-                        keyword: value,
-                        sortBy: value.isEmpty
-                            ? state.filter.sortBy
-                            : 'relevance',
-                      ),
-                    ),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.sm,
+            AppSpacing.md,
+            AppSpacing.sm,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: SearchBar(
+                  controller: _search,
+                  hintText: 'Tìm sân, địa chỉ',
+                  leading: const Icon(AppIcons.search),
+                  onChanged: (value) {
+                    _debounce?.cancel();
+                    _debounce = Timer(
+                      const Duration(milliseconds: 400),
+                      () => ref
+                          .read(venueBrowseControllerProvider.notifier)
+                          .load(
+                            filter: state.filter.copyWith(
+                              keyword: value,
+                              sortBy: value.isEmpty
+                                  ? state.filter.sortBy
+                                  : 'relevance',
+                            ),
+                          ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              IconButton.filledTonal(
+                tooltip: 'Bộ lọc',
+                icon: const Icon(AppIcons.tune),
+                onPressed: () => AppEmptyFilterSheet.show(context),
+              ),
+            ],
+          ),
+        ),
+        if (discoveryHeader != null) discoveryHeader,
+        Expanded(
+          child: ListView.separated(
+            controller: _scroll,
+            padding: const EdgeInsets.all(AppSpacing.screenPadding),
+            itemCount: state.venues.length + 1,
+            separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+            itemBuilder: (context, index) {
+              if (index == state.venues.length) {
+                if (state.isLoading && state.venues.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(32),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                if (state.error != null && state.venues.isEmpty) {
+                  return AppErrorView(
+                    error: state.error!,
+                    onRetry: () =>
+                        ref.read(venueBrowseControllerProvider.notifier).load(),
+                  );
+                }
+                if (state.venues.isEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.all(32),
+                    child: Center(child: Text('Không tìm thấy sân phù hợp.')),
+                  );
+                }
+                return state.isLoadingMore
+                    ? const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    : const SizedBox(height: 8);
+              }
+              return VenueCard(
+                venue: state.venues[index],
               );
             },
-          );
-        }
-        if (index == 1 && discoveryHeader != null) {
-          return discoveryHeader;
-        }
-        if (index == footerIndex) {
-          if (state.isLoading && state.venues.isEmpty) {
-            return const Padding(
-              padding: EdgeInsets.all(32),
-              child: Center(child: CircularProgressIndicator()),
-            );
-          }
-          if (state.error != null && state.venues.isEmpty) {
-            return AppErrorView(
-              error: state.error!,
-              onRetry: () =>
-                  ref.read(venueBrowseControllerProvider.notifier).load(),
-            );
-          }
-          if (state.venues.isEmpty) {
-            return const Padding(
-              padding: EdgeInsets.all(32),
-              child: Center(child: Text('Không tìm thấy sân phù hợp.')),
-            );
-          }
-          return state.isLoadingMore
-              ? const Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              : const SizedBox(height: 8);
-        }
-        return VenueCard(
-          venue: state.venues[index - headerCount - 1],
-        );
-      },
+          ),
+        ),
+      ],
     );
   }
 
@@ -476,9 +498,13 @@ class VenueCard extends StatelessWidget {
 class _VenueCover extends StatelessWidget {
   const _VenueCover();
   @override
-  Widget build(BuildContext context) => ColoredBox(
-    color: Theme.of(context).colorScheme.primaryContainer,
-    child: const Icon(AppIcons.sessions, size: 48),
+  Widget build(BuildContext context) => CachedNetworkImage(
+    imageUrl: kDefaultCoverPhoto,
+    fit: BoxFit.cover,
+    errorWidget: (_, _, _) => ColoredBox(
+      color: Theme.of(context).colorScheme.primaryContainer,
+      child: const Icon(AppIcons.sessions, size: 48),
+    ),
   );
 }
 

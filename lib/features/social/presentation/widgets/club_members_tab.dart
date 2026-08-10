@@ -19,6 +19,7 @@ class ClubMembersTab extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'club-members-add-fab-$clubId',
         onPressed: () => showDialog<void>(
           context: context,
           builder: (_) => _AddMemberDialog(clubId: clubId),

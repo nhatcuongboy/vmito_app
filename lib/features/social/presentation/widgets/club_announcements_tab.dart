@@ -19,6 +19,7 @@ class ClubAnnouncementsTab extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'club-announcements-create-fab-$clubId',
         onPressed: () => showAnnouncementDialog(context, ref, clubId: clubId),
         icon: const Icon(AppIcons.campaign),
         label: Text(l10n.clubAnnouncementCreate),

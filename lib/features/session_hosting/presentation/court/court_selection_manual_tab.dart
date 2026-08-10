@@ -37,61 +37,92 @@ class CourtSelectionManualTab extends ConsumerWidget {
     final visible = controller.visiblePlayers;
     final selectedIds = state.selectedIds.toSet();
 
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+    return Column(
       children: [
-        BadmintonCourtView(
-          court: court,
-          mode: CourtViewMode.selection,
-          matchType: state.matchType,
-          selection: seated,
-          activeSlot: state.activeSlot,
-          onSlotTap: controller.selectSlot,
-          overlays: [
-            // Warns while the host is still choosing, which is the only moment
-            // the warning can change anything.
-            CourtSelectionRepeatWarning(
-              sessionId: selectionKey.sessionId,
-              court: court,
-              seats: seated,
-              matchType: state.matchType,
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        MatchPairStats(seats: seated, matchType: state.matchType),
-        const SizedBox(height: AppSpacing.md),
-        PlayerSearchField(onChanged: controller.setSearch),
-        const SizedBox(height: AppSpacing.md),
-        Text(
-          l10n.courtAvailablePlayers,
-          style: theme.textTheme.labelLarge?.copyWith(
-            color: palette.mutedForeground,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        if (visible.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-            child: Text(
-              // Two different empty states: nobody is waiting at all, versus
-              // the search matched nothing.
-              controller.waitingPlayers.isEmpty
-                  ? l10n.courtNoPlayersWaiting
-                  : l10n.courtNoPlayersFound,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: palette.mutedForeground,
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              BadmintonCourtView(
+                court: court,
+                mode: CourtViewMode.selection,
+                matchType: state.matchType,
+                selection: seated,
+                activeSlot: state.activeSlot,
+                onSlotTap: controller.selectSlot,
+                overlays: [
+                  // Warns while the host is still choosing, which is the only
+                  // moment the warning can change anything.
+                  CourtSelectionRepeatWarning(
+                    sessionId: selectionKey.sessionId,
+                    court: court,
+                    seats: seated,
+                    matchType: state.matchType,
+                  ),
+                ],
               ),
-            ),
-          )
-        else
-          PlayerSelectGrid(
-            players: visible,
-            selectedIds: selectedIds,
-            onPlayerTap: (player) => controller.togglePlayer(player.id),
+              const SizedBox(height: AppSpacing.sm),
+              MatchPairStats(seats: seated, matchType: state.matchType),
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                children: [
+                  Text(
+                    l10n.courtAvailablePlayers,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: palette.mutedForeground,
+                    ),
+                  ),
+                  const Spacer(),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 150),
+                    child: PlayerSearchField(
+                      onChanged: controller.setSearch,
+                      compact: true,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+            ],
           ),
-        const SizedBox(height: AppSpacing.md),
+        ),
+        // Only this part scrolls: the court preview stays put, so the host
+        // never loses sight of the seats they are filling.
+        Expanded(
+          child: visible.isEmpty
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.lg,
+                    ),
+                    child: Text(
+                      // Two different empty states: nobody is waiting at all,
+                      // versus the search matched nothing.
+                      controller.waitingPlayers.isEmpty
+                          ? l10n.courtNoPlayersWaiting
+                          : l10n.courtNoPlayersFound,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: palette.mutedForeground,
+                      ),
+                    ),
+                  ),
+                )
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    0,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                  ),
+                  child: PlayerSelectGrid(
+                    players: visible,
+                    selectedIds: selectedIds,
+                    onPlayerTap: (player) => controller.togglePlayer(player.id),
+                  ),
+                ),
+        ),
       ],
     );
   }

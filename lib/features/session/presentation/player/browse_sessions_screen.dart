@@ -259,6 +259,7 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
         height: 40,
         child: FloatingActionButton.extended(
           key: const Key('my-sessions-create-fab'),
+          heroTag: 'my-sessions-create-session-fab',
           isExtended: _isFabExtended,
           onPressed: () => context.push(AppRoutes.createSession),
           backgroundColor: Theme.of(context).colorScheme.primary,
@@ -348,7 +349,9 @@ class _FilterBottomSheet extends StatelessWidget {
                 title: Text(
                   label,
                   style: TextStyle(
-                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                    fontWeight: isSelected
+                        ? FontWeight.bold
+                        : FontWeight.normal,
                     color: isSelected
                         ? Theme.of(context).colorScheme.primary
                         : null,

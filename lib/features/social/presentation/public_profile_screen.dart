@@ -1,10 +1,15 @@
 import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:vmito_app/core/config/app_config.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/shell/app_shell_scaffold_key.dart';
+import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
@@ -18,7 +23,10 @@ import 'package:vmito_app/features/social/domain/club.dart';
 import 'package:vmito_app/features/social/domain/profile_tabs.dart';
 import 'package:vmito_app/features/social/domain/public_profile.dart';
 import 'package:vmito_app/features/social/domain/social_post.dart';
+import 'package:vmito_app/features/social/presentation/widgets/profile_collapsing_header.dart';
+import 'package:vmito_app/features/social/presentation/widgets/profile_header_geometry.dart';
 import 'package:vmito_app/features/social/presentation/widgets/social_post_card.dart';
+import 'package:vmito_app/l10n/app_localizations.dart';
 
 const _publicTabs = [
   'Bài viết',
@@ -33,16 +41,25 @@ List<String> publicProfileTabLabels({required bool isOwner}) => [
 ];
 
 class PublicProfileScreen extends ConsumerWidget {
-  const PublicProfileScreen({required this.userId, super.key});
+  const PublicProfileScreen({
+    required this.userId,
+    this.isRootProfile = false,
+    super.key,
+  });
+
   final String userId;
+  final bool isRootProfile;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final bundle = ref.watch(publicProfileProvider(userId));
     return Scaffold(
-      appBar: AppBar(title: const Text('Hồ sơ')),
       body: bundle.when(
-        data: (data) => _ProfileTabs(userId: userId, bundle: data),
+        data: (data) => _ProfileTabs(
+          userId: userId,
+          bundle: data,
+          isRootProfile: isRootProfile,
+        ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, _) => AppErrorView(
           error: error,
@@ -54,9 +71,15 @@ class PublicProfileScreen extends ConsumerWidget {
 }
 
 class _ProfileTabs extends ConsumerStatefulWidget {
-  const _ProfileTabs({required this.userId, required this.bundle});
+  const _ProfileTabs({
+    required this.userId,
+    required this.bundle,
+    required this.isRootProfile,
+  });
+
   final String userId;
   final PublicProfileBundle bundle;
+  final bool isRootProfile;
 
   @override
   ConsumerState<_ProfileTabs> createState() => _ProfileTabsState();
@@ -66,6 +89,11 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
     with TickerProviderStateMixin {
   late TabController _controller;
   late bool _owner;
+  final _outerScrollController = ScrollController();
+  final _scrollOffset = ValueNotifier<double>(0);
+  var _screenWidth = 375.0;
+  var _usesCompactSystemOverlay = false;
+  var _loadedTabs = <int>{0};
 
   @override
   void initState() {
@@ -75,9 +103,27 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
       length: publicProfileTabLabels(isOwner: _owner).length,
       vsync: this,
     );
+    _controller.addListener(_loadSelectedTab);
+    _outerScrollController.addListener(_handleOuterScroll);
+  }
+
+  void _handleOuterScroll() {
+    final offset = _outerScrollController.offset;
+    _scrollOffset.value = offset;
+    final usesCompactOverlay =
+        ProfileHeaderGeometry.collapseProgress(offset, _screenWidth) >= .85;
+    if (usesCompactOverlay != _usesCompactSystemOverlay && mounted) {
+      setState(() => _usesCompactSystemOverlay = usesCompactOverlay);
+    }
   }
 
   bool get _isOwner => ref.read(currentUserProvider)?.id == widget.userId;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _screenWidth = MediaQuery.sizeOf(context).width;
+  }
 
   @override
   void didUpdateWidget(covariant _ProfileTabs oldWidget) {
@@ -95,11 +141,26 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
           publicProfileTabLabels(isOwner: _owner).length - 1,
         ),
       );
+      _loadedTabs = _loadedTabs
+          .where((index) => index < _controller.length)
+          .toSet();
+      _controller.addListener(_loadSelectedTab);
+    }
+  }
+
+  void _loadSelectedTab() {
+    final index = _controller.index;
+    if (!_loadedTabs.contains(index)) {
+      setState(() => _loadedTabs = {..._loadedTabs, index});
     }
   }
 
   @override
   void dispose() {
+    _outerScrollController
+      ..removeListener(_handleOuterScroll)
+      ..dispose();
+    _scrollOffset.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -107,143 +168,327 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
   @override
   Widget build(BuildContext context) {
     final labels = publicProfileTabLabels(isOwner: _owner);
-    return LayoutBuilder(
-      builder: (context, _) => Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 840),
-          child: Column(
-            children: [
-              _ProfileHeader(
+    final safeAreaTop = MediaQuery.paddingOf(context).top;
+    return Stack(
+      children: [
+        NestedScrollView(
+          controller: _outerScrollController,
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
+          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+            ProfileCollapsingHeader(
+              profile: widget.bundle.profile,
+              scrollOffset: _scrollOffset,
+              isRootProfile: widget.isRootProfile,
+              isOwner: _owner,
+              usesCompactSystemOverlay: _usesCompactSystemOverlay,
+              menuTooltip: AppLocalizations.of(context).menuOpenTooltip,
+              shareTooltip: AppLocalizations.of(context).commonShare,
+              settingsTooltip: AppLocalizations.of(context).settingsTitle,
+              onMenuTap: () => ref
+                  .read(appShellScaffoldKeyProvider)
+                  .currentState
+                  ?.openDrawer(),
+              onShare: () => SharePlus.instance.share(
+                ShareParams(
+                  text: '${AppConfig.webBaseUrl}/user/${widget.userId}',
+                ),
+              ),
+              onSettings: () => context.pushNamed(AppRoutes.nameSettings),
+            ),
+            SliverToBoxAdapter(
+              child: _ProfileHeader(
                 profile: widget.bundle.profile,
                 bundle: widget.bundle,
+                scrollOffset: _scrollOffset,
+                isOwner: _owner,
+                onEdit: () => context.pushNamed(AppRoutes.nameSettings),
+                onSelectTab: _controller.animateTo,
               ),
-              Material(
-                color: Theme.of(context).scaffoldBackgroundColor,
-                child: TabBar(
-                  controller: _controller,
-                  isScrollable: true,
-                  tabAlignment: TabAlignment.start,
-                  tabs: [for (final label in labels) Tab(text: label)],
+            ),
+            SliverPersistentHeader(
+              pinned: true,
+              delegate: _ProfileTabBarDelegate(
+                child: Material(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  child: TabBar(
+                    controller: _controller,
+                    isScrollable: true,
+                    tabAlignment: TabAlignment.start,
+                    tabs: [for (final label in labels) Tab(text: label)],
+                  ),
+                ),
+              ),
+            ),
+          ],
+          body: TabBarView(
+            controller: _controller,
+            children: [
+              _lazyTab(0, () => _PostsTab(userId: widget.userId)),
+              _lazyTab(1, () => _AchievementsTab(userId: widget.userId)),
+              _lazyTab(2, () => _HostedTab(userId: widget.userId)),
+              _lazyTab(
+                3,
+                () => _ClubsTab(userId: widget.userId, owner: _owner),
+              ),
+              _lazyTab(4, () => _ReviewsTab(bundle: widget.bundle)),
+              if (_owner)
+                _lazyTab(5, () => _FavoritesTab(userId: widget.userId)),
+            ],
+          ),
+        ),
+        _OverlayAvatar(
+          profile: widget.bundle.profile,
+          scrollOffset: _scrollOffset,
+          screenWidth: _screenWidth,
+          safeAreaTop: safeAreaTop,
+        ),
+      ],
+    );
+  }
+
+  Widget _lazyTab(int index, Widget Function() builder) =>
+      _loadedTabs.contains(index)
+      ? builder()
+      : const Center(child: CircularProgressIndicator());
+}
+
+/// Renders the large avatar in a screen-level overlay, not inside either
+/// sliver — a `SliverAppBar` clips its own flexibleSpace, and content from the
+/// following sliver paints underneath a pinned one, so 50% overlap onto the
+/// cover is only reliable outside both.
+class _OverlayAvatar extends StatelessWidget {
+  const _OverlayAvatar({
+    required this.profile,
+    required this.scrollOffset,
+    required this.screenWidth,
+    required this.safeAreaTop,
+  });
+
+  final PublicProfile profile;
+  final ValueListenable<double> scrollOffset;
+  final double screenWidth;
+  final double safeAreaTop;
+
+  static const _radius = 44.0;
+
+  @override
+  Widget build(BuildContext context) => ValueListenableBuilder<double>(
+    valueListenable: scrollOffset,
+    builder: (context, offset, _) {
+      final opacity = ProfileHeaderGeometry.expandedIdentityOpacity(
+        offset,
+        screenWidth,
+      );
+      if (opacity == 0) return const SizedBox.shrink();
+      final coverBottom =
+          safeAreaTop +
+          ProfileHeaderGeometry.visibleHeight(offset, screenWidth);
+      return Positioned(
+        top: coverBottom - _radius,
+        left: 0,
+        right: 0,
+        child: Center(
+          child: Opacity(
+            key: const ValueKey('profile-expanded-avatar'),
+            opacity: opacity,
+            child: Transform.scale(
+              scale: .85 + (.15 * opacity),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.surface,
+                    width: 4,
+                  ),
+                ),
+                child: ProfileAvatar(
+                  profile: profile,
+                  radius: _radius,
+                  iconSize: _radius,
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    },
+  );
+}
+
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader({
+    required this.profile,
+    required this.bundle,
+    required this.scrollOffset,
+    required this.isOwner,
+    required this.onEdit,
+    required this.onSelectTab,
+  });
+
+  final PublicProfile profile;
+  final PublicProfileBundle bundle;
+  final ValueListenable<double> scrollOffset;
+  final bool isOwner;
+  final VoidCallback onEdit;
+  final ValueChanged<int> onSelectTab;
+
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        0,
+        AppSpacing.md,
+        AppSpacing.md,
+      ),
+      child: Column(
+        children: [
+          SizedBox(
+            height: 56,
+            child: isOwner
+                ? Align(
+                    alignment: Alignment.topRight,
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.sm),
+                      child: SizedBox(
+                        width: 92,
+                        child: OutlinedButton.icon(
+                          key: const ValueKey('profile-edit-button'),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(0, AppSizes.minTapTarget),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.xs,
+                            ),
+                            textStyle: Theme.of(context).textTheme.labelMedium,
+                          ),
+                          onPressed: onEdit,
+                          icon: const Icon(AppIcons.edit, size: 14),
+                          label: Text(
+                            AppLocalizations.of(context).profileEditAction,
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                : null,
+          ),
+          ValueListenableBuilder<double>(
+            valueListenable: scrollOffset,
+            builder: (context, offset, _) => Opacity(
+              key: const ValueKey('profile-expanded-name'),
+              opacity: ProfileHeaderGeometry.expandedIdentityOpacity(
+                offset,
+                screenWidth,
+              ),
+              child: Text(
+                profile.name,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+            ),
+          ),
+          if (profile.createdAt != null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              AppLocalizations.of(context).profileJoinedOn(
+                Dates.dateOnly(
+                  profile.createdAt!,
+                  locale: Localizations.localeOf(context).languageCode,
+                ),
+              ),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Theme.of(
+                  context,
+                ).extension<AppPalette>()!.mutedForeground,
+              ),
+            ),
+          ],
+          if (profile.levelDescription != null) ...[
+            const SizedBox(height: AppSpacing.xs),
+            Chip(label: Text(profile.levelDescription!)),
+          ],
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              Expanded(
+                child: _Stat(
+                  value: '${bundle.hostedSessionsCount}',
+                  label: 'Kèo đã host',
+                  onTap: () => onSelectTab(2),
                 ),
               ),
               Expanded(
-                child: TabBarView(
-                  controller: _controller,
-                  children: [
-                    _PostsTab(userId: widget.userId),
-                    _AchievementsTab(userId: widget.userId),
-                    _HostedTab(userId: widget.userId),
-                    _ClubsTab(userId: widget.userId, owner: _owner),
-                    _ReviewsTab(bundle: widget.bundle),
-                    if (_owner) const _FavoritesTab(),
-                  ],
+                child: _Stat(
+                  value: '${profile.joinedSessionsCount}',
+                  label: 'Kèo tham gia',
+                  onTap: () => onSelectTab(2),
+                ),
+              ),
+              Expanded(
+                child: _Stat(
+                  value: bundle.stats.average.toStringAsFixed(1),
+                  label: 'Đánh giá',
+                  onTap: () => onSelectTab(4),
                 ),
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
 }
 
-class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader({required this.profile, required this.bundle});
-  final PublicProfile profile;
-  final PublicProfileBundle bundle;
+class _Stat extends StatelessWidget {
+  const _Stat({required this.value, required this.label, required this.onTap});
+
+  final String value;
+  final String label;
+  final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(bottom: AppSpacing.md),
-    child: Column(
-      children: [
-        SizedBox(
-          height: 190,
-          child: Stack(
-            fit: StackFit.expand,
-            children: [
-              if (profile.coverPhoto != null)
-                CachedNetworkImage(
-                  imageUrl: profile.coverPhoto!,
-                  fit: BoxFit.cover,
-                )
-              else
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        Theme.of(context).colorScheme.primaryContainer,
-                        Theme.of(context).colorScheme.secondaryContainer,
-                      ],
-                    ),
-                  ),
-                ),
-              Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: CircleAvatar(
-                    radius: 48,
-                    backgroundImage: profile.image == null
-                        ? null
-                        : CachedNetworkImageProvider(profile.image!),
-                    child: profile.image == null
-                        ? const Icon(AppIcons.profile, size: 48)
-                        : null,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
-          child: Column(
-            children: [
-              Text(
-                profile.name,
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 6),
-              Wrap(
-                spacing: 8,
-                children: [
-                  Chip(label: Text(profile.role)),
-                  if (profile.levelDescription != null)
-                    Chip(label: Text(profile.levelDescription!)),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  _Stat('${profile.joinedSessionsCount}', 'Kèo tham gia'),
-                  _Stat(
-                    bundle.stats.average.toStringAsFixed(1),
-                    'Điểm đánh giá',
-                  ),
-                  _Stat('${bundle.stats.total}', 'Đánh giá'),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ],
+  Widget build(BuildContext context) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(AppRadius.md),
+    child: SizedBox(
+      height: AppSizes.minTapTarget + AppSpacing.md,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(value, style: Theme.of(context).textTheme.titleLarge),
+          Text(label, style: Theme.of(context).textTheme.bodySmall),
+        ],
+      ),
     ),
   );
 }
 
-class _Stat extends StatelessWidget {
-  const _Stat(this.value, this.label);
-  final String value;
-  final String label;
+class _ProfileTabBarDelegate extends SliverPersistentHeaderDelegate {
+  const _ProfileTabBarDelegate({required this.child});
+
+  final Widget child;
+
   @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      Text(value, style: Theme.of(context).textTheme.titleLarge),
-      Text(label, style: Theme.of(context).textTheme.bodySmall),
-    ],
-  );
+  double get minExtent => kTextTabBarHeight;
+
+  @override
+  double get maxExtent => kTextTabBarHeight;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) => child;
+
+  @override
+  bool shouldRebuild(_ProfileTabBarDelegate oldDelegate) =>
+      child != oldDelegate.child;
 }
 
 class _Empty extends StatelessWidget {
@@ -266,7 +511,6 @@ class _PostsTab extends ConsumerStatefulWidget {
 }
 
 class _PostsTabState extends ConsumerState<_PostsTab> {
-  final _scroll = ScrollController();
   var _page = 1;
   var _more = true;
   var _loadingMore = false;
@@ -276,13 +520,6 @@ class _PostsTabState extends ConsumerState<_PostsTab> {
   void initState() {
     super.initState();
     _future = _refresh();
-    _scroll.addListener(_next);
-  }
-
-  @override
-  void dispose() {
-    _scroll.dispose();
-    super.dispose();
   }
 
   Future<void> _refresh() async {
@@ -294,10 +531,20 @@ class _PostsTabState extends ConsumerState<_PostsTab> {
     _more = result.hasMore;
   }
 
-  void _next() {
-    if (_scroll.position.extentAfter < 300 && _more && !_loadingMore) {
+  Future<void> _reload() async {
+    final future = _refresh();
+    setState(() => _future = future);
+    await future;
+  }
+
+  bool _handleScroll(ScrollNotification notification) {
+    if (notification.metrics.axis == Axis.vertical &&
+        notification.metrics.extentAfter < 300 &&
+        _more &&
+        !_loadingMore) {
       unawaited(_loadMore());
     }
+    return false;
   }
 
   Future<void> _loadMore() async {
@@ -329,29 +576,38 @@ class _PostsTabState extends ConsumerState<_PostsTab> {
           onRetry: () => setState(() => _future = _refresh()),
         );
       }
-      if (!snapshot.hasData) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
         return const Center(child: CircularProgressIndicator());
       }
-      if (_posts.isEmpty) return const _Empty('Chưa có bài viết.');
-      return RefreshIndicator(
-        onRefresh: () async => setState(() => _future = _refresh()),
-        child: ListView.separated(
-          controller: _scroll,
-          padding: const EdgeInsets.all(AppSpacing.screenPadding),
-          itemCount: _posts.length + (_loadingMore ? 1 : 0),
-          separatorBuilder: (_, _) => const SizedBox(height: 12),
-          itemBuilder: (context, index) => index == _posts.length
-              ? const Center(
+      return NotificationListener<ScrollNotification>(
+        onNotification: _handleScroll,
+        child: RefreshIndicator(
+          onRefresh: _reload,
+          child: ListView.separated(
+            key: PageStorageKey('profile-posts-${widget.userId}'),
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(AppSpacing.screenPadding),
+            itemCount: _posts.isEmpty
+                ? 1
+                : _posts.length + (_loadingMore ? 1 : 0),
+            separatorBuilder: (_, _) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              if (_posts.isEmpty) return const _Empty('Chưa có bài viết.');
+              if (index == _posts.length) {
+                return const Center(
                   child: Padding(
                     padding: EdgeInsets.all(16),
                     child: CircularProgressIndicator(),
                   ),
-                )
-              : SocialPostCard(
-                  post: _posts[index],
-                  onOpen: () =>
-                      context.push(AppRoutes.socialPost(_posts[index].id)),
-                ),
+                );
+              }
+              return SocialPostCard(
+                post: _posts[index],
+                onOpen: () =>
+                    context.push(AppRoutes.socialPost(_posts[index].id)),
+              );
+            },
+          ),
         ),
       );
     },
@@ -399,6 +655,8 @@ class _AchievementsTabState extends ConsumerState<_AchievementsTab> {
               .achievements(widget.userId),
         ),
         child: ListView(
+          key: PageStorageKey('profile-achievements-${widget.userId}'),
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(AppSpacing.screenPadding),
           children: [
             Card(
@@ -558,6 +816,10 @@ class _HostedTabState extends ConsumerState<_HostedTab> {
               return const _Empty('Không có kèo đã host.');
             }
             return ListView.separated(
+              key: PageStorageKey(
+                'profile-hosted-${widget.userId}-$_filter',
+              ),
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(AppSpacing.screenPadding),
               itemCount: snapshot.data!.length,
               separatorBuilder: (_, _) => const SizedBox(height: 12),
@@ -614,7 +876,6 @@ class _ClubsTabState extends ConsumerState<_ClubsTab> {
       final all = snapshot.data!;
       final hosted = all.where((club) => club.hostId == widget.userId).toList();
       final member = all.where((club) => club.hostId != widget.userId).toList();
-      if (all.isEmpty) return const _Empty('Chưa tham gia nhóm nào.');
       return RefreshIndicator(
         onRefresh: () async => setState(
           () => _future = ref
@@ -622,8 +883,11 @@ class _ClubsTabState extends ConsumerState<_ClubsTab> {
               .clubs(widget.userId),
         ),
         child: ListView(
+          key: PageStorageKey('profile-clubs-${widget.userId}'),
+          physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(AppSpacing.screenPadding),
           children: [
+            if (all.isEmpty) const _Empty('Chưa tham gia nhóm nào.'),
             if (hosted.isNotEmpty || widget.owner)
               _clubGroup(context, 'Nhóm đã host', hosted),
             if (widget.owner && member.isNotEmpty)
@@ -660,9 +924,7 @@ Widget _clubGroup(
               backgroundImage: club.logo == null
                   ? null
                   : CachedNetworkImageProvider(club.logo!),
-              child: club.logo == null
-                  ? const Icon(AppIcons.clubs)
-                  : null,
+              child: club.logo == null ? const Icon(AppIcons.clubs) : null,
             ),
             title: Text(club.name),
             subtitle: Text('${club.memberCount} thành viên'),
@@ -680,6 +942,8 @@ class _ReviewsTab extends StatelessWidget {
   final PublicProfileBundle bundle;
   @override
   Widget build(BuildContext context) => ListView(
+    key: PageStorageKey('profile-reviews-${bundle.profile.id}'),
+    physics: const AlwaysScrollableScrollPhysics(),
     padding: const EdgeInsets.all(AppSpacing.screenPadding),
     children: [
       Card(
@@ -727,7 +991,8 @@ class _ReviewsTab extends StatelessWidget {
 }
 
 class _FavoritesTab extends ConsumerStatefulWidget {
-  const _FavoritesTab();
+  const _FavoritesTab({required this.userId});
+  final String userId;
   @override
   ConsumerState<_FavoritesTab> createState() => _FavoritesTabState();
 }
@@ -779,6 +1044,10 @@ class _FavoritesTabState extends ConsumerState<_FavoritesTab> {
               return const _Empty('Chưa có mục yêu thích.');
             }
             return ListView.separated(
+              key: PageStorageKey(
+                'profile-favorites-${widget.userId}-$_type',
+              ),
+              physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(AppSpacing.screenPadding),
               itemCount: snapshot.data!.length,
               separatorBuilder: (_, _) => const Divider(),

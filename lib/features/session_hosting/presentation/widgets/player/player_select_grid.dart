@@ -8,8 +8,8 @@ import 'package:vmito_app/shared/models/session_player.dart';
 /// Serves both the assign sheet and the waiting list at the bottom of the
 /// courts tab — the second is the same grid with nothing selectable.
 ///
-/// Not scrollable itself: callers embed it in their own scroll view, so the
-/// sheet can scroll the court and the list together.
+/// Not scrollable itself: callers embed it in their own scroll view — the
+/// assign sheet scrolls just this grid, keeping the court preview fixed.
 class PlayerSelectGrid extends StatelessWidget {
   const PlayerSelectGrid({
     required this.players,
@@ -37,7 +37,7 @@ class PlayerSelectGrid extends StatelessWidget {
             crossAxisCount: columns,
             crossAxisSpacing: AppSpacing.sm,
             mainAxisSpacing: AppSpacing.sm,
-            mainAxisExtent: 96,
+            mainAxisExtent: 100,
           ),
           itemCount: players.length,
           itemBuilder: (context, index) {

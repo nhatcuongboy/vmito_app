@@ -90,7 +90,14 @@ class BadmintonCourtView extends StatelessWidget {
                       CourtSlotLayout.visualIndexOf(seat, direction, format),
                       format,
                     ),
-                    child: _seatChild(context, seat, seats[seat]),
+                    child: _seatChild(
+                      context,
+                      seat,
+                      seats[seat],
+                      CourtSlotLayout.pairNumberFor(
+                        CourtSlotLayout.visualIndexOf(seat, direction, format),
+                      ),
+                    ),
                   ),
                 ...overlays,
               ],
@@ -101,7 +108,12 @@ class BadmintonCourtView extends StatelessWidget {
     );
   }
 
-  Widget _seatChild(BuildContext context, int seat, SessionPlayer? player) {
+  Widget _seatChild(
+    BuildContext context,
+    int seat,
+    SessionPlayer? player,
+    int pairNumber,
+  ) {
     if (player == null) {
       // Only selection mode draws empty seats; elsewhere a gap is just a gap.
       if (!mode.isSelection) return const SizedBox.shrink();
@@ -121,6 +133,7 @@ class BadmintonCourtView extends StatelessWidget {
         player: player,
         mode: mode,
         displayMode: displayMode,
+        pairNumber: pairNumber,
         isActive: mode.isSelection && seat == activeSlot,
         // Tapping a filled seat in selection mode clears it and makes it the
         // active one, so a mis-tap is one tap to fix.

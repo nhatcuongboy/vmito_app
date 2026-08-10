@@ -86,7 +86,7 @@ class CourtSurfacePainter extends CustomPainter {
   Color get _background => switch (status) {
     CourtStatus.inUse => courtColor ?? const Color(0xff16834c),
     CourtStatus.ready => const Color(0xffc59318),
-    CourtStatus.empty => const Color(0xff667085),
+    CourtStatus.empty => const Color(0xffe6e6e6),
   };
 
   @override

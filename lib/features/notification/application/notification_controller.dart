@@ -43,6 +43,24 @@ class NotificationController extends Notifier<NotificationState> {
 
   NotificationService get _service => ref.read(notificationServiceProvider);
 
+  Future<void> refreshUnreadCount() async {
+    if (ref.read(currentUserProvider) == null) return;
+    try {
+      final unreadCount = await _service.unreadCount();
+      state = NotificationState(
+        items: state.items,
+        unreadCount: unreadCount,
+        page: state.page,
+        totalPages: state.totalPages,
+        isLoading: state.isLoading,
+        isLoadingMore: state.isLoadingMore,
+        error: state.error,
+      );
+    } on ApiException {
+      // A badge failure must not prevent the profile or home header rendering.
+    }
+  }
+
   Future<void> load() async {
     final user = ref.read(currentUserProvider);
     if (user == null) return;

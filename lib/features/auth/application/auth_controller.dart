@@ -15,6 +15,8 @@ import 'package:vmito_app/features/auth/domain/user.dart';
 /// this is the mobile equivalent of the web app's `isHydrated` flag.
 enum AuthStatus { unknown, authenticated, guest, unauthenticated }
 
+const developmentBypassUserId = 'development-bypass-user';
+
 class AuthState {
   const AuthState({this.status = AuthStatus.unknown, this.user});
 
@@ -58,7 +60,7 @@ class AuthController extends Notifier<AuthState> {
       state = const AuthState(
         status: AuthStatus.authenticated,
         user: User(
-          id: 'development-bypass-user',
+          id: developmentBypassUserId,
           email: 'developer@vmito.local',
           name: 'Development User',
           role: UserRole.admin,

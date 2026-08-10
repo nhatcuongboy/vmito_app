@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/shell/app_shell_scaffold_key.dart';
@@ -19,13 +20,48 @@ import 'package:vmito_app/l10n/app_localizations.dart';
 /// Also owns the [SlideOutMenu] drawer. Tab screens build their own nested
 /// `Scaffold`s, so they open it through [appShellScaffoldKeyProvider] rather
 /// than `Scaffold.of(context)`, which would resolve to their own Scaffold.
-class AppShell extends ConsumerWidget {
+class AppShell extends ConsumerStatefulWidget {
   const AppShell({required this.navigationShell, super.key});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AppShell> createState() => _AppShellState();
+}
+
+class _AppShellState extends ConsumerState<AppShell> {
+  // Any tab's list scrolling down hides the bar, matching Instagram/TikTok —
+  // a fresh tab always starts with it visible.
+  bool _navBarVisible = true;
+
+  @override
+  void didUpdateWidget(covariant AppShell oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.navigationShell.currentIndex !=
+        widget.navigationShell.currentIndex) {
+      setState(() => _navBarVisible = true);
+    }
+  }
+
+  bool _handleScrollNotification(ScrollNotification notification) {
+    // Swiping a horizontal PageView/TabBarView is not "scrolling the page".
+    if (notification.metrics.axis != Axis.vertical) return false;
+
+    if (notification is UserScrollNotification) {
+      switch (notification.direction) {
+        case ScrollDirection.reverse:
+          if (_navBarVisible) setState(() => _navBarVisible = false);
+        case ScrollDirection.forward:
+          if (!_navBarVisible) setState(() => _navBarVisible = true);
+        case ScrollDirection.idle:
+          break;
+      }
+    }
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final palette = Theme.of(context).extension<AppPalette>()!;
 
@@ -33,41 +69,52 @@ class AppShell extends ConsumerWidget {
       key: ref.watch(appShellScaffoldKeyProvider),
       drawer: const SlideOutMenu(),
       drawerScrimColor: Colors.black.withValues(alpha: 0.6),
-      body: navigationShell,
-      bottomNavigationBar: DecoratedBox(
-        decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: palette.border)),
-        ),
-        child: NavigationBar(
-          selectedIndex: navigationShell.currentIndex,
-          onDestinationSelected: _onDestinationSelected,
-          destinations: [
-            NavigationDestination(
-              icon: const Icon(AppIcons.home),
-              selectedIcon: const Icon(AppIcons.home),
-              label: l10n.navHome,
+      body: NotificationListener<ScrollNotification>(
+        onNotification: _handleScrollNotification,
+        child: widget.navigationShell,
+      ),
+      bottomNavigationBar: ClipRect(
+        child: AnimatedAlign(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          alignment: Alignment.topCenter,
+          heightFactor: _navBarVisible ? 1 : 0,
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border(top: BorderSide(color: palette.border)),
             ),
-            NavigationDestination(
-              icon: const Icon(AppIcons.sessions),
-              selectedIcon: const Icon(AppIcons.sessions),
-              label: l10n.navSessions,
+            child: NavigationBar(
+              selectedIndex: widget.navigationShell.currentIndex,
+              onDestinationSelected: _onDestinationSelected,
+              destinations: [
+                NavigationDestination(
+                  icon: const Icon(AppIcons.home),
+                  selectedIcon: const Icon(AppIcons.home),
+                  label: l10n.navHome,
+                ),
+                NavigationDestination(
+                  icon: const Icon(AppIcons.sessions),
+                  selectedIcon: const Icon(AppIcons.sessions),
+                  label: l10n.navSessions,
+                ),
+                NavigationDestination(
+                  icon: const Icon(AppIcons.feed),
+                  selectedIcon: const Icon(AppIcons.feed),
+                  label: l10n.navFeed,
+                ),
+                NavigationDestination(
+                  icon: const Icon(AppIcons.notifications),
+                  selectedIcon: const Icon(AppIcons.notifications),
+                  label: l10n.navNotifications,
+                ),
+                NavigationDestination(
+                  icon: const Icon(AppIcons.profile),
+                  selectedIcon: const Icon(AppIcons.profile),
+                  label: l10n.navProfile,
+                ),
+              ],
             ),
-            NavigationDestination(
-              icon: const Icon(AppIcons.feed),
-              selectedIcon: const Icon(AppIcons.feed),
-              label: l10n.navFeed,
-            ),
-            NavigationDestination(
-              icon: const Icon(AppIcons.notifications),
-              selectedIcon: const Icon(AppIcons.notifications),
-              label: l10n.navNotifications,
-            ),
-            NavigationDestination(
-              icon: const Icon(AppIcons.profile),
-              selectedIcon: const Icon(AppIcons.profile),
-              label: l10n.navProfile,
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -77,9 +124,9 @@ class AppShell extends ConsumerWidget {
     // `initialLocation: true` when re-tapping the current tab pops it back to
     // its root — the behaviour every native app has, and the only way out of a
     // deep stack without hunting for the back button.
-    navigationShell.goBranch(
+    widget.navigationShell.goBranch(
       index,
-      initialLocation: index == navigationShell.currentIndex,
+      initialLocation: index == widget.navigationShell.currentIndex,
     );
   }
 }

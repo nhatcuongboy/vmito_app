@@ -116,32 +116,65 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           },
         ),
       ),
-      floatingActionButton:
-          (isAuthenticated && _selectedTab == HomeDiscoveryTab.sessions)
-              ? SizedBox(
-                  height: 40,
-                  child: FloatingActionButton.extended(
-                    key: const Key('home-create-session-fab'),
-                    isExtended: _isFabExtended,
-                    onPressed: () => context.push(AppRoutes.createSession),
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    elevation: 2,
-                    extendedPadding: const EdgeInsets.symmetric(horizontal: 12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    icon: const Icon(AppIcons.add, size: 18),
-                    label: Text(
-                      l10n.createSessionTitle,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                )
-              : null,
+      floatingActionButton: !isAuthenticated
+          ? null
+          : switch (_selectedTab) {
+              HomeDiscoveryTab.sessions => _buildCreateButton(
+                context,
+                l10n,
+                key: 'home-create-session-fab',
+                label: l10n.createSessionTitle,
+                onPressed: () => context.push(AppRoutes.createSession),
+              ),
+              HomeDiscoveryTab.clubs => _buildCreateButton(
+                context,
+                l10n,
+                key: 'home-create-club-fab',
+                label: l10n.clubCreate,
+                onPressed: () => context.push(AppRoutes.createClub),
+              ),
+              HomeDiscoveryTab.tournaments => _buildCreateButton(
+                context,
+                l10n,
+                key: 'home-create-tournament-fab',
+                label: l10n.tournamentCreate,
+                onPressed: () => context.push(AppRoutes.createTournament),
+              ),
+              HomeDiscoveryTab.venues => null,
+            },
+    );
+  }
+
+  Widget _buildCreateButton(
+    BuildContext context,
+    AppLocalizations l10n, {
+    required String key,
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    return SizedBox(
+      height: 40,
+      child: FloatingActionButton.extended(
+        key: Key(key),
+        heroTag: key,
+        isExtended: _isFabExtended,
+        onPressed: onPressed,
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Theme.of(context).colorScheme.onPrimary,
+        elevation: 2,
+        extendedPadding: const EdgeInsets.symmetric(horizontal: 12),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        icon: const Icon(AppIcons.add, size: 18),
+        label: Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 13,
+          ),
+        ),
+      ),
     );
   }
 }

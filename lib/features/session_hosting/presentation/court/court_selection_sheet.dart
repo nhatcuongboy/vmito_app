@@ -65,8 +65,11 @@ class CourtSelectionSheet extends ConsumerWidget {
 
     return DraggableScrollableSheet(
       expand: false,
-      initialChildSize: 0.92,
+      // Tall by default: a host assigning a court wants to see as many
+      // waiting players as possible without dragging the sheet up first.
+      initialChildSize: 0.95,
       minChildSize: 0.5,
+      maxChildSize: 0.95,
       builder: (context, _) => DefaultTabController(
         length: 2,
         child: Column(
@@ -107,14 +110,8 @@ class CourtSelectionSheet extends ConsumerWidget {
                     : CourtSelectionMode.auto,
               ),
               tabs: [
-                Tab(
-                  icon: const Icon(AppIcons.userPlus, size: 18),
-                  text: l10n.courtManualSelection,
-                ),
-                Tab(
-                  icon: const Icon(AppIcons.sparkles, size: 18),
-                  text: l10n.courtAutoAssign,
-                ),
+                _tab(AppIcons.userPlus, l10n.courtManualSelection),
+                _tab(AppIcons.sparkles, l10n.courtAutoAssign),
               ],
             ),
             Expanded(
@@ -144,6 +141,21 @@ class CourtSelectionSheet extends ConsumerWidget {
   }
 }
 
+/// Icon and label side by side — `Tab(icon:, text:)` stacks them instead.
+Tab _tab(IconData icon, String text) {
+  return Tab(
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, size: 16),
+        const SizedBox(width: AppSpacing.xs),
+        Flexible(child: Text(text, overflow: TextOverflow.ellipsis)),
+      ],
+    ),
+  );
+}
+
 class _MatchTypeToggle extends StatelessWidget {
   const _MatchTypeToggle({required this.matchType, required this.onChanged});
 
@@ -156,15 +168,20 @@ class _MatchTypeToggle extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: SegmentedButton<MatchType>(
+        style: SegmentedButton.styleFrom(
+          visualDensity: VisualDensity.compact,
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+          minimumSize: const Size(0, 32),
+        ),
         segments: [
           ButtonSegment(
             value: MatchType.doubles,
-            icon: const Icon(AppIcons.clubs, size: 18),
+            icon: const Icon(AppIcons.clubs, size: 15),
             label: Text(l10n.courtMatchTypeDoubles),
           ),
           ButtonSegment(
             value: MatchType.singles,
-            icon: const Icon(AppIcons.profile, size: 18),
+            icon: const Icon(AppIcons.profile, size: 15),
             label: Text(l10n.courtMatchTypeSingles),
           ),
         ],

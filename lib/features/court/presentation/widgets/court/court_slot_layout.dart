@@ -34,6 +34,13 @@ abstract final class CourtSlotLayout {
     return squares[visualIndex.clamp(0, squares.length - 1)];
   }
 
+  /// Which team a square belongs to: 1 for the left column, 2 for the right.
+  ///
+  /// Both `_doubles` and `_singles` list left-column squares at even indices
+  /// (top-left, bottom-left, or the singles left square) and right-column
+  /// squares at odd ones, so parity alone decides it — no format needed.
+  static int pairNumberFor(int visualIndex) => visualIndex.isEven ? 1 : 2;
+
   /// Which square an API seat is drawn in.
   ///
   /// Singles maps straight through. Doubles uses `visualSlotOrder`, which is

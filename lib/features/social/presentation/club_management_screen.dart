@@ -20,6 +20,7 @@ class ClubManagementScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.clubManageTitle)),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: 'club-management-create-fab',
         onPressed: () => context.push(AppRoutes.createClub),
         icon: const Icon(AppIcons.add),
         label: Text(l10n.clubCreate),

@@ -9,6 +9,7 @@ class PublicProfile {
     this.gender,
     this.level,
     this.levelDescription,
+    this.createdAt,
   });
 
   factory PublicProfile.fromJson(Map<String, dynamic> json) => PublicProfile(
@@ -21,6 +22,7 @@ class PublicProfile {
     gender: json['gender'] as String?,
     level: (json['level'] as num?)?.toInt(),
     levelDescription: json['levelDescription'] as String?,
+    createdAt: DateTime.tryParse(json['createdAt'] as String? ?? ''),
   );
 
   final String id;
@@ -32,6 +34,7 @@ class PublicProfile {
   final String? gender;
   final int? level;
   final String? levelDescription;
+  final DateTime? createdAt;
 }
 
 class RatingStats {

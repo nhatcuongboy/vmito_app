@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/config/app_config.dart';
 import 'package:vmito_app/core/constants/api_endpoints.dart';
@@ -250,7 +252,17 @@ class SessionRepositoryImpl implements SessionRepository {
     final response = await _client.get<Map<String, dynamic>>(
       ApiEndpoints.sessionMatches(sessionId),
     );
-    return unwrapList(response.data, Match.fromJson);
+    final body = response.data ?? const <String, dynamic>{};
+    final payload = body.containsKey('success') ? body['data'] : body;
+    // Unlike every other match endpoint, this one wraps the list in
+    // `{matches, totalMatches, filters}` rather than returning it bare.
+    final map = payload as Map<String, dynamic>? ?? const {};
+    final rows = map['matches'] as List<dynamic>? ?? const [];
+    return rows
+        .whereType<Map<String, dynamic>>()
+        .map(_normalizeMatchJson)
+        .map(Match.fromJson)
+        .toList(growable: false);
   }
 
   @override
@@ -328,6 +340,21 @@ class SessionRepositoryImpl implements SessionRepository {
     SessionStatus.finished => 'FINISHED',
     SessionStatus.cancelled => 'CANCELLED',
   };
+}
+
+/// `GET /sessions/:id/matches` parses `score`/`winnerIds` into real JSON
+/// values before responding, unlike every other match endpoint (which leaves
+/// them as the raw JSON-string column). Re-encode them back to a string so
+/// [Match.fromJson] sees the same shape everywhere.
+Map<String, dynamic> _normalizeMatchJson(Map<String, dynamic> json) {
+  final normalized = Map<String, dynamic>.from(json);
+  for (final key in const ['score', 'winnerIds']) {
+    final value = normalized[key];
+    if (value != null && value is! String) {
+      normalized[key] = jsonEncode(value);
+    }
+  }
+  return normalized;
 }
 
 final sessionRepositoryProvider = Provider<SessionRepository>(

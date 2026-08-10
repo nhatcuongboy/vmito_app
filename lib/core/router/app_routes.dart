@@ -29,6 +29,8 @@ abstract final class AppRoutes {
   static const notifications = '/notifications';
   static const transactions = '/transactions';
   static const profile = '/profile';
+  static const settings = '/settings';
+  static const accountSecurity = '/settings/account-security';
   static const feed = '/feed';
   static const venues = '/venues';
   static String venueDetail(String id) => '/venues/$id';
@@ -41,6 +43,10 @@ abstract final class AppRoutes {
   static String manageClub(String id) => '/feed/manage/$id';
   static String editClub(String id) => '/feed/manage/$id/edit';
   static String publicProfile(String id) => '/user/$id';
+
+  static const tournaments = '/tournaments';
+  static String tournamentDetail(String id) => '/tournaments/$id';
+  static const createTournament = '/tournaments/create';
 
   /// Bottom-nav destinations, in tab order. The shell's branch order must
   /// match this list — index is how go_router identifies a branch.
@@ -58,6 +64,9 @@ abstract final class AppRoutes {
   static const nameSignIn = 'signIn';
   static const nameSignUp = 'signUp';
   static const nameHome = 'home';
+  static const nameProfile = 'profile';
+  static const nameSettings = 'settings';
+  static const nameAccountSecurity = 'accountSecurity';
   static const nameSessionDetail = 'sessionDetail';
   static const nameLiveSession = 'liveSession';
 
@@ -86,6 +95,7 @@ abstract final class AppRoutes {
     createSession,
     pendingRequests,
     manageClubs,
+    createTournament,
   ];
 
   /// A prefix match only counts on a segment boundary, so `/sessions` does not

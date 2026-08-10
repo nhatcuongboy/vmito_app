@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/core/constants/image_constants.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -10,6 +11,7 @@ import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/tournament/application/tournament_browse_controller.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_empty_filter_sheet.dart';
 
 class BrowseTournamentsContent extends ConsumerStatefulWidget {
   const BrowseTournamentsContent({this.discoveryHeader, super.key});
@@ -58,29 +60,41 @@ class _BrowseTournamentsContentState
             AppSpacing.md,
             AppSpacing.sm,
           ),
-          child: SearchBar(
-            controller: _searchController,
-            hintText: l10n.tournamentSearchHint,
-            leading: const Icon(AppIcons.search),
-            trailing: [
-              if (_searchController.text.isNotEmpty)
-                IconButton(
-                  icon: const Icon(AppIcons.close),
-                  onPressed: () {
-                    _searchController.clear();
-                    unawaited(controller.load(search: ''));
+          child: Row(
+            children: [
+              Expanded(
+                child: SearchBar(
+                  controller: _searchController,
+                  hintText: l10n.tournamentSearchHint,
+                  leading: const Icon(AppIcons.search),
+                  trailing: [
+                    if (_searchController.text.isNotEmpty)
+                      IconButton(
+                        icon: const Icon(AppIcons.close),
+                        onPressed: () {
+                          _searchController.clear();
+                          unawaited(controller.load(search: ''));
+                          setState(() {});
+                        },
+                      ),
+                  ],
+                  onChanged: (value) {
                     setState(() {});
+                    _searchDebounce?.cancel();
+                    _searchDebounce = Timer(
+                      const Duration(milliseconds: 400),
+                      () => controller.load(search: value),
+                    );
                   },
                 ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              IconButton.filledTonal(
+                tooltip: 'Bộ lọc',
+                icon: const Icon(AppIcons.tune),
+                onPressed: () => AppEmptyFilterSheet.show(context),
+              ),
             ],
-            onChanged: (value) {
-              setState(() {});
-              _searchDebounce?.cancel();
-              _searchDebounce = Timer(
-                const Duration(milliseconds: 400),
-                () => controller.load(search: value),
-              );
-            },
           ),
         ),
         ?widget.discoveryHeader,
@@ -254,9 +268,13 @@ class _TournamentPlaceholder extends StatelessWidget {
   const _TournamentPlaceholder();
 
   @override
-  Widget build(BuildContext context) => ColoredBox(
-    color: Theme.of(context).colorScheme.primaryContainer,
-    child: const Icon(AppIcons.trophy, size: 48),
+  Widget build(BuildContext context) => CachedNetworkImage(
+    imageUrl: kDefaultCoverPhoto,
+    fit: BoxFit.cover,
+    errorWidget: (_, _, _) => ColoredBox(
+      color: Theme.of(context).colorScheme.primaryContainer,
+      child: const Icon(AppIcons.trophy, size: 48),
+    ),
   );
 }
 

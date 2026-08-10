@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/host_overview_tab.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -39,16 +40,17 @@ void main() {
     tester,
   ) async {
     await tester.pumpWidget(
-      const ProviderScope(
+      ProviderScope(
         child: MaterialApp(
+          theme: AppTheme.light,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Scaffold(body: HostOverviewTab(session: session)),
+          home: const Scaffold(body: HostOverviewTab(session: session)),
         ),
       ),
     );
 
-    expect(find.text('Thông tin kèo'), findsOneWidget);
+    expect(find.text('THÔNG TIN KÈO'), findsOneWidget);
     expect(find.text('Gò Vấp'), findsOneWidget);
     expect(find.text('Thống kê kèo'), findsOneWidget);
     expect(find.text('Người chơi'), findsOneWidget);

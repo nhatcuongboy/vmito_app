@@ -25,6 +25,7 @@ abstract final class AppIcons {
   static const IconData add = LucideIcons.plus;
   static const IconData addCircle = LucideIcons.circle_plus;
   static const IconData removeCircle = LucideIcons.circle_minus;
+  static const IconData queueNext = LucideIcons.list_plus;
   static const IconData delete = LucideIcons.trash_2;
   static const IconData edit = LucideIcons.pencil;
   static const IconData share = LucideIcons.share_2;

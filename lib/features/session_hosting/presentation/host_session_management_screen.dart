@@ -17,6 +17,7 @@ import 'package:vmito_app/features/session_hosting/presentation/widgets/host_ove
 import 'package:vmito_app/features/session_hosting/presentation/widgets/host_payment_ledger_tab.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/host_results_tab.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/host_roster_tab.dart';
+import 'package:vmito_app/features/session_hosting/presentation/widgets/host_session_action_bar.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 class HostSessionManagementScreen extends ConsumerStatefulWidget {
@@ -93,6 +94,21 @@ class _HostSessionManagementScreenState
                 tooltip: MaterialLocalizations.of(context).moreButtonTooltip,
                 onSelected: (action) => _handleAction(value, action),
                 itemBuilder: (context) => [
+                  if (value.status == SessionStatus.inProgress)
+                    PopupMenuItem(
+                      value: _SessionAction.endSession,
+                      child: Row(
+                        children: [
+                          Icon(
+                            AppIcons.stop,
+                            size: 18,
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                          const SizedBox(width: 12),
+                          Text(l10n.hostManageEndSession),
+                        ],
+                      ),
+                    ),
                   if (value.status == SessionStatus.preparing)
                     PopupMenuItem(
                       value: _SessionAction.edit,
@@ -168,12 +184,21 @@ class _HostSessionManagementScreenState
               ),
           ],
         ),
+        bottomNavigationBar: session.maybeWhen(
+          data: (value) => HostSessionActionBar(session: value),
+          orElse: SizedBox.shrink,
+        ),
       ),
     );
   }
 
   Future<void> _handleAction(Session session, _SessionAction action) async {
     switch (action) {
+      case _SessionAction.endSession:
+        await ref
+            .read(hostSessionManagementControllerProvider(session.id).notifier)
+            .endSession();
+        return;
       case _SessionAction.edit:
         await context.push(AppRoutes.editSession(session.id));
         ref.invalidate(sessionDetailProvider(session.id));
@@ -263,4 +288,4 @@ class _HostManagementTabBar extends StatelessWidget
   );
 }
 
-enum _SessionAction { edit, clone, cancel }
+enum _SessionAction { endSession, edit, clone, cancel }

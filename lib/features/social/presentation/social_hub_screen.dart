@@ -237,7 +237,9 @@ class _ComposerCard extends StatelessWidget {
                   hint,
                   style: TextStyle(
                     fontSize: 16,
-                    color: isDark ? const Color(0xFF6B7280) : const Color(0xFF9CA3AF),
+                    color: isDark
+                        ? const Color(0xFF6B7280)
+                        : const Color(0xFF9CA3AF),
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -384,5 +386,3 @@ class _PostComposerDialogState extends State<_PostComposerDialog> {
     setState(() => _images.addAll(selected));
   }
 }
-
-

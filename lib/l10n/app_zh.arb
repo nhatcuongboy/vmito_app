@@ -8,6 +8,7 @@
   "commonClose": "关闭",
   "commonLoading": "加载中...",
   "commonSearch": "搜索",
+  "commonShare": "分享",
   "errorNetwork": "网络连接失败，请重试。",
   "errorTimeout": "请求超时，请重试。",
   "errorUnauthorized": "登录已过期。",
@@ -137,6 +138,15 @@
   "courtCallAcknowledge": "知道了",
   "navFeed": "动态",
   "profileTitle": "我的",
+  "profileEditAction": "编辑",
+  "profileJoinedOn": "加入于 {date}",
+  "@profileJoinedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "feedTitle": "动态",
   "homeTitle": "首页",
   "comingSoon": "即将推出",
@@ -147,6 +157,22 @@
   "languageChinese": "中文",
   "profileLanguage": "语言",
   "profileTheme": "主题",
+  "settingsTitle": "设置",
+  "settingsAccount": "账号",
+  "settingsDisplay": "显示",
+  "settingsOther": "其他",
+  "settingsAccountSecurity": "账号与安全",
+  "settingsNotificationPreferences": "通知设置",
+  "settingsHelpFeedback": "帮助与反馈",
+  "settingsTermsPrivacy": "条款与隐私",
+  "settingsVersion": "版本 {version}",
+  "@settingsVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "themeTitle": "主题",
   "themeModeLight": "浅色",
   "themeModeDark": "深色",
@@ -836,6 +862,7 @@
   "clubManageTitle": "管理俱乐部",
   "clubCreate": "创建俱乐部",
   "clubEdit": "编辑俱乐部",
+  "tournamentCreate": "创建比赛",
   "clubManageEmpty": "你还没有管理任何俱乐部",
   "clubStatusPending": "等待审核",
   "clubStatusRejected": "已拒绝",
@@ -894,6 +921,7 @@
   "courtEndMatch": "结束",
   "courtCancelSelection": "取消",
   "courtPreSelectNext": "预选下一场",
+  "courtPreSelectShort": "预选",
   "courtViewNextMatch": "查看下一场",
   "courtNeedMorePlayers": "还需 {count} 位等待的球员才能配对",
   "@courtNeedMorePlayers": {

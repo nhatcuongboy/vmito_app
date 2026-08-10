@@ -11,6 +11,7 @@
   "commonClose": "Đóng",
   "commonLoading": "Đang tải...",
   "commonSearch": "Tìm kiếm",
+  "commonShare": "Chia sẻ",
   "errorNetwork": "Không có kết nối mạng. Vui lòng thử lại.",
   "errorTimeout": "Yêu cầu quá thời gian chờ. Vui lòng thử lại.",
   "errorUnauthorized": "Phiên đăng nhập đã hết hạn.",
@@ -141,6 +142,15 @@
   "courtCallAcknowledge": "Đã hiểu",
   "navFeed": "Bảng tin",
   "profileTitle": "Cá nhân",
+  "profileEditAction": "Chỉnh sửa",
+  "profileJoinedOn": "Tham gia từ {date}",
+  "@profileJoinedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "feedTitle": "Bảng tin",
   "homeTitle": "Trang chủ",
   "comingSoon": "Sắp có",
@@ -151,6 +161,22 @@
   "languageChinese": "Tiếng Trung",
   "profileLanguage": "Ngôn ngữ",
   "profileTheme": "Giao diện",
+  "settingsTitle": "Cài đặt",
+  "settingsAccount": "Tài khoản",
+  "settingsDisplay": "Hiển thị",
+  "settingsOther": "Khác",
+  "settingsAccountSecurity": "Tài khoản và bảo mật",
+  "settingsNotificationPreferences": "Cài đặt thông báo",
+  "settingsHelpFeedback": "Trợ giúp và phản hồi",
+  "settingsTermsPrivacy": "Điều khoản và chính sách",
+  "settingsVersion": "Phiên bản {version}",
+  "@settingsVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "themeTitle": "Giao diện",
   "themeModeLight": "Sáng",
   "themeModeDark": "Tối",
@@ -840,6 +866,7 @@
   "clubManageTitle": "Quản lý câu lạc bộ",
   "clubCreate": "Tạo câu lạc bộ",
   "clubEdit": "Sửa câu lạc bộ",
+  "tournamentCreate": "Tạo giải đấu",
   "clubManageEmpty": "Bạn chưa quản lý câu lạc bộ nào",
   "clubStatusPending": "Chờ duyệt",
   "clubStatusRejected": "Đã từ chối",
@@ -898,6 +925,7 @@
   "courtEndMatch": "Kết thúc",
   "courtCancelSelection": "Hủy",
   "courtPreSelectNext": "Chọn trước trận tiếp theo",
+  "courtPreSelectShort": "Chọn trước",
   "courtViewNextMatch": "Xem trận tiếp theo",
   "courtNeedMorePlayers": "Cần thêm {count} người đang chờ để ghép đôi",
   "@courtNeedMorePlayers": {

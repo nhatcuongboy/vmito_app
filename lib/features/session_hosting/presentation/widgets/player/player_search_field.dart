@@ -9,9 +9,17 @@ import 'package:vmito_app/l10n/app_localizations.dart';
 /// changes upward. Rebuilding it from state on every keystroke would fight the
 /// cursor.
 class PlayerSearchField extends StatefulWidget {
-  const PlayerSearchField({required this.onChanged, super.key});
+  const PlayerSearchField({
+    required this.onChanged,
+    this.compact = false,
+    super.key,
+  });
 
   final ValueChanged<String> onChanged;
+
+  /// Shrinks padding, icon and text so the field can sit beside a header
+  /// instead of taking its own full-width row.
+  final bool compact;
 
   @override
   State<PlayerSearchField> createState() => _PlayerSearchFieldState();
@@ -29,20 +37,37 @@ class _PlayerSearchFieldState extends State<PlayerSearchField> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final iconSize = widget.compact ? 15.0 : 20.0;
     return TextField(
       controller: _controller,
       onChanged: widget.onChanged,
       textInputAction: TextInputAction.search,
+      style: widget.compact
+          ? Theme.of(context).textTheme.bodySmall
+          : null,
       decoration: InputDecoration(
         isDense: true,
+        contentPadding: widget.compact
+            ? const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 6)
+            : null,
         hintText: l10n.courtSearchPlayers,
-        prefixIcon: const Icon(AppIcons.search, size: 20),
+        hintStyle: widget.compact
+            ? Theme.of(context).textTheme.bodySmall
+            : null,
+        prefixIconConstraints: widget.compact
+            ? const BoxConstraints(minWidth: 28, minHeight: 28)
+            : null,
+        prefixIcon: Icon(AppIcons.search, size: iconSize),
+        suffixIconConstraints: widget.compact
+            ? const BoxConstraints(minWidth: 24, minHeight: 24)
+            : null,
         suffixIcon: ValueListenableBuilder<TextEditingValue>(
           valueListenable: _controller,
           builder: (context, value, _) => value.text.isEmpty
               ? const SizedBox.shrink()
               : IconButton(
-                  icon: const Icon(AppIcons.close, size: 18),
+                  padding: EdgeInsets.zero,
+                  icon: Icon(AppIcons.close, size: widget.compact ? 14 : 18),
                   onPressed: () {
                     _controller.clear();
                     widget.onChanged('');

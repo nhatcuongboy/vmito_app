@@ -8,6 +8,7 @@
   "commonClose": "Close",
   "commonLoading": "Loading...",
   "commonSearch": "Search",
+  "commonShare": "Share",
   "errorNetwork": "No network connection. Please try again.",
   "errorTimeout": "The request timed out. Please try again.",
   "errorUnauthorized": "Your session has expired.",
@@ -137,6 +138,15 @@
   "courtCallAcknowledge": "Got it",
   "navFeed": "Feed",
   "profileTitle": "Profile",
+  "profileEditAction": "Edit",
+  "profileJoinedOn": "Joined {date}",
+  "@profileJoinedOn": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "feedTitle": "Feed",
   "homeTitle": "Home",
   "comingSoon": "Coming soon",
@@ -147,6 +157,22 @@
   "languageChinese": "Chinese",
   "profileLanguage": "Language",
   "profileTheme": "Theme",
+  "settingsTitle": "Settings",
+  "settingsAccount": "Account",
+  "settingsDisplay": "Display",
+  "settingsOther": "Other",
+  "settingsAccountSecurity": "Account and security",
+  "settingsNotificationPreferences": "Notification settings",
+  "settingsHelpFeedback": "Help and feedback",
+  "settingsTermsPrivacy": "Terms and privacy",
+  "settingsVersion": "Version {version}",
+  "@settingsVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
   "themeTitle": "Theme",
   "themeModeLight": "Light",
   "themeModeDark": "Dark",
@@ -836,6 +862,7 @@
   "clubManageTitle": "Manage clubs",
   "clubCreate": "Create club",
   "clubEdit": "Edit club",
+  "tournamentCreate": "Create tournament",
   "clubManageEmpty": "You don't manage any clubs yet",
   "clubStatusPending": "Pending approval",
   "clubStatusRejected": "Rejected",
@@ -894,6 +921,7 @@
   "courtEndMatch": "End",
   "courtCancelSelection": "Cancel",
   "courtPreSelectNext": "Pre-select next match",
+  "courtPreSelectShort": "Pre-select",
   "courtViewNextMatch": "View next match",
   "courtNeedMorePlayers": "Need {count} more waiting players to assign",
   "@courtNeedMorePlayers": {

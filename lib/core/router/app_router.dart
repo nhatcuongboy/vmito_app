@@ -12,7 +12,9 @@ import 'package:vmito_app/features/court/presentation/live_session_screen.dart';
 import 'package:vmito_app/features/home/presentation/home_screen.dart';
 import 'package:vmito_app/features/notification/presentation/notifications_screen.dart';
 import 'package:vmito_app/features/payment/presentation/transaction_dashboard_screen.dart';
+import 'package:vmito_app/features/profile/presentation/account_security_screen.dart';
 import 'package:vmito_app/features/profile/presentation/profile_screen.dart';
+import 'package:vmito_app/features/profile/presentation/settings_screen.dart';
 import 'package:vmito_app/features/session/presentation/player/browse_sessions_screen.dart';
 import 'package:vmito_app/features/session/presentation/player/create_session_screen.dart';
 import 'package:vmito_app/features/session/presentation/player/edit_session_screen.dart';
@@ -130,6 +132,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => ResetPasswordScreen(
           token: state.uri.queryParameters['token'] ?? '',
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.settings,
+        name: AppRoutes.nameSettings,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const SettingsScreen(),
+        routes: [
+          GoRoute(
+            path: 'account-security',
+            name: AppRoutes.nameAccountSecurity,
+            builder: (context, state) => const AccountSecurityScreen(),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.transactions,
@@ -285,6 +300,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: AppRoutes.profile,
+                name: AppRoutes.nameProfile,
                 builder: (context, state) => const ProfileScreen(),
               ),
             ],

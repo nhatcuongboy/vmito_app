@@ -49,7 +49,8 @@ class HostCourtActions extends StatelessWidget {
     if (!isSessionLive) return const SizedBox.shrink();
 
     final l10n = AppLocalizations.of(context);
-    final palette = Theme.of(context).extension<AppPalette>()!;
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
 
     final hasPlayers = court.currentPlayers.isNotEmpty;
     final isRunning = court.currentMatchId != null;
@@ -60,8 +61,9 @@ class HostCourtActions extends StatelessWidget {
 
     final buttons = <Widget>[
       if (!hasPlayers && !isRunning)
-        FilledButton.tonalIcon(
+        FilledButton.icon(
           key: ValueKey('assign-${court.id}'),
+          style: _solid(palette.success),
           onPressed: isBusy || !hasEnoughWaiting ? null : onAssign,
           icon: const Icon(AppIcons.shuffle, size: 18),
           label: Text(l10n.courtAssignPlayers),
@@ -69,6 +71,7 @@ class HostCourtActions extends StatelessWidget {
       if (isReady && !isRunning)
         FilledButton.icon(
           key: ValueKey('start-${court.id}'),
+          style: _solid(palette.success),
           onPressed: isBusy ? null : onStart,
           icon: const Icon(AppIcons.play, size: 18),
           label: Text(l10n.courtStartMatch),
@@ -76,6 +79,7 @@ class HostCourtActions extends StatelessWidget {
       if (isReady && hasPlayers)
         OutlinedButton.icon(
           key: ValueKey('clear-${court.id}'),
+          style: _outline(theme.colorScheme.error),
           onPressed: isBusy ? null : onClear,
           icon: const Icon(AppIcons.close, size: 18),
           label: Text(l10n.courtCancelSelection),
@@ -83,13 +87,15 @@ class HostCourtActions extends StatelessWidget {
       if (isPlaying && !court.hasPreSelection)
         OutlinedButton.icon(
           key: ValueKey('pre-select-${court.id}'),
+          style: _outline(palette.success),
           onPressed: isBusy || !hasEnoughWaiting ? null : onPreSelect,
-          icon: const Icon(AppIcons.add, size: 18),
-          label: Text(l10n.courtPreSelectNext),
+          icon: const Icon(AppIcons.queueNext, size: 18),
+          label: Text(l10n.courtPreSelectShort),
         ),
       if (isPlaying && court.hasPreSelection)
         OutlinedButton.icon(
           key: ValueKey('view-next-${court.id}'),
+          style: _outline(_purple),
           onPressed: isBusy ? null : onViewNextMatch,
           icon: const Icon(AppIcons.eye, size: 18),
           label: Text(l10n.courtViewNextMatch),
@@ -97,6 +103,7 @@ class HostCourtActions extends StatelessWidget {
       if (isPlaying)
         FilledButton.icon(
           key: ValueKey('end-${court.id}'),
+          style: _solid(theme.colorScheme.error),
           onPressed: isBusy ? null : onEnd,
           icon: const Icon(AppIcons.stop, size: 18),
           label: Text(l10n.courtEndMatch),
@@ -119,13 +126,27 @@ class HostCourtActions extends StatelessWidget {
               ).textTheme.labelSmall?.copyWith(color: palette.mutedForeground),
             ),
           ),
-        Wrap(
-          alignment: WrapAlignment.end,
-          spacing: AppSpacing.xs,
-          runSpacing: AppSpacing.xs,
-          children: buttons,
+        Row(
+          children: [
+            for (var i = 0; i < buttons.length; i++) ...[
+              if (i > 0) const SizedBox(width: AppSpacing.xs),
+              Expanded(child: buttons[i]),
+            ],
+          ],
         ),
       ],
     );
   }
 }
+
+/// Web's `colorPalette="green"`/`"red"` solid buttons.
+ButtonStyle _solid(Color color) =>
+    FilledButton.styleFrom(backgroundColor: color, foregroundColor: Colors.white);
+
+/// Web's `colorPalette="..."` `variant="outline"` buttons.
+ButtonStyle _outline(Color color) =>
+    OutlinedButton.styleFrom(foregroundColor: color, side: BorderSide(color: color));
+
+/// "Xem trận tiếp theo" — Chakra's `purple.500`, matched to the same shade
+/// used for the "other" gender badge on the court.
+const _purple = Color(0xFF805AD5);

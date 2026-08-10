@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/features/social/data/profile_tabs_service.dart';
 import 'package:vmito_app/features/social/data/social_service.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
 import 'package:vmito_app/features/social/domain/public_profile.dart';
@@ -349,11 +350,13 @@ class PublicProfileBundle {
     required this.profile,
     required this.stats,
     required this.ratings,
+    required this.hostedSessionsCount,
   });
 
   final PublicProfile profile;
   final RatingStats stats;
   final List<PlayerRating> ratings;
+  final int hostedSessionsCount;
 }
 
 // Keep the callable provider family while its implementation type is private.
@@ -371,10 +374,14 @@ final publicProfileProvider =
         final profile = await service.publicProfile(userId);
         final stats = await service.ratingStats(userId);
         final ratings = await service.receivedRatings(userId);
+        final hosted = await ref
+            .watch(profileTabsServiceProvider)
+            .hosted(userId);
         return PublicProfileBundle(
           profile: profile,
           stats: stats,
           ratings: ratings,
+          hostedSessionsCount: hosted.total,
         );
       },
     );
