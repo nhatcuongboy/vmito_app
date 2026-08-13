@@ -19,11 +19,13 @@ class FavoriteButton extends ConsumerWidget {
   const FavoriteButton({
     required this.type,
     required this.targetId,
+    this.overlay = true,
     super.key,
   });
 
   final FavoriteType type;
   final String targetId;
+  final bool overlay;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -34,36 +36,39 @@ class FavoriteButton extends ConsumerWidget {
         ref.watch(favoriteControllerProvider(target)).value ??
         const FavoriteSummary();
 
+    final foregroundColor = overlay
+        ? Colors.white
+        : theme.colorScheme.onSurface;
+
     return Material(
-      color: Colors.black.withValues(alpha: 0.5),
+      color: overlay ? Colors.black.withValues(alpha: 0.5) : Colors.transparent,
       borderRadius: BorderRadius.circular(AppRadius.pill),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => _toggle(context, ref, target),
         child: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm + 2,
-            vertical: AppSpacing.sm + 1,
+          padding: EdgeInsets.symmetric(
+            horizontal: overlay ? AppSpacing.sm + 2 : AppSpacing.xs,
+            vertical: overlay ? AppSpacing.sm + 1 : AppSpacing.xs,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                summary.isFavorite
-                    ? AppIcons.favorite
-                    : AppIcons.favorite,
+                summary.isFavorite ? AppIcons.favorite : AppIcons.favorite,
                 size: 20,
                 semanticLabel: summary.isFavorite
                     ? l10n.favoriteRemove
                     : l10n.favoriteAdd,
-                color: summary.isFavorite ? theme.colorScheme.error : Colors
-                    .white,
+                color: summary.isFavorite
+                    ? theme.colorScheme.error
+                    : foregroundColor,
               ),
               const SizedBox(width: AppSpacing.xs + 2),
               Text(
                 '${summary.favoriteCount}',
                 style: theme.textTheme.labelMedium?.copyWith(
-                  color: Colors.white,
+                  color: foregroundColor,
                   fontWeight: FontWeight.w600,
                 ),
               ),

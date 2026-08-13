@@ -4,7 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
+import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/court/application/live_session_controller.dart';
 import 'package:vmito_app/features/payment/application/payment_providers.dart';
@@ -17,7 +19,6 @@ import 'package:vmito_app/features/session_hosting/presentation/widgets/host_ove
 import 'package:vmito_app/features/session_hosting/presentation/widgets/host_payment_ledger_tab.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/host_results_tab.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/host_roster_tab.dart';
-import 'package:vmito_app/features/session_hosting/presentation/widgets/host_session_action_bar.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 class HostSessionManagementScreen extends ConsumerStatefulWidget {
@@ -78,11 +79,9 @@ class _HostSessionManagementScreenState
       child: Scaffold(
         appBar: AppBar(
           title: session.maybeWhen(
-            data: (value) => Text(
-              value.name,
-              key: const Key('host-session-title'),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+            data: (value) => _SessionHeaderTitle(
+              name: value.name,
+              status: value.status,
             ),
             orElse: () => Text(l10n.hostManageTitle),
           ),
@@ -94,6 +93,26 @@ class _HostSessionManagementScreenState
                 tooltip: MaterialLocalizations.of(context).moreButtonTooltip,
                 onSelected: (action) => _handleAction(value, action),
                 itemBuilder: (context) => [
+                  if (value.status == SessionStatus.preparing)
+                    PopupMenuItem(
+                      value: _SessionAction.startSession,
+                      child: Row(
+                        children: [
+                          Icon(
+                            AppIcons.play,
+                            size: 18,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 12),
+                          Flexible(
+                            child: Text(
+                              l10n.hostManageStartSession,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   if (value.status == SessionStatus.inProgress)
                     PopupMenuItem(
                       value: _SessionAction.endSession,
@@ -105,7 +124,12 @@ class _HostSessionManagementScreenState
                             color: Theme.of(context).colorScheme.error,
                           ),
                           const SizedBox(width: 12),
-                          Text(l10n.hostManageEndSession),
+                          Flexible(
+                            child: Text(
+                              l10n.hostManageEndSession,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -184,16 +208,17 @@ class _HostSessionManagementScreenState
               ),
           ],
         ),
-        bottomNavigationBar: session.maybeWhen(
-          data: (value) => HostSessionActionBar(session: value),
-          orElse: SizedBox.shrink,
-        ),
       ),
     );
   }
 
   Future<void> _handleAction(Session session, _SessionAction action) async {
     switch (action) {
+      case _SessionAction.startSession:
+        await ref
+            .read(hostSessionManagementControllerProvider(session.id).notifier)
+            .startSession();
+        return;
       case _SessionAction.endSession:
         await ref
             .read(hostSessionManagementControllerProvider(session.id).notifier)
@@ -244,6 +269,77 @@ class _HostSessionManagementScreenState
   }
 }
 
+class _SessionHeaderTitle extends StatelessWidget {
+  const _SessionHeaderTitle({required this.name, required this.status});
+
+  final String name;
+  final SessionStatus status;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      Expanded(
+        child: Text(
+          name,
+          key: const Key('host-session-title'),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+      const SizedBox(width: AppSpacing.sm),
+      _SessionStatusBadge(status: status),
+    ],
+  );
+}
+
+class _SessionStatusBadge extends StatelessWidget {
+  const _SessionStatusBadge({required this.status});
+
+  final SessionStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final palette = Theme.of(context).extension<AppPalette>()!;
+    final (label, color) = switch (status) {
+      SessionStatus.preparing => (
+        l10n.sessionStatusPreparing,
+        palette.mutedForeground,
+      ),
+      SessionStatus.inProgress => (
+        l10n.sessionStatusInProgress,
+        palette.success,
+      ),
+      SessionStatus.finished => (
+        l10n.sessionStatusFinished,
+        palette.mutedForeground,
+      ),
+      SessionStatus.cancelled => (l10n.sessionStatusCancelled, palette.warning),
+    };
+
+    return Container(
+      key: const Key('host-session-status-badge'),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: 3,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+      ),
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+    );
+  }
+}
+
 class _HostManagementTabBar extends StatelessWidget
     implements PreferredSizeWidget {
   const _HostManagementTabBar({required this.labels});
@@ -288,4 +384,4 @@ class _HostManagementTabBar extends StatelessWidget
   );
 }
 
-enum _SessionAction { endSession, edit, clone, cancel }
+enum _SessionAction { startSession, endSession, edit, clone, cancel }

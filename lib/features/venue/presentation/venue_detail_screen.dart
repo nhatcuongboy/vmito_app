@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
@@ -66,11 +65,6 @@ class _VenueDetailState extends ConsumerState<_VenueDetail> {
         onDirections: () => unawaited(_directions(venue)),
         onFindSessions: () => _findSessions(venue),
         onRequestUpdate: () => unawaited(_request('UPDATE', venue)),
-        onPriceCorrection: () =>
-            unawaited(_imageRequest('PRICE_CORRECTION', venue)),
-        onImageCorrection: () => unawaited(
-          _imageRequest('IMAGE_CORRECTION', venue, multiple: true),
-        ),
       ),
       bottomNavigationBar: VenueDetailBottomBar(
         phone: venue.phone,
@@ -154,53 +148,6 @@ class _VenueDetailState extends ConsumerState<_VenueDetail> {
       } on Object catch (error) {
         _message(error.toString());
       }
-    }
-  }
-
-  Future<void> _imageRequest(
-    String type,
-    Venue venue, {
-    bool multiple = false,
-  }) async {
-    final successMessage = AppLocalizations.of(context).venueRequestSent;
-    final picker = ImagePicker();
-    final files = multiple
-        ? await picker.pickMultiImage(limit: 10)
-        : [
-            ?await picker.pickImage(source: ImageSource.gallery),
-          ];
-    if (files.isEmpty) return;
-    try {
-      final uploads = await Future.wait(
-        files.map(
-          (file) => ref.read(venueServiceProvider).uploadImage(file.path),
-        ),
-      );
-      await ref
-          .read(venueServiceProvider)
-          .createRequest(
-            type: type,
-            venueId: venue.id,
-            payload: type == 'PRICE_CORRECTION'
-                ? {
-                    'priceImageUrl': uploads.first.url,
-                    if (uploads.first.publicId != null)
-                      'priceImagePublicId': uploads.first.publicId,
-                  }
-                : {
-                    'suggestedImages': [
-                      for (final upload in uploads)
-                        {
-                          'url': upload.url,
-                          if (upload.publicId != null)
-                            'publicId': upload.publicId,
-                        },
-                    ],
-                  },
-          );
-      _message(successMessage);
-    } on Object catch (error) {
-      _message(error.toString());
     }
   }
 

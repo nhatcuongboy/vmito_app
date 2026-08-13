@@ -40,6 +40,26 @@ class _SocialHubScreenState extends State<SocialHubScreen> {
           ),
         ),
         title: Text(l10n.socialTitle),
+        actions: [
+          Consumer(
+            builder: (context, ref, _) {
+              final isAuthenticated =
+                  ref.watch(authControllerProvider).status ==
+                  AuthStatus.authenticated;
+              return IconButton(
+                tooltip: isAuthenticated
+                    ? l10n.notificationsTitle
+                    : l10n.authSignIn,
+                icon: Icon(
+                  isAuthenticated ? AppIcons.notifications : AppIcons.login,
+                ),
+                onPressed: () => context.push(
+                  isAuthenticated ? AppRoutes.notifications : AppRoutes.signIn,
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: const _FeedTab(),
     );

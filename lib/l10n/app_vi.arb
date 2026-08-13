@@ -1369,7 +1369,7 @@
   "venuePerHour": "/ giờ",
   "venueCallNow": "Gọi ngay",
   "venueFindSessions": "Tìm kèo",
-  "venueUpdateInfo": "Cập nhật thông tin",
+  "venueUpdateInfo": "Thông tin chưa đúng?",
   "venueRequestUpdate": "Báo chỉnh sửa thông tin",
   "venueSendPricePhoto": "Gửi ảnh bảng giá",
   "venueSendPhotos": "Gửi ảnh sân",
@@ -1540,6 +1540,6 @@
   "menuRoleAdmin": "Quản trị viên",
   "menuRoleReferee": "Trọng tài",
   "menuHelpFeedback": "Trợ giúp & phản hồi",
-  "menuFooterVersion": "v{version} · © {year} Vmito. Tất cả quyền được bảo lưu.",
-  "@menuFooterVersion": {"placeholders": {"version": {"type": "String"}, "year": {"type": "int"}}}
+  "menuFooterYear": "© {year} Vmito.",
+  "@menuFooterYear": {"placeholders": {"year": {"type": "int"}}}
 }

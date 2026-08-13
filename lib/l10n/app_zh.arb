@@ -1361,7 +1361,7 @@
   "venuePerHour": "/ 小时",
   "venueCallNow": "立即致电",
   "venueFindSessions": "查找场次",
-  "venueUpdateInfo": "更新信息",
+  "venueUpdateInfo": "信息不正确？",
   "venueRequestUpdate": "建议修改",
   "venueSendPricePhoto": "发送价格照片",
   "venueSendPhotos": "发送场馆照片",
@@ -1513,6 +1513,6 @@
   "menuRoleAdmin": "管理员",
   "menuRoleReferee": "裁判",
   "menuHelpFeedback": "帮助与反馈",
-  "menuFooterVersion": "v{version} · © {year} Vmito。保留所有权利。",
-  "@menuFooterVersion": {"placeholders": {"version": {"type": "String"}, "year": {"type": "int"}}}
+  "menuFooterYear": "© {year} Vmito.",
+  "@menuFooterYear": {"placeholders": {"year": {"type": "int"}}}
 }

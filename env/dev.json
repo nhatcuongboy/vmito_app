@@ -3,5 +3,5 @@
   "ENABLE_AUTH_BYPASS": true,
   "API_BASE_URL": "https://staging.vmito.com/api",
   "WEB_BASE_URL": "https://staging.vmito.com",
-  "GOOGLE_PLACES_API_KEY": ""
+  "GOOGLE_PLACES_API_KEY": "AIzaSyD-Vt0TImpG4MTV-WStGPQvyaF9cx7NmCc"
 }

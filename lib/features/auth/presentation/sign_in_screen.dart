@@ -21,9 +21,14 @@ import 'package:vmito_app/l10n/app_localizations.dart';
 /// a controller call for the mutation, `ApiException` caught and rendered
 /// inline (the service passes `skipGlobalError`), and every string localised.
 class SignInScreen extends ConsumerStatefulWidget {
-  const SignInScreen({this.registrationCompleted = false, super.key});
+  const SignInScreen({
+    this.registrationCompleted = false,
+    this.redirect,
+    super.key,
+  });
 
   final bool registrationCompleted;
+  final String? redirect;
 
   @override
   ConsumerState<SignInScreen> createState() => _SignInScreenState();
@@ -94,7 +99,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 .trim(),
             password: _form.control(SignInFormControl.password).value as String,
           );
-      // No manual navigation: the router redirect reacts to auth status.
+      _goAfterSignIn();
     } on ApiException catch (error) {
       if (mounted) setState(() => _errorMessage = error.message);
     } finally {
@@ -115,7 +120,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             provider: provider,
             locale: Localizations.localeOf(context).languageCode,
           );
-      // Router redirect reacts to the authenticated state.
+      _goAfterSignIn();
     } on PlatformException catch (error) {
       // Closing the provider tab is an ordinary choice, not an error banner.
       if (error.code != 'CANCELED' && mounted) {
@@ -141,6 +146,12 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     } finally {
       if (mounted) setState(() => _oauthProvider = null);
     }
+  }
+
+  void _goAfterSignIn() {
+    final redirect = widget.redirect;
+    if (!mounted || redirect == null || redirect.isEmpty) return;
+    context.go(redirect.startsWith('/') ? redirect : AppRoutes.home);
   }
 
   @override

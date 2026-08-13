@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/core/constants/image_constants.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -24,8 +25,6 @@ class VenueDetailContent extends StatefulWidget {
     required this.onDirections,
     required this.onFindSessions,
     required this.onRequestUpdate,
-    required this.onPriceCorrection,
-    required this.onImageCorrection,
     super.key,
   });
 
@@ -39,15 +38,13 @@ class VenueDetailContent extends StatefulWidget {
   final VoidCallback onDirections;
   final VoidCallback onFindSessions;
   final VoidCallback onRequestUpdate;
-  final VoidCallback onPriceCorrection;
-  final VoidCallback onImageCorrection;
 
   @override
   State<VenueDetailContent> createState() => _VenueDetailContentState();
 }
 
 class _VenueDetailContentState extends State<VenueDetailContent> {
-  static const _heroHeight = 260.0;
+  static const _heroHeight = 220.0;
   final _scrollController = ScrollController();
   bool _isPinned = false;
 
@@ -119,8 +116,10 @@ class _VenueDetailContentState extends State<VenueDetailContent> {
           ),
           actions: [
             FavoriteButton(
+              key: const Key('venue-favorite-button'),
               type: FavoriteType.venue,
               targetId: widget.venue.id,
+              overlay: !_isPinned,
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(4, 6, 8, 6),
@@ -155,6 +154,7 @@ class _VenueDetailContentState extends State<VenueDetailContent> {
                       venue: widget.venue,
                       onWebsite: widget.onWebsite,
                       onZalo: widget.onZalo,
+                      onDirections: widget.onDirections,
                     ),
                     const SizedBox(height: AppSpacing.md),
                     _AboutCard(venue: widget.venue),
@@ -165,15 +165,8 @@ class _VenueDetailContentState extends State<VenueDetailContent> {
                       _PhotosCard(venue: widget.venue),
                     ],
                     const SizedBox(height: AppSpacing.md),
-                    _LocationCard(
-                      venue: widget.venue,
-                      onDirections: widget.onDirections,
-                    ),
-                    const SizedBox(height: AppSpacing.md),
                     _ContributionCard(
                       onRequestUpdate: widget.onRequestUpdate,
-                      onPriceCorrection: widget.onPriceCorrection,
-                      onImageCorrection: widget.onImageCorrection,
                     ),
                   ],
                 ),
@@ -240,7 +233,15 @@ class _VenueHeroState extends State<_VenueHero> {
       fit: StackFit.expand,
       children: [
         if (images.isEmpty)
-          ColoredBox(color: Theme.of(context).colorScheme.primaryContainer)
+          CachedNetworkImage(
+            key: const Key('venue-default-cover'),
+            imageUrl: kDefaultCoverPhoto,
+            fit: BoxFit.cover,
+            errorWidget: (_, _, _) => ColoredBox(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              child: const Icon(AppIcons.imageOff),
+            ),
+          )
         else
           PageView.builder(
             key: const Key('venue-hero-carousel'),
@@ -268,30 +269,6 @@ class _VenueHeroState extends State<_VenueHero> {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [Colors.black54, Colors.transparent, Colors.black54],
-            ),
-          ),
-        ),
-        Positioned(
-          top: MediaQuery.paddingOf(context).top + 16,
-          left: 64,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: Colors.black54,
-              borderRadius: BorderRadius.circular(AppRadius.pill),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image.asset('assets/icons/app-logo-96.png', width: 20),
-                  const SizedBox(width: 6),
-                  const Text(
-                    'Vmito',
-                    style: TextStyle(color: Colors.white),
-                  ),
-                ],
-              ),
             ),
           ),
         ),
@@ -388,11 +365,13 @@ class _InfoCard extends StatelessWidget {
     required this.venue,
     required this.onWebsite,
     required this.onZalo,
+    required this.onDirections,
   });
 
   final Venue venue;
   final VoidCallback onWebsite;
   final VoidCallback onZalo;
+  final VoidCallback onDirections;
 
   @override
   Widget build(BuildContext context) {
@@ -455,6 +434,19 @@ class _InfoCard extends StatelessWidget {
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: palette.mutedForeground,
                       ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  IconButton(
+                    key: const Key('venue-address-directions-button'),
+                    tooltip: l10n.venueGoogleMaps,
+                    onPressed: onDirections,
+                    icon: const Icon(AppIcons.navigation, size: 20),
+                    color: theme.colorScheme.primary,
+                    visualDensity: VisualDensity.compact,
+                    constraints: const BoxConstraints.tightFor(
+                      width: 36,
+                      height: 36,
                     ),
                   ),
                 ],
@@ -687,7 +679,12 @@ class _PricingCard extends StatelessWidget {
           data: (books) {
             final book = activeVenuePriceBook(books);
             if (book == null || book.rules.isEmpty) {
-              return Text(l10n.venueNoPricing);
+              return Text(
+                l10n.venueNoPricing,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  height: 1.5,
+                ),
+              );
             }
             final groups = _pricingGroups(book.rules, l10n);
             return Column(
@@ -866,6 +863,7 @@ class _PhotosCard extends StatelessWidget {
       LayoutBuilder(
         builder: (context, constraints) => GridView.builder(
           key: const Key('venue-photo-grid'),
+          padding: EdgeInsets.zero,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
           itemCount: venue.images.length,
@@ -896,75 +894,64 @@ class _PhotosCard extends StatelessWidget {
   );
 }
 
-class _LocationCard extends StatelessWidget {
-  const _LocationCard({required this.venue, required this.onDirections});
-  final Venue venue;
-  final VoidCallback onDirections;
-
-  @override
-  Widget build(BuildContext context) => _SectionCard(
-    key: const Key('venue-location-card'),
-    title: AppLocalizations.of(context).venueMap,
-    children: [
-      if (venue.addressLabel.isNotEmpty)
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          leading: const Icon(AppIcons.location),
-          title: Text(venue.addressLabel),
-        ),
-      SizedBox(
-        width: double.infinity,
-        child: OutlinedButton.icon(
-          key: const Key('venue-directions-button'),
-          onPressed: onDirections,
-          icon: const Icon(AppIcons.externalLink),
-          label: Text(AppLocalizations.of(context).venueGoogleMaps),
-        ),
-      ),
-    ],
-  );
-}
-
 class _ContributionCard extends StatelessWidget {
-  const _ContributionCard({
-    required this.onRequestUpdate,
-    required this.onPriceCorrection,
-    required this.onImageCorrection,
-  });
+  const _ContributionCard({required this.onRequestUpdate});
 
   final VoidCallback onRequestUpdate;
-  final VoidCallback onPriceCorrection;
-  final VoidCallback onImageCorrection;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return _SectionCard(
+    return _SecondarySection(
       key: const Key('venue-contribution-card'),
       title: l10n.venueUpdateInfo,
       children: [
-        Wrap(
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.sm,
-          children: [
-            OutlinedButton.icon(
-              onPressed: onRequestUpdate,
-              icon: const Icon(AppIcons.edit),
-              label: Text(l10n.venueRequestUpdate),
-            ),
-            OutlinedButton.icon(
-              onPressed: onPriceCorrection,
-              icon: const Icon(AppIcons.priceTag),
-              label: Text(l10n.venueSendPricePhoto),
-            ),
-            OutlinedButton.icon(
-              onPressed: onImageCorrection,
-              icon: const Icon(AppIcons.imagePlus),
-              label: Text(l10n.venueSendPhotos),
-            ),
-          ],
+        OutlinedButton.icon(
+          onPressed: onRequestUpdate,
+          icon: const Icon(AppIcons.edit),
+          label: Text(l10n.venueRequestUpdate),
         ),
       ],
+    );
+  }
+}
+
+class _SecondarySection extends StatelessWidget {
+  const _SecondarySection({
+    required this.title,
+    required this.children,
+    super.key,
+  });
+
+  final String title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: palette.muted,
+        border: Border.all(color: palette.border),
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              title,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            ...children,
+          ],
+        ),
+      ),
     );
   }
 }
@@ -1072,16 +1059,15 @@ class VenueDetailBottomBar extends StatelessWidget {
                     ),
                     const SizedBox(width: AppSpacing.sm),
                   ],
-                  Expanded(
-                    child: FilledButton.icon(
-                      key: const Key('venue-find-sessions-button'),
-                      onPressed: onFindSessions,
-                      icon: const Icon(AppIcons.search),
-                      label: Text(
-                        l10n.venueFindSessions,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                  const Spacer(),
+                  FilledButton.icon(
+                    key: const Key('venue-find-sessions-button'),
+                    onPressed: onFindSessions,
+                    icon: const Icon(AppIcons.search),
+                    label: Text(
+                      l10n.venueFindSessions,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
                 ],

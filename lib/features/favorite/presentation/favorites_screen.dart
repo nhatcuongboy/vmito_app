@@ -9,6 +9,7 @@ import 'package:vmito_app/core/shell/app_shell_scaffold_key.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/social/data/profile_tabs_service.dart';
 import 'package:vmito_app/features/social/domain/profile_tabs.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -36,6 +37,8 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final isAuthenticated =
+        ref.watch(authControllerProvider).status == AuthStatus.authenticated;
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -45,6 +48,20 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
               ref.read(appShellScaffoldKeyProvider).currentState?.openDrawer(),
         ),
         title: Text(l10n.navFavorites),
+        actions: [
+          if (isAuthenticated)
+            IconButton(
+              tooltip: l10n.notificationsTitle,
+              icon: const Icon(AppIcons.notifications),
+              onPressed: () => context.push(AppRoutes.notifications),
+            )
+          else
+            IconButton(
+              tooltip: l10n.authSignIn,
+              icon: const Icon(AppIcons.login),
+              onPressed: () => context.push(AppRoutes.signIn),
+            ),
+        ],
       ),
       body: Column(
         children: [

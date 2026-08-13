@@ -87,4 +87,32 @@ void main() {
       isNot(contains(AppRoutes.notifications)),
     );
   });
+
+  test('only session management hides the shell bottom navigation', () {
+    expect(
+      AppRoutes.hidesBottomNavigation(AppRoutes.manageSession('s1')),
+      isTrue,
+    );
+    expect(
+      AppRoutes.hidesBottomNavigation(AppRoutes.sessionDetail('s1')),
+      isFalse,
+    );
+    expect(
+      AppRoutes.hidesBottomNavigation(AppRoutes.editSession('s1')),
+      isFalse,
+    );
+    expect(
+      AppRoutes.hidesBottomNavigation('/sessions/s1/manage/history'),
+      isFalse,
+    );
+  });
+
+  test('signInWithRedirect preserves the post-login destination', () {
+    final uri = Uri.parse(
+      AppRoutes.signInWithRedirect(AppRoutes.createSession),
+    );
+
+    expect(uri.path, AppRoutes.signIn);
+    expect(uri.queryParameters['redirect'], AppRoutes.createSession);
+  });
 }

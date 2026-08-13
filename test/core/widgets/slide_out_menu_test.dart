@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
@@ -79,31 +78,23 @@ Future<void> _openDrawer(WidgetTester tester) async {
 
 Future<void> _tapMenuItem(WidgetTester tester, String label) async {
   final item = find.text(label, skipOffstage: false);
-  final listBottom = tester.getBottomLeft(find.byType(ListView)).dy;
-  for (var attempt = 0; attempt < 5; attempt++) {
-    final center = tester.getCenter(item);
-    if (center.dy >= 0 && center.dy <= listBottom) {
-      await tester.tap(item);
-      await tester.pumpAndSettle();
-      return;
+  final list = find.byType(ListView);
+  for (var attempt = 0; attempt < 10; attempt++) {
+    if (item.evaluate().isNotEmpty) {
+      final center = tester.getCenter(item);
+      if (tester.getRect(list).contains(center)) {
+        await tester.tap(item);
+        await tester.pumpAndSettle();
+        return;
+      }
     }
-    await tester.drag(find.byType(ListView), const Offset(0, -240));
+    await tester.drag(list, const Offset(0, -240));
     await tester.pumpAndSettle();
   }
   fail('Could not scroll "$label" into view.');
 }
 
 void main() {
-  setUpAll(() {
-    PackageInfo.setMockInitialValues(
-      appName: 'Vmito',
-      packageName: 'com.vmito.app',
-      version: '1.4.0',
-      buildNumber: '1',
-      buildSignature: '',
-    );
-  });
-
   const host = User(
     id: 'host',
     email: 'host@example.com',
@@ -131,13 +122,9 @@ void main() {
     expect(find.text('Đăng xuất'), findsNothing);
     expect(find.text('Đăng nhập'), findsOneWidget);
     expect(find.text('Đăng ký'), findsOneWidget);
-    expect(
-      find.textContaining(
-        'v1.4.0 · © 2026 Vmito. Tất cả quyền được bảo lưu.',
-        findRichText: true,
-      ),
-      findsOneWidget,
-    );
+    expect(find.text('© 2026 Vmito.'), findsOneWidget);
+    expect(find.textContaining('Tất cả quyền'), findsNothing);
+    expect(find.textContaining('v1.4.0'), findsNothing);
     expect(
       find.byWidgetPredicate(
         (widget) =>
@@ -207,11 +194,62 @@ void main() {
     expect(find.text('Nhóm'), findsOneWidget);
     expect(find.text('Giao dịch'), findsOneWidget);
     expect(find.text('Yêu thích'), findsOneWidget);
-    expect(
-      find.text('Trợ giúp & phản hồi', skipOffstage: false),
-      findsOneWidget,
+    await tester.scrollUntilVisible(
+      find.text('Trợ giúp & phản hồi'),
+      240,
+      scrollable: find.byType(Scrollable),
     );
+    expect(find.text('Trợ giúp & phản hồi'), findsOneWidget);
     expect(find.text('Đăng nhập'), findsNothing);
+  });
+
+  testWidgets('profile header uses balanced text and compact height', (
+    tester,
+  ) async {
+    final router = _buildRouter();
+    const longName = 'Nguyễn Hoàng Minh Khôi Nguyễn Hoàng Minh Khôi';
+    await tester.pumpWidget(
+      _harness(
+        const AuthState(
+          status: AuthStatus.authenticated,
+          user: User(
+            id: 'long-name-host',
+            email: 'long-name-host@example.com',
+            name: longName,
+            role: UserRole.host,
+          ),
+        ),
+        router,
+      ),
+    );
+    await _openDrawer(tester);
+
+    final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
+    final name = tester.widget<Text>(find.text(longName));
+    final role = tester.widget<Text>(find.text('Chủ kèo'));
+    final header = tester.getRect(find.byKey(const Key('menu-profile-header')));
+    expect(avatar.radius, 22);
+    expect(name.maxLines, 2);
+    expect(name.overflow, TextOverflow.ellipsis);
+    expect(name.style?.fontSize, lessThanOrEqualTo(18));
+    expect(role.style?.fontSize, lessThanOrEqualTo(14));
+    expect(header.height, lessThanOrEqualTo(96));
+  });
+
+  testWidgets('footer stays compact on one row', (tester) async {
+    final router = _buildRouter();
+    await tester.pumpWidget(
+      _harness(const AuthState(status: AuthStatus.unauthenticated), router),
+    );
+    await _openDrawer(tester);
+
+    final footer = tester.getRect(find.byKey(const Key('menu-footer')));
+    final appName = tester.getRect(find.text('Vmito'));
+    final year = tester.getRect(find.text('© 2026 Vmito.'));
+
+    expect(footer.height, lessThanOrEqualTo(40));
+    expect((appName.center.dy - year.center.dy).abs(), lessThanOrEqualTo(1));
+    expect(find.textContaining('Tất cả quyền'), findsNothing);
   });
 
   testWidgets('player does not see the transaction dashboard', (tester) async {

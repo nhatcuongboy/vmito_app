@@ -97,7 +97,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (location == AppRoutes.splash) return AppRoutes.home;
       if (AppRoutes.isPublic(location)) return null;
 
-      return AppRoutes.signIn;
+      return AppRoutes.signInWithRedirect(state.uri.toString());
     },
     routes: [
       GoRoute(
@@ -139,6 +139,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => SignInScreen(
           registrationCompleted: state.uri.queryParameters['registered'] == '1',
+          redirect: state.uri.queryParameters['redirect'],
         ),
       ),
       GoRoute(

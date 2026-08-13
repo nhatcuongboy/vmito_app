@@ -10,6 +10,10 @@ abstract final class AppRoutes {
   static const signUp = '/auth/sign-up';
   static const forgotPassword = '/auth/forgot-password';
   static const resetPassword = '/auth/reset-password';
+  static String signInWithRedirect(String redirect) => Uri(
+    path: signIn,
+    queryParameters: {'redirect': redirect},
+  ).toString();
 
   static const home = '/home';
   static const leaderboard = '/leaderboard';
@@ -54,6 +58,12 @@ abstract final class AppRoutes {
   static String manageClub(String id) => '/feed/manage/$id';
   static String editClub(String id) => '/feed/manage/$id/edit';
   static String publicProfile(String id) => '/user/$id';
+
+  /// Routes that remain in a shell branch but need an uninterrupted workspace.
+  static bool hidesBottomNavigation(String location) {
+    final path = Uri.tryParse(location)?.path ?? location;
+    return RegExp(r'^/sessions/[^/]+/manage$').hasMatch(path);
+  }
 
   static const tournaments = '/tournaments';
   static String tournamentDetail(String id) => '/tournaments/$id';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/court/application/live_session_controller.dart';
 import 'package:vmito_app/features/court/application/match_history_provider.dart';
@@ -21,7 +21,7 @@ const _session = Session(
   location: 'Quang Trung',
 );
 
-Future<void> _pump(WidgetTester tester) async {
+Future<void> _pump(WidgetTester tester, {Session session = _session}) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = const Size(400, 800);
   addTearDown(tester.view.resetDevicePixelRatio);
@@ -30,7 +30,7 @@ Future<void> _pump(WidgetTester tester) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        sessionDetailProvider('s1').overrideWith((ref) async => _session),
+        sessionDetailProvider('s1').overrideWith((ref) async => session),
         liveSessionRealtimeProvider('s1').overrideWith((ref) {}),
         matchHistoryProvider('s1').overrideWith((ref) async => const []),
         paymentLedgerProvider('s1').overrideWith(
@@ -55,13 +55,23 @@ Future<void> _pump(WidgetTester tester) async {
 }
 
 void main() {
-  testWidgets('shows session name, vertical More and all five fixed tabs', (
+  testWidgets('shows status badge, More actions and all five fixed tabs', (
     tester,
   ) async {
     await _pump(tester);
 
     expect(find.byKey(const Key('host-session-title')), findsOneWidget);
+    expect(find.byKey(const Key('host-session-status-badge')), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('host-session-status-badge')),
+        matching: find.text('Sắp diễn ra'),
+      ),
+      findsOneWidget,
+    );
     expect(find.byIcon(AppIcons.moreVert), findsOneWidget);
+    final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
+    expect(scaffold.bottomNavigationBar, isNull);
     const labels = ['Tổng quan', 'Người chơi', 'Sân', 'Kết quả', 'Thanh toán'];
     for (var index = 0; index < labels.length; index++) {
       expect(
@@ -83,9 +93,32 @@ void main() {
 
     await tester.tap(find.byKey(const Key('host-session-more-menu')));
     await tester.pumpAndSettle();
+    expect(find.text('Bắt đầu buổi chơi'), findsNWidgets(2));
     expect(find.text('Sửa buổi chơi'), findsOneWidget);
     expect(find.text('Nhân bản buổi chơi'), findsOneWidget);
     expect(find.text('Hủy buổi chơi'), findsOneWidget);
+  });
+
+  testWidgets('More shows end action while a session is in progress', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      session: _session.copyWith(status: SessionStatus.inProgress),
+    );
+
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('host-session-status-badge')),
+        matching: find.text('Đang diễn ra'),
+      ),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const Key('host-session-more-menu')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Kết thúc buổi chơi'), findsNWidgets(2));
+    expect(find.text('Sửa buổi chơi'), findsNothing);
   });
 
   testWidgets('each tab displays its implemented content', (tester) async {

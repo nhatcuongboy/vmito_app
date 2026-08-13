@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:vmito_app/core/config/app_config.dart';
+import 'package:vmito_app/core/network/paginated.dart' as pagination;
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/app_shell_scaffold_key.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
@@ -749,50 +750,65 @@ class _HostedTab extends ConsumerStatefulWidget {
 
 class _HostedTabState extends ConsumerState<_HostedTab> {
   var _filter = 'active';
-  late Future<List<Session>> _future;
+  late Future<pagination.Page<Session>> _future;
+  late Future<Map<String, int>> _countsFuture;
+
   @override
   void initState() {
     super.initState();
     _future = _load();
+    _countsFuture = _loadCounts();
   }
 
-  Future<List<Session>> _load() async =>
-      (await ref
-              .read(profileTabsServiceProvider)
-              .hosted(widget.userId, filter: _filter))
-          .items;
+  Future<pagination.Page<Session>> _load([String? filter]) => ref
+      .read(profileTabsServiceProvider)
+      .hosted(widget.userId, filter: filter ?? _filter);
+
+  Future<Map<String, int>> _loadCounts() async {
+    final service = ref.read(profileTabsServiceProvider);
+    final pages = await Future.wait(
+      _hostedFilters.map(
+        (filter) => service.hosted(widget.userId, filter: filter.value),
+      ),
+    );
+    return {
+      for (var index = 0; index < _hostedFilters.length; index++)
+        _hostedFilters[index].value: pages[index].total,
+    };
+  }
+
   @override
   Widget build(BuildContext context) => Column(
     children: [
-      Padding(
-        padding: const EdgeInsets.all(12),
-        child: SegmentedButton<String>(
-          segments: const [
-            ButtonSegment(value: 'active', label: Text('Đang hoạt động')),
-            ButtonSegment(value: 'ended', label: Text('Đã kết thúc')),
-            ButtonSegment(value: 'all', label: Text('Tất cả')),
-          ],
-          selected: {_filter},
-          onSelectionChanged: (value) => setState(() {
-            _filter = value.first;
-            _future = _load();
+      FutureBuilder<Map<String, int>>(
+        future: _countsFuture,
+        builder: (context, snapshot) => _HostedFilterChips(
+          selected: _filter,
+          counts: snapshot.data ?? const {},
+          onSelected: (value) => setState(() {
+            _filter = value;
+            _future = _load(value);
           }),
         ),
       ),
       Expanded(
-        child: FutureBuilder<List<Session>>(
+        child: FutureBuilder<pagination.Page<Session>>(
           future: _future,
           builder: (context, snapshot) {
             if (snapshot.hasError) {
               return AppErrorView(
                 error: snapshot.error!,
-                onRetry: () => setState(() => _future = _load()),
+                onRetry: () => setState(() {
+                  _future = _load();
+                  _countsFuture = _loadCounts();
+                }),
               );
             }
             if (!snapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
             }
-            if (snapshot.data!.isEmpty) {
+            final sessions = snapshot.data!.items;
+            if (sessions.isEmpty) {
               return const _Empty('Không có kèo đã host.');
             }
             return ListView.separated(
@@ -801,10 +817,10 @@ class _HostedTabState extends ConsumerState<_HostedTab> {
               ),
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(AppSpacing.screenPadding),
-              itemCount: snapshot.data!.length,
+              itemCount: sessions.length,
               separatorBuilder: (_, _) => const SizedBox(height: 12),
               itemBuilder: (context, index) {
-                final session = snapshot.data![index];
+                final session = sessions[index];
                 return SessionCard(
                   session: session,
                   onTap: () => context.push(
@@ -818,6 +834,112 @@ class _HostedTabState extends ConsumerState<_HostedTab> {
       ),
     ],
   );
+}
+
+const _hostedFilters = [
+  _HostedFilter(value: 'active', label: 'Đang mở'),
+  _HostedFilter(value: 'ended', label: 'Đã kết thúc'),
+  _HostedFilter(value: 'all', label: 'Tất cả'),
+];
+
+class _HostedFilter {
+  const _HostedFilter({required this.value, required this.label});
+
+  final String value;
+  final String label;
+}
+
+class _HostedFilterChips extends StatelessWidget {
+  const _HostedFilterChips({
+    required this.selected,
+    required this.counts,
+    required this.onSelected,
+  });
+
+  final String selected;
+  final Map<String, int> counts;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+    child: SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (final filter in _hostedFilters) ...[
+            _HostedFilterChip(
+              label: _label(filter),
+              selected: selected == filter.value,
+              onTap: () => onSelected(filter.value),
+            ),
+            if (filter != _hostedFilters.last) const SizedBox(width: 12),
+          ],
+        ],
+      ),
+    ),
+  );
+
+  String _label(_HostedFilter filter) {
+    final count = counts[filter.value];
+    return count == null ? filter.label : '${filter.label} ($count)';
+  }
+}
+
+class _HostedFilterChip extends StatelessWidget {
+  const _HostedFilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette =
+        theme.extension<AppPalette>() ??
+        (theme.brightness == Brightness.dark
+            ? AppPalette.dark()
+            : AppPalette.light());
+    final background = selected ? AppColors.brand : theme.colorScheme.surface;
+    final foreground = selected
+        ? theme.colorScheme.onPrimary
+        : theme.colorScheme.onSurface;
+
+    return Material(
+      color: background,
+      shape: StadiumBorder(
+        side: BorderSide(
+          color: selected ? AppColors.brand : palette.border,
+        ),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const StadiumBorder(),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 52),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+            child: Center(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: foreground,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _ClubsTab extends ConsumerStatefulWidget {

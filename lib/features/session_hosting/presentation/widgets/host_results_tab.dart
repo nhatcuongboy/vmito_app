@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:reactive_forms/reactive_forms.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/court/application/match_history_provider.dart';
@@ -78,15 +79,10 @@ class _HostResultsTabState extends ConsumerState<HostResultsTab> {
                   padding: const EdgeInsets.all(AppSpacing.md),
                   children: [
                     _ResultsControls(
-                      matchCount: filtered.length,
-                      courts: widget.session.orderedCourts,
                       courtId: _courtId,
                       filter: _filter,
                       newestFirst: _newestFirst,
-                      onCourtChanged: (value) =>
-                          setState(() => _courtId = value),
-                      onFilterChanged: (value) =>
-                          setState(() => _filter = value),
+                      onShowFilters: () => _showFilters(context),
                       onSortChanged: () =>
                           setState(() => _newestFirst = !_newestFirst),
                     ),
@@ -111,106 +107,87 @@ class _HostResultsTabState extends ConsumerState<HostResultsTab> {
       },
     );
   }
+
+  Future<void> _showFilters(BuildContext context) async {
+    final selected = await showModalBottomSheet<_ResultsFilterDraft>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (context) => _ResultsFilterSheet(
+        courts: widget.session.orderedCourts,
+        initial: _ResultsFilterDraft(courtId: _courtId, filter: _filter),
+      ),
+    );
+    if (selected != null && mounted) {
+      setState(() {
+        _courtId = selected.courtId;
+        _filter = selected.filter;
+      });
+    }
+  }
 }
 
 class _ResultsControls extends StatelessWidget {
   const _ResultsControls({
-    required this.matchCount,
-    required this.courts,
     required this.courtId,
     required this.filter,
     required this.newestFirst,
-    required this.onCourtChanged,
-    required this.onFilterChanged,
+    required this.onShowFilters,
     required this.onSortChanged,
   });
-  final int matchCount;
-  final List<Court> courts;
   final String? courtId;
   final _ResultFilter filter;
   final bool newestFirst;
-  final ValueChanged<String?> onCourtChanged;
-  final ValueChanged<_ResultFilter> onFilterChanged;
+  final VoidCallback onShowFilters;
   final VoidCallback onSortChanged;
   @override
-  Widget build(BuildContext context) => Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Row(
-        children: [
-          Expanded(
-            child: Text(
-              'Kết quả ($matchCount)',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+  Widget build(BuildContext context) {
+    final activeFilterCount =
+        (courtId == null ? 0 : 1) + (filter == _ResultFilter.all ? 0 : 1);
+    return Row(
+      children: [
+        OutlinedButton.icon(
+          key: const Key('host-results-filter'),
+          onPressed: onShowFilters,
+          icon: Badge(
+            isLabelVisible: activeFilterCount > 0,
+            label: Text('$activeFilterCount'),
+            child: const Icon(AppIcons.filter),
           ),
-          IconButton(
-            key: const Key('host-results-sort'),
-            tooltip: newestFirst ? 'Mới nhất trước' : 'Cũ nhất trước',
-            onPressed: onSortChanged,
-            icon: Icon(
-              newestFirst
-                  ? AppIcons.arrowDownward
-                  : AppIcons.arrowUpward,
-            ),
-          ),
-        ],
-      ),
-      const SizedBox(height: AppSpacing.sm),
-      Row(
-        children: [
-          Expanded(
-            child: DropdownButtonFormField<String?>(
-              key: const Key('host-results-court'),
-              initialValue: courtId,
-              isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Sân',
-                isDense: true,
-              ),
-              items: [
-                const DropdownMenuItem(child: Text('Tất cả sân')),
-                for (final court in courts)
-                  DropdownMenuItem(
-                    value: court.id,
-                    child: Text(court.customName ?? 'Sân ${court.courtNumber}'),
-                  ),
+          label: Text(activeFilterCount == 0 ? 'Bộ lọc' : 'Đã lọc'),
+        ),
+        const Spacer(),
+        PopupMenuButton<bool>(
+          key: const Key('host-results-sort'),
+          tooltip: 'Sắp xếp kết quả',
+          onSelected: (value) {
+            if (value != newestFirst) onSortChanged();
+          },
+          itemBuilder: (context) => const [
+            PopupMenuItem(value: true, child: Text('Mới nhất')),
+            PopupMenuItem(value: false, child: Text('Cũ nhất')),
+          ],
+          child: Container(
+            height: AppSizes.minTapTarget,
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+            alignment: Alignment.center,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  newestFirst ? AppIcons.arrowDownward : AppIcons.arrowUpward,
+                  size: 18,
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Text(newestFirst ? 'Mới nhất' : 'Cũ nhất'),
+                const Icon(Icons.arrow_drop_down),
               ],
-              onChanged: onCourtChanged,
             ),
           ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: DropdownButtonFormField<_ResultFilter>(
-              initialValue: filter,
-              isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: 'Kết quả',
-                isDense: true,
-              ),
-              items: const [
-                DropdownMenuItem(
-                  value: _ResultFilter.all,
-                  child: Text('Tất cả'),
-                ),
-                DropdownMenuItem(
-                  value: _ResultFilter.withScore,
-                  child: Text('Có điểm'),
-                ),
-                DropdownMenuItem(
-                  value: _ResultFilter.withoutScore,
-                  child: Text('Chưa có điểm'),
-                ),
-              ],
-              onChanged: (value) {
-                if (value != null) onFilterChanged(value);
-              },
-            ),
-          ),
-        ],
-      ),
-    ],
-  );
+        ),
+      ],
+    );
+  }
 }
 
 class _MatchesGrid extends StatelessWidget {
@@ -225,18 +202,19 @@ class _MatchesGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final columns = maxWidth >= 680 ? 2 : 1;
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: matches.length,
-      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: columns,
-        crossAxisSpacing: AppSpacing.sm,
-        mainAxisSpacing: AppSpacing.sm,
-        mainAxisExtent: 225,
-      ),
-      itemBuilder: (context, index) =>
-          _MatchResultCard(match: matches[index], session: session),
+    final cardWidth =
+        (maxWidth - AppSpacing.md * 2 - AppSpacing.sm * (columns - 1)) /
+        columns;
+    return Wrap(
+      spacing: AppSpacing.sm,
+      runSpacing: AppSpacing.sm,
+      children: [
+        for (final match in matches)
+          SizedBox(
+            width: cardWidth,
+            child: _MatchResultCard(match: match, session: session),
+          ),
+      ],
     );
   }
 }
@@ -286,9 +264,11 @@ class _MatchResultCard extends StatelessWidget {
         ? 'Sân'
         : (court.customName ?? 'Sân ${court.courtNumber}');
     return Card(
+      key: Key('host-result-card-${match.id}'),
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
+        padding: const EdgeInsets.all(AppSpacing.sm + 4),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -308,22 +288,27 @@ class _MatchResultCard extends StatelessWidget {
                 if (match.isExtra) const Chip(label: Text('Thêm')),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: AppSpacing.sm),
             _TeamLine(
               names: first,
               score: result.first,
               winner: result.winner == 1,
             ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 5),
-              child: Center(child: Text('VS')),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+              child: Center(
+                child: Text(
+                  'VS',
+                  style: Theme.of(context).textTheme.labelSmall,
+                ),
+              ),
             ),
             _TeamLine(
               names: second,
               score: result.second,
               winner: result.winner == 2,
             ),
-            const Spacer(),
+            const Divider(height: AppSpacing.lg),
             Row(
               children: [
                 Icon(
@@ -341,9 +326,11 @@ class _MatchResultCard extends StatelessWidget {
                   ),
                 ),
                 if (match.isDraw)
-                  const Text(
+                  Text(
                     'Hòa',
-                    style: TextStyle(fontWeight: FontWeight.w700),
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   )
                 else if (result.hasScore)
                   Icon(
@@ -379,36 +366,212 @@ class _TeamLine extends StatelessWidget {
   final int? score;
   final bool winner;
   @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      Expanded(
-        child: Text(
-          names.isEmpty ? '—' : names.join(' • '),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontWeight: winner ? FontWeight.w700 : null,
-          ),
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: winner ? colors.primaryContainer : null,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.sm,
+          vertical: AppSpacing.xs,
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                names.isEmpty ? '—' : names.join(' • '),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: winner ? FontWeight.w700 : null,
+                ),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Container(
+              width: 44,
+              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+              decoration: BoxDecoration(
+                color: winner ? colors.primary : colors.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(AppRadius.md),
+              ),
+              child: Text(
+                score?.toString() ?? '–',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  color: winner ? colors.onPrimary : null,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
-      Container(
-        width: 38,
-        alignment: Alignment.center,
-        padding: const EdgeInsets.symmetric(vertical: 5),
-        decoration: BoxDecoration(
-          color: winner
-              ? Theme.of(context).colorScheme.primaryContainer
-              : Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Text(
-          score?.toString() ?? '–',
-          style: const TextStyle(fontWeight: FontWeight.bold),
+    );
+  }
+}
+
+class _ResultsFilterSheet extends StatefulWidget {
+  const _ResultsFilterSheet({required this.courts, required this.initial});
+
+  final List<Court> courts;
+  final _ResultsFilterDraft initial;
+
+  @override
+  State<_ResultsFilterSheet> createState() => _ResultsFilterSheetState();
+}
+
+abstract final class _ResultsFilterControl {
+  static const court = 'court';
+  static const result = 'result';
+}
+
+class _ResultsFilterSheetState extends State<_ResultsFilterSheet> {
+  late final FormGroup _form;
+
+  @override
+  void initState() {
+    super.initState();
+    _form = FormGroup({
+      _ResultsFilterControl.court: FormControl<String>(
+        value: widget.initial.courtId,
+      ),
+      _ResultsFilterControl.result: FormControl<_ResultFilter>(
+        value: widget.initial.filter,
+      ),
+    });
+  }
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  void _apply() {
+    _form.markAllAsTouched();
+    if (_form.invalid || _form.pending) return;
+    Navigator.of(context).pop(
+      _ResultsFilterDraft(
+        courtId: _form.control(_ResultsFilterControl.court).value as String?,
+        filter:
+            _form.control(_ResultsFilterControl.result).value as _ResultFilter,
+      ),
+    );
+  }
+
+  void _reset() => Navigator.of(context).pop(const _ResultsFilterDraft());
+
+  @override
+  Widget build(BuildContext context) => SafeArea(
+    child: SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        0,
+        AppSpacing.md,
+        AppSpacing.md,
+      ),
+      child: ReactiveForm(
+        formGroup: _form,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Bộ lọc kết quả',
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text('Sân', style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: AppSpacing.sm),
+            ReactiveValueListenableBuilder<String>(
+              formControlName: _ResultsFilterControl.court,
+              builder: (context, control, _) => Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  ChoiceChip(
+                    key: const Key('host-results-filter-court-all'),
+                    label: const Text('Tất cả sân'),
+                    selected: control.value == null,
+                    onSelected: (_) => control.value = null,
+                  ),
+                  for (final court in widget.courts)
+                    ChoiceChip(
+                      key: Key('host-results-filter-court-${court.id}'),
+                      label: Text(
+                        court.customName ?? 'Sân ${court.courtNumber}',
+                      ),
+                      selected: control.value == court.id,
+                      onSelected: (_) => control.value = court.id,
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text('Kết quả', style: Theme.of(context).textTheme.titleSmall),
+            const SizedBox(height: AppSpacing.sm),
+            ReactiveValueListenableBuilder<_ResultFilter>(
+              formControlName: _ResultsFilterControl.result,
+              builder: (context, control, _) => Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  for (final filter in _ResultFilter.values)
+                    ChoiceChip(
+                      key: Key('host-results-filter-result-${filter.name}'),
+                      label: Text(_resultFilterLabel(filter)),
+                      selected: control.value == filter,
+                      onSelected: (_) => control.value = filter,
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            Row(
+              children: [
+                Expanded(
+                  child: FilledButton(
+                    key: const Key('host-results-filter-apply'),
+                    onPressed: _apply,
+                    child: const Text('Áp dụng'),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: FilledButton.tonal(
+                    key: const Key('host-results-filter-reset'),
+                    onPressed: _reset,
+                    child: const Text('Xóa lọc'),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
-    ],
+    ),
   );
 }
+
+class _ResultsFilterDraft {
+  const _ResultsFilterDraft({
+    this.courtId,
+    this.filter = _ResultFilter.all,
+  });
+
+  final String? courtId;
+  final _ResultFilter filter;
+}
+
+String _resultFilterLabel(_ResultFilter filter) => switch (filter) {
+  _ResultFilter.all => 'Tất cả',
+  _ResultFilter.withScore => 'Có điểm',
+  _ResultFilter.withoutScore => 'Chưa có điểm',
+};
 
 class _EmptyResults extends StatelessWidget {
   const _EmptyResults({required this.isFiltered});

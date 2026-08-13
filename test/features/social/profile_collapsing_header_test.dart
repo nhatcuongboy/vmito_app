@@ -236,6 +236,42 @@ void main() {
     expect(find.text('Chỉnh sửa'), findsOneWidget);
     expect(find.text('HOST'), findsNothing);
   });
+
+  testWidgets('renders hosted session filters as count chips', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          currentUserProvider.overrideWithValue(_user),
+          publicProfileProvider('user-1').overrideWith(
+            (ref) async => const PublicProfileBundle(
+              profile: _profile,
+              stats: RatingStats(average: 4.8, total: 20),
+              ratings: [],
+              hostedSessionsCount: 34,
+            ),
+          ),
+          profileTabsServiceProvider.overrideWithValue(
+            const _FakeProfileTabsService(hasPosts: false),
+          ),
+        ],
+        child: const MaterialApp(
+          locale: Locale('vi'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: PublicProfileScreen(userId: 'user-1'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Kèo đã host').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Đang mở (12)'), findsOneWidget);
+    expect(find.text('Đã kết thúc (23)'), findsOneWidget);
+    expect(find.text('Tất cả (35)'), findsOneWidget);
+    expect(find.text('Đang hoạt động'), findsNothing);
+  });
 }
 
 double _opacity(WidgetTester tester, String key) =>
@@ -344,5 +380,18 @@ class _FakeProfileTabsService implements ProfileTabsService {
     String id, {
     int page = 1,
     String filter = 'active',
-  }) => throw UnimplementedError();
+  }) async {
+    final total = switch (filter) {
+      'active' => 12,
+      'ended' => 23,
+      _ => 35,
+    };
+    return pagination.Page<Session>(
+      items: const [],
+      total: total,
+      page: page,
+      limit: 10,
+      totalPages: (total / 10).ceil(),
+    );
+  }
 }

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:vmito_app/core/localization/locale_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
@@ -262,33 +261,47 @@ class _ProfileHeader extends StatelessWidget {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        key: const Key('menu-profile-header'),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.lg,
+          AppSpacing.md,
+          AppSpacing.lg,
+          AppSpacing.md,
+        ),
         child: Row(
           children: [
             CircleAvatar(
-              radius: 40,
+              radius: 22,
               foregroundImage: hasImage ? NetworkImage(user.image!) : null,
-              child: Text(initials, style: theme.textTheme.headlineSmall),
+              child: Text(
+                initials,
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     user.displayName,
-                    maxLines: 1,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleLarge?.copyWith(
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
+                      height: 1.2,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.xs),
+                  const SizedBox(height: 2),
                   Text(
                     roleLabel,
-                    style: theme.textTheme.bodyLarge?.copyWith(
+                    style: theme.textTheme.bodyMedium?.copyWith(
                       color: theme.extension<AppPalette>()!.mutedForeground,
                       fontWeight: FontWeight.w600,
+                      height: 1.2,
                     ),
                   ),
                 ],
@@ -413,46 +426,38 @@ class _MenuFooter extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
     final palette = Theme.of(context).extension<AppPalette>()!;
     return Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      key: const Key('menu-footer'),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.sm,
+      ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ClipOval(
             child: Image.asset(
               'assets/icons/app-logo-96.png',
-              width: 24,
-              height: 24,
+              width: 22,
+              height: 22,
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: FutureBuilder<PackageInfo>(
-              future: PackageInfo.fromPlatform(),
-              builder: (context, snapshot) => Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: appName,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const TextSpan(text: '  '),
-                    TextSpan(
-                      text: l10n.menuFooterVersion(
-                        snapshot.data?.version ?? '—',
-                        DateTime.now().year,
-                      ),
-                    ),
-                  ],
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: palette.mutedForeground,
-                ),
+          Text(
+            appName,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Flexible(
+            child: Text(
+              l10n.menuFooterYear(DateTime.now().year),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: palette.mutedForeground,
               ),
             ),
           ),

@@ -40,10 +40,6 @@ Future<void> showLoginPromptDialog(
 
   if (confirmed == true && context.mounted) {
     final redirectUri = targetRoute ?? GoRouterState.of(context).uri.toString();
-    unawaited(
-      context.push(
-        '${AppRoutes.signIn}?redirect=${Uri.encodeComponent(redirectUri)}',
-      ),
-    );
+    unawaited(context.push(AppRoutes.signInWithRedirect(redirectUri)));
   }
 }

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/host_roster_tab.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -32,11 +34,12 @@ void main() {
     ],
   );
 
-  Widget subject() => const ProviderScope(
+  Widget subject() => ProviderScope(
     child: MaterialApp(
+      theme: AppTheme.light,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(body: HostRosterTab(session: session)),
+      home: const Scaffold(body: HostRosterTab(session: session)),
     ),
   );
 
@@ -50,6 +53,38 @@ void main() {
     expect(find.byKey(const Key('host-roster-filter')), findsOneWidget);
     expect(find.text('Sơn'), findsOneWidget);
     expect(find.text('Minh'), findsOneWidget);
+  });
+
+  testWidgets('uses compact player controls and cards on mobile', (
+    tester,
+  ) async {
+    tester.view.devicePixelRatio = 1;
+    tester.view.physicalSize = const Size(400, 800);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    addTearDown(tester.view.resetPhysicalSize);
+
+    await tester.pumpWidget(subject());
+
+    final grid = tester.widget<GridView>(
+      find.byKey(const Key('host-roster-grid')),
+    );
+    final delegate =
+        grid.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount;
+    expect(delegate.crossAxisCount, 2);
+    expect(delegate.mainAxisExtent, 124);
+
+    expect(
+      tester.getRect(find.byType(TextField)).height,
+      AppSizes.minTapTarget,
+    );
+    expect(
+      tester.getRect(find.byKey(const Key('host-roster-filter'))).height,
+      greaterThanOrEqualTo(AppSizes.minTapTarget),
+    );
+    expect(
+      tester.getRect(find.byKey(const Key('host-roster-add'))).height,
+      greaterThanOrEqualTo(AppSizes.minTapTarget),
+    );
   });
 
   testWidgets('filters roster using the search field', (tester) async {

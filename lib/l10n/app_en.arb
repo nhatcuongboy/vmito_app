@@ -1362,7 +1362,7 @@
   "venuePerHour": "/ hour",
   "venueCallNow": "Call now",
   "venueFindSessions": "Find sessions",
-  "venueUpdateInfo": "Update information",
+  "venueUpdateInfo": "Information not right?",
   "venueRequestUpdate": "Suggest an edit",
   "venueSendPricePhoto": "Send pricing photo",
   "venueSendPhotos": "Send venue photos",
@@ -1529,6 +1529,6 @@
   "menuRoleAdmin": "Administrator",
   "menuRoleReferee": "Referee",
   "menuHelpFeedback": "Help and feedback",
-  "menuFooterVersion": "v{version} · © {year} Vmito. All rights reserved.",
-  "@menuFooterVersion": {"placeholders": {"version": {"type": "String"}, "year": {"type": "int"}}}
+  "menuFooterYear": "© {year} Vmito.",
+  "@menuFooterYear": {"placeholders": {"year": {"type": "int"}}}
 }

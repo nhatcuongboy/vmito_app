@@ -73,6 +73,7 @@ class _AppShellState extends ConsumerState<AppShell> {
     final isSignedIn = ref.watch(isSignedInProvider);
     final location = GoRouterState.of(context).uri.path;
     final shouldKeepBottomBarVisible = location == AppRoutes.notifications;
+    final shouldHideBottomBar = AppRoutes.hidesBottomNavigation(location);
 
     return ProviderScope(
       overrides: [
@@ -88,7 +89,7 @@ class _AppShellState extends ConsumerState<AppShell> {
               : _handleScrollNotification,
           child: widget.navigationShell,
         ),
-        bottomNavigationBar: isSignedIn
+        bottomNavigationBar: isSignedIn && !shouldHideBottomBar
             ? ClipRect(
                 child: AnimatedAlign(
                   duration: const Duration(milliseconds: 220),

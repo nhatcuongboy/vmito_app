@@ -12,6 +12,7 @@ import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/registration/domain/pending_join_request.dart';
 import 'package:vmito_app/features/session/application/player/my_sessions_controller.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
@@ -79,6 +80,8 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
   Widget build(BuildContext context) {
     ref.watch(mySessionsRealtimeProvider);
     final l10n = AppLocalizations.of(context);
+    final isAuthenticated =
+        ref.watch(authControllerProvider).status == AuthStatus.authenticated;
     final state = ref.watch(mySessionsControllerProvider(_scope));
     final controller = ref.read(
       mySessionsControllerProvider(_scope).notifier,
@@ -115,6 +118,18 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
                 child: const Icon(AppIcons.userCheck),
               ),
               onPressed: () => context.push(AppRoutes.pendingRequests),
+            ),
+          if (isAuthenticated)
+            IconButton(
+              tooltip: l10n.notificationsTitle,
+              icon: const Icon(AppIcons.notifications),
+              onPressed: () => context.push(AppRoutes.notifications),
+            )
+          else
+            IconButton(
+              tooltip: l10n.authSignIn,
+              icon: const Icon(AppIcons.login),
+              onPressed: () => context.push(AppRoutes.signIn),
             ),
         ],
       ),

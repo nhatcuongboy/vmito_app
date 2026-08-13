@@ -74,88 +74,121 @@ class _HostRosterTabState extends ConsumerState<HostRosterTab> {
       onRefresh: () =>
           ref.refresh(sessionDetailProvider(widget.session.id).future),
       child: LayoutBuilder(
-        builder: (context, constraints) => ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(AppSpacing.md),
-          children: [
-            _RosterHeader(
-              approvedCount: _approved.length,
-              capacity: _capacity,
-              onAdd: () => _addPlayer(context),
-            ),
-            if (pending.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                l10n.hostManagePendingApprovals,
-                style: Theme.of(context).textTheme.titleMedium,
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth <= 600;
+          return ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.all(compact ? AppSpacing.sm : AppSpacing.md),
+            children: [
+              _RosterHeader(
+                approvedCount: _approved.length,
+                capacity: _capacity,
+                onAdd: () => _addPlayer(context),
+                compact: compact,
               ),
-              const SizedBox(height: AppSpacing.xs),
-              for (final player in pending)
-                _PendingPlayerCard(
-                  player: player,
-                  onApprove: () => unawaited(
-                    controller.updateRegistration(player.id, approved: true),
-                  ),
-                  onReject: () => unawaited(
-                    controller.updateRegistration(player.id, approved: false),
-                  ),
+              if (pending.isNotEmpty) ...[
+                SizedBox(height: compact ? AppSpacing.sm : AppSpacing.md),
+                Text(
+                  l10n.hostManagePendingApprovals,
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-            ],
-            const SizedBox(height: AppSpacing.md),
-            PlayerSearchField(
-              onChanged: (value) => setState(() => _query = value),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Row(
-              children: [
-                OutlinedButton.icon(
-                  key: const Key('host-roster-filter'),
-                  onPressed: () => _showFilters(context, counts),
-                  icon: Badge(
-                    isLabelVisible: _filters.isNotEmpty,
-                    label: Text('${_filters.length}'),
-                    child: const Icon(AppIcons.filter),
-                  ),
-                  label: Text(_filters.isEmpty ? 'Bộ lọc' : 'Đã lọc'),
-                ),
-                const Spacer(),
-                SegmentedButton<bool>(
-                  segments: const [
-                    ButtonSegment(
-                      value: true,
-                      icon: Icon(AppIcons.grid),
-                      tooltip: 'Dạng lưới',
+                const SizedBox(height: AppSpacing.xs),
+                for (final player in pending)
+                  _PendingPlayerCard(
+                    player: player,
+                    onApprove: () => unawaited(
+                      controller.updateRegistration(player.id, approved: true),
                     ),
-                    ButtonSegment(
-                      value: false,
-                      icon: Icon(AppIcons.list),
-                      tooltip: 'Dạng danh sách',
+                    onReject: () => unawaited(
+                      controller.updateRegistration(player.id, approved: false),
                     ),
-                  ],
-                  selected: {_grid},
-                  showSelectedIcon: false,
-                  onSelectionChanged: (value) =>
-                      setState(() => _grid = value.first),
-                ),
+                  ),
               ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            if (_filteredPlayers.isEmpty)
-              _RosterEmpty(isFiltered: _query.isNotEmpty || _filters.isNotEmpty)
-            else if (_grid)
-              _RosterGrid(
-                players: _filteredPlayers,
-                maxWidth: constraints.maxWidth,
-                onAction: _playerAction,
-              )
-            else
-              for (final player in _filteredPlayers)
-                _RosterListTile(
-                  player: player,
-                  onAction: (action) => _playerAction(player, action),
+              SizedBox(height: compact ? AppSpacing.sm : AppSpacing.md),
+              SizedBox(
+                height: compact ? AppSizes.minTapTarget : null,
+                child: PlayerSearchField(
+                  compact: compact,
+                  onChanged: (value) => setState(() => _query = value),
                 ),
-          ],
-        ),
+              ),
+              SizedBox(height: compact ? AppSpacing.xs : AppSpacing.sm),
+              Row(
+                children: [
+                  OutlinedButton.icon(
+                    key: const Key('host-roster-filter'),
+                    style: compact
+                        ? OutlinedButton.styleFrom(
+                            minimumSize: const Size(0, AppSizes.minTapTarget),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.sm + 4,
+                            ),
+                            textStyle: const TextStyle(fontSize: 14),
+                          )
+                        : null,
+                    onPressed: () => _showFilters(context, counts),
+                    icon: Badge(
+                      isLabelVisible: _filters.isNotEmpty,
+                      label: Text('${_filters.length}'),
+                      child: const Icon(AppIcons.filter),
+                    ),
+                    label: Text(_filters.isEmpty ? 'Bộ lọc' : 'Đã lọc'),
+                  ),
+                  const Spacer(),
+                  SegmentedButton<bool>(
+                    style: compact
+                        ? const ButtonStyle(
+                            minimumSize: WidgetStatePropertyAll(
+                              Size(
+                                AppSizes.minTapTarget,
+                                AppSizes.minTapTarget,
+                              ),
+                            ),
+                            padding: WidgetStatePropertyAll(
+                              EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                            ),
+                          )
+                        : null,
+                    segments: const [
+                      ButtonSegment(
+                        value: true,
+                        icon: Icon(AppIcons.grid),
+                        tooltip: 'Dạng lưới',
+                      ),
+                      ButtonSegment(
+                        value: false,
+                        icon: Icon(AppIcons.list),
+                        tooltip: 'Dạng danh sách',
+                      ),
+                    ],
+                    selected: {_grid},
+                    showSelectedIcon: false,
+                    onSelectionChanged: (value) =>
+                        setState(() => _grid = value.first),
+                  ),
+                ],
+              ),
+              SizedBox(height: compact ? AppSpacing.sm : AppSpacing.md),
+              if (_filteredPlayers.isEmpty)
+                _RosterEmpty(
+                  isFiltered: _query.isNotEmpty || _filters.isNotEmpty,
+                )
+              else if (_grid)
+                _RosterGrid(
+                  players: _filteredPlayers,
+                  maxWidth: constraints.maxWidth,
+                  onAction: _playerAction,
+                  compact: compact,
+                )
+              else
+                for (final player in _filteredPlayers)
+                  _RosterListTile(
+                    player: player,
+                    onAction: (action) => _playerAction(player, action),
+                  ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -218,10 +251,12 @@ class _RosterHeader extends StatelessWidget {
     required this.approvedCount,
     required this.capacity,
     required this.onAdd,
+    required this.compact,
   });
   final int approvedCount;
   final int capacity;
   final VoidCallback onAdd;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) => Row(
@@ -229,13 +264,24 @@ class _RosterHeader extends StatelessWidget {
       Expanded(
         child: Text(
           'Người chơi ($approvedCount/$capacity)',
-          style: Theme.of(context).textTheme.titleLarge,
+          style: compact
+              ? Theme.of(context).textTheme.titleMedium
+              : Theme.of(context).textTheme.titleLarge,
         ),
       ),
       FilledButton.icon(
         key: const Key('host-roster-add'),
+        style: compact
+            ? FilledButton.styleFrom(
+                minimumSize: const Size(0, AppSizes.minTapTarget),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm + 4,
+                ),
+                textStyle: const TextStyle(fontSize: 14),
+              )
+            : null,
         onPressed: onAdd,
-        icon: const Icon(AppIcons.add),
+        icon: Icon(AppIcons.add, size: compact ? 18 : null),
         label: const Text('Thêm người'),
       ),
     ],
@@ -284,15 +330,18 @@ class _RosterGrid extends StatelessWidget {
     required this.players,
     required this.maxWidth,
     required this.onAction,
+    required this.compact,
   });
   final List<SessionPlayer> players;
   final double maxWidth;
   final void Function(SessionPlayer, _RosterAction) onAction;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final columns = (maxWidth / 180).floor().clamp(2, 4);
     return GridView.builder(
+      key: const Key('host-roster-grid'),
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: players.length,
@@ -300,20 +349,26 @@ class _RosterGrid extends StatelessWidget {
         crossAxisCount: columns,
         mainAxisSpacing: AppSpacing.sm,
         crossAxisSpacing: AppSpacing.sm,
-        mainAxisExtent: 144,
+        mainAxisExtent: compact ? 124 : 144,
       ),
       itemBuilder: (context, index) => _RosterPlayerCard(
         player: players[index],
         onAction: (action) => onAction(players[index], action),
+        compact: compact,
       ),
     );
   }
 }
 
 class _RosterPlayerCard extends StatelessWidget {
-  const _RosterPlayerCard({required this.player, required this.onAction});
+  const _RosterPlayerCard({
+    required this.player,
+    required this.onAction,
+    required this.compact,
+  });
   final SessionPlayer player;
   final ValueChanged<_RosterAction> onAction;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -327,13 +382,13 @@ class _RosterPlayerCard extends StatelessWidget {
         side: BorderSide(color: colors.border),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.sm),
+        padding: EdgeInsets.all(compact ? AppSpacing.xs + 2 : AppSpacing.sm),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                _NumberBadge(number: player.playerNumber),
+                _NumberBadge(number: player.playerNumber, compact: compact),
                 const Spacer(),
                 _ActionMenu(player: player, onAction: onAction),
               ],
@@ -343,14 +398,16 @@ class _RosterPlayerCard extends StatelessWidget {
               player.displayName ?? l10n.playerName(player),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.titleMedium,
+              style: compact
+                  ? Theme.of(context).textTheme.titleSmall
+                  : Theme.of(context).textTheme.titleMedium,
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: compact ? 4 : 6),
             Row(
               children: [
-                _InfoChip(label: _levelLabel(player.level)),
-                const SizedBox(width: 5),
-                _GenderChip(gender: player.gender),
+                _InfoChip(label: _levelLabel(player.level), compact: compact),
+                SizedBox(width: compact ? 4 : 5),
+                _GenderChip(gender: player.gender, compact: compact),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
@@ -358,9 +415,13 @@ class _RosterPlayerCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.end,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.labelLarge?.copyWith(color: colors.foreground),
+                    style:
+                        Theme.of(
+                          context,
+                        ).textTheme.labelLarge?.copyWith(
+                          color: colors.foreground,
+                          fontSize: compact ? 12 : null,
+                        ),
                   ),
                 ),
               ],
@@ -421,11 +482,15 @@ class _ActionMenu extends StatelessWidget {
 }
 
 class _NumberBadge extends StatelessWidget {
-  const _NumberBadge({required this.number});
+  const _NumberBadge({required this.number, this.compact = false});
   final int? number;
+  final bool compact;
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    padding: EdgeInsets.symmetric(
+      horizontal: compact ? 6 : 8,
+      vertical: compact ? 3 : 4,
+    ),
     decoration: BoxDecoration(
       color: Theme.of(context).colorScheme.tertiary,
       borderRadius: BorderRadius.circular(AppRadius.pill),
@@ -435,31 +500,40 @@ class _NumberBadge extends StatelessWidget {
       style: Theme.of(context).textTheme.labelLarge?.copyWith(
         color: Theme.of(context).colorScheme.onTertiary,
         fontWeight: FontWeight.bold,
+        fontSize: compact ? 12 : null,
       ),
     ),
   );
 }
 
 class _InfoChip extends StatelessWidget {
-  const _InfoChip({required this.label});
+  const _InfoChip({required this.label, this.compact = false});
   final String label;
+  final bool compact;
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+    padding: EdgeInsets.symmetric(
+      horizontal: compact ? 5 : 7,
+      vertical: compact ? 2 : 3,
+    ),
     decoration: BoxDecoration(
       color: Theme.of(context).colorScheme.surface,
       borderRadius: BorderRadius.circular(5),
     ),
-    child: Text(label),
+    child: Text(
+      label,
+      style: compact ? Theme.of(context).textTheme.labelSmall : null,
+    ),
   );
 }
 
 class _GenderChip extends StatelessWidget {
-  const _GenderChip({required this.gender});
+  const _GenderChip({required this.gender, this.compact = false});
   final Gender? gender;
+  final bool compact;
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(3),
+    padding: EdgeInsets.all(compact ? 2 : 3),
     decoration: BoxDecoration(
       color: Theme.of(context).colorScheme.primary,
       borderRadius: BorderRadius.circular(5),
@@ -471,7 +545,7 @@ class _GenderChip extends StatelessWidget {
         _ => AppIcons.user,
       },
       color: Theme.of(context).colorScheme.onPrimary,
-      size: 16,
+      size: compact ? 14 : 16,
     ),
   );
 }
