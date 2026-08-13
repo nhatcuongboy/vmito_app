@@ -1,35 +1,38 @@
 import 'package:flutter/material.dart';
-import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/core/widgets/slide_out_menu.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
+import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
-/// A single route shape shared by every destination: a menu button that
-/// opens [SlideOutMenu] plus a label proving which screen is showing, so
-/// navigation can be asserted by reading the body text after the drawer
-/// closes.
-Widget _screen(String label) {
-  return Builder(
-    builder: (context) => Scaffold(
-      appBar: AppBar(
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(AppIcons.menu),
-            onPressed: () => Scaffold.of(context).openDrawer(),
-          ),
-        ),
-        title: Text(label),
-      ),
-      drawer: const SlideOutMenu(),
-      body: Center(child: Text('$label body')),
-    ),
-  );
+class _TestAuthController extends AuthController {
+  _TestAuthController(this._state);
+
+  final AuthState _state;
+
+  @override
+  AuthState build() => _state;
 }
+
+Widget _screen(String label) => Scaffold(
+  appBar: AppBar(
+    leading: Builder(
+      builder: (context) => IconButton(
+        icon: const Icon(AppIcons.menu),
+        onPressed: () => Scaffold.of(context).openDrawer(),
+      ),
+    ),
+    title: Text(label),
+  ),
+  drawer: const SlideOutMenu(),
+  body: Center(child: Text('$label body')),
+);
 
 GoRouter _buildRouter() => GoRouter(
   initialLocation: AppRoutes.home,
@@ -39,94 +42,233 @@ GoRouter _buildRouter() => GoRouter(
       path: AppRoutes.browseSessions,
       builder: (_, _) => _screen('Sessions'),
     ),
-    GoRoute(path: AppRoutes.feed, builder: (_, _) => _screen('Feed')),
-    GoRoute(path: AppRoutes.profile, builder: (_, _) => _screen('Profile')),
-    GoRoute(
-      path: AppRoutes.notifications,
-      builder: (_, _) => _screen('Notifications'),
-    ),
+    GoRoute(path: AppRoutes.leaderboard, builder: (_, _) => _screen('Rank')),
+    GoRoute(path: AppRoutes.manageClubs, builder: (_, _) => _screen('Groups')),
     GoRoute(
       path: AppRoutes.transactions,
       builder: (_, _) => _screen('Transactions'),
     ),
-    GoRoute(path: AppRoutes.signIn, builder: (_, _) => _screen('SignIn')),
-    GoRoute(path: AppRoutes.signUp, builder: (_, _) => _screen('SignUp')),
+    GoRoute(
+      path: AppRoutes.favorites,
+      builder: (_, _) => _screen('Favorites'),
+    ),
+    GoRoute(path: AppRoutes.profile, builder: (_, _) => _screen('Profile')),
+    GoRoute(path: AppRoutes.settings, builder: (_, _) => _screen('Settings')),
+    GoRoute(path: AppRoutes.signIn, builder: (_, _) => _screen('Sign in')),
+    GoRoute(path: AppRoutes.signUp, builder: (_, _) => _screen('Sign up')),
   ],
 );
 
-Widget _harness(GoRouter router, {required bool isSignedIn}) {
-  return ProviderScope(
-    overrides: [isSignedInProvider.overrideWithValue(isSignedIn)],
-    child: MaterialApp.router(
-      locale: const Locale('vi'),
-      theme: AppTheme.light,
-      routerConfig: router,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-    ),
-  );
-}
+Widget _harness(AuthState state, GoRouter router) => ProviderScope(
+  overrides: [
+    authControllerProvider.overrideWith(() => _TestAuthController(state)),
+  ],
+  child: MaterialApp.router(
+    locale: const Locale('vi'),
+    theme: AppTheme.light,
+    routerConfig: router,
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+  ),
+);
 
 Future<void> _openDrawer(WidgetTester tester) async {
   await tester.tap(find.byIcon(AppIcons.menu));
   await tester.pumpAndSettle();
 }
 
+Future<void> _tapMenuItem(WidgetTester tester, String label) async {
+  final item = find.text(label, skipOffstage: false);
+  final listBottom = tester.getBottomLeft(find.byType(ListView)).dy;
+  for (var attempt = 0; attempt < 5; attempt++) {
+    final center = tester.getCenter(item);
+    if (center.dy >= 0 && center.dy <= listBottom) {
+      await tester.tap(item);
+      await tester.pumpAndSettle();
+      return;
+    }
+    await tester.drag(find.byType(ListView), const Offset(0, -240));
+    await tester.pumpAndSettle();
+  }
+  fail('Could not scroll "$label" into view.');
+}
+
 void main() {
-  testWidgets('signed out: shows core destinations, hides account-only '
-      'items, shows sign-in/up', (tester) async {
-    await tester.pumpWidget(_harness(_buildRouter(), isSignedIn: false));
+  setUpAll(() {
+    PackageInfo.setMockInitialValues(
+      appName: 'Vmito',
+      packageName: 'com.vmito.app',
+      version: '1.4.0',
+      buildNumber: '1',
+      buildSignature: '',
+    );
+  });
+
+  const host = User(
+    id: 'host',
+    email: 'host@example.com',
+    name: 'Nhật Cường',
+    role: UserRole.host,
+  );
+
+  testWidgets('signed out shows discovery and authentication actions only', (
+    tester,
+  ) async {
+    final router = _buildRouter();
+    await tester.pumpWidget(
+      _harness(const AuthState(status: AuthStatus.unauthenticated), router),
+    );
     await _openDrawer(tester);
 
-    expect(find.text('Trang chủ'), findsOneWidget);
-    expect(find.text('Kèo'), findsOneWidget);
-    expect(find.text('Cộng đồng'), findsOneWidget);
-    expect(find.text('Cá nhân'), findsOneWidget);
-    expect(find.text('Ngôn ngữ'), findsOneWidget);
-
-    expect(find.text('Thông báo'), findsNothing);
-    expect(find.text('Bảng giao dịch'), findsNothing);
+    expect(find.text('Khám phá'), findsOneWidget);
+    expect(find.text('Tìm kèo'), findsOneWidget);
+    expect(find.text('Tìm sân'), findsOneWidget);
+    expect(find.text('Tìm nhóm'), findsOneWidget);
+    expect(find.text('Tìm giải'), findsOneWidget);
+    expect(find.text('Bảng xếp hạng'), findsOneWidget);
+    expect(find.text('Quản lý'), findsNothing);
+    expect(find.text('Cài đặt'), findsNothing);
+    expect(find.text('Đăng xuất'), findsNothing);
     expect(find.text('Đăng nhập'), findsOneWidget);
     expect(find.text('Đăng ký'), findsOneWidget);
+    expect(
+      find.textContaining(
+        'v1.4.0 · © 2026 Vmito. Tất cả quyền được bảo lưu.',
+        findRichText: true,
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.byWidgetPredicate(
+        (widget) =>
+            widget is Image &&
+            widget.image is AssetImage &&
+            (widget.image as AssetImage).assetName ==
+                'assets/icons/app-logo-96.png',
+      ),
+      findsOneWidget,
+    );
   });
 
-  testWidgets('signed in: shows notifications/transactions, hides sign-in/up', (
+  testWidgets('guest has the same restricted menu as a signed-out visitor', (
     tester,
   ) async {
-    await tester.pumpWidget(_harness(_buildRouter(), isSignedIn: true));
+    final router = _buildRouter();
+    await tester.pumpWidget(
+      _harness(
+        const AuthState(
+          status: AuthStatus.guest,
+          user: User(id: 'guest', email: '', role: UserRole.guest),
+        ),
+        router,
+      ),
+    );
     await _openDrawer(tester);
 
-    expect(find.text('Thông báo'), findsOneWidget);
-    expect(find.text('Bảng giao dịch'), findsOneWidget);
+    expect(find.text('Cá nhân'), findsNothing);
+    expect(find.text('Quản lý'), findsNothing);
+    expect(find.text('Đăng nhập'), findsOneWidget);
+  });
+
+  testWidgets('discovery destination selects the matching home tab', (
+    tester,
+  ) async {
+    final router = _buildRouter();
+    await tester.pumpWidget(
+      _harness(const AuthState(status: AuthStatus.unauthenticated), router),
+    );
+    await _openDrawer(tester);
+
+    await _tapMenuItem(tester, 'Tìm giải');
+
+    expect(
+      router.routeInformationProvider.value.uri,
+      Uri.parse(AppRoutes.homeForDiscoveryTab('tournaments')),
+    );
+    expect(find.byType(SlideOutMenu), findsNothing);
+  });
+
+  testWidgets('authenticated host sees profile and management destinations', (
+    tester,
+  ) async {
+    final router = _buildRouter();
+    await tester.pumpWidget(
+      _harness(
+        const AuthState(status: AuthStatus.authenticated, user: host),
+        router,
+      ),
+    );
+    await _openDrawer(tester);
+
+    expect(find.text('Nhật Cường'), findsOneWidget);
+    expect(find.text('Chủ kèo'), findsOneWidget);
+    expect(find.text('Quản lý'), findsOneWidget);
+    expect(find.text('Kèo'), findsOneWidget);
+    expect(find.text('Nhóm'), findsOneWidget);
+    expect(find.text('Giao dịch'), findsOneWidget);
+    expect(find.text('Yêu thích'), findsOneWidget);
+    expect(
+      find.text('Trợ giúp & phản hồi', skipOffstage: false),
+      findsOneWidget,
+    );
     expect(find.text('Đăng nhập'), findsNothing);
-    expect(find.text('Đăng ký'), findsNothing);
   });
 
-  testWidgets('tapping a destination closes the drawer and navigates', (
-    tester,
-  ) async {
-    await tester.pumpWidget(_harness(_buildRouter(), isSignedIn: false));
+  testWidgets('player does not see the transaction dashboard', (tester) async {
+    final router = _buildRouter();
+    await tester.pumpWidget(
+      _harness(
+        const AuthState(
+          status: AuthStatus.authenticated,
+          user: User(
+            id: 'player',
+            email: 'player@example.com',
+            role: UserRole.player,
+          ),
+        ),
+        router,
+      ),
+    );
     await _openDrawer(tester);
 
-    await tester.tap(find.text('Cộng đồng'));
-    await tester.pumpAndSettle();
+    expect(find.text('Giao dịch'), findsNothing);
+  });
 
-    expect(find.text('Feed body'), findsOneWidget);
+  testWidgets('management destination closes the drawer and navigates', (
+    tester,
+  ) async {
+    final router = _buildRouter();
+    await tester.pumpWidget(
+      _harness(
+        const AuthState(status: AuthStatus.authenticated, user: host),
+        router,
+      ),
+    );
+    await _openDrawer(tester);
+
+    await _tapMenuItem(tester, 'Yêu thích');
+
+    expect(find.text('Favorites body'), findsOneWidget);
     expect(find.byType(SlideOutMenu), findsNothing);
   });
 
-  testWidgets('tapping the scrim closes the drawer without navigating', (
+  testWidgets('help keeps the drawer open and sign out asks for confirmation', (
     tester,
   ) async {
-    await tester.pumpWidget(_harness(_buildRouter(), isSignedIn: false));
+    final router = _buildRouter();
+    await tester.pumpWidget(
+      _harness(
+        const AuthState(status: AuthStatus.authenticated, user: host),
+        router,
+      ),
+    );
     await _openDrawer(tester);
+
+    await _tapMenuItem(tester, 'Trợ giúp & phản hồi');
     expect(find.byType(SlideOutMenu), findsOneWidget);
-
-    // The drawer occupies the left 280px; the scrim covers the rest.
-    await tester.tapAt(const Offset(700, 400));
-    await tester.pumpAndSettle();
-
-    expect(find.byType(SlideOutMenu), findsNothing);
     expect(find.text('Home body'), findsOneWidget);
+
+    await _tapMenuItem(tester, 'Đăng xuất');
+    expect(find.text('Bạn có chắc chắn muốn đăng xuất?'), findsOneWidget);
   });
 }

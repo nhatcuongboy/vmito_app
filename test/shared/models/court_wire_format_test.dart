@@ -9,6 +9,17 @@ import 'package:vmito_app/shared/models/session_player.dart';
 /// Every expectation here was read off `vmito-be` rather than off the web app's
 /// `types.ts`, which is wrong about two of them.
 void main() {
+  test('SessionPlayer reads linked user metadata for the detail roster', () {
+    final player = SessionPlayer.fromJson({
+      'id': 'p1',
+      'userId': 'u1',
+      'user': {'image': 'https://cdn.example.test/p1.jpg'},
+    });
+
+    expect(player.userId, 'u1');
+    expect(player.userImage, 'https://cdn.example.test/p1.jpg');
+  });
+
   group('Court.preSelectedPlayers', () {
     // Regression. The field was typed `List<SessionPlayer>`, but the column is
     // `preSelectedPlayers Json?` holding raw `{playerId, position}` pairs, and

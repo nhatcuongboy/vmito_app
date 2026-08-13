@@ -140,7 +140,6 @@ class _ClubDetailState extends ConsumerState<_ClubDetail>
               FavoriteButton(
                 type: FavoriteType.club,
                 targetId: club.id,
-                onSignInRequired: () => context.push(AppRoutes.signIn),
               ),
               const SizedBox(width: 8),
               IconButton.filledTonal(

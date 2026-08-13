@@ -37,6 +37,7 @@ abstract final class SessionFormDefaults {
       isInitialized: true,
       isEditMode: !isClone,
       name: session.name,
+      sportType: session.sportType,
       description: session.description ?? '',
       locationKind: hasVenue
           ? SessionLocationKind.venue

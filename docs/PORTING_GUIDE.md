@@ -21,7 +21,7 @@ How each web concept maps to Flutter. Read this before porting a screen.
 | `browser-image-compression` | `flutter_image_compress` |
 | browser `Notification` | `flutter_local_notifications` + FCM |
 | `speechSynthesis` | `flutter_tts` |
-| `react-hook-form` + zod | `Form` + `TextFormField` validators |
+| `react-hook-form` + zod | `reactive_forms` + domain validators; see [FORM_MANAGEMENT.md](FORM_MANAGEMENT.md) |
 | `react-tournament-brackets` | custom `CustomPaint` inside `InteractiveViewer` |
 
 ## Porting a screen: the order that works

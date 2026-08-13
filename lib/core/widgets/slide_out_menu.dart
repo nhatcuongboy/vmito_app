@@ -1,210 +1,300 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
+import 'package:vmito_app/core/localization/locale_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/core/widgets/language_selector.dart';
+import 'package:vmito_app/core/widgets/sign_out_confirmation.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
+import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
-/// Left-hand navigation drawer — the mobile counterpart of the web app's
-/// `SlideOutMenu` (`vmito-fe/src/components/ui/SlideOutMenu`).
-///
-/// Only lists destinations that actually exist on mobile today. The web
-/// sidebar's Management/Settings/Admin sections (venues, tournaments,
-/// rentals, payment settings, the whole admin console) have no screens here
-/// yet, so they're left out rather than wired to placeholders.
+/// Left-hand navigation drawer for discovery and account management.
 class SlideOutMenu extends ConsumerWidget {
   const SlideOutMenu({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final palette = Theme.of(context).extension<AppPalette>()!;
-    final isSignedIn = ref.watch(isSignedInProvider);
-    final location = GoRouterState.of(context).uri.path;
+    final user = ref.watch(currentUserProvider);
+    final isAuthenticated = ref.watch(
+      authControllerProvider.select(
+        (state) => state.status == AuthStatus.authenticated,
+      ),
+    );
+    final localeCode = ref.watch(localeControllerProvider).languageCode;
+    final uri = GoRouterState.of(context).uri;
+    final location = uri.path;
+    final selectedDiscoveryTab =
+        uri.queryParameters[AppRoutes.homeDiscoveryTabQuery];
 
     bool isActive(String path) =>
         location == path || location.startsWith('$path/');
-
+    bool isDiscoveryActive(String tab) =>
+        location == AppRoutes.home && selectedDiscoveryTab == tab;
     void closeDrawer() => Navigator.of(context).pop();
+    void goTo(String route) {
+      closeDrawer();
+      context.go(route);
+    }
+
+    void pushTo(String route) {
+      closeDrawer();
+      unawaited(context.push(route));
+    }
+
+    final canViewHostFinance =
+        (user?.isHost ?? false) || (user?.isAdmin ?? false);
 
     return Drawer(
-      width: 280,
+      width: 320,
       child: SafeArea(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.lg,
-                AppSpacing.lg,
-                AppSpacing.md,
-              ),
-              child: Text(
-                l10n.appName,
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-            ),
             Expanded(
               child: ListView(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                ),
+                padding: EdgeInsets.zero,
                 children: [
-                  _MenuItem(
-                    icon: AppIcons.home,
-                    selectedIcon: AppIcons.home,
-                    label: l10n.navHome,
-                    isActive: isActive(AppRoutes.home),
-                    onTap: () {
-                      closeDrawer();
-                      context.go(AppRoutes.home);
-                    },
-                  ),
-                  _MenuItem(
-                    icon: AppIcons.location,
-                    selectedIcon: AppIcons.location,
-                    label: 'Sân',
-                    isActive: isActive(AppRoutes.venues),
-                    onTap: () {
-                      closeDrawer();
-                      context.go(AppRoutes.venues);
-                    },
-                  ),
-                  _MenuItem(
-                    icon: AppIcons.clubs,
-                    selectedIcon: AppIcons.clubs,
-                    label: 'Câu lạc bộ',
-                    isActive: isActive(AppRoutes.clubs),
-                    onTap: () {
-                      closeDrawer();
-                      context.go(AppRoutes.clubs);
-                    },
-                  ),
-                  _MenuItem(
-                    icon: AppIcons.sessions,
-                    selectedIcon: AppIcons.sessions,
-                    label: l10n.navSessions,
-                    isActive: isActive(AppRoutes.browseSessions),
-                    onTap: () {
-                      closeDrawer();
-                      context.go(AppRoutes.browseSessions);
-                    },
-                  ),
-                  _MenuItem(
-                    icon: AppIcons.feed,
-                    selectedIcon: AppIcons.feed,
-                    label: l10n.navFeed,
-                    isActive: isActive(AppRoutes.feed),
-                    onTap: () {
-                      closeDrawer();
-                      context.go(AppRoutes.feed);
-                    },
-                  ),
-                  _MenuItem(
-                    icon: AppIcons.profile,
-                    selectedIcon: AppIcons.profile,
-                    label: l10n.navProfile,
-                    isActive: isActive(AppRoutes.profile),
-                    onTap: () {
-                      closeDrawer();
-                      context.go(AppRoutes.profile);
-                    },
-                  ),
-                  // Notifications and transactions require an account —
-                  // hidden rather than shown-then-redirected to sign-in.
-                  if (isSignedIn) ...[
-                    Divider(height: AppSpacing.lg, color: palette.border),
-                    _MenuItem(
-                      icon: AppIcons.notifications,
-                      selectedIcon: AppIcons.notifications,
-                      label: l10n.navNotifications,
-                      isActive: isActive(AppRoutes.notifications),
-                      onTap: () {
-                        closeDrawer();
-                        context.go(AppRoutes.notifications);
-                      },
+                  if (isAuthenticated && user != null)
+                    _ProfileHeader(
+                      user: user,
+                      roleLabel: _roleLabel(l10n, user.role),
+                      onTap: () => goTo(AppRoutes.profile),
                     ),
-                    _MenuItem(
-                      icon: AppIcons.billing,
-                      selectedIcon: AppIcons.billing,
-                      label: l10n.transactionDashboardTitle,
-                      isActive: isActive(AppRoutes.transactions),
-                      onTap: () {
-                        closeDrawer();
-                        unawaited(context.push(AppRoutes.transactions));
-                      },
+                  _MenuSection(
+                    title: l10n.menuExplore,
+                    children: [
+                      _MenuItem(
+                        icon: AppIcons.sessions,
+                        label: l10n.homeDiscoverySessions,
+                        isActive:
+                            isDiscoveryActive('sessions') ||
+                            (location == AppRoutes.home &&
+                                selectedDiscoveryTab == null),
+                        onTap: () => goTo(
+                          AppRoutes.homeForDiscoveryTab('sessions'),
+                        ),
+                      ),
+                      _MenuItem(
+                        icon: AppIcons.location,
+                        label: l10n.homeDiscoveryVenues,
+                        isActive:
+                            isDiscoveryActive('venues') ||
+                            isActive(AppRoutes.venues),
+                        onTap: () => goTo(
+                          AppRoutes.homeForDiscoveryTab('venues'),
+                        ),
+                      ),
+                      _MenuItem(
+                        icon: AppIcons.clubs,
+                        label: l10n.homeDiscoveryClubs,
+                        isActive:
+                            isDiscoveryActive('clubs') ||
+                            isActive(AppRoutes.clubs),
+                        onTap: () => goTo(
+                          AppRoutes.homeForDiscoveryTab('clubs'),
+                        ),
+                      ),
+                      _MenuItem(
+                        icon: AppIcons.trophy,
+                        label: l10n.homeDiscoveryTournaments,
+                        isActive:
+                            isDiscoveryActive('tournaments') ||
+                            isActive(AppRoutes.tournaments),
+                        onTap: () => goTo(
+                          AppRoutes.homeForDiscoveryTab('tournaments'),
+                        ),
+                      ),
+                      _MenuItem(
+                        icon: AppIcons.award,
+                        label: l10n.navLeaderboard,
+                        isActive: isActive(AppRoutes.leaderboard),
+                        onTap: () => pushTo(AppRoutes.leaderboard),
+                      ),
+                    ],
+                  ),
+                  if (isAuthenticated && user != null) ...[
+                    const _MenuDivider(),
+                    _MenuSection(
+                      title: l10n.menuManage,
+                      children: [
+                        _MenuItem(
+                          icon: AppIcons.sessions,
+                          label: l10n.navSessions,
+                          isActive: isActive(AppRoutes.browseSessions),
+                          onTap: () => goTo(AppRoutes.browseSessions),
+                        ),
+                        _MenuItem(
+                          icon: AppIcons.userPlus,
+                          label: l10n.menuGroups,
+                          isActive: isActive(AppRoutes.manageClubs),
+                          onTap: () => goTo(AppRoutes.manageClubs),
+                        ),
+                        if (canViewHostFinance)
+                          _MenuItem(
+                            icon: AppIcons.billing,
+                            label: l10n.transactionDashboardTitle,
+                            isActive: isActive(AppRoutes.transactions),
+                            onTap: () => pushTo(AppRoutes.transactions),
+                          ),
+                        _MenuItem(
+                          icon: AppIcons.favorite,
+                          label: l10n.navFavorites,
+                          isActive: isActive(AppRoutes.favorites),
+                          onTap: () => goTo(AppRoutes.favorites),
+                        ),
+                      ],
                     ),
-                  ],
-                  Divider(height: AppSpacing.lg, color: palette.border),
-                  ListTile(
-                    leading: const Icon(AppIcons.language),
-                    title: Text(l10n.profileLanguage),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(AppRadius.lg),
+                    const _MenuDivider(),
+                    _MenuSection(
+                      children: [
+                        _MenuItem(
+                          icon: AppIcons.settings,
+                          label: l10n.settingsTitle,
+                          isActive: isActive(AppRoutes.settings),
+                          onTap: () => pushTo(AppRoutes.settings),
+                        ),
+                        _MenuItem(
+                          icon: AppIcons.language,
+                          label: l10n.profileLanguage,
+                          trailing: _languageLabel(l10n, localeCode),
+                          onTap: () {
+                            closeDrawer();
+                            unawaited(showLanguageSelector(context));
+                          },
+                        ),
+                        _MenuItem(
+                          icon: AppIcons.help,
+                          label: l10n.menuHelpFeedback,
+                        ),
+                        _MenuItem(
+                          icon: AppIcons.logout,
+                          label: l10n.authSignOut,
+                          destructive: true,
+                          onTap: () => unawaited(
+                            showSignOutConfirmation(context, ref),
+                          ),
+                        ),
+                      ],
                     ),
-                    onTap: () {
-                      closeDrawer();
-                      unawaited(showLanguageSelector(context));
-                    },
+                  ] else
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.md,
+                        AppSpacing.md,
+                        AppSpacing.md,
+                        AppSpacing.sm,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: () {
+                                closeDrawer();
+                                unawaited(context.push(AppRoutes.signIn));
+                              },
+                              child: Text(l10n.authSignIn),
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: FilledButton(
+                              onPressed: () {
+                                closeDrawer();
+                                unawaited(context.push(AppRoutes.signUp));
+                              },
+                              child: Text(l10n.authSignUp),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            const _MenuDivider(),
+            _MenuFooter(appName: l10n.appName),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _roleLabel(AppLocalizations l10n, UserRole role) => switch (role) {
+    UserRole.host => l10n.menuRoleHost,
+    UserRole.admin => l10n.menuRoleAdmin,
+    UserRole.referee => l10n.menuRoleReferee,
+    UserRole.player || UserRole.guest => l10n.menuRolePlayer,
+  };
+
+  String _languageLabel(AppLocalizations l10n, String code) => switch (code) {
+    'en' => l10n.languageEnglish,
+    'zh' => l10n.languageChinese,
+    _ => l10n.languageVietnamese,
+  };
+}
+
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader({
+    required this.user,
+    required this.roleLabel,
+    required this.onTap,
+  });
+
+  final User user;
+  final String roleLabel;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final initials = user.displayName.trim()[0].toUpperCase();
+    final hasImage = user.image?.trim().isNotEmpty ?? false;
+
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 40,
+              foregroundImage: hasImage ? NetworkImage(user.image!) : null,
+              child: Text(initials, style: theme.textTheme.headlineSmall),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    user.displayName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    roleLabel,
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.extension<AppPalette>()!.mutedForeground,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
             ),
-            // Mirrors the web sidebar's `showAuthActions`: only rendered
-            // when signed out, never as a sign-out shortcut.
-            if (!isSignedIn)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.md,
-                  0,
-                  AppSpacing.md,
-                  AppSpacing.sm,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: () {
-                          closeDrawer();
-                          unawaited(context.push(AppRoutes.signIn));
-                        },
-                        child: Text(l10n.authSignIn),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: FilledButton(
-                        onPressed: () {
-                          closeDrawer();
-                          unawaited(context.push(AppRoutes.signUp));
-                        },
-                        child: Text(l10n.authSignUp),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                0,
-                AppSpacing.md,
-                AppSpacing.md,
-              ),
-              child: Text(
-                l10n.footerCopyright(DateTime.now().year, l10n.appName),
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: palette.mutedForeground),
-              ),
-            ),
+            const Icon(AppIcons.chevronRight),
           ],
         ),
       ),
@@ -212,51 +302,187 @@ class SlideOutMenu extends ConsumerWidget {
   }
 }
 
+class _MenuSection extends StatelessWidget {
+  const _MenuSection({this.title, required this.children});
+
+  final String? title;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (title != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.sm,
+              AppSpacing.lg,
+              AppSpacing.xs,
+            ),
+            child: Text(
+              title!,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: Theme.of(
+                  context,
+                ).extension<AppPalette>()!.mutedForeground,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ...children,
+      ],
+    ),
+  );
+}
+
 class _MenuItem extends StatelessWidget {
   const _MenuItem({
     required this.icon,
-    required this.selectedIcon,
     required this.label,
-    required this.isActive,
-    required this.onTap,
+    this.isActive = false,
+    this.trailing,
+    this.destructive = false,
+    this.onTap,
   });
 
   final IconData icon;
-  final IconData selectedIcon;
   final String label;
   final bool isActive;
-  final VoidCallback onTap;
+  final String? trailing;
+  final bool destructive;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = Theme.of(context).colorScheme.primary;
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
+    final color = destructive
+        ? theme.colorScheme.error
+        : isActive
+        ? theme.colorScheme.primary
+        : theme.colorScheme.onSurface;
 
-    // A ListTile paints its background/ink on the nearest Material ancestor,
-    // so the active tint needs its own Material rather than a plain
-    // DecoratedBox — otherwise the tap ripple renders invisibly behind it.
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 1),
-      child: Material(
-        color: isActive
-            ? activeColor.withValues(alpha: 0.1)
-            : Colors.transparent,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        clipBehavior: Clip.antiAlias,
-        child: ListTile(
-          leading: Icon(
-            isActive ? selectedIcon : icon,
-            color: isActive ? activeColor : null,
+    return Material(
+      color: isActive
+          ? theme.colorScheme.primary.withValues(alpha: 0.1)
+          : Colors.transparent,
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+        minTileHeight: 56,
+        leading: Icon(icon, color: color),
+        title: Text(
+          label,
+          style: theme.textTheme.titleMedium?.copyWith(
+            color: color,
+            fontWeight: FontWeight.w600,
           ),
-          title: Text(
-            label,
-            style: TextStyle(
-              color: isActive ? activeColor : null,
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
-            ),
-          ),
-          onTap: onTap,
         ),
+        trailing: trailing == null
+            ? null
+            : Text(
+                trailing!,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: palette.mutedForeground,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+        onTap: onTap,
       ),
     );
   }
+}
+
+class _MenuDivider extends StatelessWidget {
+  const _MenuDivider();
+
+  @override
+  Widget build(BuildContext context) => Divider(
+    height: 1,
+    color: Theme.of(context).extension<AppPalette>()!.border,
+  );
+}
+
+class _MenuFooter extends StatelessWidget {
+  const _MenuFooter({required this.appName});
+
+  final String appName;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final palette = Theme.of(context).extension<AppPalette>()!;
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipOval(
+            child: Image.asset(
+              'assets/icons/app-logo-96.png',
+              width: 24,
+              height: 24,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: FutureBuilder<PackageInfo>(
+              future: PackageInfo.fromPlatform(),
+              builder: (context, snapshot) => Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: appName,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const TextSpan(text: '  '),
+                    TextSpan(
+                      text: l10n.menuFooterVersion(
+                        snapshot.data?.version ?? '—',
+                        DateTime.now().year,
+                      ),
+                    ),
+                  ],
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: palette.mutedForeground,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Preview the signed-out menu without depending on native auth services.
+@Preview(name: 'Slide-out menu', group: 'Navigation', size: Size(360, 760))
+Widget slideOutMenuPreview() {
+  final router = GoRouter(
+    initialLocation: AppRoutes.home,
+    routes: [
+      GoRoute(
+        path: AppRoutes.home,
+        builder: (_, _) => const SlideOutMenu(),
+      ),
+    ],
+  );
+
+  return ProviderScope(
+    child: MaterialApp.router(
+      locale: const Locale('vi'),
+      theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      routerConfig: router,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+    ),
+  );
 }

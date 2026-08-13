@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/app_shell_scaffold_key.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/widgets/slide_out_menu.dart';
+import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 /// Bottom-navigation shell.
@@ -30,6 +32,10 @@ class AppShell extends ConsumerStatefulWidget {
 }
 
 class _AppShellState extends ConsumerState<AppShell> {
+  // A router rebuild can keep the previous shell alive for one frame. This
+  // key therefore belongs to a shell instance rather than being app-global.
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
+
   // Any tab's list scrolling down hides the bar, matching Instagram/TikTok —
   // a fresh tab always starts with it visible.
   bool _navBarVisible = true;
@@ -64,58 +70,72 @@ class _AppShellState extends ConsumerState<AppShell> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final palette = Theme.of(context).extension<AppPalette>()!;
+    final isSignedIn = ref.watch(isSignedInProvider);
+    final location = GoRouterState.of(context).uri.path;
+    final shouldKeepBottomBarVisible = location == AppRoutes.notifications;
 
-    return Scaffold(
-      key: ref.watch(appShellScaffoldKeyProvider),
-      drawer: const SlideOutMenu(),
-      drawerScrimColor: Colors.black.withValues(alpha: 0.6),
-      body: NotificationListener<ScrollNotification>(
-        onNotification: _handleScrollNotification,
-        child: widget.navigationShell,
-      ),
-      bottomNavigationBar: ClipRect(
-        child: AnimatedAlign(
-          duration: const Duration(milliseconds: 220),
-          curve: Curves.easeOutCubic,
-          alignment: Alignment.topCenter,
-          heightFactor: _navBarVisible ? 1 : 0,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              border: Border(top: BorderSide(color: palette.border)),
-            ),
-            child: NavigationBar(
-              selectedIndex: widget.navigationShell.currentIndex,
-              onDestinationSelected: _onDestinationSelected,
-              destinations: [
-                NavigationDestination(
-                  icon: const Icon(AppIcons.home),
-                  selectedIcon: const Icon(AppIcons.home),
-                  label: l10n.navHome,
-                ),
-                NavigationDestination(
-                  icon: const Icon(AppIcons.sessions),
-                  selectedIcon: const Icon(AppIcons.sessions),
-                  label: l10n.navSessions,
-                ),
-                NavigationDestination(
-                  icon: const Icon(AppIcons.feed),
-                  selectedIcon: const Icon(AppIcons.feed),
-                  label: l10n.navFeed,
-                ),
-                NavigationDestination(
-                  icon: const Icon(AppIcons.notifications),
-                  selectedIcon: const Icon(AppIcons.notifications),
-                  label: l10n.navNotifications,
-                ),
-                NavigationDestination(
-                  icon: const Icon(AppIcons.profile),
-                  selectedIcon: const Icon(AppIcons.profile),
-                  label: l10n.navProfile,
-                ),
-              ],
-            ),
-          ),
+    return ProviderScope(
+      overrides: [
+        appShellScaffoldKeyProvider.overrideWithValue(_scaffoldKey),
+      ],
+      child: Scaffold(
+        key: _scaffoldKey,
+        drawer: const SlideOutMenu(),
+        drawerScrimColor: Colors.black.withValues(alpha: 0.6),
+        body: NotificationListener<ScrollNotification>(
+          onNotification: shouldKeepBottomBarVisible
+              ? (_) => false
+              : _handleScrollNotification,
+          child: widget.navigationShell,
         ),
+        bottomNavigationBar: isSignedIn
+            ? ClipRect(
+                child: AnimatedAlign(
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOutCubic,
+                  alignment: Alignment.topCenter,
+                  heightFactor: shouldKeepBottomBarVisible || _navBarVisible
+                      ? 1
+                      : 0,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      border: Border(top: BorderSide(color: palette.border)),
+                    ),
+                    child: NavigationBar(
+                      selectedIndex: widget.navigationShell.currentIndex,
+                      onDestinationSelected: _onDestinationSelected,
+                      destinations: [
+                        NavigationDestination(
+                          icon: const Icon(AppIcons.home),
+                          selectedIcon: const Icon(AppIcons.home),
+                          label: l10n.navHome,
+                        ),
+                        NavigationDestination(
+                          icon: const Icon(AppIcons.sessions),
+                          selectedIcon: const Icon(AppIcons.sessions),
+                          label: l10n.navSessions,
+                        ),
+                        NavigationDestination(
+                          icon: const Icon(AppIcons.feed),
+                          selectedIcon: const Icon(AppIcons.feed),
+                          label: l10n.navFeed,
+                        ),
+                        NavigationDestination(
+                          icon: const Icon(AppIcons.favorite),
+                          selectedIcon: const Icon(AppIcons.favorite),
+                          label: l10n.navFavorites,
+                        ),
+                        NavigationDestination(
+                          icon: const Icon(AppIcons.profile),
+                          selectedIcon: const Icon(AppIcons.profile),
+                          label: l10n.navProfile,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              )
+            : null,
       ),
     );
   }

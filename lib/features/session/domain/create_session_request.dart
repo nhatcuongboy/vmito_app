@@ -1,6 +1,7 @@
 import 'package:vmito_app/features/session/domain/form/session_form_drafts.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 import 'package:vmito_app/features/session/domain/session_location_payload.dart';
+import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/shared/models/match.dart';
 
 /// The body of `POST /sessions` and `PUT /sessions/:id`.
@@ -19,6 +20,7 @@ import 'package:vmito_app/shared/models/match.dart';
 class CreateSessionRequest {
   const CreateSessionRequest({
     required this.name,
+    this.sportType = SessionSportType.badminton,
     required this.location,
     required this.hostName,
     required this.maxPlayersPerCourt,
@@ -47,6 +49,7 @@ class CreateSessionRequest {
   });
 
   final String name;
+  final SessionSportType sportType;
 
   /// Venue or one-off place. Exclusive by construction — see
   /// [SessionLocationPayload].
@@ -92,6 +95,7 @@ class CreateSessionRequest {
   CreateSessionRequest copyWith({DateTime? startTime, DateTime? endTime}) =>
       CreateSessionRequest(
         name: name,
+        sportType: sportType,
         location: location,
         hostName: hostName,
         maxPlayersPerCourt: maxPlayersPerCourt,
@@ -121,6 +125,9 @@ class CreateSessionRequest {
 
   Map<String, dynamic> toJson() => {
     'name': name.trim(),
+    'sportType': sportType == SessionSportType.pickleball
+        ? 'PICKLEBALL'
+        : 'BADMINTON',
     'description': description.trim(),
     'referenceVideoUrl': referenceVideoUrl?.trim().isNotEmpty ?? false
         ? referenceVideoUrl!.trim()

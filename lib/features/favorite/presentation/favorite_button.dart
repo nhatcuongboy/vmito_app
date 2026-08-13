@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
@@ -7,6 +8,7 @@ import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/favorite/application/favorite_controller.dart';
 import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/login_prompt_dialog.dart';
 
 /// Heart plus count, ported from the web app's `FavoriteEngagementControl`
 /// in its `overlay-dark` variant.
@@ -17,16 +19,11 @@ class FavoriteButton extends ConsumerWidget {
   const FavoriteButton({
     required this.type,
     required this.targetId,
-    required this.onSignInRequired,
     super.key,
   });
 
   final FavoriteType type;
   final String targetId;
-
-  /// Called instead of toggling when nobody is signed in. Favoriting is a
-  /// per-account list, so there is nothing sensible to do anonymously.
-  final VoidCallback onSignInRequired;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -88,7 +85,14 @@ class FavoriteButton extends ConsumerWidget {
       final signedIn = await ref
           .read(favoriteControllerProvider(target).notifier)
           .toggle();
-      if (!signedIn) onSignInRequired();
+      if (!signedIn && context.mounted) {
+        unawaited(
+          showLoginPromptDialog(
+            context,
+            featureName: l10n.loginRequiredFavorite,
+          ),
+        );
+      }
     } on ApiException catch (error) {
       messenger.showSnackBar(SnackBar(content: Text(l10n.apiError(error))));
     } on Object {

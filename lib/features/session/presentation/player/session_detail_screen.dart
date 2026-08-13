@@ -20,7 +20,6 @@ import 'package:vmito_app/features/session/presentation/player/detail/session_de
 import 'package:vmito_app/features/session/presentation/player/detail/session_detail_stats.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_recommendations.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_reference_video.dart';
-import 'package:vmito_app/features/session/presentation/widgets/session_fee_section.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_loading_view.dart';
 
@@ -75,7 +74,6 @@ class SessionDetailScreen extends ConsumerWidget {
         data: (session) => _Body(
           session: session,
           onRefresh: () => ref.refresh(sessionDetailProvider(sessionId).future),
-          onSignInRequired: () => context.push(AppRoutes.signIn),
         ),
       ),
       bottomNavigationBar: session.whenOrNull(
@@ -83,7 +81,6 @@ class SessionDetailScreen extends ConsumerWidget {
           session: session,
           onManage: () => context.push(AppRoutes.manageSession(session.id)),
           onOpenLive: () => context.push(AppRoutes.liveSession(session.id)),
-          onSignInRequired: () => context.push(AppRoutes.signIn),
         ),
       ),
     );
@@ -94,12 +91,10 @@ class _Body extends StatelessWidget {
   const _Body({
     required this.session,
     required this.onRefresh,
-    required this.onSignInRequired,
   });
 
   final Session session;
   final Future<void> Function() onRefresh;
-  final VoidCallback onSignInRequired;
 
   @override
   Widget build(BuildContext context) {
@@ -118,7 +113,6 @@ class _Body extends StatelessWidget {
           SessionDetailHero(
             session: session,
             onShare: () => _share(context, session),
-            onSignInRequired: onSignInRequired,
           ),
           Transform.translate(
             // Matches the web's `mt="-16px"`: the content sheet laps over the
@@ -155,10 +149,6 @@ class _Body extends StatelessWidget {
                   ),
                   Divider(height: AppSpacing.lg * 2, color: palette.border),
                   SessionDetailStats(session: session),
-                  if (session.feeConfig case final feeConfig?) ...[
-                    Divider(height: AppSpacing.lg * 2, color: palette.border),
-                    SessionFeeSection(feeConfig: feeConfig),
-                  ],
                   if (ReferenceVideo.parse(session.referenceVideoUrl)
                       case final video?) ...[
                     Divider(height: AppSpacing.lg * 2, color: palette.border),
@@ -171,7 +161,8 @@ class _Body extends StatelessWidget {
           // Outside the sheet, like the web app: the rail scrolls edge to edge
           // rather than sitting inside the card's padding.
           SessionRecommendations(sessionId: session.id),
-          const SizedBox(height: AppSpacing.lg),
+          // Keep the final recommendation/link clear of the sticky action bar.
+          const SizedBox(height: AppSpacing.xxl + AppSpacing.lg),
         ],
       ),
     );

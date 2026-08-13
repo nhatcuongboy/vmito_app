@@ -10,7 +10,12 @@ abstract interface class PaymentRepository {
 
   Future<List<HostPaymentSettings>> settings();
 
-  Future<void> approve(String paymentId);
+  Future<void> approve(
+    String paymentId, {
+    String? hostNotes,
+    int? amount,
+    PaymentMethod? paymentMethod,
+  });
 
   Future<void> reject(String paymentId, String reason);
 
@@ -43,4 +48,10 @@ abstract interface class PaymentRepository {
   Future<List<HostTransactionSummary>> hostSummary();
 
   Future<List<PaymentRecord>> transactionsForUser(String userId);
+
+  Future<HostFinanceReport> financeReport(HostFinanceQuery query);
+
+  Future<void> remindPayment(String paymentId);
+
+  Future<void> remindUser(String userId);
 }

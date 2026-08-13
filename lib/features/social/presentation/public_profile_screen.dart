@@ -35,10 +35,7 @@ const _publicTabs = [
   'Nhóm',
   'Đánh giá',
 ];
-List<String> publicProfileTabLabels({required bool isOwner}) => [
-  ..._publicTabs,
-  if (isOwner) 'Yêu thích',
-];
+List<String> publicProfileTabLabels() => _publicTabs;
 
 class PublicProfileScreen extends ConsumerWidget {
   const PublicProfileScreen({
@@ -88,7 +85,6 @@ class _ProfileTabs extends ConsumerStatefulWidget {
 class _ProfileTabsState extends ConsumerState<_ProfileTabs>
     with TickerProviderStateMixin {
   late TabController _controller;
-  late bool _owner;
   final _outerScrollController = ScrollController();
   final _scrollOffset = ValueNotifier<double>(0);
   var _screenWidth = 375.0;
@@ -98,9 +94,8 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
   @override
   void initState() {
     super.initState();
-    _owner = _isOwner;
     _controller = TabController(
-      length: publicProfileTabLabels(isOwner: _owner).length,
+      length: publicProfileTabLabels().length,
       vsync: this,
     );
     _controller.addListener(_loadSelectedTab);
@@ -125,29 +120,6 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
     _screenWidth = MediaQuery.sizeOf(context).width;
   }
 
-  @override
-  void didUpdateWidget(covariant _ProfileTabs oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    final owner = _isOwner;
-    if (owner != _owner) {
-      final oldIndex = _controller.index;
-      _controller.dispose();
-      _owner = owner;
-      _controller = TabController(
-        length: publicProfileTabLabels(isOwner: _owner).length,
-        vsync: this,
-        initialIndex: oldIndex.clamp(
-          0,
-          publicProfileTabLabels(isOwner: _owner).length - 1,
-        ),
-      );
-      _loadedTabs = _loadedTabs
-          .where((index) => index < _controller.length)
-          .toSet();
-      _controller.addListener(_loadSelectedTab);
-    }
-  }
-
   void _loadSelectedTab() {
     final index = _controller.index;
     if (!_loadedTabs.contains(index)) {
@@ -167,7 +139,7 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
 
   @override
   Widget build(BuildContext context) {
-    final labels = publicProfileTabLabels(isOwner: _owner);
+    final labels = publicProfileTabLabels();
     final safeAreaTop = MediaQuery.paddingOf(context).top;
     return Stack(
       children: [
@@ -181,7 +153,7 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
               profile: widget.bundle.profile,
               scrollOffset: _scrollOffset,
               isRootProfile: widget.isRootProfile,
-              isOwner: _owner,
+              isOwner: _isOwner,
               usesCompactSystemOverlay: _usesCompactSystemOverlay,
               menuTooltip: AppLocalizations.of(context).menuOpenTooltip,
               shareTooltip: AppLocalizations.of(context).commonShare,
@@ -202,7 +174,7 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
                 profile: widget.bundle.profile,
                 bundle: widget.bundle,
                 scrollOffset: _scrollOffset,
-                isOwner: _owner,
+                isOwner: _isOwner,
                 onEdit: () => context.pushNamed(AppRoutes.nameSettings),
                 onSelectTab: _controller.animateTo,
               ),
@@ -230,11 +202,9 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
               _lazyTab(2, () => _HostedTab(userId: widget.userId)),
               _lazyTab(
                 3,
-                () => _ClubsTab(userId: widget.userId, owner: _owner),
+                () => _ClubsTab(userId: widget.userId, owner: _isOwner),
               ),
               _lazyTab(4, () => _ReviewsTab(bundle: widget.bundle)),
-              if (_owner)
-                _lazyTab(5, () => _FavoritesTab(userId: widget.userId)),
             ],
           ),
         ),
@@ -732,6 +702,16 @@ class _AchievementsTabState extends ConsumerState<_AchievementsTab> {
                   ),
                 ),
             ],
+            const SizedBox(height: AppSpacing.md),
+            OutlinedButton.icon(
+              onPressed: () => unawaited(
+                context.pushNamed(AppRoutes.nameLeaderboard),
+              ),
+              icon: const Icon(AppIcons.award),
+              label: Text(
+                AppLocalizations.of(context).leaderboardViewLeaderboard,
+              ),
+            ),
           ],
         ),
       );
@@ -988,104 +968,4 @@ class _ReviewsTab extends StatelessWidget {
           ),
     ],
   );
-}
-
-class _FavoritesTab extends ConsumerStatefulWidget {
-  const _FavoritesTab({required this.userId});
-  final String userId;
-  @override
-  ConsumerState<_FavoritesTab> createState() => _FavoritesTabState();
-}
-
-class _FavoritesTabState extends ConsumerState<_FavoritesTab> {
-  var _type = 'SESSION';
-  late Future<List<FavoriteTarget>> _future;
-  @override
-  void initState() {
-    super.initState();
-    _future = _load();
-  }
-
-  Future<List<FavoriteTarget>> _load() async =>
-      (await ref.read(profileTabsServiceProvider).favorites(_type)).items;
-  @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      Padding(
-        padding: const EdgeInsets.all(12),
-        child: SegmentedButton<String>(
-          segments: const [
-            ButtonSegment(value: 'SESSION', label: Text('Kèo')),
-            ButtonSegment(value: 'VENUE', label: Text('Sân')),
-            ButtonSegment(value: 'CLUB', label: Text('Nhóm')),
-            ButtonSegment(value: 'TOURNAMENT', label: Text('Giải')),
-          ],
-          selected: {_type},
-          onSelectionChanged: (value) => setState(() {
-            _type = value.first;
-            _future = _load();
-          }),
-        ),
-      ),
-      Expanded(
-        child: FutureBuilder<List<FavoriteTarget>>(
-          future: _future,
-          builder: (context, snapshot) {
-            if (snapshot.hasError) {
-              return AppErrorView(
-                error: snapshot.error!,
-                onRetry: () => setState(() => _future = _load()),
-              );
-            }
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (snapshot.data!.isEmpty) {
-              return const _Empty('Chưa có mục yêu thích.');
-            }
-            return ListView.separated(
-              key: PageStorageKey(
-                'profile-favorites-${widget.userId}-$_type',
-              ),
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(AppSpacing.screenPadding),
-              itemCount: snapshot.data!.length,
-              separatorBuilder: (_, _) => const Divider(),
-              itemBuilder: (context, index) {
-                final item = snapshot.data![index];
-                return ListTile(
-                  leading: CircleAvatar(
-                    backgroundImage: item.image == null
-                        ? null
-                        : CachedNetworkImageProvider(item.image!),
-                    child: item.image == null
-                        ? const Icon(AppIcons.favorite)
-                        : null,
-                  ),
-                  title: Text(item.name),
-                  subtitle: item.subtitle == null ? null : Text(item.subtitle!),
-                  trailing: const Icon(AppIcons.chevronRight),
-                  onTap: () => _open(context, item),
-                );
-              },
-            );
-          },
-        ),
-      ),
-    ],
-  );
-  void _open(BuildContext context, FavoriteTarget item) {
-    final id = item.slug ?? item.id;
-    if (_type == 'VENUE') {
-      unawaited(context.push(AppRoutes.venueDetail(id)));
-    } else if (_type == 'CLUB') {
-      unawaited(context.push(AppRoutes.clubDetail(id)));
-    } else if (_type == 'SESSION') {
-      unawaited(context.push(AppRoutes.sessionDetail(id)));
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Chi tiết giải đấu chưa có trên mobile.')),
-      );
-    }
-  }
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/registration/application/my_registration_controller.dart';
@@ -10,8 +11,10 @@ import 'package:vmito_app/features/registration/presentation/my_registration_she
 import 'package:vmito_app/features/registration/presentation/register_session_sheet.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_action_buttons.dart';
+import 'package:vmito_app/features/session/presentation/player/detail/session_fee_detail_dialog.dart';
 import 'package:vmito_app/features/session/presentation/player/session_presentation.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/login_prompt_dialog.dart';
 
 /// Price on the left, the action that fits the viewer on the right.
 ///
@@ -23,17 +26,12 @@ class SessionDetailBottomBar extends ConsumerWidget {
     required this.session,
     required this.onManage,
     required this.onOpenLive,
-    required this.onSignInRequired,
     super.key,
   });
 
   final Session session;
   final VoidCallback onManage;
   final VoidCallback onOpenLive;
-
-  /// Registration is per-account, so a signed-out tap has to become a
-  /// sign-in prompt rather than an empty form.
-  final VoidCallback onSignInRequired;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -70,26 +68,46 @@ class SessionDetailBottomBar extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             spacing: AppSpacing.sm,
             children: [
-              if (price != null)
+              if (price != null || session.feeConfig != null)
                 Flexible(
-                  child: Text.rich(
-                    TextSpan(
-                      text: price,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        color: theme.colorScheme.error,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: l10n.sessionPerSlot,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: palette.mutedForeground,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (price != null)
+                        Flexible(
+                          child: Text.rich(
+                            TextSpan(
+                              text: price,
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                color: theme.colorScheme.error,
+                                fontWeight: FontWeight.bold,
+                                ),
+                              children: [
+                                TextSpan(
+                                  text: l10n.sessionPerSlot,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: palette.mutedForeground,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                      ],
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                      if (session.feeConfig case final feeConfig?)
+                        IconButton(
+                          key: const Key('session-fee-details'),
+                          tooltip: l10n.feeTitle,
+                          icon: const Icon(AppIcons.info, size: 18),
+                          color: theme.colorScheme.primary,
+                          visualDensity: VisualDensity.compact,
+                          onPressed: () => showSessionFeeDetailDialog(
+                            context,
+                            feeConfig: feeConfig,
+                          ),
+                        ),
+                    ],
                   ),
                 ),
               // Expanded, not Spacer: the actions must be the side that gives
@@ -134,7 +152,7 @@ class SessionDetailBottomBar extends ConsumerWidget {
     bool asGuest = false,
   }) {
     if (!isSignedIn) {
-      onSignInRequired();
+      unawaited(showLoginPromptDialog(context));
       return;
     }
     unawaited(

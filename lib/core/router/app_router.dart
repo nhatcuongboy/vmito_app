@@ -4,12 +4,18 @@ import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/app_shell.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
+import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/features/auth/presentation/forgot_password_screen.dart';
 import 'package:vmito_app/features/auth/presentation/reset_password_screen.dart';
 import 'package:vmito_app/features/auth/presentation/sign_in_screen.dart';
 import 'package:vmito_app/features/auth/presentation/sign_up_screen.dart';
 import 'package:vmito_app/features/court/presentation/live_session_screen.dart';
+import 'package:vmito_app/features/favorite/presentation/favorites_screen.dart';
 import 'package:vmito_app/features/home/presentation/home_screen.dart';
+import 'package:vmito_app/features/home/presentation/widgets/home_discovery_tabs.dart';
+import 'package:vmito_app/features/leaderboard/domain/leaderboard.dart';
+import 'package:vmito_app/features/leaderboard/domain/leaderboard_periods.dart';
+import 'package:vmito_app/features/leaderboard/presentation/leaderboard_screen.dart';
 import 'package:vmito_app/features/notification/presentation/notifications_screen.dart';
 import 'package:vmito_app/features/payment/presentation/transaction_dashboard_screen.dart';
 import 'package:vmito_app/features/profile/presentation/account_security_screen.dart';
@@ -48,6 +54,14 @@ final _rootNavigatorKey = GlobalKey<NavigatorState>();
 final appRouterProvider = Provider<GoRouter>((ref) {
   final auth = ref.watch(authControllerProvider);
 
+  HomeDiscoveryTab? parseHomeDiscoveryTab(String? tab) => switch (tab) {
+    'sessions' => HomeDiscoveryTab.sessions,
+    'venues' => HomeDiscoveryTab.venues,
+    'clubs' => HomeDiscoveryTab.clubs,
+    'tournaments' => HomeDiscoveryTab.tournaments,
+    _ => null,
+  };
+
   return GoRouter(
     navigatorKey: _rootNavigatorKey,
     initialLocation: AppRoutes.splash,
@@ -64,6 +78,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (auth.status == AuthStatus.authenticated) {
         // Signed in but sitting on splash or an auth screen — move on.
         if (location == AppRoutes.splash || location.startsWith('/auth/')) {
+          final redirect = state.uri.queryParameters['redirect'];
+          if (redirect != null && redirect.isNotEmpty) {
+            return redirect;
+          }
+          return AppRoutes.home;
+        }
+        if (location == AppRoutes.transactions &&
+            auth.user?.role != UserRole.host &&
+            auth.user?.role != UserRole.admin) {
           return AppRoutes.home;
         }
         return null;
@@ -79,6 +102,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: AppRoutes.venues,
+        redirect: (context, state) => state.uri.path == AppRoutes.venues
+            ? AppRoutes.homeForDiscoveryTab(HomeDiscoveryTab.venues.name)
+            : null,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => const BrowseVenuesScreen(),
         routes: [
@@ -134,25 +160,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
-        path: AppRoutes.settings,
-        name: AppRoutes.nameSettings,
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const SettingsScreen(),
-        routes: [
-          GoRoute(
-            path: 'account-security',
-            name: AppRoutes.nameAccountSecurity,
-            builder: (context, state) => const AccountSecurityScreen(),
-          ),
-        ],
-      ),
-      GoRoute(
-        path: AppRoutes.transactions,
-        parentNavigatorKey: _rootNavigatorKey,
-        builder: (context, state) => const TransactionDashboardScreen(),
-      ),
-      GoRoute(
         path: '/user/:id',
+        name: AppRoutes.namePublicProfile,
         parentNavigatorKey: _rootNavigatorKey,
         builder: (context, state) => PublicProfileScreen(
           userId: state.pathParameters['id']!,
@@ -170,7 +179,37 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.home,
                 name: AppRoutes.nameHome,
-                builder: (context, state) => const HomeScreen(),
+                builder: (context, state) => HomeScreen(
+                  initialVenueId: state.uri.queryParameters['venueId'],
+                  initialVenueName: state.uri.queryParameters['venueName'],
+                  initialDiscoveryTab: parseHomeDiscoveryTab(
+                    state.uri.queryParameters[AppRoutes.homeDiscoveryTabQuery],
+                  ),
+                ),
+                routes: [
+                  GoRoute(
+                    path: 'notifications',
+                    builder: (context, state) => const NotificationsScreen(),
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: AppRoutes.leaderboard,
+                name: AppRoutes.nameLeaderboard,
+                builder: (context, state) {
+                  final parsed = LeaderboardPeriod.fromWire(
+                    state.uri.queryParameters['period'],
+                  );
+                  final period = leaderboardPeriods.contains(parsed)
+                      ? parsed
+                      : LeaderboardPeriod.week;
+                  return LeaderboardScreen(
+                    initialPeriod: period,
+                    initialPeriodKey: period == LeaderboardPeriod.all
+                        ? null
+                        : state.uri.queryParameters['periodKey'],
+                  );
+                },
               ),
             ],
           ),
@@ -291,8 +330,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: AppRoutes.notifications,
-                builder: (context, state) => const NotificationsScreen(),
+                path: AppRoutes.favorites,
+                builder: (context, state) => const FavoritesScreen(),
               ),
             ],
           ),
@@ -302,6 +341,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: AppRoutes.profile,
                 name: AppRoutes.nameProfile,
                 builder: (context, state) => const ProfileScreen(),
+              ),
+              GoRoute(
+                path: AppRoutes.settings,
+                name: AppRoutes.nameSettings,
+                builder: (context, state) => const SettingsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'account-security',
+                    name: AppRoutes.nameAccountSecurity,
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const AccountSecurityScreen(),
+                  ),
+                ],
+              ),
+              GoRoute(
+                path: AppRoutes.transactions,
+                builder: (context, state) => const TransactionDashboardScreen(),
               ),
             ],
           ),

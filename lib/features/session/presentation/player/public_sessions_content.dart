@@ -3,22 +3,28 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:vmito_app/core/localization/localized_values.dart';
+import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/session/application/player/browse_sessions_controller.dart';
+import 'package:vmito_app/features/session/presentation/player/session_filter_sheet.dart';
 import 'package:vmito_app/features/session/presentation/widgets/session_card.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_loading_view.dart';
 
 /// Public-session browser embedded in Home discovery.
 class BrowseSessionsContent extends ConsumerStatefulWidget {
-  const BrowseSessionsContent({this.discoveryHeader, super.key});
+  const BrowseSessionsContent({
+    this.discoveryHeader,
+    this.initialFilters = const BrowseSessionFilters(),
+    super.key,
+  });
 
   final Widget? discoveryHeader;
+  final BrowseSessionFilters initialFilters;
 
   @override
   ConsumerState<BrowseSessionsContent> createState() =>
@@ -29,6 +35,7 @@ class _BrowseSessionsContentState extends ConsumerState<BrowseSessionsContent> {
   final _scrollController = ScrollController();
   final _searchController = TextEditingController();
   Timer? _searchDebounce;
+  bool _hasLoaded = false;
 
   @override
   void initState() {
@@ -37,7 +44,22 @@ class _BrowseSessionsContentState extends ConsumerState<BrowseSessionsContent> {
     // The controller cannot fetch in build(), so kick off the first load once
     // the frame is committed.
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      unawaited(ref.read(browseSessionsControllerProvider.notifier).load());
+      if (mounted && !_hasLoaded) {
+        _hasLoaded = true;
+        final city = ref
+            .read(locationPreferencesControllerProvider)
+            .preferredCity;
+        unawaited(
+          ref
+              .read(browseSessionsControllerProvider.notifier)
+              .load(
+                filters: widget.initialFilters.copyWith(
+                  city: city,
+                  cityIsDefault: true,
+                ),
+              ),
+        );
+      }
     });
   }
 
@@ -63,6 +85,7 @@ class _BrowseSessionsContentState extends ConsumerState<BrowseSessionsContent> {
   Widget build(BuildContext context) {
     final state = ref.watch(browseSessionsControllerProvider);
     final controller = ref.read(browseSessionsControllerProvider.notifier);
+    ref.watch(locationPreferencesControllerProvider);
     final l10n = AppLocalizations.of(context);
 
     return Column(
@@ -102,7 +125,7 @@ class _BrowseSessionsContentState extends ConsumerState<BrowseSessionsContent> {
                   },
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppSpacing.xs),
               Badge(
                 isLabelVisible: state.filters.activeCount > 0,
                 label: Text('${state.filters.activeCount}'),
@@ -115,7 +138,7 @@ class _BrowseSessionsContentState extends ConsumerState<BrowseSessionsContent> {
                           context: context,
                           useRootNavigator: true,
                           isScrollControlled: true,
-                          builder: (context) => _FilterSheet(
+                          builder: (context) => SessionFilterSheet(
                             initial: state.filters,
                           ),
                         );
@@ -129,6 +152,32 @@ class _BrowseSessionsContentState extends ConsumerState<BrowseSessionsContent> {
           ),
         ),
         ?widget.discoveryHeader,
+        if (state.filters.venueId != null)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              0,
+              AppSpacing.md,
+              AppSpacing.sm,
+            ),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: InputChip(
+                key: const Key('session-venue-filter-chip'),
+                avatar: const Icon(AppIcons.location, size: 18),
+                label: Text(
+                  state.filters.venueName?.trim().isNotEmpty ?? false
+                      ? state.filters.venueName!
+                      : state.filters.venueId!,
+                ),
+                onDeleted: () => unawaited(
+                  controller.load(
+                    filters: state.filters.copyWith(clearVenue: true),
+                  ),
+                ),
+              ),
+            ),
+          ),
         Expanded(
           child: RefreshIndicator(
             onRefresh: controller.refresh,
@@ -213,125 +262,6 @@ class _EmptyView extends StatelessWidget {
           style: Theme.of(context).textTheme.bodyLarge,
         ),
       ],
-    );
-  }
-}
-
-class _FilterSheet extends StatefulWidget {
-  const _FilterSheet({required this.initial});
-
-  final BrowseSessionFilters initial;
-
-  @override
-  State<_FilterSheet> createState() => _FilterSheetState();
-}
-
-class _FilterSheetState extends State<_FilterSheet> {
-  late int? _level = widget.initial.level;
-  late bool _hasSlots = widget.initial.hasSlots;
-  late SessionSource _source = widget.initial.source;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return SafeArea(
-      child: SizedBox(
-        width: double.infinity,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            AppSpacing.md,
-            AppSpacing.md,
-            AppSpacing.md,
-            AppSpacing.md + MediaQuery.viewInsetsOf(context).bottom,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  l10n.sessionFiltersTitle,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                Text(
-                  l10n.sessionFilterSource,
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                SegmentedButton<SessionSource>(
-                  segments: [
-                    ButtonSegment(
-                      value: SessionSource.all,
-                      label: Text(l10n.sessionSourceAll),
-                    ),
-                    ButtonSegment(
-                      value: SessionSource.regular,
-                      label: Text(l10n.sessionSourceRegular),
-                    ),
-                    ButtonSegment(
-                      value: SessionSource.facebook,
-                      label: Text(l10n.sessionSourceFacebook),
-                    ),
-                  ],
-                  selected: {_source},
-                  onSelectionChanged: (value) =>
-                      setState(() => _source = value.single),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                Text(
-                  l10n.sessionFilterLevel,
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                Wrap(
-                  spacing: AppSpacing.sm,
-                  children: [
-                    for (final level in [9, 1, 10, 2, 3, 4, 5, 6, 7, 8])
-                      FilterChip(
-                        label: Text(l10n.levelName(level)),
-                        selected: _level == level,
-                        onSelected: (selected) =>
-                            setState(() => _level = selected ? level : null),
-                      ),
-                  ],
-                ),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(l10n.sessionFilterAvailableSlots),
-                  value: _hasSlots,
-                  onChanged: (value) => setState(() => _hasSlots = value),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                Row(
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(
-                        context,
-                        BrowseSessionFilters(search: widget.initial.search),
-                      ),
-                      child: Text(l10n.sessionFiltersClear),
-                    ),
-                    const Spacer(),
-                    FilledButton(
-                      onPressed: () => Navigator.pop(
-                        context,
-                        BrowseSessionFilters(
-                          search: widget.initial.search,
-                          level: _level,
-                          hasSlots: _hasSlots,
-                          source: _source,
-                        ),
-                      ),
-                      child: Text(l10n.sessionFiltersApply),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

@@ -28,6 +28,8 @@ class VenueService {
         'limit': limit,
         'closureStatus': 'OPERATING',
         if (filter.keyword.trim().isNotEmpty) 'keyword': filter.keyword.trim(),
+        if (filter.sportType?.isNotEmpty ?? false)
+          'sportType': filter.sportType,
         if (filter.city?.isNotEmpty ?? false) 'city': filter.city,
         if (filter.district?.isNotEmpty ?? false) 'district': filter.district,
         if (filter.favoriteOnly) 'favoriteOnly': true,

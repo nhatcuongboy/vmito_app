@@ -3,6 +3,7 @@ import 'package:vmito_app/features/session/domain/create_session_request.dart';
 import 'package:vmito_app/features/session/domain/form/session_form_drafts.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 import 'package:vmito_app/features/session/domain/session_location_payload.dart';
+import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/shared/models/match.dart';
 
 CreateSessionRequest _request({
@@ -254,8 +255,22 @@ void main() {
 
   test('the match type is sent as the backend enum', () {
     expect(
-      _request(defaultMatchType: MatchType.singles).toJson()['defaultMatchType'],
+      _request(
+        defaultMatchType: MatchType.singles,
+      ).toJson()['defaultMatchType'],
       'SINGLES',
     );
+  });
+
+  test('sport type is sent as the backend enum', () {
+    final request = CreateSessionRequest(
+      name: 'Pickleball tối',
+      sportType: SessionSportType.pickleball,
+      location: const VenueLocation('venue-1'),
+      hostName: 'Cường',
+      maxPlayersPerCourt: 8,
+    );
+
+    expect(request.toJson()['sportType'], 'PICKLEBALL');
   });
 }

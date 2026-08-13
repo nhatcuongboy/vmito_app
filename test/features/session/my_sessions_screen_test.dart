@@ -178,7 +178,7 @@ void main() {
     expect(find.text('1'), findsOneWidget);
   });
 
-  testWidgets('hosted card opens manage', (tester) async {
+  testWidgets('hosted card opens detail', (tester) async {
     final repository = _MockSessionRepository();
     _stubSessionLists(repository);
     when(
@@ -200,6 +200,33 @@ void main() {
     await _pumpWithRouter(tester, repository);
 
     await tester.tap(find.text('Hosted one'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('detail-h1'), findsOneWidget);
+  });
+
+  testWidgets('host button on hosted card opens manage', (tester) async {
+    final repository = _MockSessionRepository();
+    _stubSessionLists(repository);
+    when(
+      () => repository.hostedBy(
+        any(),
+        limit: any(named: 'limit'),
+        page: any(named: 'page'),
+        query: any(named: 'query'),
+      ),
+    ).thenAnswer(
+      (_) async => _page([
+        const Session(
+          id: 'h1',
+          name: 'Hosted one',
+          status: SessionStatus.preparing,
+        ),
+      ]),
+    );
+    await _pumpWithRouter(tester, repository);
+
+    await tester.tap(find.byKey(const ValueKey('session-host-button-h1')));
     await tester.pumpAndSettle();
 
     expect(find.text('manage-h1'), findsOneWidget);

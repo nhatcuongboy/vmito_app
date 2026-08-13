@@ -43,6 +43,8 @@ enum RegistrationStatus {
 abstract class SessionPlayer with _$SessionPlayer {
   const factory SessionPlayer({
     required String id,
+    String? userId,
+    @JsonKey(includeToJson: false) Map<String, dynamic>? user,
     String? name,
     Gender? gender,
 
@@ -85,6 +87,8 @@ abstract class SessionPlayer with _$SessionPlayer {
   /// model must not build localized labels.
   String? get displayName =>
       name?.trim().isNotEmpty ?? false ? name!.trim() : null;
+
+  String? get userImage => user?['image'] as String?;
 
   /// The court slot to draw this player in, 0-based.
   ///

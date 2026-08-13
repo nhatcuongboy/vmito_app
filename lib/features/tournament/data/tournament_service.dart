@@ -9,7 +9,10 @@ class TournamentService {
 
   final ApiClient _client;
 
-  Future<List<TournamentSummary>> browse({String search = ''}) async {
+  Future<List<TournamentSummary>> browse({
+    String search = '',
+    String? city,
+  }) async {
     final response = await _client.get<Map<String, dynamic>>(
       ApiEndpoints.tournaments,
       queryParameters: {
@@ -18,6 +21,7 @@ class TournamentService {
         'sortBy': 'startDate',
         'sortOrder': 'asc',
         if (search.trim().isNotEmpty) 'keyword': search.trim(),
+        if (city?.trim().isNotEmpty ?? false) 'city': city!.trim(),
       },
     );
     return unwrapList(

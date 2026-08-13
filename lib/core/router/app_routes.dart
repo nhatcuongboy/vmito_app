@@ -12,6 +12,16 @@ abstract final class AppRoutes {
   static const resetPassword = '/auth/reset-password';
 
   static const home = '/home';
+  static const leaderboard = '/leaderboard';
+  static const homeDiscoveryTabQuery = 'tab';
+  static String homeForVenue(String venueId, String venueName) => Uri(
+    path: home,
+    queryParameters: {'venueId': venueId, 'venueName': venueName},
+  ).toString();
+  static String homeForDiscoveryTab(String tab) => Uri(
+    path: home,
+    queryParameters: {homeDiscoveryTabQuery: tab},
+  ).toString();
   static const browseSessions = '/sessions';
   static const pendingRequests = '/sessions/pending-requests';
   static String sessionDetail(String id) => '/sessions/$id';
@@ -26,7 +36,8 @@ abstract final class AppRoutes {
   static const join = '/join';
   static const scanQr = '/join/scan';
 
-  static const notifications = '/notifications';
+  static const notifications = '$home/notifications';
+  static const favorites = '/favorites';
   static const transactions = '/transactions';
   static const profile = '/profile';
   static const settings = '/settings';
@@ -54,7 +65,7 @@ abstract final class AppRoutes {
     home,
     browseSessions,
     feed,
-    notifications,
+    favorites,
     profile,
   ];
 
@@ -64,11 +75,13 @@ abstract final class AppRoutes {
   static const nameSignIn = 'signIn';
   static const nameSignUp = 'signUp';
   static const nameHome = 'home';
+  static const nameLeaderboard = 'leaderboard';
   static const nameProfile = 'profile';
   static const nameSettings = 'settings';
   static const nameAccountSecurity = 'accountSecurity';
   static const nameSessionDetail = 'sessionDetail';
   static const nameLiveSession = 'liveSession';
+  static const namePublicProfile = 'publicProfile';
 
   /// Routes reachable without an account.
   ///
@@ -82,6 +95,7 @@ abstract final class AppRoutes {
     forgotPassword,
     resetPassword,
     home,
+    leaderboard,
     venues,
     clubs,
     join,
@@ -94,6 +108,7 @@ abstract final class AppRoutes {
     browseSessions,
     createSession,
     pendingRequests,
+    notifications,
     manageClubs,
     createTournament,
   ];

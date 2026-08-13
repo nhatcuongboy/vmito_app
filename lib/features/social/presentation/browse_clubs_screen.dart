@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/constants/image_constants.dart';
+import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -44,7 +45,11 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
       }
     });
     Future<void>.microtask(
-      () => ref.read(clubsControllerProvider.notifier).load(),
+      () => ref
+          .read(clubsControllerProvider.notifier)
+          .load(
+            city: ref.read(locationPreferencesControllerProvider).preferredCity,
+          ),
     );
   }
 
@@ -59,6 +64,7 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(clubsControllerProvider);
+    ref.watch(locationPreferencesControllerProvider);
     final discoveryHeader = widget.discoveryHeader;
 
     final content = Column(
@@ -88,7 +94,7 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
                   },
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppSpacing.xs),
               IconButton.filledTonal(
                 tooltip: 'Bộ lọc',
                 icon: const Icon(AppIcons.tune),
@@ -131,15 +137,15 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
                       if (state.clubs.isEmpty) {
                         return const Padding(
                           padding: EdgeInsets.all(32),
-                          child:
-                              Center(child: Text('Không tìm thấy câu lạc bộ.')),
+                          child: Center(
+                            child: Text('Không tìm thấy câu lạc bộ.'),
+                          ),
                         );
                       }
                       return state.isLoading && state.clubs.isNotEmpty
                           ? const Padding(
                               padding: EdgeInsets.all(16),
-                              child:
-                                  Center(child: CircularProgressIndicator()),
+                              child: Center(child: CircularProgressIndicator()),
                             )
                           : const SizedBox.shrink();
                     }
@@ -246,7 +252,6 @@ class _ClubBrowseCard extends StatelessWidget {
                   child: FavoriteButton(
                     type: FavoriteType.club,
                     targetId: club.id,
-                    onSignInRequired: () => context.push(AppRoutes.signIn),
                   ),
                 ),
               ],
@@ -261,9 +266,7 @@ class _ClubBrowseCard extends StatelessWidget {
                   backgroundImage: club.logo == null
                       ? null
                       : CachedNetworkImageProvider(club.logo!),
-                  child: club.logo == null
-                      ? const Icon(AppIcons.clubs)
-                      : null,
+                  child: club.logo == null ? const Icon(AppIcons.clubs) : null,
                 ),
                 const SizedBox(width: 12),
                 Expanded(

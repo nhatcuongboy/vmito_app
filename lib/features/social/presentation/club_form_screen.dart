@@ -7,6 +7,7 @@ import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/social/application/club_management_controller.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_required_label.dart';
 
 class ClubFormScreen extends ConsumerWidget {
   const ClubFormScreen({this.clubId, super.key});
@@ -92,7 +93,9 @@ class _ClubFormState extends ConsumerState<_ClubForm> {
               key: const Key('club-name-field'),
               controller: _nameController,
               maxLength: 50,
-              decoration: InputDecoration(labelText: l10n.clubName),
+              decoration: InputDecoration(
+                label: AppRequiredLabel(l10n.clubName),
+              ),
               validator: (value) =>
                   value?.trim().isEmpty ?? true ? l10n.clubNameRequired : null,
             ),

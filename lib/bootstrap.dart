@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vmito_app/app.dart';
 import 'package:vmito_app/core/localization/locale_controller.dart';
+import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/network/api_client.dart';
 import 'package:vmito_app/core/network/error_interceptor.dart';
 import 'package:vmito_app/core/storage/token_storage.dart';
@@ -56,6 +57,9 @@ Future<void> bootstrap() async {
       themeRepositoryProvider.overrideWithValue(
         SharedPreferencesThemeRepository(preferences),
       ),
+      locationPreferencesRepositoryProvider.overrideWithValue(
+        SharedPreferencesLocationPreferencesRepository(preferences),
+      ),
       courtDisplayModeRepositoryProvider.overrideWithValue(
         SharedPreferencesCourtDisplayModeRepository(preferences),
       ),
@@ -71,6 +75,7 @@ Future<void> bootstrap() async {
         WidgetsBinding.instance.platformDispatcher.locales,
       );
   container.read(themeModeControllerProvider.notifier).restore();
+  container.read(locationPreferencesControllerProvider.notifier).restore();
 
   runApp(
     UncontrolledProviderScope(container: container, child: const VmitoApp()),

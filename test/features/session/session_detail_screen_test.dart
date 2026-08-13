@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
@@ -11,9 +11,13 @@ import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/registration/data/registration_repository.dart';
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
 import 'package:vmito_app/features/session/application/player/session_recommendations_controller.dart';
+import 'package:vmito_app/features/session/domain/player_detail.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 import 'package:vmito_app/features/session/presentation/player/session_detail_screen.dart';
+import 'package:vmito_app/features/session_hosting/application/player_statistics_providers.dart';
+import 'package:vmito_app/features/social/application/social_controller.dart';
+import 'package:vmito_app/features/social/domain/club.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/court.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
@@ -95,8 +99,12 @@ Future<void> _pump(
   User? currentUser,
   List<Session> recommendations = const [],
   List<SessionPlayer> myPlayers = const [],
+  PlayerDetail? playerDetail,
+  ClubSummary? club,
   double width = 390,
 }) async {
+  final playerDetailOverride = playerDetail;
+  final clubOverride = club;
   // A phone-width but very tall viewport: the page is one long scroll, and
   // asserting on content below the fold is what these tests are for. Height
   // only — the width is what drives the two-column fact grid, so widen it only
@@ -121,6 +129,12 @@ Future<void> _pump(
         registrationRepositoryProvider.overrideWithValue(
           _StubRegistrationRepository(myPlayers),
         ),
+        if (playerDetailOverride != null)
+          playerDetailProvider.overrideWith(
+            (ref, id) async => playerDetailOverride,
+          ),
+        if (clubOverride != null)
+          clubDetailProvider.overrideWith((ref, id) async => clubOverride),
       ],
       child: MaterialApp(
         theme: AppTheme.light,
@@ -154,7 +168,8 @@ void main() {
     expect(find.text('Sân The B Hòa Bình'), findsOneWidget);
     expect(find.text('259 Hòa Bình, Phú Thạnh'), findsOneWidget);
     expect(find.text('Admin'), findsOneWidget);
-    expect(find.text('Linh · TB'), findsOneWidget);
+    expect(find.text('Linh'), findsOneWidget);
+    expect(find.text('TB'), findsOneWidget);
 
     // Court numbers ride along with the count as a muted suffix.
     expect(find.textContaining('(1, 2)'), findsOneWidget);
@@ -167,12 +182,42 @@ void main() {
     expect(find.text('TBY'), findsOneWidget);
   });
 
-  testWidgets('empty roster shows the empty state, not a bare zero', (
+  testWidgets('avatar roster opens a read-only player detail sheet', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _session(
+        players: const [SessionPlayer(id: 'p1', name: 'Linh', level: 4)],
+      ),
+      playerDetail: const PlayerDetail(
+        id: 'p1',
+        playerNumber: 1,
+        status: PlayerStatus.waiting,
+        currentWaitTime: 0,
+        totalWaitTime: 0,
+        matchesPlayed: 0,
+        name: 'Linh',
+        level: 4,
+      ),
+    );
+
+    await tester.tap(find.text('Linh'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('session-player-detail-sheet')),
+      findsOneWidget,
+    );
+    expect(find.text('Player details'), findsOneWidget);
+  });
+
+  testWidgets('empty roster shows dashed empty slots', (
     tester,
   ) async {
     await _pump(tester, _session());
 
-    expect(find.text('No players yet'), findsOneWidget);
+    expect(find.text('Empty'), findsWidgets);
     expect(find.text("Who's playing with you?"), findsOneWidget);
     expect(find.text('0/16'), findsOneWidget);
   });
@@ -429,7 +474,7 @@ void main() {
 
     // Not a spinner and not an empty-state card: this is a tail-end upsell,
     // and either would look like the page itself failed.
-    expect(find.text('Suggested for you'), findsNothing);
+    expect(find.text('Suggested sessions'), findsNothing);
   });
 
   testWidgets('recommendations render as a rail of cards', (tester) async {
@@ -441,8 +486,65 @@ void main() {
       ],
     );
 
-    expect(find.text('Suggested for you'), findsOneWidget);
+    expect(find.text('Suggested sessions'), findsOneWidget);
     expect(find.text('Kèo tối thứ 5'), findsOneWidget);
+    expect(find.text('View all sessions'), findsOneWidget);
+  });
+
+  testWidgets('fee details open from the sticky bar, not the scroll body', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _session().copyWith(
+        feeConfig: const SessionFeeConfig(
+          maleFee: 70000,
+          femaleFee: 60000,
+          notes: 'Bring a shuttlecock tube',
+        ),
+      ),
+    );
+
+    expect(find.text('Fees'), findsNothing);
+    await tester.tap(find.byKey(const Key('session-fee-details')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Fees'), findsOneWidget);
+    expect(find.text('MEN'), findsOneWidget);
+    expect(find.text('WOMEN'), findsOneWidget);
+    expect(find.text('Bring a shuttlecock tube'), findsOneWidget);
+  });
+
+  testWidgets('managed club is included in the session facts', (tester) async {
+    await _pump(
+      tester,
+      _session().copyWith(clubId: 'club-1'),
+      club: const ClubSummary(
+        id: 'club-1',
+        name: 'Badminton Center',
+        memberCount: 16,
+        joinPolicy: 'OPEN',
+      ),
+    );
+
+    expect(find.text('Managed club'), findsOneWidget);
+    expect(find.text('Badminton Center'), findsOneWidget);
+  });
+
+  testWidgets('detail stays usable at a narrow phone width', (tester) async {
+    await _pump(
+      tester,
+      _session(
+        players: const [
+          SessionPlayer(id: 'p1', name: 'Linh', level: 4),
+          SessionPlayer(id: 'p2', name: 'Minh', level: 5),
+        ],
+      ),
+      width: 320,
+    );
+
+    expect(find.text('Kèo test chuẩn'), findsOneWidget);
+    expect(find.text("Who's playing with you?"), findsOneWidget);
   });
 
   testWidgets('a recommendation card fits a two-line title', (tester) async {

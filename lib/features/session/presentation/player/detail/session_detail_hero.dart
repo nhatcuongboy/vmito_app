@@ -1,4 +1,3 @@
-import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -21,18 +20,11 @@ class SessionDetailHero extends StatefulWidget {
   const SessionDetailHero({
     required this.session,
     required this.onShare,
-    required this.onSignInRequired,
     super.key,
   });
 
   final Session session;
   final VoidCallback onShare;
-
-  /// Raised when a signed-out visitor taps the heart.
-  final VoidCallback onSignInRequired;
-
-  /// Matches the web's `clamp(170px, 29vh, 235px)`.
-  static const double height = 235;
 
   @override
   State<SessionDetailHero> createState() => _SessionDetailHeroState();
@@ -54,46 +46,59 @@ class _SessionDetailHeroState extends State<SessionDetailHero> {
         ? [Session.defaultCoverPhoto]
         : widget.session.galleryImages;
     final topInset = MediaQuery.paddingOf(context).top;
+    final heroHeight = (MediaQuery.sizeOf(context).height * .29).clamp(
+      170.0,
+      235.0,
+    );
 
     return SizedBox(
-      height: SessionDetailHero.height + topInset,
+      height: heroHeight + topInset,
       child: Stack(
-        fit: StackFit.expand,
         children: [
-          ColoredBox(
-            color: Colors.grey.shade900,
-            child: images.isEmpty
-                ? const _CoverPlaceholder()
-                : PageView.builder(
-                    controller: _controller,
-                    itemCount: images.length,
-                    onPageChanged: (index) => setState(() => _index = index),
-                    itemBuilder: (context, index) => GestureDetector(
-                      onTap: () => unawaited(
-                        showAppLightbox(
-                          context,
-                          images: images,
-                          initialIndex: index,
-                        ),
-                      ),
-                      child: CachedNetworkImage(
-                        imageUrl: images[index],
-                        fit: BoxFit.cover,
-                        errorWidget: (context, _, _) =>
-                            const _CoverPlaceholder(),
-                      ),
-                    ),
-                  ),
+          PageView.builder(
+            controller: _controller,
+            onPageChanged: (idx) => setState(() => _index = idx),
+            itemCount: images.length,
+            itemBuilder: (context, idx) {
+              final image = images[idx];
+              return GestureDetector(
+                onTap: () => showAppLightbox(
+                  context,
+                  images: images,
+                  initialIndex: idx,
+                ),
+                child: CachedNetworkImage(
+                  imageUrl: image,
+                  fit: BoxFit.cover,
+                  placeholder: (_, __) => const ColoredBox(color: Colors.black12),
+                  errorWidget: (_, __, ___) => const Icon(Icons.broken_image),
+                ),
+              );
+            },
           ),
-          const _Scrim(alignment: Alignment.topCenter),
-          const _Scrim(alignment: Alignment.bottomCenter),
+          Positioned.fill(
+            child: const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.black54, Colors.transparent, Colors.black54],
+                ),
+              ),
+            ),
+          ),
           Positioned(
             top: topInset + AppSpacing.sm,
-            left: AppSpacing.sm,
-            child: _OverlayButton(
-              icon: AppIcons.chevronLeft,
-              tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-              onPressed: () => Navigator.of(context).maybePop(),
+            left: AppSpacing.md,
+            child: SafeArea(
+              top: false,
+              bottom: false,
+              right: false,
+              child: _OverlayButton(
+                icon: AppIcons.chevronLeft,
+                tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                onPressed: () => Navigator.of(context).maybePop(),
+              ),
             ),
           ),
           Positioned(
@@ -104,7 +109,6 @@ class _SessionDetailHeroState extends State<SessionDetailHero> {
                 FavoriteButton(
                   type: FavoriteType.session,
                   targetId: widget.session.id,
-                  onSignInRequired: widget.onSignInRequired,
                 ),
                 const SizedBox(width: AppSpacing.sm),
                 _OverlayButton(
@@ -138,50 +142,6 @@ class _SessionDetailHeroState extends State<SessionDetailHero> {
   }
 }
 
-class _CoverPlaceholder extends StatelessWidget {
-  const _CoverPlaceholder();
-
-  @override
-  Widget build(BuildContext context) => ColoredBox(
-    color: Colors.grey.shade800,
-    child: Icon(
-      AppIcons.sessions,
-      size: 48,
-      color: Colors.white.withValues(alpha: 0.5),
-    ),
-  );
-}
-
-/// Darkens the strip behind the overlay buttons and badges so white text
-/// stays legible on a light photo.
-class _Scrim extends StatelessWidget {
-  const _Scrim({required this.alignment});
-
-  final Alignment alignment;
-
-  @override
-  Widget build(BuildContext context) {
-    final isTop = alignment == Alignment.topCenter;
-    return Align(
-      alignment: alignment,
-      child: IgnorePointer(
-        child: Container(
-          height: 88,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: isTop ? Alignment.topCenter : Alignment.bottomCenter,
-              end: isTop ? Alignment.bottomCenter : Alignment.topCenter,
-              colors: [
-                Colors.black.withValues(alpha: 0.5),
-                Colors.transparent,
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class _OverlayButton extends StatelessWidget {
   const _OverlayButton({

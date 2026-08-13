@@ -6,10 +6,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/constants/image_constants.dart';
+import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/core/widgets/app_address_text.dart';
 import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/venue/application/venue_controller.dart';
@@ -42,7 +44,15 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
     super.initState();
     _scroll.addListener(_onScroll);
     Future<void>.microtask(
-      () => ref.read(venueBrowseControllerProvider.notifier).load(),
+      () => ref
+          .read(venueBrowseControllerProvider.notifier)
+          .load(
+            filter: VenueFilter(
+              city: ref
+                  .read(locationPreferencesControllerProvider)
+                  .preferredCity,
+            ),
+          ),
     );
   }
 
@@ -94,6 +104,7 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(venueBrowseControllerProvider);
+    ref.watch(locationPreferencesControllerProvider);
     final body = RefreshIndicator(
       onRefresh: () => ref.read(venueBrowseControllerProvider.notifier).load(),
       child: Center(
@@ -196,7 +207,7 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
                   },
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppSpacing.xs),
               IconButton.filledTonal(
                 tooltip: 'Bộ lọc',
                 icon: const Icon(AppIcons.tune),
@@ -379,7 +390,6 @@ class VenueCard extends StatelessWidget {
                   child: FavoriteButton(
                     type: FavoriteType.venue,
                     targetId: venue.id,
-                    onSignInRequired: () => context.push(AppRoutes.signIn),
                   ),
                 ),
                 if (venue.distance != null)
@@ -437,10 +447,14 @@ class VenueCard extends StatelessWidget {
                       if (venue.addressLabel.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            venue.addressLabel,
+                          child: AppAddressText(
+                            address: venue.address,
+                            district: venue.district,
+                            city: venue.city,
+                            newAddress: venue.newAddress,
+                            newDistrict: venue.newDistrict,
+                            newCity: venue.newCity,
                             maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
                             style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ),
@@ -561,7 +575,9 @@ class _CreateVenueSheetState extends State<_CreateVenueSheet> {
             ),
             TextFormField(
               controller: _city,
-              decoration: const InputDecoration(labelText: 'Tỉnh / thành phố'),
+              decoration: const InputDecoration(
+                labelText: 'Tỉnh / thành phố',
+              ),
               validator: (value) => value?.trim().isEmpty ?? true
                   ? 'Nhập tỉnh / thành phố'
                   : null,

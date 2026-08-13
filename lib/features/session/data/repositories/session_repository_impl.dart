@@ -9,6 +9,7 @@ import 'package:vmito_app/core/network/api_response.dart';
 import 'package:vmito_app/core/network/paginated.dart';
 import 'package:vmito_app/core/utils/logger.dart';
 import 'package:vmito_app/features/registration/domain/pending_join_request.dart';
+import 'package:vmito_app/features/session/domain/browse_session_filters.dart';
 import 'package:vmito_app/features/session/domain/bulk_create_session.dart';
 import 'package:vmito_app/features/session/domain/create_session_request.dart';
 import 'package:vmito_app/features/session/domain/player_detail.dart';
@@ -58,19 +59,51 @@ class SessionRepositoryImpl implements SessionRepository {
     required int limit,
     int page = 1,
     String? search,
-    int? level,
+    DateTime? date,
+    required Set<SessionTimeRange> timeRanges,
+    required Set<int> levels,
+    required Set<SessionSport> sports,
     bool? hasSlots,
     String? sessionType,
+    String? city,
+    required Set<String> districts,
+    int? minFee,
+    int? maxFee,
+    required bool splitEvenly,
+    double? latitude,
+    double? longitude,
+    required bool sortByDistance,
+    String? venueId,
   }) async {
     final queryParameters = {
       'page': page,
       'limit': limit,
       if (search != null && search.trim().isNotEmpty)
         'searchQuery': search.trim(),
-      'level': ?level,
+      if (date != null)
+        'date':
+            '${date.year.toString().padLeft(4, '0')}-'
+            '${date.month.toString().padLeft(2, '0')}-'
+            '${date.day.toString().padLeft(2, '0')}',
+      if (timeRanges.isNotEmpty)
+        'timeRanges': timeRanges.map((value) => value.wireValue).join(','),
+      if (levels.isNotEmpty) 'levels': levels.join(','),
+      if (sports.isNotEmpty)
+        'sportType': sports.map((value) => value.wireValue).join(','),
       'hasSlots': ?hasSlots,
+      'city': ?city,
+      if (districts.isNotEmpty) 'district': districts.join(','),
+      'minFee': ?minFee,
+      'maxFee': ?maxFee,
+      if (splitEvenly) 'feeType': 'SPLIT_EVENLY',
+      if (sortByDistance && latitude != null) 'lat': latitude,
+      if (sortByDistance && longitude != null) 'lng': longitude,
+      if (sortByDistance && latitude != null && longitude != null)
+        'sortByDistance': true,
       if (sessionType != null && sessionType != 'all')
         'sessionType': sessionType,
+      if (venueId != null && venueId.trim().isNotEmpty)
+        'venueId': venueId.trim(),
     };
     final url =
         Uri.parse(
@@ -197,6 +230,26 @@ class SessionRepositoryImpl implements SessionRepository {
       options: apiOptions(skipGlobalError: true),
     );
     return unwrap(response.data, Session.fromJson);
+  }
+
+  @override
+  Future<void> updateImages(
+    String id, {
+    String? coverPhoto,
+    String? coverPhotoPublicId,
+    required List<String> images,
+    required List<String> imagePublicIds,
+  }) async {
+    await _client.put<void>(
+      ApiEndpoints.session(id),
+      data: {
+        'coverPhoto': coverPhoto,
+        'coverPhotoPublicId': coverPhotoPublicId,
+        'images': images,
+        'imagePublicIds': imagePublicIds,
+      },
+      options: apiOptions(skipGlobalError: true),
+    );
   }
 
   @override

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
 import 'package:vmito_app/features/session/domain/create_session_request.dart';
+import 'package:vmito_app/features/session/domain/bulk_create_session.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 
 /// Creates a session.
@@ -34,6 +35,49 @@ class CreateSessionController extends Notifier<AsyncValue<Session?>> {
       () => ref.read(sessionRepositoryProvider).update(id, request),
     );
     state = result;
+    return result.asData?.value;
+  }
+
+  Future<BulkCreateSessionResult?> submitBulk(
+    BulkCreateSessionRequest request,
+  ) async {
+    state = const AsyncValue.loading();
+    final result = await AsyncValue.guard(
+      () => ref.read(sessionRepositoryProvider).createBulk(request),
+    );
+
+    if (result case AsyncData(
+      value: final bulk,
+    ) when bulk.sessions.length > 1 && request.baseSession.images.isNotEmpty) {
+      final base = request.baseSession;
+      final sync = await AsyncValue.guard(
+        () => Future.wait([
+          for (final session in bulk.sessions.skip(1))
+            ref
+                .read(sessionRepositoryProvider)
+                .updateImages(
+                  session.id,
+                  coverPhoto: base.coverPhoto,
+                  coverPhotoPublicId: base.coverPhotoPublicId,
+                  images: base.images,
+                  imagePublicIds: base.imagePublicIds,
+                ),
+        ]),
+      );
+      if (sync.hasError) {
+        state = AsyncValue.error(sync.error!, sync.stackTrace!);
+        return null;
+      }
+    }
+
+    state = switch (result) {
+      AsyncData(value: final bulk) => AsyncValue.data(
+        bulk.sessions.isEmpty ? null : bulk.sessions.first,
+      ),
+      AsyncError(error: final error, stackTrace: final stackTrace) =>
+        AsyncValue.error(error, stackTrace),
+      _ => const AsyncValue.loading(),
+    };
     return result.asData?.value;
   }
 }

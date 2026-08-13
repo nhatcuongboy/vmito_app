@@ -28,10 +28,23 @@ class PaymentRepositoryImpl implements PaymentRepository {
   }
 
   @override
-  Future<void> approve(String paymentId) async {
+  Future<void> approve(
+    String paymentId, {
+    String? hostNotes,
+    int? amount,
+    PaymentMethod? paymentMethod,
+  }) async {
     await _client.post<void>(
       ApiEndpoints.paymentApprove(paymentId),
-      data: const <String, dynamic>{},
+      data: <String, dynamic>{
+        if (hostNotes?.trim().isNotEmpty ?? false)
+          'hostNotes': hostNotes!.trim(),
+        'amount': ?amount,
+        if (paymentMethod != null)
+          'paymentMethod': paymentMethod == PaymentMethod.bankTransfer
+              ? 'BANK_TRANSFER'
+              : 'CASH',
+      },
       options: apiOptions(skipGlobalError: true),
     );
   }
@@ -170,6 +183,33 @@ class PaymentRepositoryImpl implements PaymentRepository {
         .cast<Map<String, dynamic>>()
         .map(PaymentRecord.fromJson)
         .toList(growable: false);
+  }
+
+  @override
+  Future<HostFinanceReport> financeReport(HostFinanceQuery query) async {
+    final response = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.hostFinanceReport,
+      queryParameters: query.toQueryParameters(),
+    );
+    return unwrap(response.data, HostFinanceReport.fromJson);
+  }
+
+  @override
+  Future<void> remindPayment(String paymentId) async {
+    await _client.post<void>(
+      ApiEndpoints.paymentReminders,
+      data: {'paymentId': paymentId},
+      options: apiOptions(skipGlobalError: true),
+    );
+  }
+
+  @override
+  Future<void> remindUser(String userId) async {
+    await _client.post<void>(
+      ApiEndpoints.aggregatePaymentReminder,
+      data: {'recipientUserId': userId},
+      options: apiOptions(skipGlobalError: true),
+    );
   }
 }
 

@@ -107,6 +107,8 @@ abstract final class AppIcons {
   static const IconData list = LucideIcons.list;
   static const IconData users = LucideIcons.users;
   static const IconData user = LucideIcons.user;
+  static const IconData male = LucideIcons.mars;
+  static const IconData female = LucideIcons.venus;
   static const IconData userPlus = LucideIcons.user_plus;
   static const IconData userCheck = LucideIcons.user_check;
   static const IconData userMinus = LucideIcons.user_minus;
@@ -118,6 +120,9 @@ abstract final class AppIcons {
 
   // --- Financial & Commerce --------------------------------------------------
   static const IconData bank = LucideIcons.landmark;
+  static const IconData banknote = LucideIcons.banknote;
+  static const IconData building = LucideIcons.building_2;
+  static const IconData dollarCircle = LucideIcons.circle_dollar_sign;
   static const IconData creditCard = LucideIcons.credit_card;
   static const IconData priceTag = LucideIcons.badge_dollar_sign;
   static const IconData receipt = LucideIcons.receipt;

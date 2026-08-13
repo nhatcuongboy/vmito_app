@@ -243,9 +243,7 @@ class _ResetForm extends ConsumerWidget {
               suffixIcon: IconButton(
                 onPressed: onTogglePassword,
                 icon: Icon(
-                  obscurePassword
-                      ? AppIcons.eyeOff
-                      : AppIcons.eye,
+                  obscurePassword ? AppIcons.eyeOff : AppIcons.eye,
                 ),
               ),
             ),
@@ -268,9 +266,7 @@ class _ResetForm extends ConsumerWidget {
               suffixIcon: IconButton(
                 onPressed: onToggleConfirmation,
                 icon: Icon(
-                  obscureConfirmation
-                      ? AppIcons.eyeOff
-                      : AppIcons.eye,
+                  obscureConfirmation ? AppIcons.eyeOff : AppIcons.eye,
                 ),
               ),
             ),

@@ -40,7 +40,7 @@ class SessionDetailInfo extends StatelessWidget {
           session.name,
           style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            height: 1.2,
+            height: 1.15,
           ),
         ),
         if (time != null || date != null) ...[
@@ -196,58 +196,61 @@ class _HostRow extends StatelessWidget {
     final image = session.host?.image;
     final name = session.displayHostName;
 
-    return Row(
-      children: [
-        CircleAvatar(
-          radius: 26,
-          backgroundColor: palette.muted,
-          foregroundImage: image == null || image.isEmpty
-              ? null
-              : CachedNetworkImageProvider(image),
-          child: Text(
-            name.isEmpty ? '?' : name.characters.first.toUpperCase(),
-            style: theme.textTheme.titleLarge,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      child: Row(
+        children: [
+          CircleAvatar(
+            radius: 30,
+            backgroundColor: palette.muted,
+            foregroundImage: image == null || image.trim().isEmpty
+                ? null
+                : CachedNetworkImageProvider(image),
+            child: Text(
+              name.isEmpty ? '?' : name.characters.first.toUpperCase(),
+              style: theme.textTheme.titleLarge,
+            ),
           ),
-        ),
-        const SizedBox(width: AppSpacing.md),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              Text(
-                session.isCrawled
-                    ? (session.externalSource ?? l10n.sessionHostLabel)
-                    : l10n.sessionHostLabel,
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: palette.mutedForeground,
+                Text(
+                  session.isCrawled
+                      ? (session.externalSource ?? l10n.sessionHostLabel)
+                      : l10n.sessionHostLabel,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: palette.mutedForeground,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        if (onZalo != null)
-          _ContactButton(
-            tooltip: l10n.sessionContactZalo,
-            icon: AppIcons.chat,
-            onPressed: onZalo!,
-          ),
-        if (onCall != null) ...[
-          const SizedBox(width: AppSpacing.sm),
-          _ContactButton(
-            tooltip: l10n.sessionCallHost,
-            icon: AppIcons.phone,
-            onPressed: onCall!,
-          ),
+          if (onZalo != null)
+            _ContactButton(
+              tooltip: l10n.sessionContactZalo,
+              icon: AppIcons.chat,
+              onPressed: onZalo!,
+            ),
+          if (onCall != null) ...[
+            const SizedBox(width: AppSpacing.sm),
+            _ContactButton(
+              tooltip: l10n.sessionCallHost,
+              icon: AppIcons.phone,
+              onPressed: onCall!,
+            ),
+          ],
         ],
-      ],
+      ),
     );
   }
 }
@@ -272,6 +275,7 @@ class _ContactButton extends StatelessWidget {
       icon: Icon(icon, size: 20),
       onPressed: onPressed,
       style: IconButton.styleFrom(
+        minimumSize: const Size.square(52),
         foregroundColor: primary,
         backgroundColor: primary.withValues(alpha: 0.1),
         side: BorderSide(color: primary.withValues(alpha: 0.3)),

@@ -11,7 +11,7 @@ import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/player/session_presentation.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
-/// "Gợi ý cho bạn" — the web app's `SessionRecommendations`, mobile variant.
+/// "Gợi ý kèo" — the web app's `SessionRecommendations`, mobile variant.
 ///
 /// Renders nothing while loading, on error, or when the backend has nothing
 /// to suggest: this is a tail-end upsell, and a spinner or an error card for
@@ -21,13 +21,13 @@ class SessionRecommendations extends ConsumerWidget {
 
   final String sessionId;
 
-  static const _cardWidth = 220.0;
+  /// The web uses roughly 75vw on mobile, capped so a second card remains
+  /// visible as a deliberate invitation to swipe.
+  static double _cardWidth(double availableWidth) =>
+      (availableWidth * .75).clamp(280.0, 320.0);
 
-  /// Sized for the worst case the rail actually gets: a two-line title plus
-  /// both meta lines and a price. A tighter box overflows on long names,
-  /// which is most of them.
-  static const _cardHeight = 232.0;
-  static const _coverHeight = 88.0;
+  static const _cardHeight = 270.0;
+  static const _coverHeight = 132.0;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -38,33 +38,53 @@ class SessionRecommendations extends ConsumerWidget {
         const <Session>[];
     if (sessions.isEmpty) return const SizedBox.shrink();
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-          child: Text(
-            l10n.sessionRecommendationsTitle,
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm + 4),
-        SizedBox(
-          height: _cardHeight,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
+    return Container(
+      width: double.infinity,
+      color: theme.colorScheme.primary.withValues(alpha: 0.04),
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-            itemCount: sessions.length,
-            separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
-            itemBuilder: (context, index) => SizedBox(
-              width: _cardWidth,
-              child: _RecommendationCard(session: sessions[index]),
+            child: Text(
+              l10n.sessionRecommendationsTitle,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
-        ),
-      ],
+          const SizedBox(height: AppSpacing.sm + 4),
+          LayoutBuilder(
+            builder: (context, constraints) => SizedBox(
+              height: _cardHeight,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                itemCount: sessions.length,
+                separatorBuilder: (_, _) =>
+                    const SizedBox(width: AppSpacing.sm),
+                itemBuilder: (context, index) => SizedBox(
+                  width: _cardWidth(constraints.maxWidth),
+                  child: _RecommendationCard(session: sessions[index]),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Center(
+            child: TextButton.icon(
+              onPressed: () => context.go(AppRoutes.home),
+              icon: const Icon(AppIcons.arrowForward, size: 18),
+              label: Text(l10n.sessionViewAllSessions),
+              style: TextButton.styleFrom(
+                foregroundColor: theme.colorScheme.primary,
+                textStyle: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -179,7 +199,7 @@ class _SuggestionBadge extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 3),
     decoration: BoxDecoration(
-      color: Colors.black.withValues(alpha: 0.6),
+      color: const Color(0xFF8B2BE2),
       borderRadius: BorderRadius.circular(AppRadius.pill),
     ),
     child: Row(

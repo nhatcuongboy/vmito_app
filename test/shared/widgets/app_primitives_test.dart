@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/shared/widgets/app_button.dart';
 import 'package:vmito_app/shared/widgets/app_card.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
+import 'package:vmito_app/shared/widgets/app_required_label.dart';
 import 'package:vmito_app/shared/widgets/app_text_field.dart';
 
 void main() {
@@ -55,5 +57,41 @@ void main() {
     expect(find.text('Title'), findsOneWidget);
     expect(find.text('Content'), findsOneWidget);
     expect(find.text('Close'), findsOneWidget);
+  });
+
+  test('AppTheme configures roomier dialog sizing on mobile', () {
+    expect(
+      AppTheme.light.dialogTheme.insetPadding,
+      const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.lg,
+      ),
+    );
+  });
+
+  testWidgets('form labels show the correct marker and semantics', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      buildSubject(
+        const Column(
+          children: [
+            AppRequiredLabel('Name'),
+            AppOptionalLabel('Phone', optionalText: 'Optional'),
+          ],
+        ),
+      ),
+    );
+
+    expect(find.text('Name *'), findsOneWidget);
+    expect(find.text('Phone (Optional)'), findsOneWidget);
+    expect(
+      tester.getSemantics(find.byType(AppRequiredLabel)),
+      matchesSemantics(label: 'Name, required'),
+    );
+    expect(
+      tester.getSemantics(find.byType(AppOptionalLabel)),
+      matchesSemantics(label: 'Phone, Optional'),
+    );
   });
 }

@@ -154,8 +154,11 @@ abstract final class ApiEndpoints {
   static String paymentReject(String id) => '/payments/$id/reject';
   static const paymentBulkApprove = '/payments/bulk-approve';
   static const hostPaymentSummary = '/payments/host/summary';
+  static const hostFinanceReport = '/payments/host/report';
   static String hostPaymentsForUser(String userId) =>
       '/payments/host/user/$userId';
+  static const paymentReminders = '/payment-reminders';
+  static const aggregatePaymentReminder = '/payment-reminders/aggregate';
   static String sessionPaymentSplit(String id) =>
       '/sessions/$id/payments/split';
   static String sessionExpenses(String id) => '/sessions/$id/expenses';

@@ -7,6 +7,7 @@ void main() {
       expect(AppRoutes.stripLocale('/vi/sessions/abc'), '/sessions/abc');
       expect(AppRoutes.stripLocale('/en/sessions/abc'), '/sessions/abc');
       expect(AppRoutes.stripLocale('/cn/sessions/abc'), '/sessions/abc');
+      expect(AppRoutes.stripLocale('/vi/leaderboard'), '/leaderboard');
     });
 
     test('maps a bare locale root to /', () {
@@ -30,6 +31,7 @@ void main() {
       () {
         // App Store guideline 5.1.1(i): browsing must not require registration.
         expect(AppRoutes.isPublic(AppRoutes.home), isTrue);
+        expect(AppRoutes.isPublic(AppRoutes.leaderboard), isTrue);
         expect(AppRoutes.isPublic(AppRoutes.sessionDetail('s1')), isTrue);
         expect(AppRoutes.isPublic(AppRoutes.liveSession('s1')), isTrue);
         expect(AppRoutes.isPublic(AppRoutes.join), isTrue);
@@ -76,5 +78,13 @@ void main() {
       expect(AppRoutes.isPublic('/sessions/abc'), isTrue);
       expect(AppRoutes.isPublic('/sessionsecret'), isFalse);
     });
+  });
+
+  test('favorites replaces notifications as the fourth shell destination', () {
+    expect(AppRoutes.shellDestinations[3], AppRoutes.favorites);
+    expect(
+      AppRoutes.shellDestinations,
+      isNot(contains(AppRoutes.notifications)),
+    );
   });
 }

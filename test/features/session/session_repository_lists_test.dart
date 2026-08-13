@@ -6,6 +6,7 @@ import 'package:vmito_app/core/network/api_client.dart';
 import 'package:vmito_app/core/network/error_interceptor.dart';
 import 'package:vmito_app/core/storage/token_storage.dart';
 import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
+import 'package:vmito_app/features/session/domain/browse_session_filters.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_list_query.dart';
 
@@ -48,6 +49,56 @@ SessionRepositoryImpl _repository(_RecordingAdapter adapter) {
 }
 
 void main() {
+  test('available sessions serializes the complete filter contract', () async {
+    final adapter = _RecordingAdapter();
+    final repository = _repository(adapter);
+
+    await repository.browseAvailable(
+      limit: 20,
+      page: 2,
+      search: '  tối thứ bảy  ',
+      date: DateTime(2026, 8, 15),
+      timeRanges: const {
+        SessionTimeRange.evening,
+        SessionTimeRange.night,
+      },
+      levels: const {9, 1, 10},
+      sports: const {SessionSport.badminton, SessionSport.pickleball},
+      hasSlots: true,
+      sessionType: 'facebook',
+      city: 'Hồ Chí Minh',
+      districts: const {'Phường An Đông', 'Phường An Hội Đông'},
+      minFee: 50000,
+      maxFee: 120000,
+      splitEvenly: true,
+      latitude: 10.77,
+      longitude: 106.69,
+      sortByDistance: true,
+      venueId: 'venue-1',
+    );
+
+    expect(adapter.requests.single.queryParameters, {
+      'page': 2,
+      'limit': 20,
+      'searchQuery': 'tối thứ bảy',
+      'date': '2026-08-15',
+      'timeRanges': 'evening,night',
+      'levels': '9,1,10',
+      'sportType': 'BADMINTON,PICKLEBALL',
+      'hasSlots': true,
+      'city': 'Hồ Chí Minh',
+      'district': 'Phường An Đông,Phường An Hội Đông',
+      'minFee': 50000,
+      'maxFee': 120000,
+      'feeType': 'SPLIT_EVENLY',
+      'lat': 10.77,
+      'lng': 106.69,
+      'sortByDistance': true,
+      'sessionType': 'facebook',
+      'venueId': 'venue-1',
+    });
+  });
+
   test(
     'hosted and joined share search/status/pagination query contract',
     () async {

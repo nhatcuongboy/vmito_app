@@ -3,13 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:vmito_app/core/localization/locale_controller.dart';
+import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/theme_mode_controller.dart';
 import 'package:vmito_app/core/widgets/language_selector.dart';
+import 'package:vmito_app/core/widgets/sign_out_confirmation.dart';
 import 'package:vmito_app/core/widgets/theme_mode_selector.dart';
-import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -25,6 +26,9 @@ class SettingsScreen extends ConsumerWidget {
       _ => l10n.languageVietnamese,
     };
     final themeMode = ref.watch(themeModeControllerProvider);
+    final locationPreferences = ref.watch(
+      locationPreferencesControllerProvider,
+    );
     final themeModeName = switch (themeMode) {
       ThemeMode.light => l10n.themeModeLight,
       ThemeMode.dark => l10n.themeModeDark,
@@ -71,6 +75,19 @@ class SettingsScreen extends ConsumerWidget {
                   trailing: const Icon(AppIcons.chevronRight),
                   onTap: () => showThemeModeSelector(context),
                 ),
+                SwitchListTile(
+                  secondary: const Icon(AppIcons.location),
+                  title: Text(l10n.settingsShowNewAddressTitle),
+                  subtitle: Text(
+                    locationPreferences.showNewAddress
+                        ? l10n.settingsShowNewAddressOn
+                        : l10n.settingsShowNewAddressOff,
+                  ),
+                  value: locationPreferences.showNewAddress,
+                  onChanged: (value) => ref
+                      .read(locationPreferencesControllerProvider.notifier)
+                      .setShowNewAddress(value: value),
+                ),
               ],
             ),
             _SettingsSection(
@@ -110,8 +127,7 @@ class SettingsScreen extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: OutlinedButton.icon(
-                onPressed: () =>
-                    ref.read(authControllerProvider.notifier).signOut(),
+                onPressed: () => showSignOutConfirmation(context, ref),
                 icon: const Icon(AppIcons.logout),
                 label: Text(l10n.authSignOut),
               ),

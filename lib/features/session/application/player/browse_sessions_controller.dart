@@ -2,47 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
 import 'package:vmito_app/core/utils/logger.dart';
 import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
+import 'package:vmito_app/features/session/domain/browse_session_filters.dart';
 import 'package:vmito_app/features/session/domain/repositories/session_repository.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 
-enum SessionSource { all, regular, facebook }
-
-class BrowseSessionFilters {
-  const BrowseSessionFilters({
-    this.search = '',
-    this.level,
-    this.hasSlots = false,
-    this.source = SessionSource.all,
-  });
-
-  final String search;
-  final int? level;
-  final bool hasSlots;
-  final SessionSource source;
-
-  int get activeCount =>
-      (level == null ? 0 : 1) +
-      (hasSlots ? 1 : 0) +
-      (source == SessionSource.all ? 0 : 1);
-
-  BrowseSessionFilters copyWith({
-    String? search,
-    bool? hasSlots,
-    SessionSource? source,
-  }) => BrowseSessionFilters(
-    search: search ?? this.search,
-    level: level,
-    hasSlots: hasSlots ?? this.hasSlots,
-    source: source ?? this.source,
-  );
-
-  BrowseSessionFilters withLevel(int? value) => BrowseSessionFilters(
-    search: search,
-    level: value,
-    hasSlots: hasSlots,
-    source: source,
-  );
-}
+export 'package:vmito_app/features/session/domain/browse_session_filters.dart';
 
 /// What the browse list renders.
 class BrowseSessionsState {
@@ -131,9 +95,21 @@ class BrowseSessionsController extends Notifier<BrowseSessionsState> {
         page: page,
         limit: _pageSize,
         search: state.filters.search,
-        level: state.filters.level,
+        date: state.filters.date,
+        timeRanges: state.filters.timeRanges,
+        levels: state.filters.levels,
+        sports: state.filters.sports,
         hasSlots: state.filters.hasSlots ? true : null,
         sessionType: state.filters.source.name,
+        city: state.filters.city,
+        districts: state.filters.districts,
+        minFee: state.filters.hasCustomFeeRange ? state.filters.minFee : null,
+        maxFee: state.filters.hasCustomFeeRange ? state.filters.maxFee : null,
+        splitEvenly: state.filters.splitEvenly,
+        latitude: state.filters.nearMe ? state.filters.latitude : null,
+        longitude: state.filters.nearMe ? state.filters.longitude : null,
+        sortByDistance: state.filters.nearMe,
+        venueId: state.filters.venueId,
       );
       state = BrowseSessionsState(
         sessions: replace ? result.items : [...state.sessions, ...result.items],

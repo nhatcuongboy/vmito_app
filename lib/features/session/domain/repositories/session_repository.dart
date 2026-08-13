@@ -1,5 +1,6 @@
 import 'package:vmito_app/core/network/paginated.dart';
 import 'package:vmito_app/features/registration/domain/pending_join_request.dart';
+import 'package:vmito_app/features/session/domain/browse_session_filters.dart';
 import 'package:vmito_app/features/session/domain/bulk_create_session.dart';
 import 'package:vmito_app/features/session/domain/create_session_request.dart';
 import 'package:vmito_app/features/session/domain/player_detail.dart';
@@ -28,9 +29,21 @@ abstract interface class SessionRepository {
     required int limit,
     int page = 1,
     String? search,
-    int? level,
+    DateTime? date,
+    required Set<SessionTimeRange> timeRanges,
+    required Set<int> levels,
+    required Set<SessionSport> sports,
     bool? hasSlots,
     String? sessionType,
+    String? city,
+    required Set<String> districts,
+    int? minFee,
+    int? maxFee,
+    required bool splitEvenly,
+    double? latitude,
+    double? longitude,
+    required bool sortByDistance,
+    String? venueId,
   });
 
   /// Sessions this user hosts.
@@ -62,6 +75,14 @@ abstract interface class SessionRepository {
   Future<BulkCreateSessionResult> createBulk(BulkCreateSessionRequest request);
 
   Future<Session> update(String id, CreateSessionRequest request);
+
+  Future<void> updateImages(
+    String id, {
+    String? coverPhoto,
+    String? coverPhotoPublicId,
+    required List<String> images,
+    required List<String> imagePublicIds,
+  });
 
   Future<void> cancel(String id);
 

@@ -26,6 +26,7 @@ class Venue {
     this.isFavorite = false,
     this.closureStatus = 'OPERATING',
     this.amenities = const [],
+    this.sportType,
   });
 
   factory Venue.fromJson(Map<String, dynamic> json) => Venue(
@@ -67,6 +68,7 @@ class Venue {
     amenities: (json['amenities'] as List<dynamic>? ?? const [])
         .whereType<String>()
         .toList(growable: false),
+    sportType: json['sportType'] as String?,
   );
 
   final String id;
@@ -95,6 +97,7 @@ class Venue {
   final bool isFavorite;
   final String closureStatus;
   final List<String> amenities;
+  final String? sportType;
 
   String get addressLabel => [
     newAddress ?? address,
@@ -203,6 +206,7 @@ class VenueFilter {
     this.favoriteOnly = false,
     this.latitude,
     this.longitude,
+    this.sportType,
   });
   final String keyword;
   final String? city;
@@ -211,6 +215,7 @@ class VenueFilter {
   final bool favoriteOnly;
   final double? latitude;
   final double? longitude;
+  final String? sportType;
   VenueFilter copyWith({
     String? keyword,
     String? city,
@@ -219,14 +224,18 @@ class VenueFilter {
     bool? favoriteOnly,
     double? latitude,
     double? longitude,
+    String? sportType,
     bool clearLocation = false,
+    bool clearCity = false,
+    bool clearDistrict = false,
   }) => VenueFilter(
     keyword: keyword ?? this.keyword,
-    city: city ?? this.city,
-    district: district ?? this.district,
+    city: clearCity ? null : city ?? this.city,
+    district: clearDistrict ? null : district ?? this.district,
     sortBy: sortBy ?? this.sortBy,
     favoriteOnly: favoriteOnly ?? this.favoriteOnly,
     latitude: clearLocation ? null : latitude ?? this.latitude,
     longitude: clearLocation ? null : longitude ?? this.longitude,
+    sportType: sportType ?? this.sportType,
   );
 }

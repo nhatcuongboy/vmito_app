@@ -219,8 +219,9 @@ class ClubsController extends Notifier<ClubsState> {
     bool? favoriteOnly,
     double? latitude,
     double? longitude,
+    bool clearCity = false,
   }) async {
-    final nextCity = city ?? state.city;
+    final nextCity = clearCity ? null : city ?? state.city;
     final nextDistrict = district ?? state.district;
     final nextSort = sortBy ?? state.sortBy;
     final nextFavorite = favoriteOnly ?? state.favoriteOnly;

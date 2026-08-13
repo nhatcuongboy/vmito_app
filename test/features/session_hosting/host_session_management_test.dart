@@ -106,7 +106,9 @@ void main() {
 
     expect(find.text('Edit session'), findsOneWidget);
     expect(find.text('Friday games'), findsOneWidget);
-    expect(find.text('Court A'), findsOneWidget);
+    // The web-parity form shows the selected custom location in both the
+    // location trigger and its editable custom-location field.
+    expect(find.text('Court A'), findsAtLeastNWidgets(1));
     expect(find.text('Weekly game'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Save changes'),

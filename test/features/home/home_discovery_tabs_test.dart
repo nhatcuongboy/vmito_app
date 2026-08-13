@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/home/presentation/home_screen.dart';
 import 'package:vmito_app/features/home/presentation/widgets/home_discovery_tabs.dart';
 import 'package:vmito_app/features/session/application/player/browse_sessions_controller.dart';
+import 'package:vmito_app/features/session/presentation/player/public_sessions_content.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/presentation/browse_clubs_screen.dart';
 import 'package:vmito_app/features/tournament/application/tournament_browse_controller.dart';
@@ -96,7 +97,7 @@ void main() {
 
     expect(_FakeSessionsController.loads, 1);
     expect(find.byIcon(AppIcons.login), findsOneWidget);
-    expect(find.byType(FloatingActionButton), findsNothing);
+    expect(find.byType(FloatingActionButton), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('home-discovery-tab-venues')));
     await tester.pump();
@@ -122,14 +123,128 @@ void main() {
     await tester.pump();
     expect(_FakeTournamentsController.loads, 2);
   });
+
+  testWidgets('Home applies an incoming venue filter to session discovery', (
+    tester,
+  ) async {
+    _FakeSessionsController.lastFilters = null;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          browseSessionsControllerProvider.overrideWith(
+            _FakeSessionsController.new,
+          ),
+        ],
+        child: MaterialApp(
+          locale: const Locale('vi'),
+          theme: AppTheme.light,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const HomeScreen(
+            initialVenueId: 'venue-1',
+            initialVenueName: 'Sân A',
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(_FakeSessionsController.lastFilters?.venueId, 'venue-1');
+    expect(_FakeSessionsController.lastFilters?.venueName, 'Sân A');
+  });
+
+  testWidgets('Home can open with venues selected from routing state', (
+    tester,
+  ) async {
+    _FakeSessionsController.loads = 0;
+    _FakeVenuesController.loads = 0;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          browseSessionsControllerProvider.overrideWith(
+            _FakeSessionsController.new,
+          ),
+          venueBrowseControllerProvider.overrideWith(
+            _FakeVenuesController.new,
+          ),
+        ],
+        child: MaterialApp(
+          locale: const Locale('vi'),
+          theme: AppTheme.light,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const HomeScreen(
+            initialDiscoveryTab: HomeDiscoveryTab.venues,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byType(BrowseVenuesScreen), findsOneWidget);
+    expect(_FakeVenuesController.loads, 1);
+    expect(_FakeSessionsController.loads, 0);
+    expect(
+      find.byKey(const Key('home-discovery-indicator-venues')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('venue filter chip clears the venue and reloads sessions', (
+    tester,
+  ) async {
+    _VenueFilterSessionsController.lastFilters = null;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          browseSessionsControllerProvider.overrideWith(
+            _VenueFilterSessionsController.new,
+          ),
+        ],
+        child: MaterialApp(
+          locale: const Locale('vi'),
+          theme: AppTheme.light,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const Scaffold(
+            body: BrowseSessionsContent(
+              initialFilters: BrowseSessionFilters(
+                venueId: 'venue-1',
+                venueName: 'Sân A',
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+
+    expect(
+      find.byKey(const Key('session-venue-filter-chip')),
+      findsOneWidget,
+    );
+    tester
+        .widget<InputChip>(find.byKey(const Key('session-venue-filter-chip')))
+        .onDeleted!();
+    await tester.pump();
+
+    expect(_VenueFilterSessionsController.lastFilters?.venueId, isNull);
+    expect(find.byKey(const Key('session-venue-filter-chip')), findsNothing);
+  });
 }
 
 class _FakeSessionsController extends BrowseSessionsController {
   static int loads = 0;
+  static BrowseSessionFilters? lastFilters;
 
   @override
   Future<void> load({String? search, BrowseSessionFilters? filters}) async {
     loads++;
+    lastFilters = filters;
   }
 }
 
@@ -139,6 +254,17 @@ class _FakeVenuesController extends VenueBrowseController {
   @override
   Future<void> load({VenueFilter? filter}) async {
     loads++;
+  }
+}
+
+class _VenueFilterSessionsController extends BrowseSessionsController {
+  static BrowseSessionFilters? lastFilters;
+
+  @override
+  Future<void> load({String? search, BrowseSessionFilters? filters}) async {
+    final next = filters ?? state.filters;
+    lastFilters = next;
+    state = state.copyWith(filters: next);
   }
 }
 
@@ -154,6 +280,7 @@ class _FakeClubsController extends ClubsController {
     bool? favoriteOnly,
     double? latitude,
     double? longitude,
+    bool clearCity = false,
   }) async {
     loads++;
   }
@@ -163,7 +290,11 @@ class _FakeTournamentsController extends TournamentBrowseController {
   static int loads = 0;
 
   @override
-  Future<void> load({String? search}) async {
+  Future<void> load({
+    String? search,
+    String? city,
+    bool clearCity = false,
+  }) async {
     loads++;
   }
 }

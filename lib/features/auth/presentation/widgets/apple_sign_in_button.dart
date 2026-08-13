@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
-import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/logger.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -83,20 +82,30 @@ class _AppleSignInButtonState extends ConsumerState<AppleSignInButton> {
   Widget build(BuildContext context) {
     if (!AppleSignInButton.isSupported) return const SizedBox.shrink();
 
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final busy = _isSubmitting || !widget.enabled;
 
     return SizedBox(
+      width: 48,
       height: 48,
-      child: SignInWithAppleButton(
-        onPressed: busy ? () {} : _signIn,
-        text: AppLocalizations.of(context).authSignInWithApple,
-        // Apple requires the mark to keep its contrast against the background;
-        // white-on-dark and black-on-light are the sanctioned pairings.
-        style: isDark
-            ? SignInWithAppleButtonStyle.white
-            : SignInWithAppleButtonStyle.black,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+      child: Semantics(
+        button: true,
+        label: AppLocalizations.of(context).authSignInWithApple,
+        child: OutlinedButton(
+          key: const ValueKey('oauth-apple'),
+          onPressed: busy ? null : _signIn,
+          style: OutlinedButton.styleFrom(
+            padding: EdgeInsets.zero,
+            shape: const CircleBorder(),
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
+          ),
+          child: _isSubmitting
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.apple, color: Colors.black),
+        ),
       ),
     );
   }

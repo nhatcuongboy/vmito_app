@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,13 +7,16 @@ import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/app_shell_scaffold_key.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
+import 'package:vmito_app/core/widgets/city_selector.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/home/presentation/widgets/home_discovery_tabs.dart';
+import 'package:vmito_app/features/session/domain/browse_session_filters.dart';
 import 'package:vmito_app/features/session/presentation/player/public_sessions_content.dart';
 import 'package:vmito_app/features/social/presentation/browse_clubs_screen.dart';
 import 'package:vmito_app/features/tournament/presentation/browse_tournaments_content.dart';
 import 'package:vmito_app/features/venue/presentation/browse_venues_screen.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/login_prompt_dialog.dart';
 
 /// The app's discovery landing page.
 ///
@@ -20,16 +25,52 @@ import 'package:vmito_app/l10n/app_localizations.dart';
 /// selected. A keyed subtree deliberately recreates the active browser on
 /// every selection (including a re-tap), so the selected data is revalidated.
 class HomeScreen extends ConsumerStatefulWidget {
-  const HomeScreen({super.key});
+  const HomeScreen({
+    this.initialVenueId,
+    this.initialVenueName,
+    this.initialDiscoveryTab,
+    super.key,
+  });
+
+  final String? initialVenueId;
+  final String? initialVenueName;
+  final HomeDiscoveryTab? initialDiscoveryTab;
 
   @override
   ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  HomeDiscoveryTab _selectedTab = HomeDiscoveryTab.sessions;
+  late HomeDiscoveryTab _selectedTab;
   var _contentRevision = 0;
   bool _isFabExtended = true;
+
+  BrowseSessionFilters get _initialSessionFilters => BrowseSessionFilters(
+    venueId: widget.initialVenueId,
+    venueName: widget.initialVenueName,
+  );
+
+  @override
+  void initState() {
+    super.initState();
+    _selectedTab = widget.initialDiscoveryTab ?? HomeDiscoveryTab.sessions;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(CityOnboardingDialog.maybeShow(context, ref));
+    });
+  }
+
+  @override
+  void didUpdateWidget(HomeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialVenueId == widget.initialVenueId &&
+        oldWidget.initialVenueName == widget.initialVenueName &&
+        oldWidget.initialDiscoveryTab == widget.initialDiscoveryTab) {
+      return;
+    }
+    _selectedTab = widget.initialDiscoveryTab ?? HomeDiscoveryTab.sessions;
+    _contentRevision++;
+    _isFabExtended = true;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -59,13 +100,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             IconButton(
               tooltip: l10n.notificationsTitle,
               icon: const Icon(AppIcons.notifications),
-              onPressed: () => context.go(AppRoutes.notifications),
-            ),
-            IconButton(
-              tooltip: l10n.authSignOut,
-              icon: const Icon(AppIcons.logout),
-              onPressed: () =>
-                  ref.read(authControllerProvider.notifier).signOut(),
+              onPressed: () => context.push(AppRoutes.notifications),
             ),
           ] else
             IconButton(
@@ -101,6 +136,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           child: switch (_selectedTab) {
             HomeDiscoveryTab.sessions => BrowseSessionsContent(
               discoveryHeader: discoveryHeader,
+              initialFilters: _initialSessionFilters,
             ),
             HomeDiscoveryTab.venues => BrowseVenuesScreen(
               embedded: true,
@@ -116,32 +152,54 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           },
         ),
       ),
-      floatingActionButton: !isAuthenticated
-          ? null
-          : switch (_selectedTab) {
-              HomeDiscoveryTab.sessions => _buildCreateButton(
-                context,
-                l10n,
-                key: 'home-create-session-fab',
-                label: l10n.createSessionTitle,
-                onPressed: () => context.push(AppRoutes.createSession),
-              ),
-              HomeDiscoveryTab.clubs => _buildCreateButton(
-                context,
-                l10n,
-                key: 'home-create-club-fab',
-                label: l10n.clubCreate,
-                onPressed: () => context.push(AppRoutes.createClub),
-              ),
-              HomeDiscoveryTab.tournaments => _buildCreateButton(
-                context,
-                l10n,
-                key: 'home-create-tournament-fab',
-                label: l10n.tournamentCreate,
-                onPressed: () => context.push(AppRoutes.createTournament),
-              ),
-              HomeDiscoveryTab.venues => null,
-            },
+      floatingActionButton: switch (_selectedTab) {
+        HomeDiscoveryTab.sessions => _buildCreateButton(
+          context,
+          l10n,
+          key: 'home-create-session-fab',
+          label: l10n.createSessionTitle,
+          onPressed: isAuthenticated
+              ? () => context.push(AppRoutes.createSession)
+              : () => unawaited(
+                  showLoginPromptDialog(
+                    context,
+                    featureName: l10n.loginRequiredCreateSession,
+                    targetRoute: AppRoutes.createSession,
+                  ),
+                ),
+        ),
+        HomeDiscoveryTab.clubs => _buildCreateButton(
+          context,
+          l10n,
+          key: 'home-create-club-fab',
+          label: l10n.clubCreate,
+          onPressed: isAuthenticated
+              ? () => context.push(AppRoutes.createClub)
+              : () => unawaited(
+                  showLoginPromptDialog(
+                    context,
+                    featureName: l10n.loginRequiredCreateClub,
+                    targetRoute: AppRoutes.createClub,
+                  ),
+                ),
+        ),
+        HomeDiscoveryTab.tournaments => _buildCreateButton(
+          context,
+          l10n,
+          key: 'home-create-tournament-fab',
+          label: l10n.tournamentCreate,
+          onPressed: isAuthenticated
+              ? () => context.push(AppRoutes.createTournament)
+              : () => unawaited(
+                  showLoginPromptDialog(
+                    context,
+                    featureName: l10n.loginRequiredCreateTournament,
+                    targetRoute: AppRoutes.createTournament,
+                  ),
+                ),
+        ),
+        HomeDiscoveryTab.venues => null,
+      },
     );
   }
 

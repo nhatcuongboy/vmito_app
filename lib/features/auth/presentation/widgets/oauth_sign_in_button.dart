@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/auth/domain/oauth_provider.dart';
 
 class OAuthSignInButton extends StatelessWidget {
@@ -27,22 +26,26 @@ class OAuthSignInButton extends StatelessWidget {
     };
 
     return SizedBox(
+      width: 48,
       height: 48,
-      child: OutlinedButton.icon(
-        key: ValueKey('oauth-${provider.name}'),
-        onPressed: enabled && !isLoading ? onPressed : null,
-        icon: isLoading
-            ? const SizedBox(
-                width: 18,
-                height: 18,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : SvgPicture.string(icon, width: 20, height: 20),
-        label: Text(label),
-        style: OutlinedButton.styleFrom(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.lg),
+      child: Semantics(
+        button: true,
+        label: label,
+        child: OutlinedButton(
+          key: ValueKey('oauth-${provider.name}'),
+          onPressed: enabled && !isLoading ? onPressed : null,
+          style: OutlinedButton.styleFrom(
+            padding: EdgeInsets.zero,
+            shape: const CircleBorder(),
+            backgroundColor: Theme.of(context).colorScheme.surfaceContainerLow,
           ),
+          child: isLoading
+              ? const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : SvgPicture.string(icon, width: 22, height: 22),
         ),
       ),
     );

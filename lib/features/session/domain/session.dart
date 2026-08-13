@@ -25,6 +25,14 @@ enum SessionStatus {
       this == SessionStatus.preparing || this == SessionStatus.inProgress;
 }
 
+@JsonEnum(alwaysCreate: true)
+enum SessionSportType {
+  @JsonValue('BADMINTON')
+  badminton,
+  @JsonValue('PICKLEBALL')
+  pickleball,
+}
+
 /// The venue, at card level. The full venue model belongs to P7.
 @freezed
 abstract class SessionVenue with _$SessionVenue {
@@ -151,6 +159,7 @@ abstract class Session with _$Session {
     @Default(false) bool isCrawled,
     @Default(false) bool isFavorite,
     String? externalUrl,
+    @Default(SessionSportType.badminton) SessionSportType sportType,
 
     /// Empty means **all levels welcome** — never render that as a range.
     /// Order these with `sortByRank`, not `..sort()`: the ids are not in

@@ -47,7 +47,7 @@ class _NotificationHeaderButtonState
           width: AppSizes.minTapTarget,
           height: AppSizes.minTapTarget,
         ),
-        onPressed: () => context.go(AppRoutes.notifications),
+        onPressed: () => context.push(AppRoutes.notifications),
         icon: Stack(
           clipBehavior: Clip.none,
           children: [

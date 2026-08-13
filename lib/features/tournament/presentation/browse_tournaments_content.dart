@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/constants/image_constants.dart';
+import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -33,7 +34,13 @@ class _BrowseTournamentsContentState
     super.initState();
     unawaited(
       Future<void>.microtask(
-        () => ref.read(tournamentBrowseControllerProvider.notifier).load(),
+        () => ref
+            .read(tournamentBrowseControllerProvider.notifier)
+            .load(
+              city: ref
+                  .read(locationPreferencesControllerProvider)
+                  .preferredCity,
+            ),
       ),
     );
   }
@@ -88,7 +95,7 @@ class _BrowseTournamentsContentState
                   },
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm),
+              const SizedBox(width: AppSpacing.xs),
               IconButton.filledTonal(
                 tooltip: 'Bộ lọc',
                 icon: const Icon(AppIcons.tune),

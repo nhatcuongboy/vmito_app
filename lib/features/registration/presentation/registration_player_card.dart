@@ -6,6 +6,7 @@ import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/registration/domain/registration_player_draft.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
+import 'package:vmito_app/shared/widgets/app_required_label.dart';
 
 /// One player row of the registration form.
 ///
@@ -71,7 +72,7 @@ class RegistrationPlayerCard extends StatelessWidget {
           TextFormField(
             initialValue: draft.name,
             decoration: InputDecoration(
-              labelText: l10n.authSignUpName,
+              label: AppRequiredLabel(l10n.authSignUpName),
               isDense: true,
             ),
             textInputAction: TextInputAction.next,
@@ -122,7 +123,7 @@ class RegistrationPlayerCard extends StatelessWidget {
                   initialValue: draft.level,
                   isExpanded: true,
                   decoration: InputDecoration(
-                    labelText: l10n.registrationLevel,
+                    label: AppRequiredLabel(l10n.registrationLevel),
                     hintText: l10n.registrationLevelHint,
                     isDense: true,
                   ),

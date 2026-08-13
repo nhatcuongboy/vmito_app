@@ -16,6 +16,7 @@ abstract final class SessionFormSubmission {
 
     return CreateSessionRequest(
       name: state.name,
+      sportType: state.sportType,
       location: _location(state),
       hostName: state.hostName,
       maxPlayersPerCourt: state.maxPlayersPerCourt,

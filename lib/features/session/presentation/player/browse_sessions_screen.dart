@@ -435,9 +435,7 @@ class _SessionsBody extends StatelessWidget {
         final session = state.sessions[index];
         final card = SessionCard(
           session: session,
-          onTap: () => scope == MySessionScope.hosted
-              ? context.push(AppRoutes.manageSession(session.id))
-              : context.push(AppRoutes.sessionDetail(session.id)),
+          onTap: () => context.push(AppRoutes.sessionDetail(session.id)),
           onHost: scope == MySessionScope.hosted
               ? () => context.push(AppRoutes.manageSession(session.id))
               : null,

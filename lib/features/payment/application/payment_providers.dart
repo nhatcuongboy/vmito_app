@@ -30,3 +30,8 @@ final hostUserTransactionsProvider =
       (ref, userId) =>
           ref.watch(paymentRepositoryProvider).transactionsForUser(userId),
     );
+
+final hostFinanceReportProvider =
+    FutureProvider.family<HostFinanceReport, HostFinanceQuery>(
+      (ref, query) => ref.watch(paymentRepositoryProvider).financeReport(query),
+    );

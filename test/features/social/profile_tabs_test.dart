@@ -122,13 +122,8 @@ void main() {
     expect(page.posts[2].originalPost?.id, 'original-1');
   });
 
-  test('favorite tab is only present for the profile owner', () {
-    expect(publicProfileTabLabels(isOwner: false), hasLength(5));
-    expect(
-      publicProfileTabLabels(isOwner: false),
-      isNot(contains('Yêu thích')),
-    );
-    expect(publicProfileTabLabels(isOwner: true), hasLength(6));
-    expect(publicProfileTabLabels(isOwner: true).last, 'Yêu thích');
+  test('favorite tab is not present in the profile', () {
+    expect(publicProfileTabLabels(), hasLength(5));
+    expect(publicProfileTabLabels(), isNot(contains('Yêu thích')));
   });
 }
