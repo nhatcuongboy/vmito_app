@@ -10,6 +10,8 @@ import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
+import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/registration/application/registration_realtime_provider.dart';
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
 import 'package:vmito_app/features/session/domain/reference_video.dart';
@@ -18,6 +20,7 @@ import 'package:vmito_app/features/session/presentation/player/detail/session_de
 import 'package:vmito_app/features/session/presentation/player/detail/session_detail_hero.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_detail_info.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_detail_stats.dart';
+import 'package:vmito_app/features/session/presentation/player/detail/session_host_detail_sheet.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_recommendations.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_reference_video.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -87,7 +90,33 @@ class SessionDetailScreen extends ConsumerWidget {
   }
 }
 
-class _Body extends StatelessWidget {
+class _HeaderButton extends StatelessWidget {
+  const _HeaderButton({
+    required this.icon,
+    required this.tooltip,
+    required this.pinned,
+    required this.onPressed,
+    super.key,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final bool pinned;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) => IconButton(
+    tooltip: tooltip,
+    icon: Icon(icon, color: pinned ? null : Colors.white),
+    style: IconButton.styleFrom(
+      backgroundColor: pinned ? Colors.transparent : Colors.black54,
+      minimumSize: const Size.square(44),
+    ),
+    onPressed: onPressed,
+  );
+}
+
+class _Body extends StatefulWidget {
   const _Body({
     required this.session,
     required this.onRefresh,
@@ -97,72 +126,187 @@ class _Body extends StatelessWidget {
   final Future<void> Function() onRefresh;
 
   @override
+  State<_Body> createState() => _BodyState();
+}
+
+class _BodyState extends State<_Body> {
+  final _scrollController = ScrollController();
+  bool _isPinned = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_handleScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController
+      ..removeListener(_handleScroll)
+      ..dispose();
+    super.dispose();
+  }
+
+  void _handleScroll() {
+    final pinned =
+        _scrollController.offset >=
+        SessionDetailHero.heroHeight - AppSizes.appBarHeight - AppSpacing.md;
+    if (pinned != _isPinned && mounted) setState(() => _isPinned = pinned);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = theme.extension<AppPalette>()!;
+    final l10n = AppLocalizations.of(context);
+    final heroHeight = SessionDetailHero.heroHeight;
+    final pinnedForeground = theme.colorScheme.onSurface;
+    const overlayForeground = Colors.white;
 
     return RefreshIndicator(
-      onRefresh: onRefresh,
+      onRefresh: widget.onRefresh,
       // The hero sits under the status bar, so the spinner must drop below it
       // rather than land on the photo.
       edgeOffset: MediaQuery.paddingOf(context).top + AppSpacing.md,
-      child: ListView(
+      child: CustomScrollView(
+        key: const Key('session-detail-scroll'),
+        controller: _scrollController,
+        clipBehavior: Clip.none,
+        // At the top, the sheet must paint over the hero so its rounded top
+        // corners remain visible. Once pinned, the app bar must stay above
+        // the scrolling content again.
+        paintOrder: _isPinned
+            ? SliverPaintOrder.firstIsTop
+            : SliverPaintOrder.lastIsTop,
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.zero,
-        children: [
-          SessionDetailHero(
-            session: session,
-            onShare: () => _share(context, session),
+        slivers: [
+          SliverAppBar(
+            key: const Key('session-detail-app-bar'),
+            pinned: true,
+            stretch: true,
+            expandedHeight: heroHeight,
+            backgroundColor: _isPinned
+                ? theme.colorScheme.surface
+                : Colors.transparent,
+            foregroundColor: _isPinned ? pinnedForeground : overlayForeground,
+            surfaceTintColor: theme.colorScheme.surface,
+            shadowColor: Colors.black26,
+            elevation: _isPinned ? 2 : 0,
+            leading: Padding(
+              padding: const EdgeInsets.all(6),
+              child: _HeaderButton(
+                key: const Key('session-back-button'),
+                icon: AppIcons.chevronLeft,
+                tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+                pinned: _isPinned,
+                onPressed: () => Navigator.of(context).maybePop(),
+              ),
+            ),
+            title: AnimatedOpacity(
+              key: const Key('session-sticky-title'),
+              opacity: _isPinned ? 1 : 0,
+              duration: const Duration(milliseconds: 180),
+              child: Text(
+                widget.session.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            actions: [
+              FavoriteButton(
+                key: const Key('session-favorite-button'),
+                type: FavoriteType.session,
+                targetId: widget.session.id,
+                overlay: !_isPinned,
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 6, 8, 6),
+                child: _HeaderButton(
+                  key: const Key('session-share-button'),
+                  icon: AppIcons.share,
+                  tooltip: l10n.sessionShareAction,
+                  pinned: _isPinned,
+                  onPressed: () => _share(context, widget.session),
+                ),
+              ),
+            ],
+            flexibleSpace: FlexibleSpaceBar(
+              background: SessionDetailHero(session: widget.session),
+            ),
           ),
-          Transform.translate(
-            // Matches the web's `mt="-16px"`: the content sheet laps over the
-            // photo so the rounded corners read as a card lifting off it.
-            offset: const Offset(0, -16),
-            child: Container(
-              decoration: BoxDecoration(
-                color: theme.colorScheme.surface,
-                borderRadius: BorderRadius.circular(AppRadius.xl + 4),
-              ),
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.md,
-                AppSpacing.lg,
-                AppSpacing.md,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SessionDetailInfo(
-                    session: session,
-                    onOpenMap: _mapUrl(session) == null
-                        ? null
-                        : () => _openMap(session),
-                    onCallHost: session.isCrawled || _hostPhone(session) == null
-                        ? null
-                        : () => _call(session),
-                    onZaloHost:
-                        session.isCrawled ||
-                            !session.allowZaloContact ||
-                            _hostPhone(session) == null
-                        ? null
-                        : () => _openZalo(session),
+          SliverToBoxAdapter(
+            child: Transform.translate(
+              // Matches the web's `mt="-16px"`: the content sheet laps over
+              // the photo so the rounded corners read as a card lifting off it.
+              offset: const Offset(0, -16),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(AppRadius.xl + 4),
+                ),
+                child: Container(
+                  color: theme.colorScheme.surface,
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.xl,
+                    AppSpacing.lg,
+                    AppSpacing.md,
                   ),
-                  Divider(height: AppSpacing.lg * 2, color: palette.border),
-                  SessionDetailStats(session: session),
-                  if (ReferenceVideo.parse(session.referenceVideoUrl)
-                      case final video?) ...[
-                    Divider(height: AppSpacing.lg * 2, color: palette.border),
-                    SessionReferenceVideo(video: video),
-                  ],
-                ],
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SessionDetailInfo(
+                        session: widget.session,
+                        onOpenMap: _mapUrl(widget.session) == null
+                            ? null
+                            : () => _openMap(widget.session),
+                        onCallHost:
+                            widget.session.isCrawled ||
+                                _hostPhone(widget.session) == null
+                            ? null
+                            : () => _call(widget.session),
+                        onZaloHost:
+                            widget.session.isCrawled ||
+                                !widget.session.allowZaloContact ||
+                                _hostPhone(widget.session) == null
+                            ? null
+                            : () => _openZalo(widget.session),
+                        onOpenHost: widget.session.hostAccountId == null
+                            ? null
+                            : () => showSessionHostDetailSheet(
+                                context,
+                                session: widget.session,
+                              ),
+                      ),
+                      Divider(height: AppSpacing.lg, color: palette.border),
+                      SessionDetailStats(session: widget.session),
+                      if (ReferenceVideo.parse(
+                            widget.session.referenceVideoUrl,
+                          )
+                          case final video?) ...[
+                        Divider(
+                          height: AppSpacing.lg,
+                          color: palette.border,
+                        ),
+                        SessionReferenceVideo(video: video),
+                      ],
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
           // Outside the sheet, like the web app: the rail scrolls edge to edge
           // rather than sitting inside the card's padding.
-          SessionRecommendations(sessionId: session.id),
+          SliverToBoxAdapter(
+            child: SessionRecommendations(sessionId: widget.session.id),
+          ),
           // Keep the final recommendation/link clear of the sticky action bar.
-          const SizedBox(height: AppSpacing.xxl + AppSpacing.lg),
+          const SliverToBoxAdapter(
+            child: SizedBox(height: AppSpacing.xxl + AppSpacing.lg),
+          ),
         ],
       ),
     );

@@ -70,6 +70,7 @@ class _VenueDetailState extends ConsumerState<_VenueDetail> {
         phone: venue.phone,
         minimumPrice: minimumPrice,
         onCall: () => unawaited(_call(venue)),
+        onZalo: () => unawaited(_zalo(venue)),
         onFindSessions: () => _findSessions(venue),
       ),
     );
@@ -83,18 +84,24 @@ class _VenueDetailState extends ConsumerState<_VenueDetail> {
     }
   }
 
-  void _findSessions(Venue venue) =>
-      context.go(AppRoutes.homeForVenue(venue.id, venue.name));
+  void _findSessions(Venue venue) {
+    final name = venueDisplayName(venue, AppLocalizations.of(context));
+    context.go(AppRoutes.homeForVenue(venue.id, name));
+  }
 
-  Future<void> _share(Venue venue) => SharePlus.instance.share(
-    ShareParams(
-      title: venue.name,
-      text: AppLocalizations.of(context).venueShareText(
-        venue.name,
-        'https://vmito.com/venues/${venue.slug ?? venue.id}',
+  Future<void> _share(Venue venue) {
+    final l10n = AppLocalizations.of(context);
+    final name = venueDisplayName(venue, l10n);
+    return SharePlus.instance.share(
+      ShareParams(
+        title: name,
+        text: l10n.venueShareText(
+          name,
+          'https://vmito.com/venues/${venue.slug ?? venue.id}',
+        ),
       ),
-    ),
-  );
+    );
+  }
 
   Future<void> _call(Venue venue) async {
     final phone = venue.phone?.trim();

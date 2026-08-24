@@ -43,12 +43,10 @@ class MyRegistrationController extends AsyncNotifier<List<SessionPlayer>> {
   /// the backend's message.
   Future<void> register(List<RegistrationPlayerDraft> drafts) async {
     final myUserId = ref.read(currentUserProvider)?.id;
-    await ref
-        .read(registrationRepositoryProvider)
-        .register(
-          sessionId,
-          [for (final draft in drafts) draft.toRegisterJson(myUserId)],
-        );
+    await ref.read(registrationRepositoryProvider).register(
+      sessionId,
+      [for (final draft in drafts) draft.toRegisterJson(myUserId)],
+    );
     _refresh();
   }
 
@@ -101,10 +99,11 @@ final myRegistrationProvider =
 /// so this is the earliest slot. With mixed statuses across slots it does not
 /// aggregate — kept deliberately identical to web rather than "fixed" here,
 /// so the two clients cannot disagree about what a registration looks like.
-final myRegistrationStatusProvider = Provider.family<RegistrationStatus?, String>(
-  (ref, sessionId) {
-    final players = ref.watch(myRegistrationProvider(sessionId)).value;
-    if (players == null || players.isEmpty) return null;
-    return players.first.registrationStatus;
-  },
-);
+final myRegistrationStatusProvider =
+    Provider.family<RegistrationStatus?, String>(
+      (ref, sessionId) {
+        final players = ref.watch(myRegistrationProvider(sessionId)).value;
+        if (players == null || players.isEmpty) return null;
+        return players.first.registrationStatus;
+      },
+    );

@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
@@ -48,19 +47,18 @@ class PendingRequestsState {
     bool clearActingRequest = false,
     Object? error,
     bool clearError = false,
-  }) =>
-      PendingRequestsState(
-        requests: requests ?? this.requests,
-        page: page ?? this.page,
-        totalPages: totalPages ?? this.totalPages,
-        isLoading: isLoading ?? this.isLoading,
-        isLoadingMore: isLoadingMore ?? this.isLoadingMore,
-        hasLoaded: hasLoaded ?? this.hasLoaded,
-        actingRequestId: clearActingRequest
-            ? null
-            : actingRequestId ?? this.actingRequestId,
-        error: clearError ? null : error ?? this.error,
-      );
+  }) => PendingRequestsState(
+    requests: requests ?? this.requests,
+    page: page ?? this.page,
+    totalPages: totalPages ?? this.totalPages,
+    isLoading: isLoading ?? this.isLoading,
+    isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+    hasLoaded: hasLoaded ?? this.hasLoaded,
+    actingRequestId: clearActingRequest
+        ? null
+        : actingRequestId ?? this.actingRequestId,
+    error: clearError ? null : error ?? this.error,
+  );
 }
 
 class PendingRequestsNotifier extends Notifier<PendingRequestsState> {
@@ -141,47 +139,38 @@ class PendingRequestsNotifier extends Notifier<PendingRequestsState> {
   }
 }
 
-final pendingRequestsControllerProvider = NotifierProvider<
-  PendingRequestsNotifier,
-  PendingRequestsState
->(PendingRequestsNotifier.new);
+final pendingRequestsControllerProvider =
+    NotifierProvider<PendingRequestsNotifier, PendingRequestsState>(
+      PendingRequestsNotifier.new,
+    );
 
-class PendingRequestsScreen extends ConsumerStatefulWidget {
-  const PendingRequestsScreen({super.key});
-
-  @override
-  ConsumerState<PendingRequestsScreen> createState() =>
-      _PendingRequestsScreenState();
+Future<void> showPendingRequestsSheet(BuildContext context) {
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => const PendingRequestsSheet(),
+  );
 }
 
-class _PendingRequestsScreenState
-    extends ConsumerState<PendingRequestsScreen> {
-  final _scrollController = ScrollController();
+class PendingRequestsSheet extends ConsumerStatefulWidget {
+  const PendingRequestsSheet({super.key});
 
+  @override
+  ConsumerState<PendingRequestsSheet> createState() =>
+      _PendingRequestsSheetState();
+}
+
+class _PendingRequestsSheetState extends ConsumerState<PendingRequestsSheet> {
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       unawaited(
         ref.read(pendingRequestsControllerProvider.notifier).loadInitial(),
       );
     });
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels >=
-        _scrollController.position.maxScrollExtent - 500) {
-      unawaited(
-        ref.read(pendingRequestsControllerProvider.notifier).loadMore(),
-      );
-    }
   }
 
   @override
@@ -200,59 +189,151 @@ class _PendingRequestsScreenState
       }
     });
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(AppIcons.arrowBack),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              unawaited(Navigator.of(context).maybePop());
-            }
-          },
-        ),
-        title: Text(l10n.mySessionsPendingRequests),
-      ),
-      body: Builder(
-        builder: (context) {
-          if (state.isLoading && !state.hasLoaded) {
-            return const AppLoadingView();
-          }
-          if (state.error != null && state.requests.isEmpty) {
-            return AppErrorView(error: state.error!, onRetry: controller.refresh);
-          }
-          if (state.requests.isEmpty) {
-            return _EmptyPendingRequestsView(
-              onRefresh: controller.refresh,
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: controller.refresh,
-            child: ListView.separated(
-              controller: _scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(AppSpacing.md),
-              itemCount:
-                  state.requests.length + (state.isLoadingMore ? 1 : 0),
-              separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
-              itemBuilder: (context, index) {
-                if (index == state.requests.length) {
-                  return const AppLoadingView();
-                }
-                final request = state.requests[index];
-                return _PendingRequestCard(
-                  request: request,
-                  busy: state.actingRequestId == request.id,
-                  onDecision: (approved) => unawaited(
+    return DraggableScrollableSheet(
+      expand: false,
+      initialChildSize: 0.82,
+      minChildSize: 0.55,
+      maxChildSize: 0.96,
+      builder: (context, sheetScrollController) {
+        final theme = Theme.of(context);
+        return Material(
+          color: theme.colorScheme.surface,
+          clipBehavior: Clip.antiAlias,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(AppRadius.xl),
+          ),
+          child: Column(
+            children: [
+              _PendingRequestsSheetHeader(
+                title: l10n.mySessionsPendingRequests,
+              ),
+              Expanded(
+                child: _PendingRequestsBody(
+                  state: state,
+                  scrollController: sheetScrollController,
+                  onRetry: controller.refresh,
+                  onLoadMore: controller.loadMore,
+                  onDecision: (request, {required approved}) => unawaited(
                     controller.decideRequest(request, approved: approved),
                   ),
-                );
-              },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _PendingRequestsSheetHeader extends StatelessWidget {
+  const _PendingRequestsSheetHeader({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.sm,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
-          );
-        },
+          ),
+          IconButton(
+            key: const Key('pending-requests-close'),
+            tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+            icon: const Icon(AppIcons.close),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PendingRequestsBody extends StatelessWidget {
+  const _PendingRequestsBody({
+    required this.state,
+    required this.scrollController,
+    required this.onRetry,
+    required this.onLoadMore,
+    required this.onDecision,
+  });
+
+  final PendingRequestsState state;
+  final ScrollController scrollController;
+  final Future<void> Function() onRetry;
+  final Future<void> Function() onLoadMore;
+  final void Function(PendingJoinRequest request, {required bool approved})
+  onDecision;
+
+  @override
+  Widget build(BuildContext context) {
+    if (state.isLoading && !state.hasLoaded) return const AppLoadingView();
+    if (state.error != null && state.requests.isEmpty) {
+      return ListView(
+        controller: scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(
+            height: 280,
+            child: AppErrorView(error: state.error!, onRetry: onRetry),
+          ),
+        ],
+      );
+    }
+    if (state.requests.isEmpty) {
+      return _EmptyPendingRequestsView(
+        scrollController: scrollController,
+        onRefresh: onRetry,
+      );
+    }
+
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        if (notification.metrics.pixels >=
+            notification.metrics.maxScrollExtent - 500) {
+          unawaited(onLoadMore());
+        }
+        return false;
+      },
+      child: RefreshIndicator(
+        onRefresh: onRetry,
+        child: ListView.separated(
+          controller: scrollController,
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.xs,
+            AppSpacing.md,
+            AppSpacing.lg,
+          ),
+          itemCount: state.requests.length + (state.isLoadingMore ? 1 : 0),
+          separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+          itemBuilder: (context, index) {
+            if (index == state.requests.length) {
+              return const SizedBox(height: 64, child: AppLoadingView());
+            }
+            final request = state.requests[index];
+            return _PendingRequestCard(
+              request: request,
+              busy: state.actingRequestId == request.id,
+              onDecision: (approved) => onDecision(request, approved: approved),
+            );
+          },
+        ),
       ),
     );
   }
@@ -326,8 +407,12 @@ class _PendingRequestCard extends StatelessWidget {
 }
 
 class _EmptyPendingRequestsView extends StatelessWidget {
-  const _EmptyPendingRequestsView({required this.onRefresh});
+  const _EmptyPendingRequestsView({
+    required this.scrollController,
+    required this.onRefresh,
+  });
 
+  final ScrollController scrollController;
   final Future<void> Function() onRefresh;
 
   @override
@@ -341,6 +426,7 @@ class _EmptyPendingRequestsView extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           return SingleChildScrollView(
+            controller: scrollController,
             physics: const AlwaysScrollableScrollPhysics(),
             child: Container(
               constraints: BoxConstraints(minHeight: constraints.maxHeight),

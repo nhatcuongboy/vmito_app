@@ -75,9 +75,7 @@ class _ManagedClubCard extends ConsumerWidget {
           backgroundImage: club.heroImage == null
               ? null
               : CachedNetworkImageProvider(club.heroImage!),
-          child: club.heroImage == null
-              ? const Icon(AppIcons.clubs)
-              : null,
+          child: club.heroImage == null ? const Icon(AppIcons.clubs) : null,
         ),
         title: Text(club.name),
         subtitle: Text(
@@ -114,7 +112,10 @@ class _ManagedClubCard extends ConsumerWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(l10n.clubDeleteTitle),
-        content: Text(l10n.clubDeleteConfirm(club.name)),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 320),
+          child: Text(l10n.clubDeleteConfirm(club.name)),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),

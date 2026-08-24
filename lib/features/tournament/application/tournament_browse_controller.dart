@@ -22,6 +22,10 @@ class TournamentBrowseController extends Notifier<TournamentBrowseState> {
   @override
   TournamentBrowseState build() => const TournamentBrowseState();
 
+  // Snapshot restoration is an action, not a property mutation API.
+  // ignore: use_setters_to_change_properties
+  void restore(TournamentBrowseState snapshot) => state = snapshot;
+
   Future<void> load({
     String? search,
     String? city,

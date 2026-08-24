@@ -119,6 +119,11 @@ class MySessionsController extends Notifier<MySessionsState> {
     if (state.hasLoaded) await refresh();
   }
 
+  void restore(MySessionsState snapshot) {
+    _requestVersion++;
+    state = snapshot;
+  }
+
   Future<void> loadMore() async {
     if (state.isLoading || state.isLoadingMore || !state.hasMore) return;
     await _load(reset: false);

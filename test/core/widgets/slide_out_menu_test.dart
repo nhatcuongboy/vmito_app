@@ -53,6 +53,7 @@ GoRouter _buildRouter() => GoRouter(
     ),
     GoRoute(path: AppRoutes.profile, builder: (_, _) => _screen('Profile')),
     GoRoute(path: AppRoutes.settings, builder: (_, _) => _screen('Settings')),
+    GoRoute(path: AppRoutes.feedback, builder: (_, _) => _screen('Feedback')),
     GoRoute(path: AppRoutes.signIn, builder: (_, _) => _screen('Sign in')),
     GoRoute(path: AppRoutes.signUp, builder: (_, _) => _screen('Sign up')),
   ],
@@ -290,7 +291,7 @@ void main() {
     expect(find.byType(SlideOutMenu), findsNothing);
   });
 
-  testWidgets('help keeps the drawer open and sign out asks for confirmation', (
+  testWidgets('help closes the drawer and opens feedback', (
     tester,
   ) async {
     final router = _buildRouter();
@@ -303,10 +304,7 @@ void main() {
     await _openDrawer(tester);
 
     await _tapMenuItem(tester, 'Trợ giúp & phản hồi');
-    expect(find.byType(SlideOutMenu), findsOneWidget);
-    expect(find.text('Home body'), findsOneWidget);
-
-    await _tapMenuItem(tester, 'Đăng xuất');
-    expect(find.text('Bạn có chắc chắn muốn đăng xuất?'), findsOneWidget);
+    expect(find.byType(SlideOutMenu), findsNothing);
+    expect(find.text('Feedback body'), findsOneWidget);
   });
 }

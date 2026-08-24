@@ -48,6 +48,10 @@ SessionFormErrors validateSessionForm(
     errors[SessionFormField.hostName] = SessionFormErrorCode.hostNameRequired;
   }
 
+  if (!SessionFormUtils.isValidPhone(state.hostPhone)) {
+    errors[SessionFormField.hostPhone] = SessionFormErrorCode.hostPhoneInvalid;
+  }
+
   _validateSchedule(state, now: now, into: errors);
   _validateCourts(state, into: errors);
 

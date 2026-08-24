@@ -1,9 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vmito_app/core/network/paginated.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/features/registration/application/my_registration_controller.dart';
 import 'package:vmito_app/features/registration/data/registration_repository.dart';
+import 'package:vmito_app/features/registration/domain/my_join_request.dart';
 import 'package:vmito_app/features/registration/domain/registration_player_draft.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 
@@ -38,6 +40,21 @@ class _FakeRegistrationRepository implements RegistrationRepository {
     if (failWithdrawFor.contains(playerId)) throw StateError('403');
     withdrawn.add(playerId);
   }
+
+  @override
+  Future<Page<MyJoinRequest>> myJoinRequests({
+    required int page,
+    required int limit,
+  }) async => const Page(
+    items: [],
+    total: 0,
+    page: 1,
+    limit: 20,
+    totalPages: 0,
+  );
+
+  @override
+  Future<void> withdrawMyJoinRequest(String sessionId) async {}
 }
 
 const _me = User(id: 'u1', email: 'me@vmito.com', role: UserRole.player);
@@ -104,12 +121,10 @@ void main() {
     final container = _container(repository);
     await container.read(myRegistrationProvider('s1').future);
 
-    await container
-        .read(myRegistrationProvider('s1').notifier)
-        .register(const [
-          RegistrationPlayerDraft(isMe: true, name: 'Cường', level: 4),
-          RegistrationPlayerDraft(isMe: false, name: 'Khách', level: 4),
-        ]);
+    await container.read(myRegistrationProvider('s1').notifier).register(const [
+      RegistrationPlayerDraft(isMe: true, name: 'Cường', level: 4),
+      RegistrationPlayerDraft(isMe: false, name: 'Khách', level: 4),
+    ]);
 
     final payload = repository.registered.single;
     expect(payload, hasLength(2));
@@ -166,7 +181,9 @@ void main() {
     await container.read(myRegistrationProvider('s1').future);
     expect(repository.myPlayersCalls, 1);
 
-    await container.read(myRegistrationProvider('s1').notifier).withdrawPending();
+    await container
+        .read(myRegistrationProvider('s1').notifier)
+        .withdrawPending();
     await container.read(myRegistrationProvider('s1').future);
 
     expect(repository.myPlayersCalls, 2);

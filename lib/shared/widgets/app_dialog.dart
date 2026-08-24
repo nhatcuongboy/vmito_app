@@ -18,7 +18,10 @@ class AppDialog extends StatelessWidget {
   Widget build(BuildContext context) => AlertDialog(
     icon: icon,
     title: title,
-    content: content,
+    content: ConstrainedBox(
+      constraints: const BoxConstraints(minWidth: 320),
+      child: content,
+    ),
     actions: actions,
   );
 }

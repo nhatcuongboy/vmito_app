@@ -10,22 +10,26 @@ class AccountSecurityScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsAccountSecurity)),
       body: SafeArea(
         top: false,
         child: ListView(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
           children: [
-            const SizedBox(height: AppSpacing.xl),
-            const Divider(),
             ListTile(
-              leading: const Icon(AppIcons.userMinus),
+              leading: Icon(AppIcons.userMinus, color: theme.colorScheme.error),
               title: Text(
                 l10n.accountDeleteTitle,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.error,
+                  fontWeight: FontWeight.w500,
                 ),
+              ),
+              trailing: Icon(
+                AppIcons.chevronRight,
+                color: theme.colorScheme.error.withValues(alpha: 0.7),
               ),
               onTap: () => showDeleteAccountDialog(context),
             ),

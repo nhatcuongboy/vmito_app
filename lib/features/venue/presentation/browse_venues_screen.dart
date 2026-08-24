@@ -10,19 +10,22 @@ import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
-import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/core/widgets/app_address_text.dart';
+import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/venue/application/venue_controller.dart';
 import 'package:vmito_app/features/venue/data/venue_service.dart';
 import 'package:vmito_app/features/venue/domain/venue.dart';
-import 'package:vmito_app/shared/widgets/app_empty_filter_sheet.dart';
+import 'package:vmito_app/features/venue/presentation/venue_filter_sheet.dart';
+import 'package:vmito_app/l10n/app_localizations.dart';
 
 class BrowseVenuesScreen extends ConsumerStatefulWidget {
   const BrowseVenuesScreen({
     this.embedded = false,
     this.discoveryHeader,
+    this.initialFilter,
+    this.showFilterSummary = false,
     super.key,
   });
 
@@ -30,6 +33,8 @@ class BrowseVenuesScreen extends ConsumerStatefulWidget {
   /// discovery switcher.
   final bool embedded;
   final Widget? discoveryHeader;
+  final VenueFilter? initialFilter;
+  final bool showFilterSummary;
 
   @override
   ConsumerState<BrowseVenuesScreen> createState() => _BrowseVenuesScreenState();
@@ -43,16 +48,20 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
   void initState() {
     super.initState();
     _scroll.addListener(_onScroll);
-    Future<void>.microtask(
-      () => ref
-          .read(venueBrowseControllerProvider.notifier)
-          .load(
-            filter: VenueFilter(
-              city: ref
-                  .read(locationPreferencesControllerProvider)
-                  .preferredCity,
+    unawaited(
+      Future<void>.microtask(
+        () => ref
+            .read(venueBrowseControllerProvider.notifier)
+            .load(
+              filter:
+                  widget.initialFilter ??
+                  VenueFilter(
+                    city: ref
+                        .read(locationPreferencesControllerProvider)
+                        .preferredCity,
+                  ),
             ),
-          ),
+      ),
     );
   }
 
@@ -132,9 +141,10 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
             tooltip: 'Gần tôi',
           ),
           IconButton(
+            key: const Key('venue-filter-button'),
             onPressed: () => _openFilters(state.filter),
             icon: const Icon(AppIcons.tune),
-            tooltip: 'Lọc',
+            tooltip: AppLocalizations.of(context).venueFiltersTitle,
           ),
         ],
       ),
@@ -175,48 +185,62 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.md,
-            AppSpacing.sm,
-            AppSpacing.md,
-            AppSpacing.sm,
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: SearchBar(
-                  controller: _search,
-                  hintText: 'Tìm sân, địa chỉ',
-                  leading: const Icon(AppIcons.search),
-                  onChanged: (value) {
-                    _debounce?.cancel();
-                    _debounce = Timer(
-                      const Duration(milliseconds: 400),
-                      () => ref
-                          .read(venueBrowseControllerProvider.notifier)
-                          .load(
-                            filter: state.filter.copyWith(
-                              keyword: value,
-                              sortBy: value.isEmpty
-                                  ? state.filter.sortBy
-                                  : 'relevance',
+        if (!widget.embedded)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.sm,
+              AppSpacing.md,
+              AppSpacing.sm,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SearchBar(
+                    controller: _search,
+                    hintText: 'Tìm sân, địa chỉ',
+                    leading: const Icon(AppIcons.search),
+                    onChanged: (value) {
+                      _debounce?.cancel();
+                      _debounce = Timer(
+                        const Duration(milliseconds: 400),
+                        () => ref
+                            .read(venueBrowseControllerProvider.notifier)
+                            .load(
+                              filter: state.filter.copyWith(
+                                keyword: value,
+                                sortBy: value.isEmpty
+                                    ? state.filter.sortBy
+                                    : 'relevance',
+                              ),
                             ),
-                          ),
-                    );
-                  },
+                      );
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              IconButton.filledTonal(
-                tooltip: 'Bộ lọc',
-                icon: const Icon(AppIcons.tune),
-                onPressed: () => AppEmptyFilterSheet.show(context),
-              ),
-            ],
+                const SizedBox(width: AppSpacing.xs),
+                IconButton.filledTonal(
+                  key: const Key('venue-inline-filter-button'),
+                  tooltip: AppLocalizations.of(context).venueFiltersTitle,
+                  icon: const Icon(AppIcons.tune),
+                  onPressed: () => _openFilters(state.filter),
+                ),
+              ],
+            ),
           ),
-        ),
-        if (discoveryHeader != null) discoveryHeader,
+        ?discoveryHeader,
+        if (widget.showFilterSummary)
+          _VenueFilterSummary(
+            filter: state.filter,
+            preferredCity: ref
+                .read(locationPreferencesControllerProvider)
+                .preferredCity,
+            onChanged: (filter) => unawaited(
+              ref
+                  .read(venueBrowseControllerProvider.notifier)
+                  .load(filter: filter),
+            ),
+          ),
         Expanded(
           child: ListView.separated(
             controller: _scroll,
@@ -261,102 +285,111 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
     );
   }
 
-  Future<void> _openFilters(VenueFilter filter) => showModalBottomSheet<void>(
-    context: context,
-    isScrollControlled: true,
-    builder: (sheetContext) {
-      var selectedSort = filter.sortBy;
-      final city = TextEditingController(text: filter.city);
-      final district = TextEditingController(text: filter.district);
-      var favorite = filter.favoriteOnly;
-      return StatefulBuilder(
-        builder: (context, setSheetState) => SafeArea(
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              20,
-              12,
-              20,
-              MediaQuery.viewInsetsOf(context).bottom + 20,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Text(
-                  'Lọc và sắp xếp',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: city,
-                  decoration: const InputDecoration(
-                    labelText: 'Tỉnh / Thành phố',
-                  ),
-                ),
-                TextField(
-                  controller: district,
-                  decoration: const InputDecoration(labelText: 'Quận / Huyện'),
-                ),
-                DropdownButtonFormField<String>(
-                  initialValue: selectedSort,
-                  decoration: const InputDecoration(labelText: 'Sắp xếp'),
-                  items: const [
-                    DropdownMenuItem(
-                      value: 'distance',
-                      child: Text('Gần nhất'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'relevance',
-                      child: Text('Phù hợp nhất'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'createdAt',
-                      child: Text('Mới nhất'),
-                    ),
-                    DropdownMenuItem(value: 'name', child: Text('Tên A–Z')),
-                    DropdownMenuItem(
-                      value: 'hourlyRateFixed',
-                      child: Text('Giá thấp nhất'),
-                    ),
-                    DropdownMenuItem(
-                      value: 'numberOfCourts',
-                      child: Text('Nhiều sân nhất'),
-                    ),
-                  ],
-                  onChanged: (value) =>
-                      setSheetState(() => selectedSort = value!),
-                ),
-                SwitchListTile(
-                  contentPadding: EdgeInsets.zero,
-                  value: favorite,
-                  onChanged: (value) => setSheetState(() => favorite = value),
-                  title: const Text('Chỉ sân yêu thích'),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed: () {
-                      Navigator.pop(sheetContext);
-                      ref
-                          .read(venueBrowseControllerProvider.notifier)
-                          .load(
-                            filter: filter.copyWith(
-                              city: city.text.trim(),
-                              district: district.text.trim(),
-                              sortBy: selectedSort,
-                              favoriteOnly: favorite,
-                            ),
-                          );
-                    },
-                    child: const Text('Áp dụng'),
-                  ),
-                ),
-              ],
-            ),
-          ),
+  Future<void> _openFilters(VenueFilter filter) async {
+    final selected = await showModalBottomSheet<VenueFilter>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => VenueFilterSheet(
+        initial: filter,
+        preferredCity: ref
+            .read(locationPreferencesControllerProvider)
+            .preferredCity,
+      ),
+    );
+    if (selected == null) return;
+    await ref
+        .read(venueBrowseControllerProvider.notifier)
+        .load(filter: selected);
+  }
+}
+
+class _VenueFilterSummary extends StatelessWidget {
+  const _VenueFilterSummary({
+    required this.filter,
+    required this.preferredCity,
+    required this.onChanged,
+  });
+
+  final VenueFilter filter;
+  final String? preferredCity;
+  final ValueChanged<VenueFilter> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final city = filter.city?.trim();
+    final district = filter.district?.trim();
+    final hasCity =
+        city != null && city.isNotEmpty && city != preferredCity?.trim();
+    final hasDistrict = district != null && district.isNotEmpty;
+    final hasSort = filter.sortBy != VenueSortOption.relevance.value;
+    if (!hasCity && !hasDistrict && !filter.favoriteOnly && !hasSort) {
+      return const SizedBox.shrink();
+    }
+
+    return SizedBox(
+      height: 48,
+      child: ListView(
+        key: const Key('venue-filter-summary'),
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.screenPadding,
+          vertical: AppSpacing.xs,
         ),
-      );
-    },
+        children: [
+          if (hasSort)
+            _SummaryChip(
+              key: const Key('venue-sort-summary-chip'),
+              label: VenueSortOption.fromValue(filter.sortBy).label(l10n),
+              onDeleted: () => onChanged(
+                filter.copyWith(
+                  sortBy: VenueSortOption.relevance.value,
+                  clearLocation: true,
+                ),
+              ),
+            ),
+          if (hasCity)
+            _SummaryChip(
+              label: city,
+              onDeleted: () => onChanged(
+                preferredCity == null
+                    ? filter.copyWith(clearCity: true, clearDistrict: true)
+                    : filter.copyWith(
+                        city: preferredCity,
+                        clearDistrict: true,
+                      ),
+              ),
+            ),
+          if (hasDistrict)
+            _SummaryChip(
+              label: district,
+              onDeleted: () => onChanged(filter.copyWith(clearDistrict: true)),
+            ),
+          if (filter.favoriteOnly)
+            _SummaryChip(
+              label: l10n.venueFilterFavoriteOnly,
+              onDeleted: () => onChanged(filter.copyWith(favoriteOnly: false)),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SummaryChip extends StatelessWidget {
+  const _SummaryChip({
+    required this.label,
+    required this.onDeleted,
+    super.key,
+  });
+
+  final String label;
+  final VoidCallback onDeleted;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(right: AppSpacing.xs),
+    child: InputChip(label: Text(label), onDeleted: onDeleted),
   );
 }
 
@@ -364,126 +397,165 @@ class VenueCard extends StatelessWidget {
   const VenueCard({required this.venue, super.key});
   final Venue venue;
   @override
-  Widget build(BuildContext context) => Card(
-    clipBehavior: Clip.antiAlias,
-    child: InkWell(
-      onTap: () => context.push(AppRoutes.venueDetail(venue.slug ?? venue.id)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            height: 144,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                if (venue.coverPhoto != null)
-                  CachedNetworkImage(
-                    imageUrl: venue.coverPhoto!,
-                    fit: BoxFit.cover,
-                    errorWidget: (_, _, _) => const _VenueCover(),
-                  )
-                else
-                  const _VenueCover(),
-                Positioned(
-                  top: 10,
-                  right: 10,
-                  child: FavoriteButton(
-                    type: FavoriteType.venue,
-                    targetId: venue.id,
-                  ),
-                ),
-                if (venue.distance != null)
+  Widget build(BuildContext context) {
+    final avatarUrl = (venue.logo?.trim().isNotEmpty ?? false)
+        ? venue.logo!.trim()
+        : (venue.coverPhoto?.trim().isNotEmpty ?? false)
+        ? venue.coverPhoto!.trim()
+        : null;
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () =>
+            context.push(AppRoutes.venueDetail(venue.slug ?? venue.id)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: 144,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (venue.coverPhoto != null)
+                    CachedNetworkImage(
+                      imageUrl: venue.coverPhoto!,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, _, _) => const _VenueCover(),
+                    )
+                  else
+                    const _VenueCover(),
                   Positioned(
-                    left: 10,
-                    bottom: 10,
-                    child: _badge(
-                      AppIcons.navigation,
-                      '${venue.distance!.toStringAsFixed(1)} km',
+                    top: 10,
+                    right: 10,
+                    child: FavoriteButton(
+                      type: FavoriteType.venue,
+                      targetId: venue.id,
+                      showCount: false,
                     ),
                   ),
-              ],
+                  if (venue.distance != null)
+                    Positioned(
+                      left: 10,
+                      bottom: 10,
+                      child: _badge(
+                        AppIcons.navigation,
+                        '${venue.distance!.toStringAsFixed(1)} km',
+                      ),
+                    ),
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CircleAvatar(
-                  radius: 25,
-                  backgroundImage: venue.logo == null
-                      ? null
-                      : CachedNetworkImageProvider(venue.logo!),
-                  child: venue.logo == null
-                      ? const Icon(AppIcons.location)
-                      : null,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              venue.name,
-                              style: Theme.of(context).textTheme.titleMedium,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Theme.of(context).colorScheme.surface,
+                        width: 2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: ClipOval(
+                      child: avatarUrl != null
+                          ? CachedNetworkImage(
+                              imageUrl: avatarUrl,
+                              fit: BoxFit.cover,
+                              errorWidget: (_, _, _) => ColoredBox(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.surfaceContainerHighest,
+                                child: const Icon(AppIcons.location),
+                              ),
+                            )
+                          : ColoredBox(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.surfaceContainerHighest,
+                              child: const Icon(AppIcons.location),
                             ),
-                          ),
-                          if (venue.isVerified)
-                            const Padding(
-                              padding: EdgeInsets.only(left: 4),
-                              child: Icon(
-                                AppIcons.verified,
-                                color: Colors.green,
-                                size: 19,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                venue.name,
+                                style: Theme.of(context).textTheme.titleMedium,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                        ],
-                      ),
-                      if (venue.addressLabel.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: AppAddressText(
-                            address: venue.address,
-                            district: venue.district,
-                            city: venue.city,
-                            newAddress: venue.newAddress,
-                            newDistrict: venue.newDistrict,
-                            newCity: venue.newCity,
-                            maxLines: 2,
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
+                            if (venue.isVerified)
+                              const Padding(
+                                padding: EdgeInsets.only(left: 4),
+                                child: Icon(
+                                  AppIcons.verified,
+                                  color: Colors.green,
+                                  size: 19,
+                                ),
+                              ),
+                          ],
                         ),
-                      const SizedBox(height: 7),
-                      Wrap(
-                        spacing: 10,
-                        children: [
-                          if (venue.numberOfCourts != null)
-                            Text(
-                              '${venue.numberOfCourts} sân',
-                              style: Theme.of(context).textTheme.labelMedium,
+                        if (venue.addressLabel.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: AppAddressText(
+                              address: venue.address,
+                              district: venue.district,
+                              city: venue.city,
+                              newAddress: venue.newAddress,
+                              newDistrict: venue.newDistrict,
+                              newCity: venue.newCity,
+                              maxLines: 2,
+                              style: Theme.of(context).textTheme.bodySmall,
                             ),
-                          if (venue.hourlyRateFixed != null)
-                            Text(
-                              '${_money(venue.hourlyRateFixed!)}đ/giờ',
-                              style: Theme.of(context).textTheme.labelMedium,
-                            ),
-                        ],
-                      ),
-                    ],
+                          ),
+                        const SizedBox(height: 7),
+                        Wrap(
+                          spacing: 10,
+                          children: [
+                            if (venue.numberOfCourts != null)
+                              Text(
+                                '${venue.numberOfCourts} sân',
+                                style: Theme.of(context).textTheme.labelMedium,
+                              ),
+                            if (venue.hourlyRateFixed != null)
+                              Text(
+                                '${_money(venue.hourlyRateFixed!)}đ/giờ',
+                                style: Theme.of(context).textTheme.labelMedium,
+                              ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
+
   static Widget _badge(IconData icon, String label) => DecoratedBox(
     decoration: BoxDecoration(
       color: Colors.black54,

@@ -26,6 +26,7 @@ enum SessionFormErrorCode {
   locationRequired,
   customLocationRequired,
   hostNameRequired,
+  hostPhoneInvalid,
   startTimeRequired,
   endTimeRequired,
   startTimeMustBeInFuture,

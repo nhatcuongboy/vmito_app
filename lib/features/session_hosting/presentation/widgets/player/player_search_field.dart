@@ -42,9 +42,7 @@ class _PlayerSearchFieldState extends State<PlayerSearchField> {
       controller: _controller,
       onChanged: widget.onChanged,
       textInputAction: TextInputAction.search,
-      style: widget.compact
-          ? Theme.of(context).textTheme.bodySmall
-          : null,
+      style: widget.compact ? Theme.of(context).textTheme.bodySmall : null,
       decoration: InputDecoration(
         isDense: true,
         contentPadding: widget.compact

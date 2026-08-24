@@ -28,11 +28,17 @@ class _SessionFeeDetailDialog extends StatelessWidget {
     final isFixed = !feeConfig.isSplitEvenly;
 
     return Dialog(
-      insetPadding: const EdgeInsets.all(AppSpacing.lg),
+      insetPadding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.lg,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 560),
+        constraints: const BoxConstraints(maxWidth: 480),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
+          padding: const EdgeInsets.all(AppSpacing.md),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -52,55 +58,21 @@ class _SessionFeeDetailDialog extends StatelessWidget {
                       context,
                     ).closeButtonTooltip,
                     icon: const Icon(AppIcons.close),
+                    visualDensity: VisualDensity.compact,
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.md),
               Center(
                 child: _FeeTypeBadge(isFixed: isFixed),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                child: Divider(color: palette.border),
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                child: Divider(height: 1, color: palette.border),
               ),
               if (isFixed)
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final cards = [
-                      _FeeAmountCard(
-                        icon: AppIcons.male,
-                        label: l10n.feeMale,
-                        amount: feeConfig.maleFee,
-                        color: const Color(0xFF2563EB),
-                        background: const Color(0xFFEFF6FF),
-                      ),
-                      _FeeAmountCard(
-                        icon: AppIcons.female,
-                        label: l10n.feeFemale,
-                        amount: feeConfig.femaleFee,
-                        color: const Color(0xFFEC4899),
-                        background: const Color(0xFFFDF2F8),
-                      ),
-                    ];
-                    if (constraints.maxWidth >= 440) {
-                      return Row(
-                        children: [
-                          Expanded(child: cards.first),
-                          const SizedBox(width: AppSpacing.md),
-                          Expanded(child: cards.last),
-                        ],
-                      );
-                    }
-                    return Column(
-                      children: [
-                        cards.first,
-                        const SizedBox(height: AppSpacing.md),
-                        cards.last,
-                      ],
-                    );
-                  },
-                )
+                _FixedFeeRow(feeConfig: feeConfig)
               else
                 _SplitFeeCard(feeConfig: feeConfig),
               if (feeConfig.notes case final notes?
@@ -126,7 +98,7 @@ class _FeeTypeBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final color = isFixed ? const Color(0xFF15803D) : const Color(0xFF2563EB);
+    final color = isFixed ? const Color(0xFF16A34A) : const Color(0xFF2563EB);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
@@ -143,10 +115,11 @@ class _FeeTypeBadge extends StatelessWidget {
           Icon(
             isFixed ? AppIcons.dollarCircle : AppIcons.calculator,
             color: color,
+            size: 18,
           ),
           const SizedBox(width: AppSpacing.xs + 2),
           Text(
-            isFixed ? l10n.feeFixed : l10n.feeSplitLater,
+            (isFixed ? l10n.feeFixed : l10n.feeSplitLater).toUpperCase(),
             style: theme.textTheme.labelLarge?.copyWith(
               color: color,
               fontWeight: FontWeight.bold,
@@ -159,6 +132,69 @@ class _FeeTypeBadge extends StatelessWidget {
   }
 }
 
+class _FixedFeeRow extends StatelessWidget {
+  const _FixedFeeRow({required this.feeConfig});
+
+  final SessionFeeConfig feeConfig;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
+    final l10n = AppLocalizations.of(context);
+
+    if (feeConfig.isUnpriced) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+        child: Center(
+          child: Text(
+            l10n.feeNotSet,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: palette.mutedForeground,
+            ),
+          ),
+        ),
+      );
+    }
+
+    final maleCard = _FeeAmountCard(
+      icon: AppIcons.male,
+      label: l10n.feeMale,
+      amount: feeConfig.maleFee,
+      color: const Color(0xFF2563EB),
+      background: const Color(0xFFEFF6FF),
+      borderColor: const Color(0xFFDBEAFE),
+      priceColor: const Color(0xFF0F172A),
+    );
+
+    final femaleCard = _FeeAmountCard(
+      icon: AppIcons.female,
+      label: l10n.feeFemale,
+      amount: feeConfig.femaleFee,
+      color: const Color(0xFFDB2777),
+      background: const Color(0xFFFDF2F8),
+      borderColor: const Color(0xFFFCE7F3),
+      priceColor: const Color(0xFF4A044E),
+    );
+
+    if (feeConfig.maleFee != null && feeConfig.femaleFee != null) {
+      return Row(
+        children: [
+          Expanded(child: maleCard),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(child: femaleCard),
+        ],
+      );
+    }
+
+    if (feeConfig.maleFee != null) {
+      return maleCard;
+    }
+
+    return femaleCard;
+  }
+}
+
 class _FeeAmountCard extends StatelessWidget {
   const _FeeAmountCard({
     required this.icon,
@@ -166,6 +202,8 @@ class _FeeAmountCard extends StatelessWidget {
     required this.amount,
     required this.color,
     required this.background,
+    required this.borderColor,
+    required this.priceColor,
   });
 
   final IconData icon;
@@ -173,42 +211,56 @@ class _FeeAmountCard extends StatelessWidget {
   final int? amount;
   final Color color;
   final Color background;
+  final Color borderColor;
+  final Color priceColor;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.symmetric(
+        vertical: AppSpacing.lg,
+        horizontal: AppSpacing.sm,
+      ),
       decoration: BoxDecoration(
         color: background,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        border: Border.all(color: color.withValues(alpha: .18)),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(AppSpacing.sm),
+            width: 44,
+            height: 44,
+            alignment: Alignment.center,
             decoration: BoxDecoration(
               color: color,
-              borderRadius: BorderRadius.circular(AppRadius.md),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, color: Colors.white),
+            child: Icon(icon, color: Colors.white, size: 24),
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.sm + 4),
           Text(
             label.toUpperCase(),
+            textAlign: TextAlign.center,
             style: theme.textTheme.labelMedium?.copyWith(
               color: color,
               fontWeight: FontWeight.bold,
+              letterSpacing: .4,
             ),
           ),
-          const SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: AppSpacing.xs + 2),
           Text(
             amount == null ? l10n.feeNotSet : Money.vnd(amount!),
-            style: theme.textTheme.titleLarge?.copyWith(
-              color: color.withValues(alpha: .9),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: priceColor,
               fontWeight: FontWeight.w800,
+              fontSize: 18,
             ),
           ),
         ],
@@ -225,12 +277,28 @@ class _SplitFeeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
     final l10n = AppLocalizations.of(context);
+
+    if (feeConfig.isUnpriced) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+        child: Center(
+          child: Text(
+            l10n.feeSplitLater,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: palette.mutedForeground,
+            ),
+          ),
+        ),
+      );
+    }
+
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: theme.colorScheme.primary.withValues(alpha: .06),
-        borderRadius: BorderRadius.circular(AppRadius.xl),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: theme.colorScheme.primary.withValues(alpha: .25),
         ),
@@ -250,10 +318,14 @@ class _SplitFeeCard extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                if (feeConfig.splitPerPlayer case final perPlayer?)
+                if (feeConfig.splitPerPlayer case final perPlayer?) ...[
+                  const SizedBox(height: AppSpacing.xs),
                   Text('${l10n.feePerPerson}: ${Money.vnd(perPlayer)}'),
-                if (feeConfig.splitTotal case final total?)
+                ],
+                if (feeConfig.splitTotal case final total?) ...[
+                  const SizedBox(height: AppSpacing.xs),
                   Text('${l10n.feeTotal}: ${Money.vnd(total)}'),
+                ],
               ],
             ),
           ),
@@ -275,8 +347,8 @@ class _NotesCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: palette.muted,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+        color: palette.muted.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: palette.border),
       ),
       clipBehavior: Clip.antiAlias,
@@ -284,10 +356,16 @@ class _NotesCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(width: 4, color: theme.colorScheme.primary),
+            Container(
+              width: 4,
+              color: const Color(0xFF16A34A),
+            ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.md - 2,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -295,21 +373,28 @@ class _NotesCard extends StatelessWidget {
                       children: [
                         Icon(
                           AppIcons.notes,
-                          size: 18,
+                          size: 16,
                           color: palette.mutedForeground,
                         ),
-                        const SizedBox(width: AppSpacing.xs + 2),
+                        const SizedBox(width: AppSpacing.xs + 4),
                         Text(
                           l10n.feeNotes.toUpperCase(),
                           style: theme.textTheme.labelMedium?.copyWith(
                             color: palette.mutedForeground,
                             fontWeight: FontWeight.bold,
+                            letterSpacing: .5,
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: AppSpacing.sm),
-                    Text(notes, style: theme.textTheme.bodyMedium),
+                    Text(
+                      notes,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface,
+                        height: 1.4,
+                      ),
+                    ),
                   ],
                 ),
               ),

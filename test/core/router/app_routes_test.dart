@@ -40,6 +40,8 @@ void main() {
         expect(AppRoutes.isPublic(AppRoutes.signUp), isTrue);
         expect(AppRoutes.isPublic(AppRoutes.forgotPassword), isTrue);
         expect(AppRoutes.isPublic(AppRoutes.resetPassword), isTrue);
+        expect(AppRoutes.isPublic(AppRoutes.terms), isTrue);
+        expect(AppRoutes.isPublic(AppRoutes.privacy), isTrue);
         expect(
           AppRoutes.isPublic('${AppRoutes.resetPassword}?token=abc'),
           isTrue,
@@ -68,6 +70,11 @@ void main() {
       expect(AppRoutes.isPublic(AppRoutes.cloneSession('abc')), isFalse);
       expect(AppRoutes.isPublic(AppRoutes.rateSession('abc')), isFalse);
       expect(AppRoutes.isPublic(AppRoutes.transactions), isFalse);
+      expect(AppRoutes.isPublic(AppRoutes.feedback), isFalse);
+      expect(
+        AppRoutes.isPublic(AppRoutes.mySessionsSearchFor('hosted')),
+        isFalse,
+      );
 
       // The sibling detail route is still public.
       expect(AppRoutes.isPublic('/sessions/abc'), isTrue);
@@ -88,14 +95,22 @@ void main() {
     );
   });
 
-  test('only session management hides the shell bottom navigation', () {
+  test('full-screen workspaces hide the shell bottom navigation', () {
+    expect(AppRoutes.hidesBottomNavigation(AppRoutes.homeSearch), isTrue);
     expect(
       AppRoutes.hidesBottomNavigation(AppRoutes.manageSession('s1')),
       isTrue,
     );
     expect(
       AppRoutes.hidesBottomNavigation(AppRoutes.sessionDetail('s1')),
-      isFalse,
+      isTrue,
+    );
+    expect(AppRoutes.hidesBottomNavigation(AppRoutes.createSession), isFalse);
+    expect(
+      AppRoutes.hidesBottomNavigation(
+        AppRoutes.mySessionsSearchFor('joined', query: 'kèo tối'),
+      ),
+      isTrue,
     );
     expect(
       AppRoutes.hidesBottomNavigation(AppRoutes.editSession('s1')),
@@ -105,6 +120,16 @@ void main() {
       AppRoutes.hidesBottomNavigation('/sessions/s1/manage/history'),
       isFalse,
     );
+  });
+
+  test('homeSearchFor encodes tab and existing query', () {
+    final uri = Uri.parse(
+      AppRoutes.homeSearchFor('clubs', query: 'Nhóm Quận 1'),
+    );
+
+    expect(uri.path, AppRoutes.homeSearch);
+    expect(uri.queryParameters[AppRoutes.homeDiscoveryTabQuery], 'clubs');
+    expect(uri.queryParameters['q'], 'Nhóm Quận 1');
   });
 
   test('signInWithRedirect preserves the post-login destination', () {

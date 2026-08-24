@@ -14,7 +14,12 @@ void main() {
       'host': {'id': 'u1', 'name': 'Host', 'image': 'host.jpg'},
       'socialLinks': {'facebook': 'https://facebook.com/a'},
       'members': [
-        {'id': 'm1', 'userId': 'u1', 'role': 'ADMIN', 'user': {'name': 'Host'}},
+        {
+          'id': 'm1',
+          'userId': 'u1',
+          'role': 'ADMIN',
+          'user': {'name': 'Host'},
+        },
       ],
       'scheduleVenues': [
         {'id': 'v1', 'name': 'Sân A', 'newAddress': 'Địa chỉ mới'},

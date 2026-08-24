@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/home/presentation/home_screen.dart';
@@ -14,6 +16,7 @@ import 'package:vmito_app/features/tournament/presentation/browse_tournaments_co
 import 'package:vmito_app/features/venue/application/venue_controller.dart';
 import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/features/venue/presentation/browse_venues_screen.dart';
+import 'package:vmito_app/features/venue/presentation/venue_filter_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 void main() {
@@ -97,6 +100,8 @@ void main() {
 
     expect(_FakeSessionsController.loads, 1);
     expect(find.byIcon(AppIcons.login), findsOneWidget);
+    expect(find.byKey(const Key('home-search-button')), findsOneWidget);
+    expect(find.byType(SearchBar), findsNothing);
     expect(find.byType(FloatingActionButton), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('home-discovery-tab-venues')));
@@ -152,6 +157,133 @@ void main() {
 
     expect(_FakeSessionsController.lastFilters?.venueId, 'venue-1');
     expect(_FakeSessionsController.lastFilters?.venueName, 'Sân A');
+  });
+
+  testWidgets('submitted search shows result AppBar and back restores browse', (
+    tester,
+  ) async {
+    final router = GoRouter(
+      initialLocation: AppRoutes.home,
+      routes: [
+        GoRoute(
+          path: AppRoutes.home,
+          builder: (context, state) => const HomeScreen(),
+          routes: [
+            GoRoute(
+              path: AppRoutes.homeSearchPath,
+              builder: (context, state) => Scaffold(
+                body: Center(
+                  child: FilledButton(
+                    key: const Key('fake-search-submit'),
+                    onPressed: () => context.pop('quang hung'),
+                    child: const Text('Submit'),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          browseSessionsControllerProvider.overrideWith(
+            _FakeSessionsController.new,
+          ),
+        ],
+        child: MaterialApp.router(
+          locale: const Locale('vi'),
+          theme: AppTheme.light,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('home-search-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('fake-search-submit')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('home-search-result-query')), findsOneWidget);
+    expect(find.text('quang hung'), findsOneWidget);
+    expect(find.byKey(const Key('home-search-session-filter')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('home-search-exit-results')));
+    await tester.pump();
+
+    expect(find.byKey(const Key('home-search-button')), findsOneWidget);
+    expect(find.byKey(const Key('home-search-result-query')), findsNothing);
+  });
+
+  testWidgets('venue search results expose the combined filter sheet', (
+    tester,
+  ) async {
+    final venueController = _SearchVenuesController();
+    final router = GoRouter(
+      initialLocation: AppRoutes.home,
+      routes: [
+        GoRoute(
+          path: AppRoutes.home,
+          builder: (context, state) => const HomeScreen(
+            initialDiscoveryTab: HomeDiscoveryTab.venues,
+          ),
+          routes: [
+            GoRoute(
+              path: AppRoutes.homeSearchPath,
+              builder: (context, state) => Scaffold(
+                body: Center(
+                  child: FilledButton(
+                    key: const Key('fake-venue-search-submit'),
+                    onPressed: () => context.pop('thpt'),
+                    child: const Text('Submit venue search'),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          venueBrowseControllerProvider.overrideWith(() => venueController),
+        ],
+        child: MaterialApp.router(
+          locale: const Locale('vi'),
+          theme: AppTheme.light,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byKey(const Key('home-search-venue-filter')), findsNothing);
+    await tester.tap(find.byKey(const Key('home-search-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('fake-venue-search-submit')));
+    await tester.pumpAndSettle();
+
+    expect(venueController.state.filter.keyword, 'thpt');
+    expect(venueController.state.filter.sortBy, 'relevance');
+    expect(find.byKey(const Key('home-search-session-filter')), findsNothing);
+    expect(find.byKey(const Key('home-search-venue-filter')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('home-search-venue-filter')));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(VenueFilterSheet), findsOneWidget);
+    expect(find.text('Lọc và sắp xếp'), findsOneWidget);
   });
 
   testWidgets('Home can open with venues selected from routing state', (
@@ -254,6 +386,13 @@ class _FakeVenuesController extends VenueBrowseController {
   @override
   Future<void> load({VenueFilter? filter}) async {
     loads++;
+  }
+}
+
+class _SearchVenuesController extends VenueBrowseController {
+  @override
+  Future<void> load({VenueFilter? filter}) async {
+    state = VenueBrowseState(filter: filter ?? state.filter);
   }
 }
 

@@ -21,8 +21,9 @@ final Map<String, _NotificationTranslationKeys> _actionToKeys = {
   ),
   'player_start_reminder': _NotificationTranslationKeys(
     titleKey: (l10n) => l10n.notificationPlayerStartReminderTitle,
-    messageKey: (l10n, params) =>
-        l10n.notificationPlayerStartReminderMessage(params['sessionName'] ?? ''),
+    messageKey: (l10n, params) => l10n.notificationPlayerStartReminderMessage(
+      params['sessionName'] ?? '',
+    ),
   ),
   'players_selected': _NotificationTranslationKeys(
     titleKey: (l10n) => l10n.notificationYourTurnTitle,
@@ -82,7 +83,9 @@ final Map<String, _NotificationTranslationKeys> _actionToKeys = {
   'club_rejected': _NotificationTranslationKeys(
     titleKey: (l10n) => l10n.notificationClubRejectedTitle,
     messageKey: (l10n, params) => l10n.notificationClubRejectedMessage(
-        params['clubName'] ?? '', params['rejectionReason'] ?? ''),
+      params['clubName'] ?? '',
+      params['rejectionReason'] ?? '',
+    ),
   ),
   'player_added': _NotificationTranslationKeys(
     titleKey: (l10n) => l10n.notificationPlayerAddedTitle,
@@ -107,17 +110,23 @@ final Map<String, _NotificationTranslationKeys> _actionToKeys = {
   'session_favorited': _NotificationTranslationKeys(
     titleKey: (l10n) => l10n.notificationSessionFavoritedTitle,
     messageKey: (l10n, params) => l10n.notificationSessionFavoritedMessage(
-        params['actorName'] ?? '', params['sessionName'] ?? ''),
+      params['actorName'] ?? '',
+      params['sessionName'] ?? '',
+    ),
   ),
   'club_favorited': _NotificationTranslationKeys(
     titleKey: (l10n) => l10n.notificationClubFavoritedTitle,
     messageKey: (l10n, params) => l10n.notificationClubFavoritedMessage(
-        params['actorName'] ?? '', params['clubName'] ?? ''),
+      params['actorName'] ?? '',
+      params['clubName'] ?? '',
+    ),
   ),
   'tournament_favorited': _NotificationTranslationKeys(
     titleKey: (l10n) => l10n.notificationTournamentFavoritedTitle,
     messageKey: (l10n, params) => l10n.notificationTournamentFavoritedMessage(
-        params['actorName'] ?? '', params['tournamentName'] ?? ''),
+      params['actorName'] ?? '',
+      params['tournamentName'] ?? '',
+    ),
   ),
   'venue_request_approved': _NotificationTranslationKeys(
     titleKey: (l10n) => l10n.notificationVenueRequestApprovedTitle,
@@ -127,7 +136,9 @@ final Map<String, _NotificationTranslationKeys> _actionToKeys = {
   'venue_request_rejected': _NotificationTranslationKeys(
     titleKey: (l10n) => l10n.notificationVenueRequestRejectedTitle,
     messageKey: (l10n, params) => l10n.notificationVenueRequestRejectedMessage(
-        params['venueName'] ?? '', params['rejectionReason'] ?? ''),
+      params['venueName'] ?? '',
+      params['rejectionReason'] ?? '',
+    ),
   ),
 };
 

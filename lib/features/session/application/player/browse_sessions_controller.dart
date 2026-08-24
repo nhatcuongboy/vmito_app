@@ -64,6 +64,10 @@ class BrowseSessionsController extends Notifier<BrowseSessionsState> {
 
   static const _pageSize = 20;
 
+  // Snapshot restoration is an action, not a property mutation API.
+  // ignore: use_setters_to_change_properties
+  void restore(BrowseSessionsState snapshot) => state = snapshot;
+
   /// Loads page 1, replacing whatever is on screen.
   Future<void> load({String? search, BrowseSessionFilters? filters}) async {
     final nextFilters =

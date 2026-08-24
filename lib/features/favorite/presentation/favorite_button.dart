@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
+import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/favorite/application/favorite_controller.dart';
@@ -20,12 +21,14 @@ class FavoriteButton extends ConsumerWidget {
     required this.type,
     required this.targetId,
     this.overlay = true,
+    this.showCount = true,
     super.key,
   });
 
   final FavoriteType type;
   final String targetId;
   final bool overlay;
+  final bool showCount;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -39,39 +42,59 @@ class FavoriteButton extends ConsumerWidget {
     final foregroundColor = overlay
         ? Colors.white
         : theme.colorScheme.onSurface;
+    final dividerColor = overlay
+        ? Colors.white.withValues(alpha: 0.2)
+        : theme.dividerColor;
+    final displayCount = showCount && summary.favoriteCount > 0;
 
     return Material(
-      color: overlay ? Colors.black.withValues(alpha: 0.5) : Colors.transparent,
+      color: overlay ? Colors.black.withValues(alpha: 0.6) : Colors.transparent,
       borderRadius: BorderRadius.circular(AppRadius.pill),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => _toggle(context, ref, target),
-        child: Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: overlay ? AppSpacing.sm + 2 : AppSpacing.xs,
-            vertical: overlay ? AppSpacing.sm + 1 : AppSpacing.xs,
-          ),
+        child: SizedBox(
+          height: 32,
           child: Row(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Icon(
-                summary.isFavorite ? AppIcons.favorite : AppIcons.favorite,
-                size: 20,
-                semanticLabel: summary.isFavorite
-                    ? l10n.favoriteRemove
-                    : l10n.favoriteAdd,
-                color: summary.isFavorite
-                    ? theme.colorScheme.error
-                    : foregroundColor,
-              ),
-              const SizedBox(width: AppSpacing.xs + 2),
-              Text(
-                '${summary.favoriteCount}',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: foregroundColor,
-                  fontWeight: FontWeight.w600,
+              SizedBox(
+                width: displayCount ? 34 : (overlay ? 32 : 28),
+                height: 32,
+                child: Center(
+                  child: Icon(
+                    summary.isFavorite
+                        ? AppIcons.favoriteFilled
+                        : AppIcons.favorite,
+                    size: 18,
+                    semanticLabel: summary.isFavorite
+                        ? l10n.favoriteRemove
+                        : l10n.favoriteAdd,
+                    color: summary.isFavorite
+                        ? AppColors.destructive
+                        : foregroundColor,
+                  ),
                 ),
               ),
+              if (displayCount) ...[
+                Container(
+                  width: 1,
+                  height: 32,
+                  color: dividerColor,
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Text(
+                    '${summary.favoriteCount}',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      color: foregroundColor,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
             ],
           ),
         ),

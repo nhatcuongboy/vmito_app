@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
 
 /// Centralized icon registry mapping semantic UI icons to Lucide icons.
@@ -8,6 +8,7 @@ abstract final class AppIcons {
   // --- Navigation & Shell ----------------------------------------------------
   static const IconData home = LucideIcons.house;
   static const IconData sessions = LucideIcons.clipboard_list;
+  static const IconData clipboardList = LucideIcons.clipboard_list;
   static const IconData feed = LucideIcons.newspaper;
   static const IconData notifications = LucideIcons.bell;
   static const IconData profile = LucideIcons.user;
@@ -32,6 +33,12 @@ abstract final class AppIcons {
   static const IconData externalLink = LucideIcons.external_link;
   static const IconData chevronRight = LucideIcons.chevron_right;
   static const IconData chevronLeft = LucideIcons.chevron_left;
+  static const IconData chevronDown = LucideIcons.chevron_down;
+  static const IconData chevronUp = LucideIcons.chevron_up;
+  static const IconData sortAlpha = LucideIcons.arrow_down_a_z;
+  static const IconData calendarArrowDown = LucideIcons.calendar_arrow_down;
+  static const IconData trendingUp = LucideIcons.trending_up;
+  static const IconData grid2x2 = LucideIcons.grid_2x2;
   static const IconData arrowBack = LucideIcons.arrow_left;
   static const IconData arrowForward = LucideIcons.arrow_right;
   static const IconData arrowUpward = LucideIcons.arrow_up;
@@ -51,6 +58,7 @@ abstract final class AppIcons {
   static const IconData history = LucideIcons.history;
   static const IconData link = LucideIcons.link;
   static const IconData download = LucideIcons.download;
+  static const IconData upload = LucideIcons.upload;
   static const IconData save = LucideIcons.save;
   static const IconData undo = LucideIcons.undo_2;
   static const IconData repeat = LucideIcons.repeat;
@@ -86,9 +94,13 @@ abstract final class AppIcons {
   static const IconData award = LucideIcons.award;
   static const IconData sparkles = LucideIcons.sparkles;
   static const IconData favorite = LucideIcons.heart;
+  static const IconData favoriteFilled = Icons.favorite;
   static const IconData chat = LucideIcons.message_square;
   static const IconData send = LucideIcons.send;
   static const IconData phone = LucideIcons.phone;
+  static const IconData car = LucideIcons.car_front;
+  static const IconData canteen = LucideIcons.utensils_crossed;
+  static const IconData wifi = LucideIcons.wifi;
   static const IconData camera = LucideIcons.camera;
   static const IconData image = LucideIcons.image;
   static const IconData imagePlus = LucideIcons.image_plus;

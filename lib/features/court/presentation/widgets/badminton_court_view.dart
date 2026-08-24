@@ -144,7 +144,9 @@ class BadmintonCourtView extends StatelessWidget {
 
   CourtFormat get _format {
     final type = matchType ?? court.matchTypeOr(MatchType.doubles);
-    return type == MatchType.singles ? CourtFormat.singles : CourtFormat.doubles;
+    return type == MatchType.singles
+        ? CourtFormat.singles
+        : CourtFormat.doubles;
   }
 
   /// Seat index → occupant. Selection state wins; otherwise the court's own
@@ -156,7 +158,11 @@ class BadmintonCourtView extends StatelessWidget {
     );
 
     if (selection != null) {
-      for (var seat = 0; seat < slots.length && seat < selection!.length; seat++) {
+      for (
+        var seat = 0;
+        seat < slots.length && seat < selection!.length;
+        seat++
+      ) {
         slots[seat] = selection![seat];
       }
       return slots;

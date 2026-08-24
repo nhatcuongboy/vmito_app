@@ -82,6 +82,9 @@ abstract final class ApiEndpoints {
   /// backend has no dedicated withdraw endpoint.
   static String player(String id) => '/players/$id';
   static const joinedSessions = '/players/me/sessions';
+  static const myJoinRequests = '/players/me/join-requests';
+  static String withdrawMyJoinRequest(String sessionId) =>
+      '/players/me/join-requests/$sessionId';
   static const pendingJoinRequests = '/players/pending-requests';
   static const pendingJoinRequestCount = '/players/pending-requests/count';
 
@@ -174,6 +177,10 @@ abstract final class ApiEndpoints {
 
   /// Not implemented on the backend yet — P0 task, see docs/ROADMAP.md.
   static const notificationDevices = '/notifications/devices';
+
+  // --- Feedback -------------------------------------------------------------
+  static const feedback = '/feedback';
+  static const feedbackUploadImage = '/feedback/upload-image';
 
   // --- Reference data -------------------------------------------------------
   /// Public. The host-authored blurb for each skill level.

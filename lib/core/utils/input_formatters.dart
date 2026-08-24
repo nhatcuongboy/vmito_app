@@ -33,7 +33,10 @@ class ThousandsSeparatorFormatter extends TextInputFormatter {
 
     final formatted = _format.format(value);
     final digitsBeforeCaret = newValue.text
-        .substring(0, newValue.selection.baseOffset.clamp(0, newValue.text.length))
+        .substring(
+          0,
+          newValue.selection.baseOffset.clamp(0, newValue.text.length),
+        )
         .replaceAll(_nonDigit, '')
         .length;
 

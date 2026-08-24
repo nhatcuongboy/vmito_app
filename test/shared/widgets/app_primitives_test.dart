@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/shared/widgets/app_button.dart';
@@ -67,6 +68,27 @@ void main() {
         vertical: AppSpacing.lg,
       ),
     );
+  });
+
+  test('AppTheme uses muted text for unfocused input hints and labels', () {
+    for (final theme in [AppTheme.light, AppTheme.dark]) {
+      final inputTheme = theme.inputDecorationTheme;
+      final labelStyle = WidgetStateProperty.resolveAs<TextStyle?>(
+        inputTheme.labelStyle,
+        <WidgetState>{},
+      );
+
+      expect(
+        inputTheme.hintStyle,
+        TextStyle(
+          color: theme.extension<AppPalette>()!.mutedForeground,
+        ),
+      );
+      expect(
+        labelStyle?.color,
+        theme.extension<AppPalette>()!.mutedForeground,
+      );
+    }
   });
 
   testWidgets('form labels show the correct marker and semantics', (

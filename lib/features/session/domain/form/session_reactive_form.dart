@@ -1,6 +1,7 @@
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:vmito_app/features/session/domain/form/session_form_drafts.dart';
 import 'package:vmito_app/features/session/domain/form/session_form_state.dart';
+import 'package:vmito_app/features/session/domain/form/session_form_utils.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 import 'package:vmito_app/shared/models/match.dart';
@@ -107,7 +108,10 @@ FormGroup createSessionReactiveForm(SessionFormState state) => FormGroup({
     value: state.hostName,
     validators: [Validators.required],
   ),
-  SessionFormControl.hostPhone: FormControl<String>(value: state.hostPhone),
+  SessionFormControl.hostPhone: FormControl<String>(
+    value: state.hostPhone,
+    validators: [Validators.delegate(validateSessionHostPhone)],
+  ),
   SessionFormControl.allowZaloContact: FormControl<bool>(
     value: state.allowZaloContact,
   ),
@@ -288,4 +292,14 @@ extension SessionReactiveFormValue on FormGroup {
       clubLabel: sessionValue<String>(SessionFormControl.clubLabel) ?? '',
     );
   }
+}
+
+Map<String, dynamic>? validateSessionHostPhone(
+  AbstractControl<dynamic> control,
+) {
+  final raw = control.value;
+  if (raw == null) return null;
+  final value = (raw as String).trim();
+  if (value.isEmpty) return null;
+  return SessionFormUtils.isValidPhone(value) ? null : {'phone': true};
 }

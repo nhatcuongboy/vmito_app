@@ -81,7 +81,7 @@ class SessionDetailBottomBar extends ConsumerWidget {
                               style: theme.textTheme.titleLarge?.copyWith(
                                 color: theme.colorScheme.error,
                                 fontWeight: FontWeight.bold,
-                                ),
+                              ),
                               children: [
                                 TextSpan(
                                   text: l10n.sessionPerSlot,

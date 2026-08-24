@@ -237,7 +237,10 @@ class _HostSessionManagementScreenState
           context: context,
           builder: (context) => AlertDialog(
             title: Text(l10n.cancelSessionTitle),
-            content: Text(l10n.cancelSessionConfirm),
+            content: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 320),
+              child: Text(l10n.cancelSessionConfirm),
+            ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context, false),

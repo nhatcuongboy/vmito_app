@@ -144,6 +144,15 @@ abstract final class SessionFormUtils {
     return uri.scheme == 'http' || uri.scheme == 'https';
   }
 
+  /// True when the string is empty or a valid phone number.
+  static bool isValidPhone(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return true;
+    final digitsOnly = trimmed.replaceAll(RegExp(r'[\s.-]'), '');
+    return RegExp(r'^(?:\+?84|0)[1-9][0-9]{8,9}$').hasMatch(digitsOnly) ||
+        RegExp(r'^\+?[1-9][0-9]{8,14}$').hasMatch(digitsOnly);
+  }
+
   /// `DateTime.weekday` is 1–7 with Sunday last; the backend's
   /// `RecurringWeekdaysConfigDto` is 0–6 with Sunday first.
   static int toBackendWeekday(int dartWeekday) => dartWeekday % 7;

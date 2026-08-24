@@ -20,10 +20,13 @@ Future<void> showLoginPromptDialog(
     context: context,
     builder: (context) => AlertDialog(
       title: Text(l10n.loginRequired),
-      content: Text(
-        featureName != null
-            ? l10n.loginRequiredFeature(featureName)
-            : l10n.loginRequiredDescription,
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 320),
+        child: Text(
+          featureName != null
+              ? l10n.loginRequiredFeature(featureName)
+              : l10n.loginRequiredDescription,
+        ),
       ),
       actions: [
         TextButton(

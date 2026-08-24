@@ -142,6 +142,29 @@ class SessionRepositoryImpl implements SessionRepository {
   }
 
   @override
+  Future<int> publicSessionCountByHost(String hostId) async {
+    final response = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.publicSessions,
+      queryParameters: {'hostId': hostId, 'page': 1, 'limit': 1},
+    );
+    return unwrapPage(response.data, Session.fromJson).total;
+  }
+
+  @override
+  Future<int> openSessionCountByHost(String hostId) async {
+    final response = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.availableSessions,
+      queryParameters: {'hostId': hostId, 'page': 1, 'limit': 1},
+    );
+    // This endpoint alone nests its totals under `pagination`, which
+    // `unwrapPage` does not read.
+    return unwrap(response.data, (json) {
+      final pagination = json['pagination'] as Map<String, dynamic>?;
+      return (pagination?['total'] as num?)?.toInt() ?? 0;
+    });
+  }
+
+  @override
   Future<Page<Session>> joinedByCurrentUser(SessionListQuery query) async {
     final response = await _client.get<Map<String, dynamic>>(
       ApiEndpoints.joinedSessions,

@@ -76,9 +76,7 @@ class _MemberTile extends ConsumerWidget {
         backgroundImage: member.image == null
             ? null
             : CachedNetworkImageProvider(member.image!),
-        child: member.image == null
-            ? const Icon(AppIcons.profile)
-            : null,
+        child: member.image == null ? const Icon(AppIcons.profile) : null,
       ),
       title: Text(member.name),
       subtitle: Text('${member.email}\n${_roleLabel(l10n, member.role)}'),
@@ -119,7 +117,10 @@ class _MemberTile extends ConsumerWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(l10n.clubRemoveMember),
-        content: Text(l10n.clubRemoveMemberConfirm(member.name)),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 320),
+          child: Text(l10n.clubRemoveMemberConfirm(member.name)),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),

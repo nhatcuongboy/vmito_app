@@ -20,6 +20,7 @@ class BrowseClubsScreen extends ConsumerStatefulWidget {
   const BrowseClubsScreen({
     this.embedded = false,
     this.discoveryHeader,
+    this.initialSearch = '',
     super.key,
   });
 
@@ -27,6 +28,7 @@ class BrowseClubsScreen extends ConsumerStatefulWidget {
   /// discovery switcher.
   final bool embedded;
   final Widget? discoveryHeader;
+  final String initialSearch;
 
   @override
   ConsumerState<BrowseClubsScreen> createState() => _BrowseClubsScreenState();
@@ -44,12 +46,17 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
         unawaited(ref.read(clubsControllerProvider.notifier).loadMore());
       }
     });
-    Future<void>.microtask(
-      () => ref
-          .read(clubsControllerProvider.notifier)
-          .load(
-            city: ref.read(locationPreferencesControllerProvider).preferredCity,
-          ),
+    unawaited(
+      Future<void>.microtask(
+        () => ref
+            .read(clubsControllerProvider.notifier)
+            .load(
+              search: widget.initialSearch,
+              city: ref
+                  .read(locationPreferencesControllerProvider)
+                  .preferredCity,
+            ),
+      ),
     );
   }
 
@@ -69,41 +76,42 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
 
     final content = Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.md,
-            AppSpacing.sm,
-            AppSpacing.md,
-            AppSpacing.sm,
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: SearchBar(
-                  controller: _search,
-                  hintText: 'Tìm câu lạc bộ',
-                  leading: const Icon(AppIcons.search),
-                  onChanged: (value) {
-                    _timer?.cancel();
-                    _timer = Timer(
-                      const Duration(milliseconds: 400),
-                      () => ref
-                          .read(clubsControllerProvider.notifier)
-                          .load(search: value),
-                    );
-                  },
+        if (!widget.embedded)
+          Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.md,
+              AppSpacing.sm,
+              AppSpacing.md,
+              AppSpacing.sm,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: SearchBar(
+                    controller: _search,
+                    hintText: 'Tìm câu lạc bộ',
+                    leading: const Icon(AppIcons.search),
+                    onChanged: (value) {
+                      _timer?.cancel();
+                      _timer = Timer(
+                        const Duration(milliseconds: 400),
+                        () => ref
+                            .read(clubsControllerProvider.notifier)
+                            .load(search: value),
+                      );
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              IconButton.filledTonal(
-                tooltip: 'Bộ lọc',
-                icon: const Icon(AppIcons.tune),
-                onPressed: () => AppEmptyFilterSheet.show(context),
-              ),
-            ],
+                const SizedBox(width: AppSpacing.xs),
+                IconButton.filledTonal(
+                  tooltip: 'Bộ lọc',
+                  icon: const Icon(AppIcons.tune),
+                  onPressed: () => AppEmptyFilterSheet.show(context),
+                ),
+              ],
+            ),
           ),
-        ),
-        if (discoveryHeader != null) discoveryHeader,
+        ?discoveryHeader,
         Expanded(
           child: RefreshIndicator(
             onRefresh: () => ref
@@ -199,9 +207,11 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
               title: Text(option.$1),
               onTap: () {
                 Navigator.pop(context);
-                ref
-                    .read(clubsControllerProvider.notifier)
-                    .load(search: ref.read(clubsControllerProvider).search);
+                unawaited(
+                  ref
+                      .read(clubsControllerProvider.notifier)
+                      .load(search: ref.read(clubsControllerProvider).search),
+                );
               },
             ),
         ],
@@ -252,6 +262,7 @@ class _ClubBrowseCard extends StatelessWidget {
                   child: FavoriteButton(
                     type: FavoriteType.club,
                     targetId: club.id,
+                    showCount: false,
                   ),
                 ),
               ],

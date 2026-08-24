@@ -103,8 +103,54 @@ class _LightboxState extends State<_Lightbox> {
                 ),
               ),
             ),
+          if (widget.images.length > 1) ...[
+            Positioned(
+              left: AppSpacing.sm,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: IconButton(
+                  key: const Key('lightbox-previous-button'),
+                  tooltip: MaterialLocalizations.of(
+                    context,
+                  ).previousPageTooltip,
+                  icon: const Icon(AppIcons.chevronLeft),
+                  color: Colors.white,
+                  onPressed: _index == 0 ? null : () => _showPage(_index - 1),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white.withValues(alpha: 0.15),
+                    disabledForegroundColor: Colors.white38,
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              right: AppSpacing.sm,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: IconButton(
+                  key: const Key('lightbox-next-button'),
+                  tooltip: MaterialLocalizations.of(context).nextPageTooltip,
+                  icon: const Icon(AppIcons.chevronRight),
+                  color: Colors.white,
+                  onPressed: _index == widget.images.length - 1
+                      ? null
+                      : () => _showPage(_index + 1),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.white.withValues(alpha: 0.15),
+                    disabledForegroundColor: Colors.white38,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  void _showPage(int index) {
+    _controller.jumpToPage(index);
   }
 }

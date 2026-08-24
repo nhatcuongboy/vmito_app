@@ -54,6 +54,12 @@ abstract interface class SessionRepository {
     SessionListQuery? query,
   });
 
+  /// How many sessions this host has published, all statuses included.
+  Future<int> publicSessionCountByHost(String hostId);
+
+  /// How many of this host's sessions are still open to join.
+  Future<int> openSessionCountByHost(String hostId);
+
   /// Sessions where the current user has a PENDING or APPROVED registration.
   Future<Page<Session>> joinedByCurrentUser(SessionListQuery query);
 

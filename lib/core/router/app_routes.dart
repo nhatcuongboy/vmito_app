@@ -16,6 +16,8 @@ abstract final class AppRoutes {
   ).toString();
 
   static const home = '/home';
+  static const homeSearchPath = 'search';
+  static const homeSearch = '$home/$homeSearchPath';
   static const leaderboard = '/leaderboard';
   static const homeDiscoveryTabQuery = 'tab';
   static String homeForVenue(String venueId, String venueName) => Uri(
@@ -26,8 +28,23 @@ abstract final class AppRoutes {
     path: home,
     queryParameters: {homeDiscoveryTabQuery: tab},
   ).toString();
+  static String homeSearchFor(String tab, {String? query}) => Uri(
+    path: homeSearch,
+    queryParameters: {
+      homeDiscoveryTabQuery: tab,
+      if (query != null && query.isNotEmpty) 'q': query,
+    },
+  ).toString();
   static const browseSessions = '/sessions';
-  static const pendingRequests = '/sessions/pending-requests';
+  static const mySessionsSearchPath = 'search';
+  static const mySessionsSearch = '$browseSessions/$mySessionsSearchPath';
+  static String mySessionsSearchFor(String scope, {String? query}) => Uri(
+    path: mySessionsSearch,
+    queryParameters: {
+      'scope': scope,
+      if (query != null && query.isNotEmpty) 'q': query,
+    },
+  ).toString();
   static String sessionDetail(String id) => '/sessions/$id';
   static String liveSession(String id) => '/sessions/$id/live';
   static String manageSession(String id) => '/sessions/$id/manage';
@@ -46,6 +63,9 @@ abstract final class AppRoutes {
   static const profile = '/profile';
   static const settings = '/settings';
   static const accountSecurity = '/settings/account-security';
+  static const feedback = '/feedback';
+  static const terms = '/terms';
+  static const privacy = '/privacy';
   static const feed = '/feed';
   static const venues = '/venues';
   static String venueDetail(String id) => '/venues/$id';
@@ -62,7 +82,14 @@ abstract final class AppRoutes {
   /// Routes that remain in a shell branch but need an uninterrupted workspace.
   static bool hidesBottomNavigation(String location) {
     final path = Uri.tryParse(location)?.path ?? location;
-    return RegExp(r'^/sessions/[^/]+/manage$').hasMatch(path);
+    final isSessionDetail =
+        RegExp(r'^/sessions/[^/]+$').hasMatch(path) &&
+        path != createSession &&
+        path != mySessionsSearch;
+    return path == homeSearch ||
+        path == mySessionsSearch ||
+        isSessionDetail ||
+        RegExp(r'^/sessions/[^/]+/manage$').hasMatch(path);
   }
 
   static const tournaments = '/tournaments';
@@ -89,6 +116,9 @@ abstract final class AppRoutes {
   static const nameProfile = 'profile';
   static const nameSettings = 'settings';
   static const nameAccountSecurity = 'accountSecurity';
+  static const nameFeedback = 'feedback';
+  static const nameTerms = 'terms';
+  static const namePrivacy = 'privacy';
   static const nameSessionDetail = 'sessionDetail';
   static const nameLiveSession = 'liveSession';
   static const namePublicProfile = 'publicProfile';
@@ -104,6 +134,8 @@ abstract final class AppRoutes {
     signUp,
     forgotPassword,
     resetPassword,
+    terms,
+    privacy,
     home,
     leaderboard,
     venues,
@@ -117,7 +149,6 @@ abstract final class AppRoutes {
   static const protectedPaths = <String>[
     browseSessions,
     createSession,
-    pendingRequests,
     notifications,
     manageClubs,
     createTournament,
@@ -134,6 +165,7 @@ abstract final class AppRoutes {
     ).firstMatch(path);
     if (publicSession != null &&
         publicSession.group(1) != 'create' &&
+        publicSession.group(1) != mySessionsSearchPath &&
         publicSession.group(1) != 'pending-requests') {
       return true;
     }

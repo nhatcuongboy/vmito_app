@@ -7,6 +7,9 @@ import 'package:vmito_app/core/network/paginated.dart' as pagination;
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
+import 'package:vmito_app/features/registration/application/my_join_requests_controller.dart';
+import 'package:vmito_app/features/registration/data/registration_repository.dart';
+import 'package:vmito_app/features/registration/domain/my_join_request.dart';
 import 'package:vmito_app/features/session/application/player/my_sessions_controller.dart';
 import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
 import 'package:vmito_app/features/session/domain/repositories/session_repository.dart';
@@ -17,6 +20,9 @@ import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 
 class _MockSessionRepository extends Mock implements SessionRepository {}
+
+class _MockRegistrationRepository extends Mock
+    implements RegistrationRepository {}
 
 const _me = User(id: 'u1', email: 'me@vmito.com', role: UserRole.host);
 
@@ -43,16 +49,31 @@ void _stubSessionLists(_MockSessionRepository repository) {
   when(repository.pendingJoinRequestCount).thenAnswer((_) async => 0);
 }
 
+void _stubMyJoinRequests(_MockRegistrationRepository repository) {
+  when(
+    () => repository.myJoinRequests(
+      page: any(named: 'page'),
+      limit: any(named: 'limit'),
+    ),
+  ).thenAnswer((_) async => _page(<MyJoinRequest>[]));
+}
+
 Future<void> _pump(
   WidgetTester tester,
   SessionRepository repository,
 ) async {
+  final registrationRepository = _MockRegistrationRepository();
+  _stubMyJoinRequests(registrationRepository);
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         currentUserProvider.overrideWithValue(_me),
         sessionRepositoryProvider.overrideWithValue(repository),
+        registrationRepositoryProvider.overrideWithValue(
+          registrationRepository,
+        ),
         mySessionsRealtimeProvider.overrideWith((ref) {}),
+        myJoinRequestsRealtimeProvider.overrideWith((ref) {}),
       ],
       child: MaterialApp(
         locale: const Locale('vi'),
@@ -70,6 +91,8 @@ Future<void> _pumpWithRouter(
   WidgetTester tester,
   SessionRepository repository,
 ) async {
+  final registrationRepository = _MockRegistrationRepository();
+  _stubMyJoinRequests(registrationRepository);
   final router = GoRouter(
     initialLocation: '/sessions',
     routes: [
@@ -77,6 +100,18 @@ Future<void> _pumpWithRouter(
         path: '/sessions',
         builder: (_, _) => const BrowseSessionsScreen(),
         routes: [
+          GoRoute(
+            path: 'search',
+            builder: (context, state) => Scaffold(
+              body: Center(
+                child: FilledButton(
+                  key: const Key('fake-my-sessions-search-submit'),
+                  onPressed: () => context.pop('kèo tối'),
+                  child: Text(state.uri.queryParameters['scope'] ?? ''),
+                ),
+              ),
+            ),
+          ),
           GoRoute(
             path: ':id',
             builder: (_, state) => Text('detail-${state.pathParameters['id']}'),
@@ -98,7 +133,11 @@ Future<void> _pumpWithRouter(
       overrides: [
         currentUserProvider.overrideWithValue(_me),
         sessionRepositoryProvider.overrideWithValue(repository),
+        registrationRepositoryProvider.overrideWithValue(
+          registrationRepository,
+        ),
         mySessionsRealtimeProvider.overrideWith((ref) {}),
+        myJoinRequestsRealtimeProvider.overrideWith((ref) {}),
       ],
       child: MaterialApp.router(
         locale: const Locale('vi'),
@@ -124,6 +163,9 @@ void main() {
 
     expect(find.text('Quản lý kèo'), findsOneWidget);
     expect(find.text('Kèo tham gia'), findsOneWidget);
+    expect(find.byType(SearchBar), findsNothing);
+    expect(find.byKey(const Key('my-sessions-search-button')), findsOneWidget);
+    expect(find.byKey(const Key('my-sessions-filter-button')), findsOneWidget);
 
     // Open filter sheet and select ended
     await tester.tap(find.byKey(const Key('my-sessions-filter-button')));
@@ -140,6 +182,7 @@ void main() {
 
     // Pending requests button should only be visible in Quản lý kèo scope
     expect(find.byKey(const Key('pending-requests-button')), findsNothing);
+    expect(find.byKey(const Key('my-join-requests-button')), findsOneWidget);
 
     // Open filter sheet and select all
     await tester.tap(find.byKey(const Key('my-sessions-filter-button')));
@@ -176,6 +219,72 @@ void main() {
 
     expect(find.byKey(const Key('pending-requests-button')), findsOneWidget);
     expect(find.text('1'), findsOneWidget);
+  });
+
+  testWidgets('searches the active scope and back restores its snapshot', (
+    tester,
+  ) async {
+    final repository = _MockSessionRepository();
+    _stubSessionLists(repository);
+    await _pumpWithRouter(tester, repository);
+
+    await tester.tap(find.byKey(const Key('my-sessions-search-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('hosted'), findsOneWidget);
+    await tester.tap(
+      find.byKey(const Key('fake-my-sessions-search-submit')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const Key('my-sessions-search-result-query')),
+      findsOneWidget,
+    );
+    expect(find.text('kèo tối'), findsOneWidget);
+    final searchedQuery =
+        verify(
+              () => repository.hostedBy(
+                any(),
+                limit: any(named: 'limit'),
+                page: any(named: 'page'),
+                query: captureAny(named: 'query'),
+              ),
+            ).captured.last
+            as SessionListQuery;
+    expect(searchedQuery.search, 'kèo tối');
+
+    await tester.tap(
+      find.byKey(const Key('my-sessions-search-exit-results')),
+    );
+    await tester.pump();
+
+    expect(
+      find.byKey(const Key('my-sessions-search-result-query')),
+      findsNothing,
+    );
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(BrowseSessionsScreen)),
+    );
+    expect(
+      container
+          .read(mySessionsControllerProvider(MySessionScope.hosted))
+          .search,
+      isEmpty,
+    );
+  });
+
+  testWidgets('opens search with the joined scope', (tester) async {
+    final repository = _MockSessionRepository();
+    _stubSessionLists(repository);
+    await _pumpWithRouter(tester, repository);
+
+    await tester.tap(find.text('Kèo tham gia'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('my-sessions-search-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('joined'), findsOneWidget);
   });
 
   testWidgets('hosted card opens detail', (tester) async {

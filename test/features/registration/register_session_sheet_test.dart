@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vmito_app/core/network/paginated.dart' as pagination;
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/features/registration/data/registration_repository.dart';
+import 'package:vmito_app/features/registration/domain/my_join_request.dart';
 import 'package:vmito_app/features/registration/presentation/register_session_sheet.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
@@ -24,6 +26,21 @@ class _FakeRepository implements RegistrationRepository {
 
   @override
   Future<void> withdraw(String playerId) async {}
+
+  @override
+  Future<pagination.Page<MyJoinRequest>> myJoinRequests({
+    required int page,
+    required int limit,
+  }) async => const pagination.Page<MyJoinRequest>(
+    items: <MyJoinRequest>[],
+    total: 0,
+    page: 1,
+    limit: 20,
+    totalPages: 0,
+  );
+
+  @override
+  Future<void> withdrawMyJoinRequest(String sessionId) async {}
 }
 
 const _me = User(

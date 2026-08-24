@@ -27,6 +27,12 @@ class Venue {
     this.closureStatus = 'OPERATING',
     this.amenities = const [],
     this.sportType,
+    this.sportTypes = const [],
+    this.hasCarParking,
+    this.hasCanteen,
+    this.wifiName,
+    this.wifiPassword,
+    this.bookingPolicy,
   });
 
   factory Venue.fromJson(Map<String, dynamic> json) => Venue(
@@ -69,6 +75,14 @@ class Venue {
         .whereType<String>()
         .toList(growable: false),
     sportType: json['sportType'] as String?,
+    sportTypes: (json['sportTypes'] as List<dynamic>? ?? const [])
+        .whereType<String>()
+        .toList(growable: false),
+    hasCarParking: json['hasCarParking'] as bool?,
+    hasCanteen: json['hasCanteen'] as bool?,
+    wifiName: json['wifiName'] as String?,
+    wifiPassword: json['wifiPassword'] as String?,
+    bookingPolicy: json['bookingPolicy'] as String?,
   );
 
   final String id;
@@ -98,6 +112,24 @@ class Venue {
   final String closureStatus;
   final List<String> amenities;
   final String? sportType;
+  final List<String> sportTypes;
+  final bool? hasCarParking;
+  final bool? hasCanteen;
+  final String? wifiName;
+  final String? wifiPassword;
+  final String? bookingPolicy;
+
+  String displayName({
+    required String generic,
+    required Map<String, String> bySport,
+  }) {
+    if (_hasVenueNameAffix(name)) return name;
+    final sports = sportTypes.isNotEmpty
+        ? sportTypes
+        : [sportType ?? 'BADMINTON'];
+    if (sports.length > 1) return generic;
+    return bySport[sports.first] ?? bySport['BADMINTON'] ?? generic;
+  }
 
   String get addressLabel => [
     newAddress ?? address,
@@ -109,6 +141,29 @@ class Venue {
     if (coverPhoto?.isNotEmpty ?? false) coverPhoto!,
     ...images.where((image) => image != coverPhoto),
   ];
+}
+
+const _sportNameKeywords = [
+  'cầu lông',
+  'badminton',
+  'pickleball',
+  'pickle ball',
+  '羽毛球',
+  '匹克球',
+];
+
+bool _hasVenueNameAffix(String name) {
+  final lowerName = name.toLowerCase();
+  return lowerName.startsWith('sân ') ||
+      lowerName.startsWith('sân.') ||
+      lowerName.startsWith('clb ') ||
+      lowerName.startsWith('câu lạc bộ ') ||
+      lowerName.startsWith('câu lạc bộ\n') ||
+      lowerName.endsWith(' court') ||
+      lowerName.endsWith(' club') ||
+      lowerName.endsWith('场') ||
+      lowerName.endsWith('俱乐部') ||
+      _sportNameKeywords.any(lowerName.contains);
 }
 
 class VenuePage {
@@ -216,6 +271,19 @@ class VenueFilter {
   final double? latitude;
   final double? longitude;
   final String? sportType;
+
+  int activeCount({String? preferredCity}) {
+    final normalizedCity = city?.trim();
+    final normalizedPreferredCity = preferredCity?.trim();
+    return (normalizedCity == null ||
+                normalizedCity.isEmpty ||
+                normalizedCity == normalizedPreferredCity
+            ? 0
+            : 1) +
+        (district?.trim().isEmpty ?? true ? 0 : 1) +
+        (favoriteOnly ? 1 : 0);
+  }
+
   VenueFilter copyWith({
     String? keyword,
     String? city,

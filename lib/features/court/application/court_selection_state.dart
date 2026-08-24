@@ -64,6 +64,7 @@ abstract class CourtSelectionState with _$CourtSelectionState {
   /// because it needs the court's direction.
   List<PlayerPosition> get manualPayload => [
     for (var seat = 0; seat < slots.length; seat++)
-      if (slots[seat] case final id?) PlayerPosition(playerId: id, position: seat),
+      if (slots[seat] case final id?)
+        PlayerPosition(playerId: id, position: seat),
   ];
 }

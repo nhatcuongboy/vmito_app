@@ -120,7 +120,7 @@ class HostOverviewTab extends ConsumerWidget {
   }
 }
 
-/// Relocated to sit below the info card: starting/ending a session is a 
+/// Relocated to sit below the info card: starting/ending a session is a
 /// deliberate act, not the single next thing a host does.
 class _StartSessionButton extends ConsumerWidget {
   const _StartSessionButton({required this.sessionId});
@@ -208,9 +208,7 @@ class _StatusBanner extends StatelessWidget {
       child: Row(
         children: [
           Icon(
-            cancelled
-                ? AppIcons.cancel
-                : AppIcons.checkCircle,
+            cancelled ? AppIcons.cancel : AppIcons.checkCircle,
             color: color,
           ),
           const SizedBox(width: 10),
@@ -405,7 +403,10 @@ class _StatusChip extends StatelessWidget {
         l10n.sessionStatusPreparing,
         palette.mutedForeground,
       ),
-      SessionStatus.inProgress => (l10n.sessionStatusInProgress, palette.success),
+      SessionStatus.inProgress => (
+        l10n.sessionStatusInProgress,
+        palette.success,
+      ),
       SessionStatus.finished => (
         l10n.sessionStatusFinished,
         palette.mutedForeground,
@@ -413,7 +414,10 @@ class _StatusChip extends StatelessWidget {
       SessionStatus.cancelled => (l10n.sessionStatusCancelled, palette.warning),
     };
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 3),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: 3,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(AppRadius.md),

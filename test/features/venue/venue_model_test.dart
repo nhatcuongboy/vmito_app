@@ -41,10 +41,86 @@ void main() {
       expect(page.venues.single.gallery, ['cover.jpg', 'one.jpg', 'two.jpg']);
     });
 
+    test('parses detail amenities and all venue sports', () {
+      final venue = Venue.fromJson({
+        'id': 'v1',
+        'name': 'Phú Nhuận',
+        'sportType': 'BADMINTON',
+        'sportTypes': ['BADMINTON', 'PICKLEBALL'],
+        'hasCarParking': true,
+        'hasCanteen': false,
+        'wifiName': 'Vmito Guest',
+        'wifiPassword': '12345678',
+        'bookingPolicy': 'Đặt trước 30 phút.',
+      });
+
+      expect(venue.sportTypes, ['BADMINTON', 'PICKLEBALL']);
+      expect(venue.hasCarParking, isTrue);
+      expect(venue.hasCanteen, isFalse);
+      expect(venue.wifiName, 'Vmito Guest');
+      expect(venue.wifiPassword, '12345678');
+      expect(venue.bookingPolicy, 'Đặt trước 30 phút.');
+    });
+
+    test('formats single and multi-sport venue names like the web', () {
+      const candidates = {
+        'BADMINTON': 'Sân cầu lông Phú Nhuận',
+        'PICKLEBALL': 'Sân pickleball Phú Nhuận',
+      };
+
+      expect(
+        const Venue(
+          id: 'badminton',
+          name: 'Phú Nhuận',
+          sportType: 'BADMINTON',
+        ).displayName(generic: 'Sân Phú Nhuận', bySport: candidates),
+        'Sân cầu lông Phú Nhuận',
+      );
+      expect(
+        const Venue(
+          id: 'multi',
+          name: 'Phú Nhuận',
+          sportTypes: ['BADMINTON', 'PICKLEBALL'],
+        ).displayName(generic: 'Sân Phú Nhuận', bySport: candidates),
+        'Sân Phú Nhuận',
+      );
+    });
+
+    test('does not duplicate an existing venue affix or sport keyword', () {
+      const candidates = {'BADMINTON': 'Sân cầu lông Phú Nhuận'};
+
+      for (final name in [
+        'Sân Phú Nhuận',
+        'CLB Phú Nhuận',
+        'Phú Nhuận Badminton',
+      ]) {
+        expect(
+          Venue(id: name, name: name).displayName(
+            generic: 'Sân $name',
+            bySport: candidates,
+          ),
+          name,
+        );
+      }
+    });
+
     test('filter preserves the position unless explicitly cleared', () {
       const filter = VenueFilter(latitude: 10.7, longitude: 106.6);
       expect(filter.copyWith(keyword: 'abc').latitude, 10.7);
       expect(filter.copyWith(clearLocation: true).latitude, isNull);
+    });
+
+    test('venue filter count excludes keyword, sort, and preferred city', () {
+      const filter = VenueFilter(
+        keyword: 'thpt',
+        city: 'Hồ Chí Minh',
+        district: 'Phú Nhuận',
+        sortBy: 'createdAt',
+        favoriteOnly: true,
+      );
+
+      expect(filter.activeCount(preferredCity: 'Hồ Chí Minh'), 2);
+      expect(filter.activeCount(preferredCity: 'Hà Nội'), 3);
     });
 
     test('session venue filter counts once and clears as one unit', () {

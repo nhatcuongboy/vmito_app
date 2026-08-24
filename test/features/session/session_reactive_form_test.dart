@@ -47,4 +47,26 @@ void main() {
     expect(state.courts, hasLength(2));
     expect(state.courts.every((court) => court.courtId == null), isTrue);
   });
+
+  test('validates host phone format', () {
+    final base = SessionFormDefaults.create(hostName: 'Cường');
+    final form = createSessionReactiveForm(base);
+    addTearDown(form.dispose);
+
+    final phoneControl = form.control(SessionFormControl.hostPhone);
+    phoneControl.value = '';
+    expect(phoneControl.valid, isTrue);
+
+    phoneControl.value = '0901234567';
+    expect(phoneControl.valid, isTrue);
+
+    phoneControl.value = '+84901234567';
+    expect(phoneControl.valid, isTrue);
+
+    phoneControl.value = '123';
+    expect(phoneControl.hasError('phone'), isTrue);
+
+    phoneControl.value = 'abcd';
+    expect(phoneControl.hasError('phone'), isTrue);
+  });
 }

@@ -36,7 +36,7 @@ class SessionDetailStats extends StatelessWidget {
       children: [
         if (!session.isCrawled) ...[
           _Participants(session: session),
-          Divider(height: AppSpacing.lg * 2, color: palette.border),
+          Divider(height: AppSpacing.lg, color: palette.border),
         ],
         _FactGrid(session: session),
         const SizedBox(height: AppSpacing.md),
@@ -56,7 +56,7 @@ class _Participants extends StatefulWidget {
 }
 
 class _ParticipantsState extends State<_Participants> {
-  static const _maxVisiblePlayers = 12;
+  static const _maxVisibleSlots = 10;
   bool _expanded = false;
 
   @override
@@ -66,18 +66,20 @@ class _ParticipantsState extends State<_Participants> {
     final l10n = AppLocalizations.of(context);
     final players = widget.session.approvedPlayers;
     final capacity = widget.session.capacity;
-    final visiblePlayers = _expanded
-        ? players
-        : players.take(_maxVisiblePlayers).toList();
-    final hasMore = players.length > _maxVisiblePlayers;
     final availableSlots = capacity > players.length
         ? capacity - players.length
         : 0;
+    final totalSlots = players.length + availableSlots;
+    final hasMore = totalSlots > _maxVisibleSlots;
+
+    final visiblePlayers = _expanded
+        ? players
+        : players.take(_maxVisibleSlots).toList();
     final visibleEmptySlots = _expanded
         ? availableSlots
         : availableSlots.clamp(
             0,
-            (_maxVisiblePlayers - visiblePlayers.length).clamp(0, 999),
+            (_maxVisibleSlots - visiblePlayers.length).clamp(0, 999),
           );
 
     return Column(
@@ -104,11 +106,14 @@ class _ParticipantsState extends State<_Participants> {
           ],
         ),
         const SizedBox(height: AppSpacing.sm + 4),
-        if (players.isEmpty && visibleEmptySlots == 0)
-          Text(
-            l10n.sessionNoPlayersYet,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: palette.mutedForeground,
+        if (players.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+            child: Text(
+              l10n.sessionNoPlayersYet,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: palette.mutedForeground,
+              ),
             ),
           )
         else ...[
@@ -126,6 +131,14 @@ class _ParticipantsState extends State<_Participants> {
             Align(
               alignment: Alignment.centerLeft,
               child: TextButton(
+                style: TextButton.styleFrom(
+                  visualDensity: VisualDensity.compact,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xs,
+                    vertical: AppSpacing.xs,
+                  ),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
                 onPressed: () => setState(() => _expanded = !_expanded),
                 child: Text(
                   _expanded ? l10n.sessionShowLess : l10n.sessionViewAllPlayers,
@@ -149,6 +162,8 @@ class _PlayerAvatarTile extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final name = l10n.playerName(player);
     final level = player.level;
+    final hasImage = player.userImage?.trim().isNotEmpty ?? false;
+    final initial = name.trim().isEmpty ? '?' : name.trim()[0].toUpperCase();
 
     return Semantics(
       button: true,
@@ -177,16 +192,19 @@ class _PlayerAvatarTile extends StatelessWidget {
                     ),
                     child: CircleAvatar(
                       radius: 20,
-                      backgroundColor: theme.colorScheme.primaryContainer,
-                      foregroundImage: player.userImage?.trim().isEmpty ?? true
-                          ? null
-                          : CachedNetworkImageProvider(player.userImage!),
-                      child: player.userImage?.trim().isEmpty ?? true
-                          ? Icon(
-                              AppIcons.profile,
-                              color: theme.colorScheme.primary,
-                            )
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundImage: hasImage
+                          ? CachedNetworkImageProvider(player.userImage!)
                           : null,
+                      child: hasImage
+                          ? null
+                          : Text(
+                              initial,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: theme.colorScheme.onPrimary,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                     ),
                   ),
                   if (level != null)
@@ -241,6 +259,7 @@ class _EmptySlotTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
     final l10n = AppLocalizations.of(context);
     return SizedBox(
       width: 56,
@@ -249,15 +268,15 @@ class _EmptySlotTile extends StatelessWidget {
         children: [
           CustomPaint(
             foregroundPainter: _DashedCirclePainter(
-              color: theme.colorScheme.outlineVariant,
+              color: palette.border,
             ),
             child: SizedBox(
               width: 44,
               height: 44,
               child: Icon(
                 AppIcons.add,
-                size: 20,
-                color: theme.colorScheme.onSurfaceVariant,
+                size: 18,
+                color: palette.mutedForeground.withValues(alpha: 0.5),
               ),
             ),
           ),
@@ -267,7 +286,7 @@ class _EmptySlotTile extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: theme.textTheme.labelSmall?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+              color: palette.mutedForeground,
             ),
           ),
         ],

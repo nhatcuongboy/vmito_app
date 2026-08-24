@@ -10,6 +10,7 @@ import 'package:vmito_app/core/shell/app_shell_scaffold_key.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/core/widgets/notification_header_button.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/presentation/widgets/post_avatar.dart';
@@ -46,17 +47,13 @@ class _SocialHubScreenState extends State<SocialHubScreen> {
               final isAuthenticated =
                   ref.watch(authControllerProvider).status ==
                   AuthStatus.authenticated;
-              return IconButton(
-                tooltip: isAuthenticated
-                    ? l10n.notificationsTitle
-                    : l10n.authSignIn,
-                icon: Icon(
-                  isAuthenticated ? AppIcons.notifications : AppIcons.login,
-                ),
-                onPressed: () => context.push(
-                  isAuthenticated ? AppRoutes.notifications : AppRoutes.signIn,
-                ),
-              );
+              return isAuthenticated
+                  ? const NotificationHeaderButton()
+                  : IconButton(
+                      tooltip: l10n.authSignIn,
+                      icon: const Icon(AppIcons.login),
+                      onPressed: () => context.push(AppRoutes.signIn),
+                    );
             },
           ),
         ],

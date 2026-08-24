@@ -49,17 +49,20 @@ ProviderContainer _container(
 }
 
 void main() {
-  test('signed out: reports an empty summary without calling the API', () async {
-    final repository = _FakeFavoriteRepository();
-    final container = _container(repository, signedIn: false);
+  test(
+    'signed out: reports an empty summary without calling the API',
+    () async {
+      final repository = _FakeFavoriteRepository();
+      final container = _container(repository, signedIn: false);
 
-    final summary = await container.read(
-      favoriteControllerProvider(_target).future,
-    );
+      final summary = await container.read(
+        favoriteControllerProvider(_target).future,
+      );
 
-    expect(summary, const FavoriteSummary());
-    expect(repository.summaryCalls, 0);
-  });
+      expect(summary, const FavoriteSummary());
+      expect(repository.summaryCalls, 0);
+    },
+  );
 
   test('signed out: toggle reports false so the caller can prompt', () async {
     final repository = _FakeFavoriteRepository();
@@ -81,9 +84,7 @@ void main() {
     final container = _container(repository);
     await container.read(favoriteControllerProvider(_target).future);
 
-    await container
-        .read(favoriteControllerProvider(_target).notifier)
-        .toggle();
+    await container.read(favoriteControllerProvider(_target).notifier).toggle();
 
     final state = container.read(favoriteControllerProvider(_target)).value!;
     expect(state.isFavorite, isTrue);
@@ -100,9 +101,7 @@ void main() {
     final container = _container(repository);
     await container.read(favoriteControllerProvider(_target).future);
 
-    await container
-        .read(favoriteControllerProvider(_target).notifier)
-        .toggle();
+    await container.read(favoriteControllerProvider(_target).notifier).toggle();
 
     final state = container.read(favoriteControllerProvider(_target)).value!;
     expect(state.isFavorite, isFalse);

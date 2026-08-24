@@ -13,6 +13,8 @@ import 'package:vmito_app/core/theme/theme_mode_controller.dart';
 import 'package:vmito_app/core/utils/logger.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/court/application/court_display_mode_controller.dart';
+import 'package:vmito_app/features/home/application/home_search_history.dart';
+import 'package:vmito_app/features/session/application/player/my_sessions_search_history.dart';
 
 /// Composition root: builds every long-lived singleton, restores the session,
 /// then hands control to [VmitoApp].
@@ -62,6 +64,12 @@ Future<void> bootstrap() async {
       ),
       courtDisplayModeRepositoryProvider.overrideWithValue(
         SharedPreferencesCourtDisplayModeRepository(preferences),
+      ),
+      homeSearchHistoryRepositoryProvider.overrideWithValue(
+        SharedPreferencesHomeSearchHistoryRepository(preferences),
+      ),
+      mySessionsSearchHistoryRepositoryProvider.overrideWithValue(
+        SharedPreferencesMySessionsSearchHistoryRepository(preferences),
       ),
     ],
   );

@@ -226,8 +226,11 @@ class _HostRosterTabState extends ConsumerState<HostRosterTab> {
         context: context,
         builder: (context) => AlertDialog(
           title: const Text('Xóa người chơi?'),
-          content: Text(
-            'Xóa ${player.displayName ?? 'người chơi này'} khỏi kèo?',
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(minWidth: 320),
+            child: Text(
+              'Xóa ${player.displayName ?? 'người chơi này'} khỏi kèo?',
+            ),
           ),
           actions: [
             TextButton(

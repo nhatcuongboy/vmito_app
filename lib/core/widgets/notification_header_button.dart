@@ -48,37 +48,11 @@ class _NotificationHeaderButtonState
           height: AppSizes.minTapTarget,
         ),
         onPressed: () => context.push(AppRoutes.notifications),
-        icon: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            const Icon(AppIcons.notifications),
-            if (unreadCount > 0)
-              Positioned(
-                top: -7,
-                right: -9,
-                child: ExcludeSemantics(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.error,
-                      borderRadius: BorderRadius.circular(AppRadius.pill),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.xs,
-                        vertical: AppSpacing.xxs,
-                      ),
-                      child: Text(
-                        badgeLabel,
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onError,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-          ],
+        icon: Badge(
+          isLabelVisible: unreadCount > 0,
+          label: Text(badgeLabel),
+          offset: const Offset(6, -4),
+          child: const Icon(AppIcons.notifications),
         ),
       ),
     );

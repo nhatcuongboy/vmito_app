@@ -12,10 +12,14 @@ import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/core/widgets/notification_header_button.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
+import 'package:vmito_app/features/registration/application/my_join_requests_controller.dart';
 import 'package:vmito_app/features/registration/domain/pending_join_request.dart';
+import 'package:vmito_app/features/registration/presentation/my_join_requests_sheet.dart';
 import 'package:vmito_app/features/session/application/player/my_sessions_controller.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
+import 'package:vmito_app/features/session/presentation/player/pending_requests_screen.dart';
 import 'package:vmito_app/features/session/presentation/widgets/session_card.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_loading_view.dart';
@@ -31,12 +35,9 @@ class BrowseSessionsScreen extends ConsumerStatefulWidget {
 
 class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
   MySessionScope _scope = MySessionScope.hosted;
-  final _searchControllers = <MySessionScope, TextEditingController>{
-    MySessionScope.hosted: TextEditingController(),
-    MySessionScope.joined: TextEditingController(),
-  };
   final _scrollControllers = <MySessionScope, ScrollController>{};
-  Timer? _searchDebounce;
+  final _searchQueries = <MySessionScope, String>{};
+  final _browseSnapshots = <MySessionScope, MySessionsState>{};
   bool _isFabExtended = true;
 
   @override
@@ -51,10 +52,6 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
 
   @override
   void dispose() {
-    _searchDebounce?.cancel();
-    for (final controller in _searchControllers.values) {
-      controller.dispose();
-    }
     for (final controller in _scrollControllers.values) {
       controller.dispose();
     }
@@ -78,11 +75,14 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    ref.watch(mySessionsRealtimeProvider);
+    ref
+      ..watch(mySessionsRealtimeProvider)
+      ..watch(myJoinRequestsRealtimeProvider);
     final l10n = AppLocalizations.of(context);
     final isAuthenticated =
         ref.watch(authControllerProvider).status == AuthStatus.authenticated;
     final state = ref.watch(mySessionsControllerProvider(_scope));
+    final myJoinRequests = ref.watch(myJoinRequestsControllerProvider);
     final controller = ref.read(
       mySessionsControllerProvider(_scope).notifier,
     );
@@ -96,43 +96,23 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
         ).showSnackBar(SnackBar(content: Text(l10n.errorUnknown)));
       }
     });
-    final searchController = _searchControllers[_scope]!;
+    final activeQuery = _searchQueries[_scope];
 
     return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          tooltip: l10n.menuOpenTooltip,
-          icon: const Icon(AppIcons.menu),
-          onPressed: () =>
-              ref.read(appShellScaffoldKeyProvider).currentState?.openDrawer(),
-        ),
-        title: Text(l10n.mySessionsTitle),
-        actions: [
-          if (_scope == MySessionScope.hosted)
-            IconButton(
-              key: const Key('pending-requests-button'),
-              tooltip: l10n.mySessionsPendingRequests,
-              icon: Badge(
-                isLabelVisible: state.pendingCount > 0,
-                label: Text('${state.pendingCount}'),
-                child: const Icon(AppIcons.userCheck),
-              ),
-              onPressed: () => context.push(AppRoutes.pendingRequests),
-            ),
-          if (isAuthenticated)
-            IconButton(
-              tooltip: l10n.notificationsTitle,
-              icon: const Icon(AppIcons.notifications),
-              onPressed: () => context.push(AppRoutes.notifications),
+      appBar: activeQuery == null
+          ? _buildBrowseAppBar(
+              l10n: l10n,
+              state: state,
+              myJoinRequests: myJoinRequests,
+              controller: controller,
+              isAuthenticated: isAuthenticated,
             )
-          else
-            IconButton(
-              tooltip: l10n.authSignIn,
-              icon: const Icon(AppIcons.login),
-              onPressed: () => context.push(AppRoutes.signIn),
+          : _buildSearchResultsAppBar(
+              l10n: l10n,
+              query: activeQuery,
+              state: state,
+              controller: controller,
             ),
-        ],
-      ),
       body: NotificationListener<ScrollNotification>(
         onNotification: (notification) {
           if (notification.metrics.axis == Axis.vertical) {
@@ -181,73 +161,22 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
                   onSelectionChanged: (selection) {
                     final scope = selection.single;
                     if (scope == _scope) return;
-                    _searchDebounce?.cancel();
                     setState(() {
                       _scope = scope;
                       _isFabExtended = true;
                     });
                     if (scope == MySessionScope.joined) {
+                      _loadScope(scope);
                       unawaited(
                         ref
-                            .read(mySessionsControllerProvider(scope).notifier)
-                            .setFilter(MySessionFilter.active),
+                            .read(myJoinRequestsControllerProvider.notifier)
+                            .loadInitial(),
                       );
                     } else {
                       _loadScope(scope);
                     }
                   },
                 ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                AppSpacing.sm,
-                AppSpacing.md,
-                AppSpacing.sm,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: SearchBar(
-                      key: ValueKey('my-sessions-search-${_scope.name}'),
-                      controller: searchController,
-                      hintText: l10n.mySessionsSearchHint,
-                      leading: const Icon(AppIcons.search),
-                      trailing: [
-                        if (searchController.text.isNotEmpty)
-                          IconButton(
-                            icon: const Icon(AppIcons.close),
-                            onPressed: () {
-                              searchController.clear();
-                              setState(() {});
-                              unawaited(controller.setSearch(''));
-                            },
-                          ),
-                      ],
-                      onChanged: (value) {
-                        setState(() {});
-                        _searchDebounce?.cancel();
-                        _searchDebounce = Timer(
-                          const Duration(milliseconds: 400),
-                          () => controller.setSearch(value),
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  IconButton.filledTonal(
-                    key: const Key('my-sessions-filter-button'),
-                    tooltip: l10n.sessionFiltersTitle,
-                    icon: const Icon(AppIcons.tune),
-                    onPressed: () => _showFilterBottomSheet(
-                      context: context,
-                      currentFilter: state.filter,
-                      onFilterSelected: (filter) =>
-                          unawaited(controller.setFilter(filter)),
-                    ),
-                  ),
-                ],
               ),
             ),
             Expanded(
@@ -295,6 +224,171 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
         ),
       ),
     );
+  }
+
+  PreferredSizeWidget _buildBrowseAppBar({
+    required AppLocalizations l10n,
+    required MySessionsState state,
+    required MyJoinRequestsState myJoinRequests,
+    required MySessionsController controller,
+    required bool isAuthenticated,
+  }) => AppBar(
+    leading: IconButton(
+      tooltip: l10n.menuOpenTooltip,
+      icon: const Icon(AppIcons.menu),
+      onPressed: () =>
+          ref.read(appShellScaffoldKeyProvider).currentState?.openDrawer(),
+    ),
+    title: Text(l10n.mySessionsTitle),
+    actions: [
+      if (_scope == MySessionScope.hosted)
+        IconButton(
+          key: const Key('pending-requests-button'),
+          tooltip: l10n.mySessionsPendingRequests,
+          icon: Badge(
+            isLabelVisible: state.pendingCount > 0,
+            label: Text('${state.pendingCount}'),
+            child: const Icon(AppIcons.userCheck),
+          ),
+          onPressed: () => unawaited(showPendingRequestsSheet(context)),
+        ),
+      if (_scope == MySessionScope.joined)
+        IconButton(
+          key: const Key('my-join-requests-button'),
+          tooltip: l10n.myJoinRequestsTitle,
+          icon: Badge(
+            isLabelVisible: myJoinRequests.total > 0,
+            label: Text('${myJoinRequests.total}'),
+            child: const Icon(AppIcons.clipboardList),
+          ),
+          onPressed: () => unawaited(
+            showMyJoinRequestsSheet(
+              context,
+              onMutated: () => ref
+                  .read(
+                    mySessionsControllerProvider(
+                      MySessionScope.joined,
+                    ).notifier,
+                  )
+                  .refreshIfLoaded(),
+            ),
+          ),
+        ),
+      IconButton(
+        key: const Key('my-sessions-filter-button'),
+        tooltip: l10n.sessionFiltersTitle,
+        icon: const Icon(AppIcons.tune),
+        onPressed: () => _openFilters(state, controller),
+      ),
+      IconButton(
+        key: const Key('my-sessions-search-button'),
+        tooltip: l10n.homeSearchTooltip,
+        icon: const Icon(AppIcons.search),
+        onPressed: _openSearch,
+      ),
+      if (isAuthenticated)
+        const NotificationHeaderButton(
+          key: Key('my-sessions-notification-button'),
+        )
+      else
+        IconButton(
+          tooltip: l10n.authSignIn,
+          icon: const Icon(AppIcons.login),
+          onPressed: () => context.push(AppRoutes.signIn),
+        ),
+    ],
+  );
+
+  PreferredSizeWidget _buildSearchResultsAppBar({
+    required AppLocalizations l10n,
+    required String query,
+    required MySessionsState state,
+    required MySessionsController controller,
+  }) => AppBar(
+    leading: IconButton(
+      key: const Key('my-sessions-search-exit-results'),
+      tooltip: l10n.homeSearchExitResults,
+      icon: const Icon(AppIcons.arrowBack),
+      onPressed: _exitSearchResults,
+    ),
+    titleSpacing: 0,
+    title: Semantics(
+      button: true,
+      label: l10n.homeSearchTooltip,
+      child: InkWell(
+        key: const Key('my-sessions-search-result-query'),
+        borderRadius: BorderRadius.circular(24),
+        onTap: _openSearch,
+        child: Container(
+          height: 44,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Row(
+            children: [
+              const Icon(AppIcons.search, size: 21),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  query,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+    actions: [
+      IconButton(
+        key: const Key('my-sessions-filter-button'),
+        tooltip: l10n.sessionFiltersTitle,
+        icon: const Icon(AppIcons.tune),
+        onPressed: () => _openFilters(state, controller),
+      ),
+      const SizedBox(width: 4),
+    ],
+  );
+
+  void _openFilters(
+    MySessionsState state,
+    MySessionsController controller,
+  ) => _showFilterBottomSheet(
+    context: context,
+    currentFilter: state.filter,
+    onFilterSelected: (filter) => unawaited(controller.setFilter(filter)),
+  );
+
+  Future<void> _openSearch() async {
+    final scope = _scope;
+    final result = await context.push<String>(
+      AppRoutes.mySessionsSearchFor(
+        scope.name,
+        query: _searchQueries[scope],
+      ),
+    );
+    if (!mounted || result == null || result.isEmpty) return;
+    _browseSnapshots.putIfAbsent(
+      scope,
+      () => ref.read(mySessionsControllerProvider(scope)),
+    );
+    setState(() => _searchQueries[scope] = result);
+    unawaited(
+      ref.read(mySessionsControllerProvider(scope).notifier).setSearch(result),
+    );
+  }
+
+  void _exitSearchResults() {
+    final scope = _scope;
+    final snapshot = _browseSnapshots.remove(scope);
+    if (snapshot != null) {
+      ref.read(mySessionsControllerProvider(scope).notifier).restore(snapshot);
+    }
+    setState(() => _searchQueries.remove(scope));
   }
 
   void _showFilterBottomSheet({
@@ -497,7 +591,10 @@ class _SessionsBody extends StatelessWidget {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(l10n.mySessionsDeleteConfirmTitle),
-        content: Text(l10n.mySessionsDeleteConfirmMessage),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 320),
+          child: Text(l10n.mySessionsDeleteConfirmMessage),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),

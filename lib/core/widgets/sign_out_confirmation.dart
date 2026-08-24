@@ -13,7 +13,10 @@ Future<void> showSignOutConfirmation(
     context: context,
     builder: (dialogContext) => AlertDialog(
       title: Text(l10n.authSignOut),
-      content: Text(l10n.authSignOutConfirmation),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 320),
+        child: Text(l10n.authSignOutConfirmation),
+      ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),

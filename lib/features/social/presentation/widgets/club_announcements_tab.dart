@@ -139,7 +139,10 @@ class _AnnouncementCard extends ConsumerWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(l10n.clubAnnouncementDelete),
-        content: Text(l10n.clubAnnouncementDeleteConfirm),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 320),
+          child: Text(l10n.clubAnnouncementDeleteConfirm),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),

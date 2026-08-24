@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -251,6 +253,39 @@ void main() {
           .search,
       'joined',
     );
+  });
+
+  test('restore invalidates an in-flight search response', () async {
+    final repository = _MockSessionRepository();
+    final response = Completer<Page<Session>>();
+    when(
+      () => repository.hostedBy(
+        any(),
+        limit: any(named: 'limit'),
+        page: any(named: 'page'),
+        query: any(named: 'query'),
+      ),
+    ).thenAnswer((_) => response.future);
+    when(repository.pendingJoinRequestCount).thenAnswer((_) async => 0);
+    final container = _container(repository);
+    final controller = container.read(
+      mySessionsControllerProvider(MySessionScope.hosted).notifier,
+    );
+    final snapshot = MySessionsState(
+      sessions: [_session('original')],
+      hasLoaded: true,
+    );
+
+    final search = controller.setSearch('new query');
+    controller.restore(snapshot);
+    response.complete(_page([_session('late')]));
+    await search;
+
+    final state = container.read(
+      mySessionsControllerProvider(MySessionScope.hosted),
+    );
+    expect(state.search, isEmpty);
+    expect(state.sessions.single.id, 'original');
   });
 
   test('load failure is retained for the retry/error state', () async {

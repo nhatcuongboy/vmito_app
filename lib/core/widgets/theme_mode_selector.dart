@@ -42,9 +42,7 @@ class _ThemeModeSelectorSheet extends ConsumerWidget {
             for (final (mode, label) in options)
               ListTile(
                 title: Text(label),
-                trailing: selected == mode
-                    ? const Icon(AppIcons.check)
-                    : null,
+                trailing: selected == mode ? const Icon(AppIcons.check) : null,
                 selected: selected == mode,
                 onTap: () async {
                   await ref

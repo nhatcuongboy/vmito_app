@@ -135,33 +135,34 @@ Future<void> showRatingDialog(
     builder: (dialogContext) => StatefulBuilder(
       builder: (context, setState) => AlertDialog(
         title: Text(l10n.socialRateName(name)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                5,
-                (index) => IconButton(
-                  key: Key('rating-star-${index + 1}'),
-                  onPressed: () => setState(() => stars = index + 1),
-                  icon: Icon(
-                    index < stars
-                        ? AppIcons.star
-                        : AppIcons.star,
-                    color: Colors.amber.shade700,
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 320),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  5,
+                  (index) => IconButton(
+                    key: Key('rating-star-${index + 1}'),
+                    onPressed: () => setState(() => stars = index + 1),
+                    icon: Icon(
+                      index < stars ? AppIcons.star : AppIcons.star,
+                      color: Colors.amber.shade700,
+                    ),
                   ),
                 ),
               ),
-            ),
-            TextField(
-              controller: commentController,
-              maxLength: 500,
-              minLines: 2,
-              maxLines: 4,
-              decoration: InputDecoration(hintText: l10n.socialRatingComment),
-            ),
-          ],
+              TextField(
+                controller: commentController,
+                maxLength: 500,
+                minLines: 2,
+                maxLines: 4,
+                decoration: InputDecoration(hintText: l10n.socialRatingComment),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(

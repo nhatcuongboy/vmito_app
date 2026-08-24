@@ -34,7 +34,10 @@ class VenueService {
         if (filter.district?.isNotEmpty ?? false) 'district': filter.district,
         if (filter.favoriteOnly) 'favoriteOnly': true,
         'sortBy': sort,
-        'sortOrder': sort == 'name' ? 'asc' : 'desc',
+        'sortOrder':
+            (sort == 'name' || sort == 'hourlyRateFixed' || sort == 'distance')
+            ? 'asc'
+            : 'desc',
         if (sort == 'distance' && filter.latitude != null)
           'lat': filter.latitude,
         if (sort == 'distance' && filter.longitude != null)

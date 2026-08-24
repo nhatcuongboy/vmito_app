@@ -24,7 +24,9 @@ Stream<int> minuteTicker(DateTime anchor, {DateTime Function()? now}) async* {
   // negative; start the cadence immediately instead of never.
   final intoMinute = sinceAnchor.isNegative
       ? Duration.zero
-      : Duration(microseconds: sinceAnchor.inMicroseconds % _minute.inMicroseconds);
+      : Duration(
+          microseconds: sinceAnchor.inMicroseconds % _minute.inMicroseconds,
+        );
   await Future<void>.delayed(_minute - intoMinute);
   yield elapsedMinutes();
 

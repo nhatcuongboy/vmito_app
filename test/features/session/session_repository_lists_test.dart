@@ -13,6 +13,9 @@ import 'package:vmito_app/features/session/domain/session_list_query.dart';
 import '../../support/fake_secure_storage.dart';
 
 class _RecordingAdapter implements HttpClientAdapter {
+  _RecordingAdapter({this.responseBody});
+
+  final String? responseBody;
   final requests = <RequestOptions>[];
 
   @override
@@ -22,9 +25,11 @@ class _RecordingAdapter implements HttpClientAdapter {
     Future<void>? cancelFuture,
   ) async {
     requests.add(options);
-    final body = options.path.endsWith('/count')
-        ? '{"success":true,"data":{"count":4}}'
-        : '{"success":true,"data":{"data":[],"total":0,"page":1,"limit":20,"totalPages":1}}';
+    final body =
+        responseBody ??
+        (options.path.endsWith('/count')
+            ? '{"success":true,"data":{"count":4}}'
+            : '{"success":true,"data":{"data":[],"total":0,"page":1,"limit":20,"totalPages":1}}');
     return ResponseBody.fromString(
       body,
       200,
@@ -49,6 +54,36 @@ SessionRepositoryImpl _repository(_RecordingAdapter adapter) {
 }
 
 void main() {
+  test('hosted session count reads the public list total', () async {
+    final adapter = _RecordingAdapter(
+      responseBody:
+          '{"success":true,"data":{"data":[],"total":42,"page":1,"limit":1,"totalPages":42}}',
+    );
+
+    final count = await _repository(adapter).publicSessionCountByHost('h1');
+
+    expect(count, 42);
+    expect(adapter.requests.single.path, '/sessions/public');
+    expect(adapter.requests.single.queryParameters, {
+      'hostId': 'h1',
+      'page': 1,
+      'limit': 1,
+    });
+  });
+
+  test('open session count reads the available list pagination total', () async {
+    final adapter = _RecordingAdapter(
+      responseBody:
+          '{"success":true,"data":{"data":[],"pagination":{"page":1,"limit":1,"total":7,"totalPages":7}}}',
+    );
+
+    final count = await _repository(adapter).openSessionCountByHost('h1');
+
+    expect(count, 7);
+    expect(adapter.requests.single.path, '/sessions/available');
+    expect(adapter.requests.single.queryParameters['hostId'], 'h1');
+  });
+
   test('available sessions serializes the complete filter contract', () async {
     final adapter = _RecordingAdapter();
     final repository = _repository(adapter);

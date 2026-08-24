@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vmito_app/core/network/paginated.dart' as pagination;
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
@@ -8,7 +9,10 @@ import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/features/favorite/data/favorite_repository.dart';
 import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
+import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/registration/data/registration_repository.dart';
+import 'package:vmito_app/features/registration/domain/my_join_request.dart';
+import 'package:vmito_app/features/session/application/player/host_detail_controller.dart';
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
 import 'package:vmito_app/features/session/application/player/session_recommendations_controller.dart';
 import 'package:vmito_app/features/session/domain/player_detail.dart';
@@ -39,11 +43,13 @@ Session _session({
   SessionStatus status = SessionStatus.preparing,
   List<SessionPlayer> players = const [],
   List<int> requiredLevels = const [9, 1, 10, 2],
+  bool isCrawled = false,
 }) => Session(
   id: 's1',
   name: 'Kèo test chuẩn',
   status: status,
   host: _host,
+  isCrawled: isCrawled,
   numberOfCourts: 2,
   maxPlayersPerCourt: 8,
   startTime: _today.add(const Duration(hours: 20)),
@@ -91,6 +97,21 @@ class _StubRegistrationRepository implements RegistrationRepository {
 
   @override
   Future<void> withdraw(String playerId) async {}
+
+  @override
+  Future<pagination.Page<MyJoinRequest>> myJoinRequests({
+    required int page,
+    required int limit,
+  }) async => const pagination.Page<MyJoinRequest>(
+    items: <MyJoinRequest>[],
+    total: 0,
+    page: 1,
+    limit: 20,
+    totalPages: 0,
+  );
+
+  @override
+  Future<void> withdrawMyJoinRequest(String sessionId) async {}
 }
 
 Future<void> _pump(
@@ -129,6 +150,14 @@ Future<void> _pump(
         registrationRepositoryProvider.overrideWithValue(
           _StubRegistrationRepository(myPlayers),
         ),
+        hostDetailStatsProvider.overrideWith(
+          (ref, id) async => const HostDetailStats(
+            averageRating: 4.6,
+            totalRatings: 23,
+            hostedSessions: 42,
+            openSessions: 3,
+          ),
+        ),
         if (playerDetailOverride != null)
           playerDetailProvider.overrideWith(
             (ref, id) async => playerDetailOverride,
@@ -161,10 +190,12 @@ void main() {
     expect(find.text('Overview'), findsNothing);
     expect(find.text('Courts'), findsNothing);
 
-    expect(find.text('Kèo test chuẩn'), findsOneWidget);
+    expect(find.text('Kèo test chuẩn'), findsNWidgets(2));
     // Clock range and day share one rich Text, so match the plain-text run.
     expect(find.textContaining('20:00 - 22:00'), findsOneWidget);
     expect(find.textContaining('Today'), findsOneWidget);
+    expect(find.text('Badminton  ·  Doubles'), findsOneWidget);
+    expect(find.byKey(const Key('session-detail-sport-icon')), findsOneWidget);
     expect(find.text('Sân The B Hòa Bình'), findsOneWidget);
     expect(find.text('259 Hòa Bình, Phú Thạnh'), findsOneWidget);
     expect(find.text('Admin'), findsOneWidget);
@@ -180,6 +211,93 @@ void main() {
     expect(find.text('Yếu-'), findsOneWidget);
     expect(find.text('Yếu+'), findsOneWidget);
     expect(find.text('TBY'), findsOneWidget);
+  });
+
+  testWidgets('reveals the pinned white header after scrolling past the hero', (
+    tester,
+  ) async {
+    await _pump(tester, _session());
+
+    final appBar = tester.widget<SliverAppBar>(
+      find.byKey(const Key('session-detail-app-bar')),
+    );
+    final scrollView = tester.widget<CustomScrollView>(
+      find.byKey(const Key('session-detail-scroll')),
+    );
+    final stickyTitle = tester.widget<AnimatedOpacity>(
+      find.byKey(const Key('session-sticky-title')),
+    );
+    final favorite = tester.widget<FavoriteButton>(
+      find.byKey(const Key('session-favorite-button')),
+    );
+
+    expect(appBar.pinned, isTrue);
+    expect(appBar.expandedHeight, 220);
+    expect(scrollView.paintOrder, SliverPaintOrder.lastIsTop);
+    expect(stickyTitle.opacity, 0);
+    expect(favorite.overlay, isTrue);
+
+    // This test needs enough content below the fold for the scroll controller
+    // to move; the shared fixture intentionally uses a very tall viewport for
+    // content assertions.
+    tester.view.physicalSize = const Size(390 * 3, 600 * 3);
+    await tester.pumpAndSettle();
+
+    await tester.drag(
+      find.byKey(const Key('session-detail-scroll')),
+      const Offset(0, -360),
+    );
+    await tester.pump();
+    expect(
+      tester
+          .widget<AnimatedOpacity>(
+            find.byKey(const Key('session-sticky-title')),
+          )
+          .opacity,
+      1,
+    );
+    expect(
+      tester
+          .widget<FavoriteButton>(
+            find.byKey(const Key('session-favorite-button')),
+          )
+          .overlay,
+      isFalse,
+    );
+    expect(
+      tester
+          .widget<CustomScrollView>(
+            find.byKey(const Key('session-detail-scroll')),
+          )
+          .paintOrder,
+      SliverPaintOrder.firstIsTop,
+    );
+  });
+
+  testWidgets('tapping a cover opens the session image preview', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _session().copyWith(
+        images: const ['https://image/1.jpg', 'https://image/2.jpg'],
+      ),
+    );
+
+    await tester.tap(find.byKey(const ValueKey('session-detail-cover-0')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.text('1/2'), findsOneWidget);
+    expect(find.byKey(const Key('lightbox-next-button')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('lightbox-next-button')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('2/2'), findsOneWidget);
+
+    await tester.tap(find.byIcon(AppIcons.close));
+    await tester.pumpAndSettle();
   });
 
   testWidgets('avatar roster opens a read-only player detail sheet', (
@@ -212,15 +330,65 @@ void main() {
     expect(find.text('Player details'), findsOneWidget);
   });
 
-  testWidgets('empty roster shows dashed empty slots', (
+  testWidgets('host row opens the host detail sheet', (tester) async {
+    await _pump(tester, _session());
+
+    await tester.tap(find.byKey(const Key('session-detail-host-row')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('session-host-detail-sheet')), findsOneWidget);
+    expect(find.text('Sessions Hosted'), findsOneWidget);
+  });
+
+  testWidgets('crawled session keeps the host row inert', (tester) async {
+    await _pump(tester, _session(isCrawled: true));
+
+    await tester.tap(find.byKey(const Key('session-detail-host-row')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('session-host-detail-sheet')), findsNothing);
+  });
+
+  testWidgets('empty roster shows placeholder text and no circles', (
     tester,
   ) async {
     await _pump(tester, _session());
 
-    expect(find.text('Empty'), findsWidgets);
+    expect(find.text('No players yet'), findsOneWidget);
+    expect(find.text('Empty'), findsNothing);
     expect(find.text("Who's playing with you?"), findsOneWidget);
     expect(find.text('0/16'), findsOneWidget);
   });
+
+  testWidgets(
+    'roster with players shows player initials, empty slots, and view all button when > 10',
+    (tester) async {
+      await _pump(
+        tester,
+        _session(
+          players: const [
+            SessionPlayer(id: 'p1', name: 'An', level: 1),
+            SessionPlayer(id: 'p2', name: 'Binh', level: 2),
+          ],
+        ),
+      );
+
+      // Initial letter fallback
+      expect(find.text('A'), findsWidgets); // Avatar initial and/or name
+      expect(find.text('B'), findsWidgets);
+      // Empty slots limited to 2 rows (10 total items: 2 players + 8 empty slots)
+      expect(find.text('Empty'), findsNWidgets(8));
+      // View all button when total slots = 16 > 10
+      expect(find.text('View all players'), findsOneWidget);
+
+      await tester.tap(find.text('View all players'));
+      await tester.pumpAndSettle();
+
+      // Expanded to all 14 empty slots
+      expect(find.text('Empty'), findsNWidgets(14));
+      expect(find.text('Show less'), findsOneWidget);
+    },
+  );
 
   testWidgets('all-levels session states no restriction', (tester) async {
     await _pump(tester, _session(requiredLevels: const []));
@@ -426,13 +594,13 @@ void main() {
     expect(find.text('3'), findsOneWidget);
   });
 
-  testWidgets('signed out: the heart reads zero without calling the API', (
+  testWidgets('signed out: the heart hides zero without calling the API', (
     tester,
   ) async {
     await _pump(tester, _session());
 
     expect(find.byIcon(AppIcons.favorite), findsOneWidget);
-    expect(find.text('0'), findsOneWidget);
+    expect(find.text('0'), findsNothing);
   });
 
   testWidgets('signed-out heart asks for sign-in instead of writing', (
@@ -543,7 +711,7 @@ void main() {
       width: 320,
     );
 
-    expect(find.text('Kèo test chuẩn'), findsOneWidget);
+    expect(find.text('Kèo test chuẩn'), findsNWidgets(2));
     expect(find.text("Who's playing with you?"), findsOneWidget);
   });
 

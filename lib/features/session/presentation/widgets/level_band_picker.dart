@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
-import 'package:vmito_app/core/theme/app_spacing.dart';
-import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_domain/vmito_domain.dart';
 
 /// Picks which skill levels a session accepts.
@@ -33,47 +31,92 @@ class LevelBandPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    final palette = theme.extension<AppPalette>()!;
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: levelDefinitions.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 4,
+        crossAxisSpacing: 6,
+        mainAxisSpacing: 2,
+        mainAxisExtent: 48,
+      ),
+      itemBuilder: (context, index) {
+        final definition = levelDefinitions[index];
+        return _LevelOption(
+          definition: definition,
+          selected: selected.contains(definition.id),
+          onTap: () => _toggle(definition.id),
+        );
+      },
+    );
+  }
+}
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  l10n.createSessionLevels,
-                  style: theme.textTheme.titleSmall,
-                ),
+class _LevelOption extends StatelessWidget {
+  const _LevelOption({
+    required this.definition,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final LevelDefinition definition;
+  final bool selected;
+  final VoidCallback onTap;
+
+  Color _color(ThemeData theme) {
+    if (definition.rank <= 3) return AppColors.success;
+    if (definition.rank <= 6) return AppColors.warning;
+    return theme.colorScheme.error;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = _color(theme);
+
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          key: ValueKey('level-${definition.id}'),
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(999),
+          child: Center(
+            child: Container(
+              height: 34,
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 6),
+              decoration: BoxDecoration(
+                color: selected ? color.withValues(alpha: .14) : null,
+                border: Border.all(color: color, width: 2),
+                borderRadius: BorderRadius.circular(999),
               ),
-              if (selected.isEmpty)
-                Text(
-                  l10n.createSessionLevelsAll,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: palette.mutedForeground,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (selected) ...[
+                    Icon(Icons.check, size: 13, color: color),
+                    const SizedBox(width: 2),
+                  ],
+                  Flexible(
+                    child: Text(
+                      definition.shortLabel,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: color,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
-                ),
-            ],
+                ],
+              ),
+            ),
           ),
         ),
-        Wrap(
-          spacing: AppSpacing.xs,
-          runSpacing: AppSpacing.xs,
-          children: [
-            for (final definition in levelDefinitions)
-              FilterChip(
-                label: Text(definition.shortLabel),
-                selected: selected.contains(definition.id),
-                onSelected: (_) => _toggle(definition.id),
-                visualDensity: VisualDensity.compact,
-              ),
-          ],
-        ),
-      ],
+      ),
     );
   }
 }

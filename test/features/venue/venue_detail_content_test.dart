@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
@@ -13,6 +14,9 @@ const _venue = Venue(
   id: 'venue-1',
   name: 'Sân Cầu Lông Vmito',
   address: '12 Nguyễn Trãi',
+  district: 'Quận 1',
+  city: 'Hồ Chí Minh',
+  newAddress: '12 Nguyễn Trãi',
   newDistrict: 'Phường Bến Thành',
   newCity: 'Hồ Chí Minh',
   description:
@@ -33,7 +37,11 @@ const _venue = Venue(
   website: 'https://vmito.com',
   distance: 3.2,
   isVerified: true,
-  amenities: ['Bãi xe', 'Căn tin'],
+  hasCarParking: true,
+  hasCanteen: false,
+  wifiName: 'Vmito Guest',
+  wifiPassword: '12345678',
+  bookingPolicy: 'Đặt trước 30 phút.',
 );
 
 const _venueWithoutImages = Venue(
@@ -64,12 +72,31 @@ final _book = VenuePriceBook(
   ],
 );
 
+class _TestLocationPreferencesController extends LocationPreferencesController {
+  _TestLocationPreferencesController({required this.showNewAddress});
+
+  final bool showNewAddress;
+
+  @override
+  LocationPreferences build() => LocationPreferences(
+    showNewAddress: showNewAddress,
+    isRestored: true,
+  );
+}
+
 Future<void> _pump(
   WidgetTester tester, {
   double width = 390,
   Venue venue = _venue,
   AsyncValue<List<VenuePriceBook>>? priceBooks,
   VoidCallback? onDirections,
+  VoidCallback? onCall,
+  VoidCallback? onZalo,
+  VoidCallback? onWebsite,
+  VoidCallback? onRequestUpdate,
+  bool showNewAddress = true,
+  String? bottomPhone = '0901234567',
+  int? minimumPrice = 80000,
 }) async {
   tester.view
     ..physicalSize = Size(width * 3, 844 * 3)
@@ -78,7 +105,15 @@ Future<void> _pump(
 
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [isSignedInProvider.overrideWithValue(false)],
+      key: ValueKey(showNewAddress),
+      overrides: [
+        isSignedInProvider.overrideWithValue(false),
+        locationPreferencesControllerProvider.overrideWith(
+          () => _TestLocationPreferencesController(
+            showNewAddress: showNewAddress,
+          ),
+        ),
+      ],
       child: MaterialApp(
         locale: const Locale('vi'),
         theme: AppTheme.light,
@@ -90,17 +125,18 @@ Future<void> _pump(
             priceBooks: priceBooks ?? AsyncData([_book]),
             onBack: () {},
             onShare: () {},
-            onCall: () {},
-            onWebsite: () {},
-            onZalo: () {},
+            onCall: onCall ?? () {},
+            onWebsite: onWebsite ?? () {},
+            onZalo: onZalo ?? () {},
             onDirections: onDirections ?? () {},
             onFindSessions: () {},
-            onRequestUpdate: () {},
+            onRequestUpdate: onRequestUpdate ?? () {},
           ),
           bottomNavigationBar: VenueDetailBottomBar(
-            phone: _venue.phone,
-            minimumPrice: minimumVenuePrice([_book]),
-            onCall: () {},
+            phone: bottomPhone,
+            minimumPrice: minimumPrice,
+            onCall: onCall ?? () {},
+            onZalo: onZalo ?? () {},
             onFindSessions: () {},
           ),
         ),
@@ -135,6 +171,7 @@ void main() {
     expect(find.byKey(const Key('venue-info-card')), findsOneWidget);
     expect(find.byKey(const Key('venue-about-card')), findsOneWidget);
     expect(find.byKey(const Key('venue-pricing-card')), findsOneWidget);
+    expect(find.byKey(const Key('venue-amenities-heading')), findsOneWidget);
     expect(find.byKey(const Key('venue-photos-card')), findsOneWidget);
     expect(find.byKey(const Key('venue-location-card')), findsNothing);
     expect(find.byKey(const Key('venue-contribution-card')), findsOneWidget);
@@ -147,7 +184,7 @@ void main() {
     );
     expect(find.byKey(const Key('venue-directions-button')), findsNothing);
     expect(find.text('Bản đồ'), findsNothing);
-    expect(find.text('Thông tin chưa đúng?'), findsOneWidget);
+    expect(find.text('Đề xuất chỉnh sửa'), findsOneWidget);
     expect(find.text('Gửi ảnh bảng giá'), findsNothing);
     expect(find.text('Gửi ảnh sân'), findsNothing);
     expect(find.textContaining('80.000'), findsNWidgets(2));
@@ -193,6 +230,130 @@ void main() {
     expect(openedDirections, isTrue);
   });
 
+  testWidgets('matches web typography and formats a missing venue prefix', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      venue: const Venue(
+        id: 'venue-prefix',
+        name: 'Phú Nhuận',
+        sportTypes: ['BADMINTON', 'PICKLEBALL'],
+      ),
+    );
+
+    final venueName = tester.widget<Text>(
+      find.byKey(const Key('venue-display-name')),
+    );
+    final aboutHeading = tester.widget<Text>(find.text('Giới thiệu về sân'));
+    final pricingHeading = tester.widget<Text>(find.text('Bảng giá'));
+
+    expect(venueName.style?.fontSize, 20);
+    expect(aboutHeading.style?.fontSize, 16);
+    expect(pricingHeading.style?.fontSize, 16);
+  });
+
+  testWidgets(
+    'shows the new-address badge only for the preferred new address',
+    (
+      tester,
+    ) async {
+      await _pump(tester);
+      expect(find.text('Mới'), findsOneWidget);
+      expect(find.textContaining('Phường Bến Thành'), findsOneWidget);
+
+      await _pump(tester, showNewAddress: false);
+      expect(find.text('Mới'), findsNothing);
+      expect(find.textContaining('Quận 1'), findsOneWidget);
+    },
+  );
+
+  testWidgets('renders contact rows and dispatches their actions', (
+    tester,
+  ) async {
+    var callCount = 0;
+    var zaloCount = 0;
+    var websiteCount = 0;
+    await _pump(
+      tester,
+      onCall: () => callCount++,
+      onZalo: () => zaloCount++,
+      onWebsite: () => websiteCount++,
+    );
+
+    expect(find.text('Điện thoại'), findsNothing);
+    expect(find.text('0901 234 567'), findsNothing);
+    expect(find.text('https://vmito.com'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('venue-call-button')));
+    await tester.tap(find.byKey(const Key('venue-zalo-bottom-button')));
+    await tester.tap(find.byKey(const Key('venue-website-button')));
+    await tester.pump();
+
+    expect(callCount, 1);
+    expect(zaloCount, 1);
+    expect(websiteCount, 1);
+  });
+
+  testWidgets('renders web amenity states, wifi and booking policy', (
+    tester,
+  ) async {
+    await _pump(tester);
+
+    expect(find.text('Tiện ích & Quy định'), findsOneWidget);
+    expect(find.byKey(const Key('venue-car-parking')), findsOneWidget);
+    expect(find.byKey(const Key('venue-canteen')), findsOneWidget);
+    expect(find.text('Vmito Guest'), findsOneWidget);
+    expect(find.text('Mật khẩu: 12345678'), findsOneWidget);
+    expect(find.text('Đặt trước 30 phút.'), findsOneWidget);
+  });
+
+  testWidgets('hides amenities and unavailable contact rows', (tester) async {
+    await _pump(
+      tester,
+      venue: const Venue(
+        id: 'minimal',
+        name: 'Sân tối giản',
+        phone: '0901234567',
+      ),
+    );
+
+    expect(find.text('Tiện ích & Quy định'), findsNothing);
+    expect(find.byKey(const Key('venue-phone-button')), findsNothing);
+    expect(find.byKey(const Key('venue-zalo-button')), findsNothing);
+    expect(find.byKey(const Key('venue-zalo-bottom-button')), findsOneWidget);
+    expect(find.byKey(const Key('venue-website-button')), findsNothing);
+
+    await _pump(
+      tester,
+      venue: const Venue(
+        id: 'website-only',
+        name: 'Sân có website',
+        website: 'https://vmito.com',
+      ),
+    );
+    expect(find.byKey(const Key('venue-phone-button')), findsNothing);
+    expect(find.byKey(const Key('venue-zalo-button')), findsNothing);
+    expect(find.byKey(const Key('venue-website-button')), findsOneWidget);
+  });
+
+  testWidgets('dispatches the suggest-edit action from the ghost button', (
+    tester,
+  ) async {
+    var requested = false;
+    await _pump(tester, onRequestUpdate: () => requested = true);
+
+    await tester.drag(
+      find.byKey(const Key('venue-detail-scroll')),
+      const Offset(0, -2000),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('venue-request-update-button')));
+    await tester.pump();
+
+    expect(requested, isTrue);
+  });
+
   testWidgets('matches empty pricing copy style with the about copy', (
     tester,
   ) async {
@@ -234,6 +395,27 @@ void main() {
     final bottomBar = tester.getRect(find.byType(VenueDetailBottomBar));
     expect(button.width, lessThan(bottomBar.width / 2));
     expect(button.right, closeTo(bottomBar.right - 16, 0.1));
+  });
+
+  testWidgets('styles the call action green with and without a price', (
+    tester,
+  ) async {
+    await _pump(tester);
+
+    IconButton callButton() => tester.widget<IconButton>(
+      find.byKey(const Key('venue-call-button')),
+    );
+    final primary = AppTheme.light.colorScheme.primary;
+    expect(callButton().style?.foregroundColor?.resolve({}), primary);
+    expect(callButton().style?.side?.resolve({})?.color, primary);
+
+    await _pump(tester, minimumPrice: null);
+    expect(find.byKey(const Key('venue-call-button')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await _pump(tester, bottomPhone: null, minimumPrice: null);
+    expect(find.byKey(const Key('venue-call-button')), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
   test('selects the minimum price from the active price book', () {

@@ -114,12 +114,15 @@ class _RequestCard extends ConsumerWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(l10n.clubRejectRequest),
-        content: TextField(
-          controller: controller,
-          maxLength: 500,
-          minLines: 2,
-          maxLines: 4,
-          decoration: InputDecoration(hintText: l10n.clubRejectReason),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 320),
+          child: TextField(
+            controller: controller,
+            maxLength: 500,
+            minLines: 2,
+            maxLines: 4,
+            decoration: InputDecoration(hintText: l10n.clubRejectReason),
+          ),
         ),
         actions: [
           TextButton(

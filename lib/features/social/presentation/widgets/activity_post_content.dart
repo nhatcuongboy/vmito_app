@@ -36,110 +36,108 @@ class ActivityPostContent extends StatelessWidget {
 
     return switch (activityType) {
       'SESSION_CREATED' => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (headline != null) headline,
-            _EntityPreviewCard(
-              isDark: isDark,
-              image: meta['coverPhoto'] as String?,
-              title: meta['sessionName'] as String? ?? '',
-              subtitle: meta['location'] as String?,
-              icon: const Icon(AppIcons.calendar, size: 24, color: Colors.white),
-              onTap: () {
-                final id = meta['sessionId'] as String?;
-                final slug = meta['sessionSlug'] as String?;
-                if (id != null) {
-                  context.push(AppRoutes.sessionDetail(slug ?? id));
-                }
-              },
-            ),
-          ],
-        ),
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (headline != null) headline,
+          _EntityPreviewCard(
+            isDark: isDark,
+            image: meta['coverPhoto'] as String?,
+            title: meta['sessionName'] as String? ?? '',
+            subtitle: meta['location'] as String?,
+            icon: const Icon(AppIcons.calendar, size: 24, color: Colors.white),
+            onTap: () {
+              final id = meta['sessionId'] as String?;
+              final slug = meta['sessionSlug'] as String?;
+              if (id != null) {
+                context.push(AppRoutes.sessionDetail(slug ?? id));
+              }
+            },
+          ),
+        ],
+      ),
       'SESSION_RESULTS' => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (headline != null) headline,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (headline != null) headline,
+          _EntityPreviewCard(
+            isDark: isDark,
+            image: meta['coverPhoto'] as String?,
+            title: meta['sessionName'] as String? ?? '',
+            subtitle: meta['location'] as String?,
+            icon: const Icon(AppIcons.award, size: 24, color: Colors.white),
+            onTap: () {
+              final id = meta['sessionId'] as String?;
+              final slug = meta['sessionSlug'] as String?;
+              if (id != null) {
+                context.push(AppRoutes.sessionDetail(slug ?? id));
+              }
+            },
+          ),
+        ],
+      ),
+      'CLUB_CREATED' || 'CLUB_UPDATED' || 'CLUB_MEMBER_JOINED' => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (headline != null) headline,
+          _EntityPreviewCard(
+            isDark: isDark,
+            image: meta['logo'] as String?,
+            title: meta['clubName'] as String? ?? '',
+            icon: Icon(
+              activityType == 'CLUB_MEMBER_JOINED'
+                  ? AppIcons.userPlus
+                  : AppIcons.users,
+              size: 24,
+              color: Colors.white,
+            ),
+            onTap: () {
+              final id = meta['clubId'] as String?;
+              if (id != null) context.push(AppRoutes.clubDetail(id));
+            },
+          ),
+        ],
+      ),
+      'AVATAR_UPDATED' => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (headline != null) headline,
+          if (_getAvatarImageUrl(meta, post) case final imgUrl?)
+            _FullImage(
+              url: imgUrl,
+              isDark: isDark,
+            ),
+        ],
+      ),
+      'COVER_PHOTO_UPDATED' => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (headline != null) headline,
+          if (_getCoverPhotoUrl(meta, post) case final coverUrl?)
+            _FullImage(
+              url: coverUrl,
+              isDark: isDark,
+            ),
+        ],
+      ),
+      'USER_RATED' => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (headline != null) headline,
+          if (meta['ratedUserId'] != null)
             _EntityPreviewCard(
               isDark: isDark,
-              image: meta['coverPhoto'] as String?,
-              title: meta['sessionName'] as String? ?? '',
-              subtitle: meta['location'] as String?,
-              icon: const Icon(AppIcons.award, size: 24, color: Colors.white),
+              image: meta['ratedImage'] as String?,
+              title: meta['ratedName'] as String? ?? '',
+              icon: const Icon(AppIcons.star, size: 24, color: Colors.white),
               onTap: () {
-                final id = meta['sessionId'] as String?;
-                final slug = meta['sessionSlug'] as String?;
-                if (id != null) {
-                  context.push(AppRoutes.sessionDetail(slug ?? id));
+                final userId = meta['ratedUserId'] as String?;
+                if (userId != null) {
+                  context.push(AppRoutes.publicProfile(userId));
                 }
               },
             ),
-          ],
-        ),
-      'CLUB_CREATED' ||
-      'CLUB_UPDATED' ||
-      'CLUB_MEMBER_JOINED' => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (headline != null) headline,
-            _EntityPreviewCard(
-              isDark: isDark,
-              image: meta['logo'] as String?,
-              title: meta['clubName'] as String? ?? '',
-              icon: Icon(
-                activityType == 'CLUB_MEMBER_JOINED'
-                    ? AppIcons.userPlus
-                    : AppIcons.users,
-                size: 24,
-                color: Colors.white,
-              ),
-              onTap: () {
-                final id = meta['clubId'] as String?;
-                if (id != null) context.push(AppRoutes.clubDetail(id));
-              },
-            ),
-          ],
-        ),
-      'AVATAR_UPDATED' => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (headline != null) headline,
-            if (_getAvatarImageUrl(meta, post) case final imgUrl?)
-              _FullImage(
-                url: imgUrl,
-                isDark: isDark,
-              ),
-          ],
-        ),
-      'COVER_PHOTO_UPDATED' => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (headline != null) headline,
-            if (_getCoverPhotoUrl(meta, post) case final coverUrl?)
-              _FullImage(
-                url: coverUrl,
-                isDark: isDark,
-              ),
-          ],
-        ),
-      'USER_RATED' => Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (headline != null) headline,
-            if (meta['ratedUserId'] != null)
-              _EntityPreviewCard(
-                isDark: isDark,
-                image: meta['ratedImage'] as String?,
-                title: meta['ratedName'] as String? ?? '',
-                icon: const Icon(AppIcons.star, size: 24, color: Colors.white),
-                onTap: () {
-                  final userId = meta['ratedUserId'] as String?;
-                  if (userId != null) {
-                    context.push(AppRoutes.publicProfile(userId));
-                  }
-                },
-              ),
-          ],
-        ),
+        ],
+      ),
       _ => headline ?? const SizedBox.shrink(),
     };
   }
@@ -171,9 +169,16 @@ class ActivityPostContent extends StatelessWidget {
     };
   }
 
-  static String? _getAvatarImageUrl(Map<String, dynamic> meta, SocialPost post) {
+  static String? _getAvatarImageUrl(
+    Map<String, dynamic> meta,
+    SocialPost post,
+  ) {
     final metaUrl =
-        meta['image'] ?? meta['url'] ?? meta['avatar'] ?? meta['imageUrl'] ?? meta['avatarUrl'];
+        meta['image'] ??
+        meta['url'] ??
+        meta['avatar'] ??
+        meta['imageUrl'] ??
+        meta['avatarUrl'];
     if (metaUrl is String && metaUrl.isNotEmpty) {
       return metaUrl;
     }
@@ -188,7 +193,10 @@ class ActivityPostContent extends StatelessWidget {
 
   static String? _getCoverPhotoUrl(Map<String, dynamic> meta, SocialPost post) {
     final metaUrl =
-        meta['coverPhoto'] ?? meta['coverPhotoUrl'] ?? meta['image'] ?? meta['url'];
+        meta['coverPhoto'] ??
+        meta['coverPhotoUrl'] ??
+        meta['image'] ??
+        meta['url'];
     if (metaUrl is String && metaUrl.isNotEmpty) {
       return metaUrl;
     }

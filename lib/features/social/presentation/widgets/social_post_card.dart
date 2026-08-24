@@ -60,18 +60,27 @@ class SocialPostCard extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // ── Shared-post banner ─────────────────────────────────────────
-            if (post.originalPost != null) _SharedBanner(authorName: post.author.name, isDark: isDark),
+            if (post.originalPost != null)
+              _SharedBanner(authorName: post.author.name, isDark: isDark),
 
             // ── Header ─────────────────────────────────────────────────────
-            _PostHeader(post: post, isDark: isDark, ref: ref, shareCardKey: _shareCardKey),
+            _PostHeader(
+              post: post,
+              isDark: isDark,
+              ref: ref,
+              shareCardKey: _shareCardKey,
+            ),
 
             // ── Activity headline / body ────────────────────────────────────
-            if (isActivity)
-              ActivityPostContent(post: post),
+            if (isActivity) ActivityPostContent(post: post),
 
             // ── Regular text content ────────────────────────────────────────
             if (!isActivity && post.content.trim().isNotEmpty)
-              _PostContent(content: post.content, onTap: onOpen, isDark: isDark),
+              _PostContent(
+                content: post.content,
+                onTap: onOpen,
+                isDark: isDark,
+              ),
 
             // ── Location badge ──────────────────────────────────────────────
             if (!isActivity && post.locationName != null)
@@ -108,7 +117,10 @@ class SocialPostCard extends ConsumerWidget {
             ),
 
             // Accessibility label
-            Semantics(label: l10n.socialPostActions, child: const SizedBox.shrink()),
+            Semantics(
+              label: l10n.socialPostActions,
+              child: const SizedBox.shrink(),
+            ),
           ],
         ),
       ),
@@ -146,7 +158,9 @@ class _SharedBanner extends StatelessWidget {
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w500,
-                color: isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+                color: isDark
+                    ? const Color(0xFF9CA3AF)
+                    : const Color(0xFF6B7280),
               ),
             ),
           ),
@@ -200,7 +214,9 @@ class _PostHeader extends StatelessWidget {
                 GestureDetector(
                   onTap: post.author.id.isEmpty
                       ? null
-                      : () => context.push(AppRoutes.publicProfile(post.author.id)),
+                      : () => context.push(
+                          AppRoutes.publicProfile(post.author.id),
+                        ),
                   child: Text(
                     post.author.name,
                     maxLines: 1,
@@ -209,7 +225,9 @@ class _PostHeader extends StatelessWidget {
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       height: 1.25,
-                      color: isDark ? const Color(0xFFF9FAFB) : const Color(0xFF111827),
+                      color: isDark
+                          ? const Color(0xFFF9FAFB)
+                          : const Color(0xFF111827),
                     ),
                   ),
                 ),
@@ -221,7 +239,9 @@ class _PostHeader extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 13,
                         height: 1.25,
-                        color: isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+                        color: isDark
+                            ? const Color(0xFF9CA3AF)
+                            : const Color(0xFF6B7280),
                       ),
                     ),
                     const SizedBox(width: 4),
@@ -229,14 +249,18 @@ class _PostHeader extends StatelessWidget {
                       '·',
                       style: TextStyle(
                         fontSize: 13,
-                        color: isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+                        color: isDark
+                            ? const Color(0xFF9CA3AF)
+                            : const Color(0xFF6B7280),
                       ),
                     ),
                     const SizedBox(width: 4),
                     Icon(
                       AppIcons.language,
                       size: 12,
-                      color: isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+                      color: isDark
+                          ? const Color(0xFF9CA3AF)
+                          : const Color(0xFF6B7280),
                     ),
                   ],
                 ),
@@ -250,7 +274,6 @@ class _PostHeader extends StatelessWidget {
     );
   }
 }
-
 
 /// Regular post text.
 class _PostContent extends StatelessWidget {
@@ -299,10 +322,14 @@ class _LocationBadge extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF450A0A).withValues(alpha: 0.4) : const Color(0xFFFEF2F2),
+            color: isDark
+                ? const Color(0xFF450A0A).withValues(alpha: 0.4)
+                : const Color(0xFFFEF2F2),
             borderRadius: BorderRadius.circular(999),
             border: Border.all(
-              color: isDark ? const Color(0xFF7F1D1D).withValues(alpha: 0.5) : const Color(0xFFFECACA),
+              color: isDark
+                  ? const Color(0xFF7F1D1D).withValues(alpha: 0.5)
+                  : const Color(0xFFFECACA),
             ),
           ),
           child: Row(
@@ -311,7 +338,9 @@ class _LocationBadge extends StatelessWidget {
               Icon(
                 AppIcons.location,
                 size: 13,
-                color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C),
+                color: isDark
+                    ? const Color(0xFFFCA5A5)
+                    : const Color(0xFFB91C1C),
               ),
               const SizedBox(width: 6),
               Flexible(
@@ -322,7 +351,9 @@ class _LocationBadge extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
-                    color: isDark ? const Color(0xFFFCA5A5) : const Color(0xFFB91C1C),
+                    color: isDark
+                        ? const Color(0xFFFCA5A5)
+                        : const Color(0xFFB91C1C),
                   ),
                 ),
               ),
@@ -467,14 +498,18 @@ class _OriginalPostCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? const Color(0xFFF9FAFB) : const Color(0xFF111827),
+                          color: isDark
+                              ? const Color(0xFFF9FAFB)
+                              : const Color(0xFF111827),
                         ),
                       ),
                       Text(
                         Dates.timeAgo(post.createdAt, locale: locale),
                         style: TextStyle(
                           fontSize: 12,
-                          color: isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280),
+                          color: isDark
+                              ? const Color(0xFF9CA3AF)
+                              : const Color(0xFF6B7280),
                         ),
                       ),
                     ],
@@ -489,7 +524,9 @@ class _OriginalPostCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 16,
                   height: 1.6,
-                  color: isDark ? const Color(0xFFE5E7EB) : const Color(0xFF374151),
+                  color: isDark
+                      ? const Color(0xFFE5E7EB)
+                      : const Color(0xFF374151),
                 ),
               ),
             ],
@@ -513,7 +550,6 @@ class _OriginalPostCard extends StatelessWidget {
   }
 }
 
-
 /// Engagement counts row (likes heart icon + count; comments · shares).
 class _EngagementRow extends StatelessWidget {
   const _EngagementRow({
@@ -528,7 +564,9 @@ class _EngagementRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final mutedColor = isDark ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280);
+    final mutedColor = isDark
+        ? const Color(0xFF9CA3AF)
+        : const Color(0xFF6B7280);
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
       child: Row(
@@ -547,7 +585,7 @@ class _EngagementRow extends StatelessWidget {
                 ),
               ),
               child: const Icon(
-                AppIcons.favorite,
+                AppIcons.favoriteFilled,
                 size: 10,
                 color: Colors.white,
               ),
@@ -608,8 +646,9 @@ class _ActionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final likeActive = post.isLiked;
-    final mutedTextColor =
-        isDark ? const Color(0xFFD1D5DB) : const Color(0xFF4B5563);
+    final mutedTextColor = isDark
+        ? const Color(0xFFD1D5DB)
+        : const Color(0xFF4B5563);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -710,9 +749,7 @@ class _ActionBar extends StatelessWidget {
               title: Text(l10n.socialRepost),
               onTap: () async {
                 Navigator.pop(sheetContext);
-                await ref
-                    .read(feedControllerProvider.notifier)
-                    .repost(post.id);
+                await ref.read(feedControllerProvider.notifier).repost(post.id);
               },
             ),
             ListTile(
@@ -738,7 +775,10 @@ class _ActionBar extends StatelessWidget {
         : null;
     if (boundary is! RenderRepaintBoundary) {
       await SharePlus.instance.share(
-        ShareParams(text: '${post.content}\n$link', sharePositionOrigin: origin),
+        ShareParams(
+          text: '${post.content}\n$link',
+          sharePositionOrigin: origin,
+        ),
       );
       return;
     }
@@ -746,7 +786,10 @@ class _ActionBar extends StatelessWidget {
     final data = await image.toByteData(format: ui.ImageByteFormat.png);
     if (data == null) {
       await SharePlus.instance.share(
-        ShareParams(text: '${post.content}\n$link', sharePositionOrigin: origin),
+        ShareParams(
+          text: '${post.content}\n$link',
+          sharePositionOrigin: origin,
+        ),
       );
       return;
     }
@@ -796,8 +839,12 @@ class _ActionButton extends StatelessWidget {
       child: InkWell(
         onTap: onPressed,
         borderRadius: BorderRadius.circular(8),
-        splashColor: (isDark ? hoverColorDark : hoverColor).withValues(alpha: 0.5),
-        highlightColor: (isDark ? hoverColorDark : hoverColor).withValues(alpha: 0.3),
+        splashColor: (isDark ? hoverColorDark : hoverColor).withValues(
+          alpha: 0.5,
+        ),
+        highlightColor: (isDark ? hoverColorDark : hoverColor).withValues(
+          alpha: 0.3,
+        ),
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: Row(
@@ -828,7 +875,7 @@ class _LikedIcon extends StatelessWidget {
         colors: [Color(0xFFF43F5E), Color(0xFFEF4444)],
       ),
     ),
-    child: const Icon(AppIcons.favorite, size: 12, color: Colors.white),
+    child: const Icon(AppIcons.favoriteFilled, size: 12, color: Colors.white),
   );
 }
 

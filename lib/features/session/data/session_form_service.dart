@@ -3,9 +3,10 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:vmito_app/core/constants/api_endpoints.dart';
 import 'package:vmito_app/core/config/app_config.dart';
+import 'package:vmito_app/core/constants/api_endpoints.dart';
 import 'package:vmito_app/core/network/api_client.dart';
+import 'package:vmito_app/core/network/paginated.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 
 class ExtractedSessionData {
@@ -109,6 +110,24 @@ class PlaceDetails {
   final String? city;
 }
 
+class UserImageAsset {
+  const UserImageAsset({
+    required this.id,
+    required this.url,
+    required this.publicId,
+  });
+
+  factory UserImageAsset.fromJson(Map<String, dynamic> json) => UserImageAsset(
+    id: json['id'] as String? ?? '',
+    url: json['url'] as String? ?? '',
+    publicId: json['publicId'] as String? ?? '',
+  );
+
+  final String id;
+  final String url;
+  final String publicId;
+}
+
 class SessionFormService {
   const SessionFormService(this._client);
 
@@ -158,6 +177,39 @@ class SessionFormService {
       throw StateError('Image upload returned no asset identifier');
     }
     return (url: url, publicId: publicId);
+  }
+
+  Future<Page<UserImageAsset>> getMyImages({
+    int page = 1,
+    int limit = 20,
+  }) async {
+    final response = await _client.get<dynamic>(
+      ApiEndpoints.userImages,
+      queryParameters: {'page': page, 'limit': limit},
+      dedup: false,
+    );
+    final payload = _payload(response.data);
+    if (payload is! Map) {
+      return unwrapPage<UserImageAsset>(payload, UserImageAsset.fromJson);
+    }
+    final json = payload.cast<String, dynamic>();
+    final meta = (json['meta'] as Map?)?.cast<String, dynamic>() ?? const {};
+    final items = (json['data'] as List<dynamic>? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(UserImageAsset.fromJson)
+        .where((item) => item.url.isNotEmpty && item.publicId.isNotEmpty)
+        .toList(growable: false);
+    int readInt(String key, int fallback) =>
+        (meta[key] as num?)?.toInt() ??
+        (json[key] as num?)?.toInt() ??
+        fallback;
+    return Page<UserImageAsset>(
+      items: items,
+      total: readInt('total', items.length),
+      page: readInt('page', page),
+      limit: readInt('limit', limit),
+      totalPages: readInt('totalPages', 1),
+    );
   }
 
   Future<Map<String, bool>> featureFlags() async {

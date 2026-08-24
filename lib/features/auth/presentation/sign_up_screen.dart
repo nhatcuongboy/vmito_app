@@ -66,7 +66,12 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           validators: [Validators.required],
         ),
       },
-      validators: [Validators.mustMatch(SignUpFormControl.password, SignUpFormControl.confirmPassword)],
+      validators: [
+        Validators.mustMatch(
+          SignUpFormControl.password,
+          SignUpFormControl.confirmPassword,
+        ),
+      ],
     );
   }
 
@@ -262,9 +267,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                             () => _obscurePassword = !_obscurePassword,
                           ),
                           icon: Icon(
-                            _obscurePassword
-                                ? AppIcons.eyeOff
-                                : AppIcons.eye,
+                            _obscurePassword ? AppIcons.eyeOff : AppIcons.eye,
                           ),
                         ),
                       ),
@@ -307,9 +310,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                           () => _obscureConfirmation = !_obscureConfirmation,
                         ),
                         icon: Icon(
-                          _obscureConfirmation
-                              ? AppIcons.eyeOff
-                              : AppIcons.eye,
+                          _obscureConfirmation ? AppIcons.eyeOff : AppIcons.eye,
                         ),
                       ),
                     ),

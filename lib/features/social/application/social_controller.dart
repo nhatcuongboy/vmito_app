@@ -211,6 +211,10 @@ class ClubsController extends Notifier<ClubsState> {
   @override
   ClubsState build() => const ClubsState();
 
+  // Snapshot restoration is an action, not a property mutation API.
+  // ignore: use_setters_to_change_properties
+  void restore(ClubsState snapshot) => state = snapshot;
+
   Future<void> load({
     String search = '',
     String? city,

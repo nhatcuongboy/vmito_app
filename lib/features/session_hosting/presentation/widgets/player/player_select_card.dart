@@ -113,7 +113,10 @@ class PlayerSelectCard extends StatelessWidget {
   required PlayerStatus status,
 }) {
   if (isSelected) {
-    return (background: const Color(0xFFDBEAFE), border: const Color(0xFF3B82F6));
+    return (
+      background: const Color(0xFFDBEAFE),
+      border: const Color(0xFF3B82F6),
+    );
   }
   return switch (status) {
     PlayerStatus.ready => (

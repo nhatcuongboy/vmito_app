@@ -44,7 +44,8 @@ class SessionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = theme.extension<AppPalette>()!;
-    final showActions = onHost != null ||
+    final showActions =
+        onHost != null ||
         onClone != null ||
         onDownloadImage != null ||
         onShare != null ||
@@ -116,7 +117,9 @@ class SessionCard extends StatelessWidget {
                           children: [
                             if (onHost != null)
                               FilledButton.icon(
-                                key: ValueKey('session-host-button-${session.id}'),
+                                key: ValueKey(
+                                  'session-host-button-${session.id}',
+                                ),
                                 style: FilledButton.styleFrom(
                                   backgroundColor: const Color(0xFF166534),
                                   foregroundColor: Colors.white,
@@ -140,9 +143,13 @@ class SessionCard extends StatelessWidget {
                               ),
                             const SizedBox(width: AppSpacing.xs),
                             PopupMenuButton<_MoreAction>(
-                              key: ValueKey('session-more-button-${session.id}'),
+                              key: ValueKey(
+                                'session-more-button-${session.id}',
+                              ),
                               style: ButtonStyle(
-                                padding: WidgetStateProperty.all(EdgeInsets.zero),
+                                padding: WidgetStateProperty.all(
+                                  EdgeInsets.zero,
+                                ),
                                 minimumSize: WidgetStateProperty.all(
                                   const Size(34, 34),
                                 ),
@@ -199,8 +206,9 @@ class SessionCard extends StatelessWidget {
                                     value: _MoreAction.delete,
                                     child: Builder(
                                       builder: (context) {
-                                        final errorColor =
-                                            Theme.of(context).colorScheme.error;
+                                        final errorColor = Theme.of(
+                                          context,
+                                        ).colorScheme.error;
                                         return Row(
                                           children: [
                                             Icon(
@@ -208,7 +216,9 @@ class SessionCard extends StatelessWidget {
                                               size: 18,
                                               color: errorColor,
                                             ),
-                                            const SizedBox(width: AppSpacing.sm),
+                                            const SizedBox(
+                                              width: AppSpacing.sm,
+                                            ),
                                             Text(
                                               l10n.mySessionsDelete,
                                               style: TextStyle(
@@ -224,7 +234,8 @@ class SessionCard extends StatelessWidget {
                               },
                               onSelected: (action) => switch (action) {
                                 _MoreAction.clone => onClone?.call(),
-                                _MoreAction.downloadImage => onDownloadImage?.call(),
+                                _MoreAction.downloadImage =>
+                                  onDownloadImage?.call(),
                                 _MoreAction.share => onShare?.call(),
                                 _MoreAction.delete => onDelete?.call(),
                               },

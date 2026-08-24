@@ -12,12 +12,16 @@ import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/tournament/application/tournament_browse_controller.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
-import 'package:vmito_app/shared/widgets/app_empty_filter_sheet.dart';
 
 class BrowseTournamentsContent extends ConsumerStatefulWidget {
-  const BrowseTournamentsContent({this.discoveryHeader, super.key});
+  const BrowseTournamentsContent({
+    this.discoveryHeader,
+    this.initialSearch = '',
+    super.key,
+  });
 
   final Widget? discoveryHeader;
+  final String initialSearch;
 
   @override
   ConsumerState<BrowseTournamentsContent> createState() =>
@@ -26,9 +30,6 @@ class BrowseTournamentsContent extends ConsumerStatefulWidget {
 
 class _BrowseTournamentsContentState
     extends ConsumerState<BrowseTournamentsContent> {
-  final _searchController = TextEditingController();
-  Timer? _searchDebounce;
-
   @override
   void initState() {
     super.initState();
@@ -37,6 +38,7 @@ class _BrowseTournamentsContentState
         () => ref
             .read(tournamentBrowseControllerProvider.notifier)
             .load(
+              search: widget.initialSearch,
               city: ref
                   .read(locationPreferencesControllerProvider)
                   .preferredCity,
@@ -47,8 +49,6 @@ class _BrowseTournamentsContentState
 
   @override
   void dispose() {
-    _searchDebounce?.cancel();
-    _searchController.dispose();
     super.dispose();
   }
 
@@ -60,50 +60,6 @@ class _BrowseTournamentsContentState
 
     return Column(
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.md,
-            AppSpacing.sm,
-            AppSpacing.md,
-            AppSpacing.sm,
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: SearchBar(
-                  controller: _searchController,
-                  hintText: l10n.tournamentSearchHint,
-                  leading: const Icon(AppIcons.search),
-                  trailing: [
-                    if (_searchController.text.isNotEmpty)
-                      IconButton(
-                        icon: const Icon(AppIcons.close),
-                        onPressed: () {
-                          _searchController.clear();
-                          unawaited(controller.load(search: ''));
-                          setState(() {});
-                        },
-                      ),
-                  ],
-                  onChanged: (value) {
-                    setState(() {});
-                    _searchDebounce?.cancel();
-                    _searchDebounce = Timer(
-                      const Duration(milliseconds: 400),
-                      () => controller.load(search: value),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(width: AppSpacing.xs),
-              IconButton.filledTonal(
-                tooltip: 'Bộ lọc',
-                icon: const Icon(AppIcons.tune),
-                onPressed: () => AppEmptyFilterSheet.show(context),
-              ),
-            ],
-          ),
-        ),
         ?widget.discoveryHeader,
         Expanded(
           child: RefreshIndicator(

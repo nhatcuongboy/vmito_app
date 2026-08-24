@@ -56,9 +56,7 @@ class _LanguageSelectorSheet extends ConsumerWidget {
             for (final (code, label) in options)
               ListTile(
                 title: Text(label),
-                trailing: selected == code
-                    ? const Icon(AppIcons.check)
-                    : null,
+                trailing: selected == code ? const Icon(AppIcons.check) : null,
                 selected: selected == code,
                 onTap: () async {
                   await ref

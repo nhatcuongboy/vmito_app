@@ -45,7 +45,26 @@ void main() {
 
     expect(find.byType(AppErrorView), findsOneWidget);
   });
+
+  testWidgets('switches between favorite segments without checkmark icon', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_app(_FakeProfileTabsService()));
+    await tester.pumpAndSettle();
+
+    final segmentedButton = tester.widget<SegmentedButton<String>>(
+      find.byType(typeOf<SegmentedButton<String>>()),
+    );
+    expect(segmentedButton.showSelectedIcon, isFalse);
+
+    await tester.tap(find.text('Clubs'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('You have no favorites yet.'), findsOneWidget);
+  });
 }
+
+Type typeOf<T>() => T;
 
 Widget _app(ProfileTabsService service) {
   final router = GoRouter(

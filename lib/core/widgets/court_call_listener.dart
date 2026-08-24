@@ -78,7 +78,10 @@ class _CourtCallListenerState extends ConsumerState<CourtCallListener> {
       builder: (dialogContext) => AlertDialog(
         icon: const Icon(AppIcons.campaign, size: 42),
         title: Text(l10n.courtCallTitle),
-        content: Text(message, textAlign: TextAlign.center),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 320),
+          child: Text(message, textAlign: TextAlign.center),
+        ),
         actions: [
           TextButton(
             onPressed: () {

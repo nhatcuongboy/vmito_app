@@ -76,7 +76,8 @@ abstract class MatchResultDraft with _$MatchResultDraft {
         ],
       if (winnerIds.isNotEmpty) 'winnerIds': winnerIds,
       if (isDraw) 'isDraw': true,
-      if (trimmedNotes != null && trimmedNotes.isNotEmpty) 'notes': trimmedNotes,
+      if (trimmedNotes != null && trimmedNotes.isNotEmpty)
+        'notes': trimmedNotes,
       if (shuttlecockCount != null) 'shuttlecockCount': shuttlecockCount,
     };
   }

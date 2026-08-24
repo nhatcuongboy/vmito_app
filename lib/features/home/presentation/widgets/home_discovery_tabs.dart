@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/features/home/domain/home_discovery_tab.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
-enum HomeDiscoveryTab { sessions, venues, clubs, tournaments }
+export 'package:vmito_app/features/home/domain/home_discovery_tab.dart';
 
 extension HomeDiscoveryTabLabel on HomeDiscoveryTab {
   String label(AppLocalizations l10n) => switch (this) {

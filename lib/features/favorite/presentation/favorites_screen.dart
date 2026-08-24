@@ -9,6 +9,7 @@ import 'package:vmito_app/core/shell/app_shell_scaffold_key.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/core/widgets/notification_header_button.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/social/data/profile_tabs_service.dart';
 import 'package:vmito_app/features/social/domain/profile_tabs.dart';
@@ -50,11 +51,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
         title: Text(l10n.navFavorites),
         actions: [
           if (isAuthenticated)
-            IconButton(
-              tooltip: l10n.notificationsTitle,
-              icon: const Icon(AppIcons.notifications),
-              onPressed: () => context.push(AppRoutes.notifications),
-            )
+            const NotificationHeaderButton()
           else
             IconButton(
               tooltip: l10n.authSignIn,
@@ -68,6 +65,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
           Padding(
             padding: const EdgeInsets.all(12),
             child: SegmentedButton<String>(
+              showSelectedIcon: false,
               segments: [
                 ButtonSegment(
                   value: 'SESSION',

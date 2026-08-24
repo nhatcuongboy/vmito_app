@@ -6,6 +6,7 @@ import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/player/session_presentation.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/models/match.dart';
 
 /// Title, schedule, place and host — the top of the web app's
 /// `SessionDetailBody`.
@@ -15,6 +16,7 @@ class SessionDetailInfo extends StatelessWidget {
     required this.onOpenMap,
     required this.onCallHost,
     required this.onZaloHost,
+    required this.onOpenHost,
     super.key,
   });
 
@@ -22,6 +24,7 @@ class SessionDetailInfo extends StatelessWidget {
   final VoidCallback? onOpenMap;
   final VoidCallback? onCallHost;
   final VoidCallback? onZaloHost;
+  final VoidCallback? onOpenHost;
 
   @override
   Widget build(BuildContext context) {
@@ -47,22 +50,97 @@ class SessionDetailInfo extends StatelessWidget {
           const SizedBox(height: AppSpacing.md),
           _ScheduleRow(time: time, date: date),
         ],
+        const SizedBox(height: AppSpacing.xs),
+        _SportAndMatchTypeRow(session: session),
         if (session.displayPlace.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.md),
           _LocationRow(session: session, onOpenMap: onOpenMap),
         ],
-        Divider(height: AppSpacing.lg * 2, color: palette.border),
+        Divider(height: AppSpacing.lg, color: palette.border),
         _HostRow(
           session: session,
           onCall: onCallHost,
           onZalo: onZaloHost,
+          onOpenHost: onOpenHost,
         ),
         if (session.description case final text? when text.trim().isNotEmpty)
           Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.md),
+            padding: const EdgeInsets.only(top: AppSpacing.sm),
             child: _DescriptionCard(text: text.trim()),
           ),
       ],
+    );
+  }
+}
+
+/// The session's configured sport and default court format.
+///
+/// This mirrors the compact metadata row on the web session detail page.
+class _SportAndMatchTypeRow extends StatelessWidget {
+  const _SportAndMatchTypeRow({required this.session});
+
+  final Session session;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = theme.extension<AppPalette>()!.mutedForeground;
+    final l10n = AppLocalizations.of(context);
+    final sport = switch (session.sportType) {
+      SessionSportType.badminton => (
+        icon: Image.asset(
+          'assets/icons/shuttlecock.png',
+          key: const Key('session-detail-sport-icon'),
+          width: 18,
+          height: 18,
+        ),
+        label: l10n.sessionSportBadminton,
+      ),
+      SessionSportType.pickleball => (
+        icon: Icon(
+          Icons.sports_tennis,
+          key: const Key('session-detail-sport-icon'),
+          size: 18,
+          color: color,
+        ),
+        label: l10n.sessionSportPickleball,
+      ),
+    };
+    final matchType = switch (session.defaultMatchType) {
+      MatchType.singles => l10n.sessionFormSingles,
+      MatchType.doubles => l10n.sessionFormDoubles,
+    };
+    final style = theme.textTheme.bodyLarge?.copyWith(color: color);
+
+    return Semantics(
+      label: '${sport.label}, $matchType',
+      child: Row(
+        children: [
+          sport.icon,
+          const SizedBox(width: AppSpacing.sm + 4),
+          Flexible(
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: sport.label,
+                    style: style?.copyWith(fontWeight: FontWeight.w500),
+                  ),
+                  TextSpan(
+                    text: '  ·  ',
+                    style: style?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                  TextSpan(
+                    text: matchType,
+                    style: style?.copyWith(fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+              style: style,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -182,11 +260,13 @@ class _HostRow extends StatelessWidget {
     required this.session,
     required this.onCall,
     required this.onZalo,
+    required this.onOpenHost,
   });
 
   final Session session;
   final VoidCallback? onCall;
   final VoidCallback? onZalo;
+  final VoidCallback? onOpenHost;
 
   @override
   Widget build(BuildContext context) {
@@ -200,52 +280,70 @@ class _HostRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 30,
-            backgroundColor: palette.muted,
-            foregroundImage: image == null || image.trim().isEmpty
-                ? null
-                : CachedNetworkImageProvider(image),
-            child: Text(
-              name.isEmpty ? '?' : name.characters.first.toUpperCase(),
-              style: theme.textTheme.titleLarge,
-            ),
-          ),
-          const SizedBox(width: AppSpacing.md),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+            child: InkWell(
+              key: const Key('session-detail-host-row'),
+              onTap: onOpenHost,
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+              child: Row(
+                children: [
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor: palette.muted,
+                    foregroundImage: image == null || image.trim().isEmpty
+                        ? null
+                        : CachedNetworkImageProvider(image),
+                    child: Text(
+                      name.isEmpty ? '?' : name.characters.first.toUpperCase(),
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
-                ),
-                Text(
-                  session.isCrawled
-                      ? (session.externalSource ?? l10n.sessionHostLabel)
-                      : l10n.sessionHostLabel,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: palette.mutedForeground,
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          session.isCrawled
+                              ? (session.externalSource ??
+                                    l10n.sessionHostLabel)
+                              : l10n.sessionHostLabel,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: palette.mutedForeground,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
           if (onZalo != null)
             _ContactButton(
               tooltip: l10n.sessionContactZalo,
-              icon: AppIcons.chat,
+              iconWidget: const Image(
+                image: AssetImage('assets/icons/zalo.png'),
+                width: 20,
+                height: 20,
+              ),
               onPressed: onZalo!,
             ),
           if (onCall != null) ...[
             const SizedBox(width: AppSpacing.sm),
             _ContactButton(
               tooltip: l10n.sessionCallHost,
-              icon: AppIcons.phone,
+              iconWidget: const Icon(AppIcons.phone, size: 18),
               onPressed: onCall!,
             ),
           ],
@@ -258,12 +356,12 @@ class _HostRow extends StatelessWidget {
 class _ContactButton extends StatelessWidget {
   const _ContactButton({
     required this.tooltip,
-    required this.icon,
+    required this.iconWidget,
     required this.onPressed,
   });
 
   final String tooltip;
-  final IconData icon;
+  final Widget iconWidget;
   final VoidCallback onPressed;
 
   @override
@@ -272,13 +370,16 @@ class _ContactButton extends StatelessWidget {
 
     return IconButton(
       tooltip: tooltip,
-      icon: Icon(icon, size: 20),
+      icon: iconWidget,
       onPressed: onPressed,
       style: IconButton.styleFrom(
-        minimumSize: const Size.square(52),
+        minimumSize: const Size.square(38),
+        maximumSize: const Size.square(38),
+        padding: EdgeInsets.zero,
         foregroundColor: primary,
-        backgroundColor: primary.withValues(alpha: 0.1),
-        side: BorderSide(color: primary.withValues(alpha: 0.3)),
+        backgroundColor: primary.withValues(alpha: 0.12),
+        side: BorderSide(color: primary.withValues(alpha: 0.35)),
+        shape: const CircleBorder(),
       ),
     );
   }

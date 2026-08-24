@@ -63,8 +63,8 @@ class NotificationListItem extends StatelessWidget {
         color: notification.isRead
             ? Colors.transparent
             : (isDark
-                ? AppColors.primary.withValues(alpha: 0.15)
-                : AppColors.primary.withValues(alpha: 0.08)),
+                  ? AppColors.primary.withValues(alpha: 0.15)
+                  : AppColors.primary.withValues(alpha: 0.08)),
         child: InkWell(
           onTap: onTap,
           child: Stack(
@@ -107,19 +107,21 @@ class NotificationListItem extends StatelessWidget {
                         shape: BoxShape.circle,
                         color: notification.isRead
                             ? (isDark
-                                ? AppColors.primary.withValues(alpha: 0.2)
-                                : AppColors.primary.withValues(alpha: 0.1))
+                                  ? AppColors.primary.withValues(alpha: 0.2)
+                                  : AppColors.primary.withValues(alpha: 0.1))
                             : (isDark
-                                ? AppColors.primaryDark.withValues(alpha: 0.3)
-                                : Colors.white),
+                                  ? AppColors.primaryDark.withValues(alpha: 0.3)
+                                  : Colors.white),
                         border: Border.all(
                           color: notification.isRead
                               ? (isDark
-                                  ? AppColors.primary.withValues(alpha: 0.3)
-                                  : AppColors.primary.withValues(alpha: 0.2))
+                                    ? AppColors.primary.withValues(alpha: 0.3)
+                                    : AppColors.primary.withValues(alpha: 0.2))
                               : (isDark
-                                  ? AppColors.primaryDark.withValues(alpha: 0.5)
-                                  : AppColors.primary.withValues(alpha: 0.2)),
+                                    ? AppColors.primaryDark.withValues(
+                                        alpha: 0.5,
+                                      )
+                                    : AppColors.primary.withValues(alpha: 0.2)),
                         ),
                         boxShadow: notification.isRead
                             ? null
@@ -138,11 +140,11 @@ class NotificationListItem extends StatelessWidget {
                         size: 17,
                         color: notification.isRead
                             ? (isDark
-                                ? AppColors.primary.withValues(alpha: 0.7)
-                                : AppColors.primary)
+                                  ? AppColors.primary.withValues(alpha: 0.7)
+                                  : AppColors.primary)
                             : (isDark
-                                ? AppColors.primaryDark
-                                : AppColors.primary),
+                                  ? AppColors.primaryDark
+                                  : AppColors.primary),
                       ),
                     ),
                     // Content
@@ -159,14 +161,15 @@ class NotificationListItem extends StatelessWidget {
                                   : FontWeight.w700,
                               color: notification.isRead
                                   ? (isDark
-                                      ? theme.colorScheme.onSurface
-                                          .withValues(alpha: 0.7)
-                                      : theme.colorScheme.onSurface
-                                          .withValues(alpha: 0.8))
+                                        ? theme.colorScheme.onSurface
+                                              .withValues(alpha: 0.7)
+                                        : theme.colorScheme.onSurface
+                                              .withValues(alpha: 0.8))
                                   : (isDark
-                                      ? theme.colorScheme.onSurface
-                                      : AppColors.primary
-                                          .withValues(alpha: 0.95)),
+                                        ? theme.colorScheme.onSurface
+                                        : AppColors.primary.withValues(
+                                            alpha: 0.95,
+                                          )),
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -178,15 +181,15 @@ class NotificationListItem extends StatelessWidget {
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: notification.isRead
                                   ? (isDark
-                                      ? theme.colorScheme.onSurface
-                                          .withValues(alpha: 0.5)
-                                      : theme.colorScheme.onSurface
-                                          .withValues(alpha: 0.6))
+                                        ? theme.colorScheme.onSurface
+                                              .withValues(alpha: 0.5)
+                                        : theme.colorScheme.onSurface
+                                              .withValues(alpha: 0.6))
                                   : (isDark
-                                      ? theme.colorScheme.onSurface
-                                          .withValues(alpha: 0.7)
-                                      : theme.colorScheme.onSurface
-                                          .withValues(alpha: 0.7)),
+                                        ? theme.colorScheme.onSurface
+                                              .withValues(alpha: 0.7)
+                                        : theme.colorScheme.onSurface
+                                              .withValues(alpha: 0.7)),
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
@@ -194,23 +197,27 @@ class NotificationListItem extends StatelessWidget {
                           const SizedBox(height: AppSpacing.xs),
                           // Time
                           Text(
-                            Dates.dayAndTime(notification.createdAt,
-                                locale: locale),
+                            Dates.dayAndTime(
+                              notification.createdAt,
+                              locale: locale,
+                            ),
                             style: theme.textTheme.labelSmall?.copyWith(
                               fontWeight: notification.isRead
                                   ? FontWeight.w500
                                   : FontWeight.w600,
                               color: notification.isRead
                                   ? (isDark
-                                      ? theme.colorScheme.onSurface
-                                          .withValues(alpha: 0.4)
-                                      : theme.colorScheme.onSurface
-                                          .withValues(alpha: 0.5))
+                                        ? theme.colorScheme.onSurface
+                                              .withValues(alpha: 0.4)
+                                        : theme.colorScheme.onSurface
+                                              .withValues(alpha: 0.5))
                                   : (isDark
-                                      ? AppColors.primaryDark
-                                          .withValues(alpha: 0.8)
-                                      : AppColors.primary
-                                          .withValues(alpha: 0.7)),
+                                        ? AppColors.primaryDark.withValues(
+                                            alpha: 0.8,
+                                          )
+                                        : AppColors.primary.withValues(
+                                            alpha: 0.7,
+                                          )),
                             ),
                           ),
                         ],

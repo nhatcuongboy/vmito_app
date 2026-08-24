@@ -23,7 +23,10 @@ void main() {
       final video =
           ReferenceVideo.parse('https://youtu.be/abc123')! as YouTubeVideo;
 
-      expect(video.thumbnailUrl, 'https://img.youtube.com/vi/abc123/hqdefault.jpg');
+      expect(
+        video.thumbnailUrl,
+        'https://img.youtube.com/vi/abc123/hqdefault.jpg',
+      );
     });
 
     test('classifies direct media by extension', () {

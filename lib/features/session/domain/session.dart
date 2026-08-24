@@ -128,6 +128,9 @@ abstract class Session with _$Session {
     String? description,
     String? location,
     SessionHost? host,
+
+    /// Always present, unlike [host], which list payloads may omit.
+    String? hostId,
     String? hostName,
     String? coverPhoto,
 
@@ -278,6 +281,13 @@ abstract class Session with _$Session {
 
   String get displayHostName =>
       hostName?.trim().isNotEmpty ?? false ? hostName! : (host?.name ?? '');
+
+  /// The host's user account, or null when there is none to open — crawled
+  /// Facebook sessions carry a name but no account.
+  String? get hostAccountId {
+    final id = host?.id ?? hostId;
+    return id == null || id.trim().isEmpty || isCrawled ? null : id;
+  }
 
   /// Crawled sessions have no host account to join through.
   bool get isJoinable => !isCrawled && status.isOpen;

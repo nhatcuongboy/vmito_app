@@ -3,6 +3,8 @@ import 'package:vmito_app/core/constants/api_endpoints.dart';
 import 'package:vmito_app/core/network/api_client.dart';
 import 'package:vmito_app/core/network/api_options.dart';
 import 'package:vmito_app/core/network/api_response.dart';
+import 'package:vmito_app/core/network/paginated.dart';
+import 'package:vmito_app/features/registration/domain/my_join_request.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 
 /// Self-service registration: the player's own slots in a session.
@@ -14,6 +16,28 @@ class RegistrationRepository {
   const RegistrationRepository(this._client);
 
   final ApiClient _client;
+
+  /// Requests submitted by the current user, grouped by session.
+  Future<Page<MyJoinRequest>> myJoinRequests({
+    required int page,
+    required int limit,
+  }) async {
+    final response = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.myJoinRequests,
+      queryParameters: {'page': page, 'limit': limit},
+    );
+    return unwrapPage(response.data, MyJoinRequest.fromJson);
+  }
+
+  /// Withdraws every pending registration row owned by the current user for
+  /// [sessionId]. Approved/rejected rows are intentionally left untouched by
+  /// the backend contract.
+  Future<void> withdrawMyJoinRequest(String sessionId) async {
+    await _client.delete<void>(
+      ApiEndpoints.withdrawMyJoinRequest(sessionId),
+      options: apiOptions(skipGlobalError: true),
+    );
+  }
 
   /// The caller's rows for [sessionId], oldest first, including guests they
   /// registered. Empty means not registered.

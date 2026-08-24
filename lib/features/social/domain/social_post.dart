@@ -88,6 +88,7 @@ class SocialPost {
   final SocialPost? originalPost;
   final String? locationName;
   final String? activityType;
+
   /// Raw metadata map from the API (session, club, tournament details).
   final Map<String, dynamic>? metadata;
 

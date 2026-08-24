@@ -66,9 +66,12 @@ class _LevelDescriptionsSheet extends ConsumerWidget {
                     onRetry: () => ref.invalidate(levelDescriptionsProvider),
                   ),
                 ),
-                data: (descriptions) => _LevelList(descriptions: {
-                  for (final item in descriptions) item.level: item.description,
-                }),
+                data: (descriptions) => _LevelList(
+                  descriptions: {
+                    for (final item in descriptions)
+                      item.level: item.description,
+                  },
+                ),
               ),
             ),
           ],

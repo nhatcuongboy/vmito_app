@@ -173,6 +173,8 @@ class SlideOutMenu extends ConsumerWidget {
                         _MenuItem(
                           icon: AppIcons.help,
                           label: l10n.menuHelpFeedback,
+                          isActive: isActive(AppRoutes.feedback),
+                          onTap: () => pushTo(AppRoutes.feedback),
                         ),
                         _MenuItem(
                           icon: AppIcons.logout,

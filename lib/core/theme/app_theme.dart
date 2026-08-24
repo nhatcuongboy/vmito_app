@@ -103,6 +103,12 @@ abstract final class AppTheme {
         fillColor: brightness == Brightness.light
             ? AppColors.background
             : AppColors.cardDark,
+        // Keep supporting text visually secondary to entered values. Without
+        // this, Material 3 falls back to `onSurfaceVariant`, which is darker
+        // than the app's muted token in the light theme.
+        hintStyle: TextStyle(color: palette.mutedForeground),
+        labelStyle: _inputLabelStyle(scheme, palette),
+        floatingLabelStyle: _inputLabelStyle(scheme, palette),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
           vertical: AppSpacing.sm + 4,
@@ -153,4 +159,20 @@ abstract final class AppTheme {
       ),
     );
   }
+
+  static WidgetStateTextStyle _inputLabelStyle(
+    ColorScheme scheme,
+    AppPalette palette,
+  ) => WidgetStateTextStyle.resolveWith((states) {
+    if (states.contains(WidgetState.disabled)) {
+      return TextStyle(color: scheme.onSurface.withValues(alpha: 0.38));
+    }
+    if (states.contains(WidgetState.error)) {
+      return TextStyle(color: scheme.error);
+    }
+    if (states.contains(WidgetState.focused)) {
+      return TextStyle(color: scheme.primary);
+    }
+    return TextStyle(color: palette.mutedForeground);
+  });
 }

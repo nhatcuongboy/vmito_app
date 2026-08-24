@@ -3,7 +3,13 @@ import 'package:flutter/material.dart';
 
 /// 10 curated gradient rings — Instagram-style, matching `PostAvatar.tsx`.
 const _kRingGradients = <List<Color>>[
-  [Color(0xFFFEDA75), Color(0xFFFA7E1E), Color(0xFFD62976), Color(0xFF962FBF), Color(0xFF4F5BD5)],
+  [
+    Color(0xFFFEDA75),
+    Color(0xFFFA7E1E),
+    Color(0xFFD62976),
+    Color(0xFF962FBF),
+    Color(0xFF4F5BD5),
+  ],
   [Color(0xFF12C2E9), Color(0xFFC471ED), Color(0xFFF64F59)],
   [Color(0xFFF7971E), Color(0xFFFFD200), Color(0xFFF7971E)],
   [Color(0xFF00C6FF), Color(0xFF0072FF), Color(0xFF00C6FF)],
@@ -61,7 +67,8 @@ class PostAvatar extends StatelessWidget {
     final ringWidth = (size * 0.06).clamp(2.0, 5.0);
     const gapWidth = 1.5;
     final colors =
-        _kRingGradients[_hashName(name.isEmpty ? '?' : name) % _kRingGradients.length];
+        _kRingGradients[_hashName(name.isEmpty ? '?' : name) %
+            _kRingGradients.length];
     final outerSize = size + (ringWidth + gapWidth) * 2;
 
     return SizedBox.square(
@@ -104,8 +111,7 @@ class _AvatarCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initial =
-        name.trim().isEmpty ? '?' : name.trim()[0].toUpperCase();
+    final initial = name.trim().isEmpty ? '?' : name.trim()[0].toUpperCase();
     final fontSize = (size * 0.4).clamp(11.0, 28.0);
     final hasImage = imageUrl != null && imageUrl!.isNotEmpty;
 
@@ -130,10 +136,17 @@ class _AvatarCircle extends StatelessWidget {
           ? CachedNetworkImage(
               imageUrl: imageUrl!,
               fit: BoxFit.cover,
-              errorWidget: (_, _, _) =>
-                  _InitialFallback(initial: initial, fontSize: fontSize, isDark: isDark),
+              errorWidget: (_, _, _) => _InitialFallback(
+                initial: initial,
+                fontSize: fontSize,
+                isDark: isDark,
+              ),
             )
-          : _InitialFallback(initial: initial, fontSize: fontSize, isDark: isDark),
+          : _InitialFallback(
+              initial: initial,
+              fontSize: fontSize,
+              isDark: isDark,
+            ),
     );
   }
 }

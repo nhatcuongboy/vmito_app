@@ -140,12 +140,16 @@ class HostCourtActions extends StatelessWidget {
 }
 
 /// Web's `colorPalette="green"`/`"red"` solid buttons.
-ButtonStyle _solid(Color color) =>
-    FilledButton.styleFrom(backgroundColor: color, foregroundColor: Colors.white);
+ButtonStyle _solid(Color color) => FilledButton.styleFrom(
+  backgroundColor: color,
+  foregroundColor: Colors.white,
+);
 
 /// Web's `colorPalette="..."` `variant="outline"` buttons.
-ButtonStyle _outline(Color color) =>
-    OutlinedButton.styleFrom(foregroundColor: color, side: BorderSide(color: color));
+ButtonStyle _outline(Color color) => OutlinedButton.styleFrom(
+  foregroundColor: color,
+  side: BorderSide(color: color),
+);
 
 /// "Xem trận tiếp theo" — Chakra's `purple.500`, matched to the same shade
 /// used for the "other" gender badge on the court.

@@ -11,20 +11,24 @@ import 'package:vmito_app/features/auth/presentation/sign_in_screen.dart';
 import 'package:vmito_app/features/auth/presentation/sign_up_screen.dart';
 import 'package:vmito_app/features/court/presentation/live_session_screen.dart';
 import 'package:vmito_app/features/favorite/presentation/favorites_screen.dart';
+import 'package:vmito_app/features/feedback/presentation/feedback_screen.dart';
 import 'package:vmito_app/features/home/presentation/home_screen.dart';
+import 'package:vmito_app/features/home/presentation/home_search_screen.dart';
 import 'package:vmito_app/features/home/presentation/widgets/home_discovery_tabs.dart';
 import 'package:vmito_app/features/leaderboard/domain/leaderboard.dart';
 import 'package:vmito_app/features/leaderboard/domain/leaderboard_periods.dart';
 import 'package:vmito_app/features/leaderboard/presentation/leaderboard_screen.dart';
+import 'package:vmito_app/features/legal/presentation/legal_screen.dart';
 import 'package:vmito_app/features/notification/presentation/notifications_screen.dart';
 import 'package:vmito_app/features/payment/presentation/transaction_dashboard_screen.dart';
 import 'package:vmito_app/features/profile/presentation/account_security_screen.dart';
 import 'package:vmito_app/features/profile/presentation/profile_screen.dart';
 import 'package:vmito_app/features/profile/presentation/settings_screen.dart';
+import 'package:vmito_app/features/session/application/player/my_sessions_controller.dart';
 import 'package:vmito_app/features/session/presentation/player/browse_sessions_screen.dart';
 import 'package:vmito_app/features/session/presentation/player/create_session_screen.dart';
 import 'package:vmito_app/features/session/presentation/player/edit_session_screen.dart';
-import 'package:vmito_app/features/session/presentation/player/pending_requests_screen.dart';
+import 'package:vmito_app/features/session/presentation/player/my_sessions_search_screen.dart';
 import 'package:vmito_app/features/session/presentation/player/session_detail_screen.dart';
 import 'package:vmito_app/features/session_hosting/presentation/host_session_management_screen.dart';
 import 'package:vmito_app/features/social/presentation/browse_clubs_screen.dart';
@@ -161,6 +165,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         ),
       ),
       GoRoute(
+        path: AppRoutes.feedback,
+        name: AppRoutes.nameFeedback,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const FeedbackScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.terms,
+        name: AppRoutes.nameTerms,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const LegalScreen(
+          document: LegalDocument.terms,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.privacy,
+        name: AppRoutes.namePrivacy,
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => const LegalScreen(
+          document: LegalDocument.privacy,
+        ),
+      ),
+      GoRoute(
         path: '/user/:id',
         name: AppRoutes.namePublicProfile,
         parentNavigatorKey: _rootNavigatorKey,
@@ -188,6 +214,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   ),
                 ),
                 routes: [
+                  GoRoute(
+                    path: AppRoutes.homeSearchPath,
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => HomeSearchScreen(
+                      tab:
+                          parseHomeDiscoveryTab(
+                            state.uri.queryParameters[AppRoutes
+                                .homeDiscoveryTabQuery],
+                          ) ??
+                          HomeDiscoveryTab.sessions,
+                      initialQuery: state.uri.queryParameters['q'] ?? '',
+                    ),
+                  ),
                   GoRoute(
                     path: 'notifications',
                     builder: (context, state) => const NotificationsScreen(),
@@ -231,9 +270,15 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) => const CreateSessionScreen(),
                   ),
                   GoRoute(
-                    path: 'pending-requests',
+                    path: AppRoutes.mySessionsSearchPath,
                     parentNavigatorKey: _rootNavigatorKey,
-                    builder: (context, state) => const PendingRequestsScreen(),
+                    builder: (context, state) => MySessionsSearchScreen(
+                      scope: switch (state.uri.queryParameters['scope']) {
+                        'joined' => MySessionScope.joined,
+                        _ => MySessionScope.hosted,
+                      },
+                      initialQuery: state.uri.queryParameters['q'] ?? '',
+                    ),
                   ),
                   GoRoute(
                     path: ':id',

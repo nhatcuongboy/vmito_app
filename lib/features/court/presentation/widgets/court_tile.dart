@@ -70,9 +70,7 @@ class CourtTile extends StatelessWidget {
               ),
               // Icon plus text, never colour alone.
               Icon(
-                court.isPlaying
-                    ? AppIcons.playCircle
-                    : AppIcons.circle,
+                court.isPlaying ? AppIcons.playCircle : AppIcons.circle,
                 size: 14,
                 color: color,
               ),

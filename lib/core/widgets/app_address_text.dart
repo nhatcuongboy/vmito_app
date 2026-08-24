@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
+import 'package:vmito_app/l10n/app_localizations.dart';
 
 /// One consistent address line for every discovery surface.
 class AppAddressText extends ConsumerWidget {
@@ -13,6 +14,7 @@ class AppAddressText extends ConsumerWidget {
     this.newCity,
     this.style,
     this.maxLines = 1,
+    this.suffix,
     super.key,
   });
   final String? address;
@@ -23,6 +25,7 @@ class AppAddressText extends ConsumerWidget {
   final String? newCity;
   final TextStyle? style;
   final int maxLines;
+  final String? suffix;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -48,7 +51,7 @@ class AppAddressText extends ConsumerWidget {
                 padding: const EdgeInsets.only(left: 4),
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
+                    color: Colors.blue.shade50,
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Padding(
@@ -57,13 +60,17 @@ class AppAddressText extends ConsumerWidget {
                       vertical: 1,
                     ),
                     child: Text(
-                      'Mới',
-                      style: Theme.of(context).textTheme.labelSmall,
+                      AppLocalizations.of(context).addressNewBadge,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Colors.blue.shade700,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
+          if (suffix != null) TextSpan(text: suffix),
         ],
       ),
       style: style,

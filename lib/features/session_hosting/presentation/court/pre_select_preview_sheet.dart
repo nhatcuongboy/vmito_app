@@ -136,7 +136,10 @@ class PreSelectPreviewSheet extends StatelessWidget {
       context: context,
       builder: (dialogContext) => AlertDialog(
         title: Text(l10n.courtConfirmCancelPreSelectTitle),
-        content: Text(l10n.courtConfirmCancelPreSelectMessage),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 320),
+          child: Text(l10n.courtConfirmCancelPreSelectMessage),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),

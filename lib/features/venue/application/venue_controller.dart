@@ -26,6 +26,10 @@ class VenueBrowseState {
 class VenueBrowseController extends Notifier<VenueBrowseState> {
   @override
   VenueBrowseState build() => const VenueBrowseState();
+  // Snapshot restoration is an action, not a property mutation API.
+  // ignore: use_setters_to_change_properties
+  void restore(VenueBrowseState snapshot) => state = snapshot;
+
   Future<void> load({VenueFilter? filter}) async {
     final active = filter ?? state.filter;
     state = VenueBrowseState(
@@ -88,10 +92,11 @@ final venueBrowseControllerProvider =
     NotifierProvider<VenueBrowseController, VenueBrowseState>(
       VenueBrowseController.new,
     );
-final FutureProviderFamily<Venue, String> venueDetailProvider = FutureProvider.family<Venue, String>(
-  (ref, id) => ref.watch(venueServiceProvider).byId(id),
-);
-final FutureProviderFamily<List<VenuePriceBook>, String> venuePriceBooksProvider =
-    FutureProvider.family<List<VenuePriceBook>, String>(
-      (ref, id) => ref.watch(venueServiceProvider).priceBooks(id),
+final FutureProviderFamily<Venue, String> venueDetailProvider =
+    FutureProvider.family<Venue, String>(
+      (ref, id) => ref.watch(venueServiceProvider).byId(id),
     );
+final FutureProviderFamily<List<VenuePriceBook>, String>
+venuePriceBooksProvider = FutureProvider.family<List<VenuePriceBook>, String>(
+  (ref, id) => ref.watch(venueServiceProvider).priceBooks(id),
+);
