@@ -4,10 +4,13 @@ import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/utils/color_parsing.dart';
+import 'package:vmito_app/features/court/application/court_display_mode_controller.dart';
 import 'package:vmito_app/features/court/application/court_selection_controller.dart';
 import 'package:vmito_app/features/court/domain/court_seating.dart';
 import 'package:vmito_app/features/court/presentation/widgets/badminton_court_view.dart';
 import 'package:vmito_app/features/court/presentation/widgets/court/court_view_mode.dart';
+import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
 import 'package:vmito_app/features/session_hosting/presentation/court/ai_toggle_card.dart';
 import 'package:vmito_app/features/session_hosting/presentation/court/match_pair_stats.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -32,6 +35,12 @@ class CourtSelectionAutoTab extends ConsumerWidget {
     final theme = Theme.of(context);
     final palette = theme.extension<AppPalette>()!;
     final l10n = AppLocalizations.of(context);
+    final displayMode = ref.watch(courtDisplayModeControllerProvider);
+    final session = ref
+        .watch(sessionDetailProvider(selectionKey.sessionId))
+        .asData
+        ?.value;
+    final courtColor = parseHexColor(session?.courtColor);
     final state = ref.watch(courtSelectionControllerProvider(selectionKey));
     final controller = ref.read(
       courtSelectionControllerProvider(selectionKey).notifier,
@@ -88,8 +97,10 @@ class CourtSelectionAutoTab extends ConsumerWidget {
           )
         else if (suggestion != null) ...[
           BadmintonCourtView(
-            court: court,
+            court: court.copyWith(status: CourtStatus.inUse),
+            courtColor: courtColor,
             mode: CourtViewMode.manage,
+            displayMode: displayMode,
             matchType: state.matchType,
             // The same mapping the controller submits, so the preview cannot
             // show one arrangement and send another.

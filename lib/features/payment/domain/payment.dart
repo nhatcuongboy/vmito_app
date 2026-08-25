@@ -30,6 +30,7 @@ class PaymentRecord {
     required this.amount,
     required this.status,
     required this.createdAt,
+    this.registeredByUserId,
     this.paymentMethod,
     this.hostNotes,
     this.proofNotes,
@@ -46,6 +47,7 @@ class PaymentRecord {
     status: PaymentStatus.fromJson(json['status'] as String? ?? 'PENDING'),
     createdAt:
         _dateTime(json['createdAt']) ?? DateTime.fromMillisecondsSinceEpoch(0),
+    registeredByUserId: json['registeredByUserId'] as String?,
     paymentMethod: json['paymentMethod'] is String
         ? PaymentMethod.fromJson(json['paymentMethod'] as String)
         : null,
@@ -70,6 +72,7 @@ class PaymentRecord {
   final int amount;
   final PaymentStatus status;
   final DateTime createdAt;
+  final String? registeredByUserId;
   final PaymentMethod? paymentMethod;
   final String? hostNotes;
   final String? proofNotes;
@@ -186,6 +189,65 @@ class HostPaymentSettings {
   final String? accountHolderName;
   final String? qrCodeUrl;
   final bool isDefault;
+}
+
+class PaymentReminder {
+  const PaymentReminder({
+    required this.id,
+    required this.reminderCount,
+    required this.paymentIds,
+    this.lastRemindedAt,
+  });
+
+  factory PaymentReminder.fromJson(Map<String, dynamic> json) =>
+      PaymentReminder(
+        id: json['id'] as String? ?? '',
+        reminderCount: (json['reminderCount'] as num?)?.toInt() ?? 0,
+        lastRemindedAt: _dateTime(json['lastRemindedAt']),
+        paymentIds: (json['payments'] as List<dynamic>? ?? const [])
+            .whereType<Map<Object?, Object?>>()
+            .map((item) => item['payment'])
+            .whereType<Map<Object?, Object?>>()
+            .map((payment) => payment['id'] as String?)
+            .whereType<String>()
+            .toList(growable: false),
+      );
+
+  final String id;
+  final int reminderCount;
+  final DateTime? lastRemindedAt;
+  final List<String> paymentIds;
+}
+
+class VietnamBank {
+  const VietnamBank({
+    required this.code,
+    required this.name,
+    required this.shortName,
+    this.logo,
+  });
+
+  factory VietnamBank.fromJson(Map<String, dynamic> json) => VietnamBank(
+    code: json['code'] as String? ?? '',
+    name: json['name'] as String? ?? '',
+    shortName:
+        json['shortName'] as String? ?? json['short_name'] as String? ?? '',
+    logo: json['logo'] as String?,
+  );
+
+  final String code;
+  final String name;
+  final String shortName;
+  final String? logo;
+}
+
+class FeeRecalculationResult {
+  const FeeRecalculationResult({required this.updated});
+
+  factory FeeRecalculationResult.fromJson(Map<String, dynamic> json) =>
+      FeeRecalculationResult(updated: (json['updated'] as num?)?.toInt() ?? 0);
+
+  final int updated;
 }
 
 class SessionExpense {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/utils/color_parsing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/court/application/live_session_controller.dart';
 import 'package:vmito_app/features/court/presentation/widgets/badminton_court_view.dart';
@@ -151,6 +152,7 @@ class _CourtBoard extends StatelessWidget {
                     child: _CourtCard(
                       court: court,
                       preSelectedPlayers: session.preSelectedPlayersFor(court),
+                      courtColor: parseHexColor(session.courtColor),
                     ),
                   ),
               ],
@@ -164,10 +166,15 @@ class _CourtBoard extends StatelessWidget {
 }
 
 class _CourtCard extends StatelessWidget {
-  const _CourtCard({required this.court, required this.preSelectedPlayers});
+  const _CourtCard({
+    required this.court,
+    required this.preSelectedPlayers,
+    this.courtColor,
+  });
 
   final Court court;
   final List<SessionPlayer> preSelectedPlayers;
+  final Color? courtColor;
 
   @override
   Widget build(BuildContext context) {
@@ -203,6 +210,7 @@ class _CourtCard extends StatelessWidget {
             BadmintonCourtView(
               court: court,
               preSelectedPlayers: preSelectedPlayers,
+              courtColor: courtColor,
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(l10n.livePlayerCount(players.length)),

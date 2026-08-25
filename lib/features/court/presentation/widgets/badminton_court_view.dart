@@ -75,37 +75,51 @@ class BadmintonCourtView extends StatelessWidget {
       label: AppLocalizations.of(context).courtName(court),
       child: AspectRatio(
         aspectRatio: AppSizes.courtAspectRatio,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(AppRadius.lg),
-          child: CustomPaint(
-            painter: CourtSurfacePainter(
-              status: court.status,
-              courtColor: courtColor,
-            ),
-            child: Stack(
-              children: [
-                for (var seat = 0; seat < seats.length; seat++)
-                  Align(
-                    alignment: CourtSlotLayout.alignmentAt(
-                      CourtSlotLayout.visualIndexOf(seat, direction, format),
-                      format,
-                    ),
-                    child: _seatChild(
-                      context,
-                      seat,
-                      seats[seat],
-                      CourtSlotLayout.pairNumberFor(
-                        CourtSlotLayout.visualIndexOf(seat, direction, format),
-                      ),
-                    ),
-                  ),
-                ...overlays,
-              ],
+        child: CustomPaint(
+          painter: CourtSurfacePainter(
+            status: court.status,
+            courtColor: courtColor,
+          ),
+          child: LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                final height = constraints.maxHeight;
+
+                return Stack(
+                  children: [
+                    for (var seat = 0; seat < seats.length; seat++)
+                      () {
+                        final visualIndex = CourtSlotLayout.visualIndexOf(
+                          seat,
+                          direction,
+                          format,
+                        );
+                        final offset = CourtSlotLayout.offsetAt(
+                          visualIndex,
+                          format,
+                        );
+                        return Positioned(
+                          left: width * offset.dx,
+                          top: height * offset.dy,
+                          child: FractionalTranslation(
+                            translation: const Offset(-0.5, -0.5),
+                            child: _seatChild(
+                              context,
+                              seat,
+                              seats[seat],
+                              CourtSlotLayout.pairNumberFor(visualIndex),
+                            ),
+                          ),
+                        );
+                      }(),
+                    ...overlays,
+                  ],
+                );
+              },
             ),
           ),
         ),
-      ),
-    );
+      );
   }
 
   Widget _seatChild(
@@ -124,21 +138,15 @@ class BadmintonCourtView extends StatelessWidget {
       );
     }
 
-    return ConstrainedBox(
-      // Four names across a phone-width court will collide otherwise.
-      constraints: BoxConstraints(
-        maxWidth: MediaQuery.sizeOf(context).width * 0.28,
-      ),
-      child: CourtPlayerMarker(
-        player: player,
-        mode: mode,
-        displayMode: displayMode,
-        pairNumber: pairNumber,
-        isActive: mode.isSelection && seat == activeSlot,
-        // Tapping a filled seat in selection mode clears it and makes it the
-        // active one, so a mis-tap is one tap to fix.
-        onTap: onSlotTap == null ? null : () => onSlotTap!(seat),
-      ),
+    return CourtPlayerMarker(
+      player: player,
+      mode: mode,
+      displayMode: displayMode,
+      pairNumber: pairNumber,
+      isActive: mode.isSelection && seat == activeSlot,
+      // Tapping a filled seat in selection mode clears it and makes it the
+      // active one, so a mis-tap is one tap to fix.
+      onTap: onSlotTap == null ? null : () => onSlotTap!(seat),
     );
   }
 

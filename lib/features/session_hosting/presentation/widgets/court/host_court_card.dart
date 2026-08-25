@@ -39,44 +39,38 @@ class HostCourtCard extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           HostCourtCardHeader(court: court),
+          BadmintonCourtView(
+            court: court,
+            preSelectedPlayers: session.preSelectedPlayersFor(court),
+            mode: CourtViewMode.manage,
+            displayMode: displayMode,
+            matchType: court.matchTypeOr(session.defaultMatchType),
+            courtColor: parseHexColor(session.courtColor),
+            overlays: [
+              // Nothing to announce on an empty court.
+              if (court.currentPlayers.isNotEmpty)
+                CourtAnnounceButton(
+                  court: court,
+                  players: court.currentPlayers,
+                ),
+              if (court.currentPlayers.isNotEmpty)
+                CourtRepeatWarningButton(session: session, court: court),
+            ],
+          ),
           Padding(
             padding: const EdgeInsets.all(AppSpacing.sm),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                BadmintonCourtView(
-                  court: court,
-                  preSelectedPlayers: session.preSelectedPlayersFor(court),
-                  mode: CourtViewMode.manage,
-                  displayMode: displayMode,
-                  matchType: court.matchTypeOr(session.defaultMatchType),
-                  courtColor: parseHexColor(session.courtColor),
-                  overlays: [
-                    // Nothing to announce on an empty court.
-                    if (court.currentPlayers.isNotEmpty)
-                      CourtAnnounceButton(
-                        court: court,
-                        players: court.currentPlayers,
-                      ),
-                    if (court.currentPlayers.isNotEmpty)
-                      CourtRepeatWarningButton(session: session, court: court),
-                  ],
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                HostCourtActions(
-                  court: court,
-                  isSessionLive: session.status.isLive,
-                  waitingCount: session.waitingQueue.length,
-                  isBusy: actions.isBusy(court.id),
-                  onAssign: () => _assign(context, controller),
-                  onClear: () => controller.deselectPlayers(court.id),
-                  onStart: () => controller.startMatch(court.id),
-                  onPreSelect: () =>
-                      _assign(context, controller, preSelect: true),
-                  onViewNextMatch: () => _viewNextMatch(context, controller),
-                  onEnd: () => _endMatch(context, controller),
-                ),
-              ],
+            child: HostCourtActions(
+              court: court,
+              isSessionLive: session.status.isLive,
+              waitingCount: session.waitingQueue.length,
+              isBusy: actions.isBusy(court.id),
+              onAssign: () => _assign(context, controller),
+              onClear: () => controller.deselectPlayers(court.id),
+              onStart: () => controller.startMatch(court.id),
+              onPreSelect: () =>
+                  _assign(context, controller, preSelect: true),
+              onViewNextMatch: () => _viewNextMatch(context, controller),
+              onEnd: () => _endMatch(context, controller),
             ),
           ),
         ],

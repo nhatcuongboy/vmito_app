@@ -1,15 +1,23 @@
+import 'dart:typed_data';
+
+import 'package:dio/dio.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/constants/api_endpoints.dart';
 import 'package:vmito_app/core/network/api_client.dart';
+import 'package:vmito_app/core/network/api_exception.dart';
 import 'package:vmito_app/core/network/api_options.dart';
 import 'package:vmito_app/core/network/api_response.dart';
 import 'package:vmito_app/features/payment/domain/payment.dart';
 import 'package:vmito_app/features/payment/domain/repositories/payment_repository.dart';
+import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 
 class PaymentRepositoryImpl implements PaymentRepository {
-  const PaymentRepositoryImpl(this._client);
+  PaymentRepositoryImpl(this._client, {Dio? publicDio})
+    : _publicDio = publicDio ?? Dio();
 
   final ApiClient _client;
+  final Dio _publicDio;
 
   @override
   Future<PaymentLedger> ledger(String sessionId) async {
@@ -70,14 +78,22 @@ class PaymentRepositoryImpl implements PaymentRepository {
   @override
   Future<void> saveSettings({
     String? id,
-    required String bankName,
-    required String accountNumber,
-    required String accountHolder,
+    String? bankName,
+    String? accountNumber,
+    String? accountHolder,
+    String? qrCodeUrl,
+    bool clearQrCode = false,
   }) async {
     final data = {
-      'bankName': bankName,
-      'bankAccountNumber': accountNumber,
-      'accountHolderName': accountHolder,
+      'bankName': bankName?.trim().isEmpty ?? true ? null : bankName!.trim(),
+      'bankAccountNumber': accountNumber?.trim().isEmpty ?? true
+          ? null
+          : accountNumber!.trim(),
+      'accountHolderName': accountHolder?.trim().isEmpty ?? true
+          ? null
+          : accountHolder!.trim(),
+      if (qrCodeUrl?.trim().isNotEmpty ?? false) 'qrCodeUrl': qrCodeUrl!.trim(),
+      if (clearQrCode) 'qrCodeUrl': null,
       'isDefault': true,
     };
     final options = apiOptions(skipGlobalError: true);
@@ -94,6 +110,47 @@ class PaymentRepositoryImpl implements PaymentRepository {
         options: options,
       );
     }
+  }
+
+  @override
+  Future<String> uploadQrCode(Uint8List bytes, String filename) async {
+    final compressed = await FlutterImageCompress.compressWithList(
+      bytes,
+      minWidth: 1200,
+      minHeight: 1200,
+      quality: 82,
+    );
+    final response = await _client.post<Map<String, dynamic>>(
+      ApiEndpoints.paymentQrUpload,
+      data: FormData.fromMap({
+        'qrCode': MultipartFile.fromBytes(compressed, filename: filename),
+      }),
+      options: apiOptions(skipGlobalError: true),
+    );
+    final result = unwrap(
+      response.data,
+      (json) => json['url'] as String? ?? '',
+    );
+    if (result.isEmpty) {
+      throw const FormatException('QR upload returned no URL');
+    }
+    return result;
+  }
+
+  @override
+  Future<List<VietnamBank>> vietnamBanks() async {
+    // A separate client deliberately prevents the app API's auth interceptor
+    // from forwarding the user's access token to this public third party.
+    final response = await _publicDio.get<Map<String, dynamic>>(
+      'https://api.vietqr.io/v2/banks',
+    );
+    final body = response.data;
+    if (body?['code'] != '00' || body?['data'] is! List) return const [];
+    return (body!['data'] as List<dynamic>)
+        .whereType<Map<Object?, Object?>>()
+        .map((item) => VietnamBank.fromJson(item.cast<String, dynamic>()))
+        .where((bank) => bank.code.isNotEmpty)
+        .toList(growable: false);
   }
 
   @override
@@ -120,6 +177,64 @@ class PaymentRepositoryImpl implements PaymentRepository {
       data: {'totalAmount': totalAmount},
       options: apiOptions(skipGlobalError: true),
     );
+  }
+
+  @override
+  Future<SessionFeeConfig?> feeConfig(String sessionId) async {
+    try {
+      final response = await _client.get<Map<String, dynamic>>(
+        ApiEndpoints.sessionFeeConfig(sessionId),
+      );
+      return unwrap(response.data, SessionFeeConfig.fromJson);
+    } on ApiException catch (error) {
+      if (error.isNotFound) return null;
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> saveFeeConfig(
+    String sessionId,
+    SessionFeeConfig config,
+  ) async {
+    final data = <String, dynamic>{
+      'feeType': config.isSplitEvenly ? 'SPLIT_EVENLY' : 'FIXED',
+      if (!config.isSplitEvenly) 'maleFee': config.maleFee,
+      if (!config.isSplitEvenly) 'femaleFee': config.femaleFee,
+      if (config.notes?.trim().isNotEmpty ?? false)
+        'notes': config.notes!.trim(),
+    };
+    final existing = await feeConfig(sessionId);
+    if (existing == null) {
+      await _client.post<void>(
+        ApiEndpoints.sessionFeeConfig(sessionId),
+        data: data,
+        options: apiOptions(skipGlobalError: true),
+      );
+    } else {
+      await _client.put<void>(
+        ApiEndpoints.sessionFeeConfig(sessionId),
+        data: data,
+        options: apiOptions(skipGlobalError: true),
+      );
+    }
+  }
+
+  @override
+  Future<void> deleteFeeConfig(String sessionId) async {
+    await _client.delete<void>(
+      ApiEndpoints.sessionFeeConfig(sessionId),
+      options: apiOptions(skipGlobalError: true),
+    );
+  }
+
+  @override
+  Future<FeeRecalculationResult> recalculatePayments(String sessionId) async {
+    final response = await _client.post<Map<String, dynamic>>(
+      ApiEndpoints.sessionFeeRecalculate(sessionId),
+      options: apiOptions(skipGlobalError: true),
+    );
+    return unwrap(response.data, FeeRecalculationResult.fromJson);
   }
 
   @override
@@ -201,6 +316,15 @@ class PaymentRepositoryImpl implements PaymentRepository {
       data: {'paymentId': paymentId},
       options: apiOptions(skipGlobalError: true),
     );
+  }
+
+  @override
+  Future<List<PaymentReminder>> remindersForCreator() async {
+    final response = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.paymentReminders,
+      queryParameters: const {'role': 'creator'},
+    );
+    return unwrapList(response.data, PaymentReminder.fromJson);
   }
 
   @override

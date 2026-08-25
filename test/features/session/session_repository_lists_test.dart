@@ -84,6 +84,34 @@ void main() {
     expect(adapter.requests.single.queryParameters['hostId'], 'h1');
   });
 
+  test(
+    'recommendations preserve fallback, pagination, slots, and query',
+    () async {
+      final adapter = _RecordingAdapter(
+        responseBody:
+            '{"success":true,"data":{"data":[{"id":"s2","name":"Suggested","availableSlots":3,"maxSlots":8}],"pagination":{"page":1,"limit":12,"total":19,"totalPages":2},"meta":{"isFallback":true}}}',
+      );
+
+      final page = await _repository(adapter).recommendations(
+        's1',
+        limit: 12,
+        userId: 'u1',
+      );
+
+      expect(adapter.requests.single.path, '/sessions/s1/recommendations');
+      expect(adapter.requests.single.queryParameters, {
+        'page': 1,
+        'limit': 12,
+        'userId': 'u1',
+      });
+      expect(page.isFallback, isTrue);
+      expect(page.hasMore, isTrue);
+      expect(page.items.single.displayAvailableSlots, 3);
+      expect(page.items.single.displayMaxSlots, 8);
+      expect(page.items.single.session.status, SessionStatus.preparing);
+    },
+  );
+
   test('available sessions serializes the complete filter contract', () async {
     final adapter = _RecordingAdapter();
     final repository = _repository(adapter);

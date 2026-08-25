@@ -230,6 +230,39 @@ class SocialService {
         .toList(growable: false);
   }
 
+  Future<ClubFeeConfig?> clubFeeForMonth(
+    String clubId,
+    int year,
+    int month,
+  ) async {
+    try {
+      final response = await _client.get<dynamic>(
+        ApiEndpoints.clubFeeForMonth(clubId, year, month),
+      );
+      final payload = _payload(response.data);
+      return payload is Map<String, dynamic>
+          ? ClubFeeConfig.fromJson(payload)
+          : null;
+    } on Object {
+      return null;
+    }
+  }
+
+  Future<List<ClubMonthlyMember>> clubMonthlyMembers(
+    String clubId,
+    int year,
+    int month,
+  ) async {
+    final response = await _client.get<dynamic>(
+      ApiEndpoints.clubMonthlyMembers(clubId, year, month),
+    );
+    final raw = _payload(response.data) as List<dynamic>? ?? const [];
+    return raw
+        .whereType<Map<String, dynamic>>()
+        .map(ClubMonthlyMember.fromJson)
+        .toList(growable: false);
+  }
+
   Future<void> addClubMember(String clubId, String userId) =>
       _client.post<void>(
         ApiEndpoints.clubMember(clubId, userId),

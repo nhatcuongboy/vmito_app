@@ -82,12 +82,15 @@ class PlayerSelectCard extends StatelessWidget {
                         const SizedBox(width: AppSpacing.xxs),
                       ],
                       _GenderChip(gender: player.gender),
-                      const Spacer(),
-                      Text(
-                        l10n.playerMatchesCount(player.matchesPlayed),
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: palette.mutedForeground,
-                          fontWeight: FontWeight.w600,
+                      const SizedBox(width: AppSpacing.xs),
+                      Flexible(
+                        child: Text(
+                          l10n.playerMatchesCount(player.matchesPlayed),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: palette.mutedForeground,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],

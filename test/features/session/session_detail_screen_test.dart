@@ -18,6 +18,7 @@ import 'package:vmito_app/features/session/application/player/session_recommenda
 import 'package:vmito_app/features/session/domain/player_detail.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
+import 'package:vmito_app/features/session/domain/session_recommendation.dart';
 import 'package:vmito_app/features/session/presentation/player/session_detail_screen.dart';
 import 'package:vmito_app/features/session_hosting/application/player_statistics_providers.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
@@ -119,6 +120,7 @@ Future<void> _pump(
   Session session, {
   User? currentUser,
   List<Session> recommendations = const [],
+  bool recommendationsFallback = false,
   List<SessionPlayer> myPlayers = const [],
   PlayerDetail? playerDetail,
   ClubSummary? club,
@@ -145,7 +147,16 @@ Future<void> _pump(
           const _StubFavoriteRepository(),
         ),
         sessionRecommendationsProvider.overrideWith(
-          (ref, id) async => recommendations,
+          (ref, id) async => SessionRecommendationsPage(
+            items: recommendations
+                .map((session) => SessionRecommendation(session: session))
+                .toList(growable: false),
+            page: 1,
+            limit: 12,
+            total: recommendations.length,
+            totalPages: 1,
+            isFallback: recommendationsFallback,
+          ),
         ),
         registrationRepositoryProvider.overrideWithValue(
           _StubRegistrationRepository(myPlayers),
@@ -642,7 +653,7 @@ void main() {
 
     // Not a spinner and not an empty-state card: this is a tail-end upsell,
     // and either would look like the page itself failed.
-    expect(find.text('Suggested sessions'), findsNothing);
+    expect(find.text('Suggested for you'), findsNothing);
   });
 
   testWidgets('recommendations render as a rail of cards', (tester) async {
@@ -654,9 +665,42 @@ void main() {
       ],
     );
 
-    expect(find.text('Suggested sessions'), findsOneWidget);
+    expect(find.text('Suggested for you'), findsOneWidget);
     expect(find.text('Kèo tối thứ 5'), findsOneWidget);
+    expect(find.text('Free'), findsOneWidget);
+    expect(find.text('16/16'), findsOneWidget);
     expect(find.text('View all sessions'), findsOneWidget);
+  });
+
+  testWidgets('split-evenly recommendation uses its web fee label', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _session(),
+      recommendations: [
+        _session().copyWith(
+          id: 's2',
+          feeConfig: const SessionFeeConfig(feeType: FeeType.splitEvenly),
+        ),
+      ],
+    );
+
+    expect(find.text('Split evenly'), findsOneWidget);
+  });
+
+  testWidgets('fallback recommendations use popular title and no AI badge', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _session(),
+      recommendations: [_session().copyWith(id: 's2', name: 'Popular session')],
+      recommendationsFallback: true,
+    );
+
+    expect(find.text('Popular sessions'), findsOneWidget);
+    expect(find.text('Suggested'), findsNothing);
   });
 
   testWidgets('fee details open from the sticky bar, not the scroll body', (
@@ -715,9 +759,9 @@ void main() {
     expect(find.text("Who's playing with you?"), findsOneWidget);
   });
 
-  testWidgets('a recommendation card fits a two-line title', (tester) async {
-    // The rail has a fixed height, so a name that wraps used to overflow it.
-    // A widget test fails on overflow, which is the assertion here.
+  testWidgets('a recommendation card truncates a long title without overflow', (
+    tester,
+  ) async {
     await _pump(
       tester,
       _session(),

@@ -3,6 +3,7 @@ import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/utils/color_parsing.dart';
 import 'package:vmito_app/features/court/presentation/widgets/badminton_court_view.dart';
 import 'package:vmito_app/features/court/presentation/widgets/court/court_view_mode.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
@@ -91,6 +92,7 @@ class PreSelectPreviewSheet extends StatelessWidget {
                   currentMatch: null,
                 ),
                 preSelectedPlayers: players,
+                courtColor: parseHexColor(session.courtColor),
                 mode: CourtViewMode.manage,
               ),
               const SizedBox(height: AppSpacing.md),

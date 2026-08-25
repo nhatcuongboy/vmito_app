@@ -231,9 +231,7 @@ class CourtSelectionController extends Notifier<CourtSelectionState> {
   );
 }
 
-final courtSelectionControllerProvider =
-    NotifierProvider.family<
-      CourtSelectionController,
-      CourtSelectionState,
-      CourtSelectionKey
-    >(CourtSelectionController.new);
+final courtSelectionControllerProvider = NotifierProvider.autoDispose
+    .family<CourtSelectionController, CourtSelectionState, CourtSelectionKey>(
+      CourtSelectionController.new,
+    );

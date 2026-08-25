@@ -3,10 +3,12 @@ import 'package:vmito_app/features/registration/domain/pending_join_request.dart
 import 'package:vmito_app/features/session/domain/browse_session_filters.dart';
 import 'package:vmito_app/features/session/domain/bulk_create_session.dart';
 import 'package:vmito_app/features/session/domain/create_session_request.dart';
+import 'package:vmito_app/features/session/domain/host_player.dart';
 import 'package:vmito_app/features/session/domain/player_detail.dart';
 import 'package:vmito_app/features/session/domain/player_statistics.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_list_query.dart';
+import 'package:vmito_app/features/session/domain/session_recommendation.dart';
 import 'package:vmito_app/shared/models/match.dart';
 
 /// The `Session` entity's data boundary. `presentation/` and `application/`
@@ -97,9 +99,10 @@ abstract interface class SessionRepository {
   /// Sessions similar to [sessionId], ranked by the backend.
   ///
   /// [userId] personalises the ranking; omit it for a signed-out viewer.
-  Future<Page<Session>> recommendations(
+  Future<SessionRecommendationsPage> recommendations(
     String sessionId, {
     required int limit,
+    int page = 1,
     String? userId,
   });
 
@@ -128,4 +131,18 @@ abstract interface class SessionRepository {
   Future<void> toggleInactive(String sessionId, String playerId);
 
   Future<void> removePlayer(String sessionId, String playerId);
+
+  /// Updates one host-managed player in a session.
+  Future<void> updatePlayer(
+    String sessionId,
+    String playerId,
+    Map<String, dynamic> player,
+  );
+
+  Future<List<HostPlayerUserOption>> searchUsers(String query);
+
+  Future<void> createPlayers(
+    String sessionId,
+    List<Map<String, dynamic>> players,
+  );
 }

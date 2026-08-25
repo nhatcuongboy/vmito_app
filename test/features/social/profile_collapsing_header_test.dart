@@ -272,6 +272,26 @@ void main() {
     expect(find.text('Tất cả (35)'), findsOneWidget);
     expect(find.text('Đang hoạt động'), findsNothing);
   });
+
+  testWidgets('renders notification icon to the left of share button', (
+    tester,
+  ) async {
+    final offset = ValueNotifier<double>(0);
+    addTearDown(offset.dispose);
+
+    await _pumpHeader(tester, offset: offset);
+
+    final notifFinder = find.byIcon(AppIcons.notifications);
+    final shareFinder = find.byIcon(AppIcons.share);
+
+    expect(notifFinder, findsOneWidget);
+    expect(shareFinder, findsOneWidget);
+
+    final notifPos = tester.getTopLeft(notifFinder);
+    final sharePos = tester.getTopLeft(shareFinder);
+
+    expect(notifPos.dx, lessThan(sharePos.dx));
+  });
 }
 
 double _opacity(WidgetTester tester, String key) =>
@@ -291,26 +311,31 @@ Future<void> _pumpHeader(
   bool isRootProfile = true,
   VoidCallback? onMenuTap,
 }) => tester.pumpWidget(
-  MaterialApp(
-    theme: ThemeData.light(),
-    home: Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          ProfileCollapsingHeader(
-            profile: _profile,
-            scrollOffset: offset,
-            isRootProfile: isRootProfile,
-            isOwner: true,
-            usesCompactSystemOverlay: usesCompactOverlay,
-            menuTooltip: 'Mở menu',
-            shareTooltip: 'Chia sẻ',
-            settingsTooltip: 'Cài đặt',
-            onMenuTap: onMenuTap ?? _doNothing,
-            onShare: _doNothing,
-            onSettings: _doNothing,
-          ),
-          const SliverToBoxAdapter(child: SizedBox(height: 1000)),
-        ],
+  ProviderScope(
+    child: MaterialApp(
+      locale: const Locale('vi'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      theme: ThemeData.light(),
+      home: Scaffold(
+        body: CustomScrollView(
+          slivers: [
+            ProfileCollapsingHeader(
+              profile: _profile,
+              scrollOffset: offset,
+              isRootProfile: isRootProfile,
+              isOwner: true,
+              usesCompactSystemOverlay: usesCompactOverlay,
+              menuTooltip: 'Mở menu',
+              shareTooltip: 'Chia sẻ',
+              settingsTooltip: 'Cài đặt',
+              onMenuTap: onMenuTap ?? _doNothing,
+              onShare: _doNothing,
+              onSettings: _doNothing,
+            ),
+            const SliverToBoxAdapter(child: SizedBox(height: 1000)),
+          ],
+        ),
       ),
     ),
   ),

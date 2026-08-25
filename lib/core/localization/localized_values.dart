@@ -4,6 +4,22 @@ import 'package:vmito_app/shared/models/court.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 
 extension LocalizedValues on AppLocalizations {
+  /// Maps known host-session API failures to app-localized copy.
+  ///
+  /// The API currently returns this condition as an English message rather
+  /// than a machine-readable error code. Keep the contract match here, at the
+  /// presentation mapping boundary, so the raw server text never reaches the
+  /// user.
+  String hostSessionManagementError(Object? error) {
+    if (error case ApiException(
+      statusCode: 400,
+      message: 'Cannot start a session with no players',
+    )) {
+      return hostManageStartRequiresPlayer;
+    }
+    return error is ApiException ? apiError(error) : hostManageActionFailed;
+  }
+
   String apiError(ApiException error) {
     if (error.hasServerMessage) return error.message;
     return switch (error.kind) {

@@ -242,13 +242,20 @@ abstract class Session with _$Session {
 
   /// Every image the hero can page through, cover photo included.
   ///
-  /// Falls back to the single cover so the carousel always has one page —
-  /// callers must not special-case an empty gallery.
+  /// The cover comes first, followed by distinct non-empty gallery images.
   List<String> get galleryImages {
-    final gallery = images.where((url) => url.trim().isNotEmpty).toList();
-    if (gallery.isNotEmpty) return gallery;
-    final cover = coverPhoto?.trim();
-    return cover == null || cover.isEmpty ? const <String>[] : [cover];
+    final gallery = <String>[];
+    final seen = <String>{};
+
+    void add(String? url) {
+      final value = url?.trim();
+      if (value == null || value.isEmpty || !seen.add(value)) return;
+      gallery.add(value);
+    }
+
+    add(coverPhoto);
+    images.forEach(add);
+    return gallery;
   }
 
   /// Seats left, or null when [capacity] is unknown.

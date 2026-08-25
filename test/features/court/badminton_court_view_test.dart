@@ -330,5 +330,35 @@ void main() {
       await tester.tap(find.text('An'));
       expect(tapped, [0]);
     });
+
+    testWidgets('shows a level badge and an explicit remove button', (
+      tester,
+    ) async {
+      const court = Court(id: 'c', courtNumber: 1);
+      final tapped = <int>[];
+
+      await pumpCourt(
+        tester,
+        BadmintonCourtView(
+          court: court,
+          mode: CourtViewMode.selection,
+          matchType: MatchType.doubles,
+          selection: const [
+            SessionPlayer(id: 'p1', name: 'An', position: 0, level: 6),
+            null,
+            null,
+            null,
+          ],
+          activeSlot: 1,
+          onSlotTap: tapped.add,
+        ),
+      );
+
+      expect(find.text('Khá'), findsOneWidget);
+      await tester.tap(
+        find.byKey(const ValueKey('remove-selected-court-player')),
+      );
+      expect(tapped, [0]);
+    });
   });
 }

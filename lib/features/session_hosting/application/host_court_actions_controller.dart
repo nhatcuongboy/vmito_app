@@ -3,6 +3,7 @@
 // ignore_for_file: specify_nonobvious_property_types
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/features/court/application/match_history_provider.dart';
 import 'package:vmito_app/features/court/data/repositories/court_repository_impl.dart';
 import 'package:vmito_app/features/court/domain/match_result_draft.dart';
 import 'package:vmito_app/features/court/domain/player_position.dart';
@@ -57,7 +58,9 @@ class HostCourtActionsController extends Notifier<HostCourtActionsState> {
     );
     try {
       await operation(ref.read(courtRepositoryProvider));
-      ref.invalidate(sessionDetailProvider(sessionId));
+      ref
+        ..invalidate(sessionDetailProvider(sessionId))
+        ..invalidate(matchHistoryProvider(sessionId));
       return true;
     } on Object catch (error) {
       state = state.copyWith(error: error);

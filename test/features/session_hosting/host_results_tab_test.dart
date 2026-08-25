@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vmito_app/features/court/application/live_session_controller.dart';
 import 'package:vmito_app/features/court/application/match_history_provider.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/host_results_tab.dart';
@@ -18,31 +19,32 @@ void main() {
       const MatchPlayer(
         id: 'mp-1',
         playerId: 'p-1',
-        player: MatchPlayerRef(id: 'p-1', name: 'Sơn'),
+        player: MatchPlayerRef(id: 'p-1', name: 'Sơn', playerNumber: 1),
       ),
       const MatchPlayer(
         id: 'mp-2',
         playerId: 'p-2',
         position: 1,
-        player: MatchPlayerRef(id: 'p-2', name: 'Minh'),
+        player: MatchPlayerRef(id: 'p-2', name: 'Minh', playerNumber: 2),
       ),
       const MatchPlayer(
         id: 'mp-3',
         playerId: 'p-3',
         position: 2,
-        player: MatchPlayerRef(id: 'p-3', name: 'Nam'),
+        player: MatchPlayerRef(id: 'p-3', name: 'Nam', playerNumber: 3),
       ),
       const MatchPlayer(
         id: 'mp-4',
         playerId: 'p-4',
         position: 3,
-        player: MatchPlayerRef(id: 'p-4', name: 'Bảo'),
+        player: MatchPlayerRef(id: 'p-4', name: 'Bảo', playerNumber: 4),
       ),
     ],
     score:
         '[{"playerId":"p-1","score":21},{"playerId":"p-2","score":21},{"playerId":"p-3","score":16},{"playerId":"p-4","score":16}]',
     winnerIds: '["p-1","p-2"]',
     startTime: DateTime.utc(2026, 8, 11, 3, 34),
+    endTime: DateTime.utc(2026, 8, 11, 3, 35),
   );
 
   final unscoredMatch = Match(
@@ -105,12 +107,30 @@ void main() {
     expect(result.winner, 1);
   });
 
+  test('uses alternating court positions for a vertical court', () {
+    final verticalMatch = match.copyWith(
+      score:
+          '[{"playerId":"p-1","score":21},{"playerId":"p-2","score":16},{"playerId":"p-3","score":21},{"playerId":"p-4","score":16}]',
+      winnerIds: '["p-1","p-3"]',
+    );
+
+    final result = matchResult(
+      verticalMatch,
+      direction: CourtDirection.vertical,
+    );
+
+    expect(result.first, 21);
+    expect(result.second, 16);
+    expect(result.winner, 1);
+  });
+
   testWidgets('renders compact controls and completed result card', (
     tester,
   ) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          liveSessionRealtimeProvider(session.id).overrideWith((ref) {}),
           matchHistoryProvider(session.id).overrideWith((ref) async => [match]),
         ],
         child: const MaterialApp(
@@ -124,10 +144,55 @@ void main() {
     expect(find.byKey(const Key('host-results-filter')), findsOneWidget);
     expect(find.text('Mới nhất'), findsOneWidget);
     expect(find.text('Sân 1'), findsOneWidget);
-    expect(find.text('Sơn • Minh'), findsOneWidget);
-    expect(find.text('Nam • Bảo'), findsOneWidget);
+    expect(find.text('Cặp 1'), findsOneWidget);
+    expect(find.text('Cặp 2'), findsOneWidget);
+    expect(find.text('#1 Sơn · #2 Minh'), findsOneWidget);
+    expect(find.text('#3 Nam · #4 Bảo'), findsOneWidget);
     expect(find.text('21'), findsOneWidget);
     expect(find.text('16'), findsOneWidget);
+    expect(find.text('Thắng'), findsOneWidget);
+    expect(find.text('Chính'), findsOneWidget);
+    expect(find.text('VS'), findsNothing);
+    expect(find.textContaining('1 phút'), findsOneWidget);
+  });
+
+  testWidgets('renders the correct player pairs for a vertical court', (
+    tester,
+  ) async {
+    final verticalMatch = match.copyWith(
+      score:
+          '[{"playerId":"p-1","score":21},{"playerId":"p-2","score":16},{"playerId":"p-3","score":21},{"playerId":"p-4","score":16}]',
+      winnerIds: '["p-1","p-3"]',
+    );
+    final verticalSession = session.copyWith(
+      courts: const [
+        Court(
+          id: 'court-1',
+          courtNumber: 1,
+          direction: CourtDirection.vertical,
+        ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          liveSessionRealtimeProvider(
+            verticalSession.id,
+          ).overrideWith((ref) {}),
+          matchHistoryProvider(
+            verticalSession.id,
+          ).overrideWith((ref) async => [verticalMatch]),
+        ],
+        child: MaterialApp(
+          home: Scaffold(body: HostResultsTab(session: verticalSession)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('#1 Sơn · #3 Nam'), findsOneWidget);
+    expect(find.text('#2 Minh · #4 Bảo'), findsOneWidget);
   });
 
   testWidgets('filters results from the sheet and clears filters', (
@@ -136,6 +201,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          liveSessionRealtimeProvider(session.id).overrideWith((ref) {}),
           matchHistoryProvider(session.id).overrideWith(
             (ref) async => [match, unscoredMatch],
           ),
@@ -177,6 +243,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          liveSessionRealtimeProvider(session.id).overrideWith((ref) {}),
           matchHistoryProvider(session.id).overrideWith(
             (ref) async => [match, unscoredMatch],
           ),

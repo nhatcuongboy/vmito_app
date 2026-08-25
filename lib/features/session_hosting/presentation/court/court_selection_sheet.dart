@@ -114,6 +114,7 @@ class CourtSelectionSheet extends ConsumerWidget {
                 _tab(AppIcons.sparkles, l10n.courtAutoAssign),
               ],
             ),
+            const SizedBox(height: AppSpacing.md),
             Expanded(
               child: TabBarView(
                 children: [
@@ -168,11 +169,6 @@ class _MatchTypeToggle extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: SegmentedButton<MatchType>(
-        style: SegmentedButton.styleFrom(
-          visualDensity: VisualDensity.compact,
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-          minimumSize: const Size(0, 32),
-        ),
         segments: [
           ButtonSegment(
             value: MatchType.doubles,

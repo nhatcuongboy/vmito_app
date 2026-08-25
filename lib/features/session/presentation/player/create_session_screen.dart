@@ -45,12 +45,14 @@ class CreateSessionScreen extends ConsumerStatefulWidget {
     this.initialSession,
     this.editingSessionId,
     this.isClone = false,
+    this.modalPresentation = false,
     super.key,
   });
 
   final Session? initialSession;
   final String? editingSessionId;
   final bool isClone;
+  final bool modalPresentation;
 
   @override
   ConsumerState<CreateSessionScreen> createState() =>
@@ -77,6 +79,13 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
   @override
   void initState() {
     super.initState();
+    unawaited(
+      Future<void>(() {
+        if (mounted) {
+          ref.read(createSessionControllerProvider.notifier).reset();
+        }
+      }),
+    );
     final userName = ref.read(authControllerProvider).user?.name;
     _baseState = widget.initialSession == null
         ? SessionFormDefaults.create(hostName: userName)
@@ -182,7 +191,11 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
 
     if (!mounted || session == null) return;
     if (_isEditing) {
-      context.pop(session);
+      if (widget.modalPresentation) {
+        Navigator.of(context).pop(session);
+      } else {
+        context.pop(session);
+      }
     } else {
       context.pushReplacement(AppRoutes.manageSession(session.id));
     }
@@ -759,9 +772,22 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final wide = constraints.maxWidth >= _wideFormBreakpoint;
+        final wide =
+            !widget.modalPresentation &&
+            constraints.maxWidth >= _wideFormBreakpoint;
         return Scaffold(
           appBar: AppBar(
+            automaticallyImplyLeading: !widget.modalPresentation,
+            leading: widget.modalPresentation
+                ? IconButton(
+                    key: const Key('session-edit-modal-close'),
+                    tooltip: MaterialLocalizations.of(
+                      context,
+                    ).closeButtonTooltip,
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(AppIcons.close),
+                  )
+                : null,
             title: Text(
               _isEditing
                   ? l10n.editSessionTitle

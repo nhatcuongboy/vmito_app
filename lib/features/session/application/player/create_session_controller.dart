@@ -1,7 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
-import 'package:vmito_app/features/session/domain/create_session_request.dart';
 import 'package:vmito_app/features/session/domain/bulk_create_session.dart';
+import 'package:vmito_app/features/session/domain/create_session_request.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 
 /// Creates a session.
@@ -12,6 +12,12 @@ import 'package:vmito_app/features/session/domain/session.dart';
 class CreateSessionController extends Notifier<AsyncValue<Session?>> {
   @override
   AsyncValue<Session?> build() => const AsyncValue.data(null);
+
+  /// Starts each create/edit form with a clean submit state.
+  ///
+  /// The controller outlives routes, so without this a reopened edit modal
+  /// could immediately render the previous attempt's server error.
+  void reset() => state = const AsyncValue.data(null);
 
   /// Returns the created session, or null when the request failed.
   ///
@@ -74,8 +80,10 @@ class CreateSessionController extends Notifier<AsyncValue<Session?>> {
       AsyncData(value: final bulk) => AsyncValue.data(
         bulk.sessions.isEmpty ? null : bulk.sessions.first,
       ),
-      AsyncError(error: final error, stackTrace: final stackTrace) =>
-        AsyncValue.error(error, stackTrace),
+      AsyncError(:final error, :final stackTrace) => AsyncValue.error(
+        error,
+        stackTrace,
+      ),
       _ => const AsyncValue.loading(),
     };
     return result.asData?.value;

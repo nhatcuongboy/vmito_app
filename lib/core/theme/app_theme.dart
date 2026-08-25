@@ -148,6 +148,35 @@ abstract final class AppTheme {
           borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
       ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          backgroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return scheme.primary;
+            }
+            return Colors.transparent;
+          }),
+          foregroundColor: WidgetStateProperty.resolveWith((states) {
+            if (states.contains(WidgetState.selected)) {
+              return scheme.onPrimary;
+            }
+            return scheme.onSurface;
+          }),
+          side: WidgetStatePropertyAll(
+            BorderSide(color: palette.border),
+          ),
+          shape: WidgetStatePropertyAll(
+            RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(AppRadius.lg),
+            ),
+          ),
+          visualDensity: VisualDensity.compact,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          padding: const WidgetStatePropertyAll(
+            EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+          ),
+        ),
+      ),
       dialogTheme: DialogThemeData(
         insetPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,

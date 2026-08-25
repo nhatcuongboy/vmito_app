@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/widgets/notification_header_button.dart';
 import 'package:vmito_app/features/social/domain/public_profile.dart';
 import 'package:vmito_app/features/social/presentation/widgets/profile_header_geometry.dart';
 
@@ -97,6 +98,10 @@ class ProfileCollapsingHeader extends StatelessWidget {
         },
       ),
       actions: [
+        _ToolbarColor(
+          scrollOffset: scrollOffset,
+          builder: (color) => NotificationHeaderButton(color: color),
+        ),
         _ToolbarColor(
           scrollOffset: scrollOffset,
           builder: (color) => IconButton(

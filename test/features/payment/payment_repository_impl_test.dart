@@ -5,6 +5,7 @@ import 'package:vmito_app/core/constants/api_endpoints.dart';
 import 'package:vmito_app/core/network/api_client.dart';
 import 'package:vmito_app/features/payment/data/repositories/payment_repository_impl.dart';
 import 'package:vmito_app/features/payment/domain/payment.dart';
+import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 
 class _MockApiClient extends Mock implements ApiClient {}
 
@@ -102,6 +103,128 @@ void main() {
       () => client.post<void>(
         ApiEndpoints.aggregatePaymentReminder,
         data: {'recipientUserId': 'u1'},
+        options: any(named: 'options'),
+      ),
+    ).called(1);
+  });
+
+  test('loads creator reminders and parses linked payments', () async {
+    when(
+      () => client.get<Map<String, dynamic>>(
+        ApiEndpoints.paymentReminders,
+        queryParameters: const {'role': 'creator'},
+      ),
+    ).thenAnswer(
+      (_) async => Response(
+        requestOptions: RequestOptions(),
+        data: {
+          'success': true,
+          'data': [
+            {
+              'id': 'r1',
+              'reminderCount': 3,
+              'payments': [
+                {
+                  'payment': {'id': 'p1'},
+                },
+              ],
+            },
+          ],
+        },
+      ),
+    );
+
+    final reminders = await repository.remindersForCreator();
+
+    expect(reminders.single.paymentIds, ['p1']);
+    expect(reminders.single.reminderCount, 3);
+  });
+
+  test('updates fee config and recalculates session payments', () async {
+    when(
+      () => client.get<Map<String, dynamic>>(
+        ApiEndpoints.sessionFeeConfig('s1'),
+      ),
+    ).thenAnswer(
+      (_) async => Response(
+        requestOptions: RequestOptions(),
+        data: {
+          'success': true,
+          'data': {'feeType': 'FIXED', 'maleFee': 80000},
+        },
+      ),
+    );
+    when(
+      () => client.put<void>(
+        ApiEndpoints.sessionFeeConfig('s1'),
+        data: any(named: 'data'),
+        options: any(named: 'options'),
+      ),
+    ).thenAnswer((_) async => Response(requestOptions: RequestOptions()));
+    when(
+      () => client.post<Map<String, dynamic>>(
+        ApiEndpoints.sessionFeeRecalculate('s1'),
+        options: any(named: 'options'),
+      ),
+    ).thenAnswer(
+      (_) async => Response(
+        requestOptions: RequestOptions(),
+        data: {
+          'success': true,
+          'data': {'updated': 4},
+        },
+      ),
+    );
+
+    await repository.saveFeeConfig(
+      's1',
+      const SessionFeeConfig(
+        maleFee: 90000,
+        femaleFee: 70000,
+      ),
+    );
+    final result = await repository.recalculatePayments('s1');
+
+    verify(
+      () => client.put<void>(
+        ApiEndpoints.sessionFeeConfig('s1'),
+        data: {
+          'feeType': 'FIXED',
+          'maleFee': 90000,
+          'femaleFee': 70000,
+        },
+        options: any(named: 'options'),
+      ),
+    ).called(1);
+    expect(result.updated, 4);
+  });
+
+  test('payment settings include QR upload removal semantics', () async {
+    when(
+      () => client.put<void>(
+        ApiEndpoints.paymentSetting('setting-1'),
+        data: any(named: 'data'),
+        options: any(named: 'options'),
+      ),
+    ).thenAnswer((_) async => Response(requestOptions: RequestOptions()));
+
+    await repository.saveSettings(
+      id: 'setting-1',
+      bankName: 'VCB',
+      accountNumber: '123',
+      clearQrCode: true,
+    );
+
+    verify(
+      () => client.put<void>(
+        ApiEndpoints.paymentSetting('setting-1'),
+        data: {
+          'bankName': 'VCB',
+          'bankAccountNumber': '123',
+          'accountHolderName': null,
+          'qrCodeUrl': null,
+          'isDefault': true,
+        },
         options: any(named: 'options'),
       ),
     ).called(1);

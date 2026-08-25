@@ -65,7 +65,7 @@ class HostCourtActions extends StatelessWidget {
           key: ValueKey('assign-${court.id}'),
           style: _solid(palette.success),
           onPressed: isBusy || !hasEnoughWaiting ? null : onAssign,
-          icon: const Icon(AppIcons.shuffle, size: 18),
+          icon: const Icon(AppIcons.shuffle, size: 16),
           label: Text(l10n.courtAssignPlayers),
         ),
       if (isReady && !isRunning)
@@ -73,7 +73,7 @@ class HostCourtActions extends StatelessWidget {
           key: ValueKey('start-${court.id}'),
           style: _solid(palette.success),
           onPressed: isBusy ? null : onStart,
-          icon: const Icon(AppIcons.play, size: 18),
+          icon: const Icon(AppIcons.play, size: 16),
           label: Text(l10n.courtStartMatch),
         ),
       if (isReady && hasPlayers)
@@ -81,7 +81,7 @@ class HostCourtActions extends StatelessWidget {
           key: ValueKey('clear-${court.id}'),
           style: _outline(theme.colorScheme.error),
           onPressed: isBusy ? null : onClear,
-          icon: const Icon(AppIcons.close, size: 18),
+          icon: const Icon(AppIcons.close, size: 16),
           label: Text(l10n.courtCancelSelection),
         ),
       if (isPlaying && !court.hasPreSelection)
@@ -89,7 +89,7 @@ class HostCourtActions extends StatelessWidget {
           key: ValueKey('pre-select-${court.id}'),
           style: _outline(palette.success),
           onPressed: isBusy || !hasEnoughWaiting ? null : onPreSelect,
-          icon: const Icon(AppIcons.queueNext, size: 18),
+          icon: const Icon(AppIcons.queueNext, size: 16),
           label: Text(l10n.courtPreSelectShort),
         ),
       if (isPlaying && court.hasPreSelection)
@@ -97,7 +97,7 @@ class HostCourtActions extends StatelessWidget {
           key: ValueKey('view-next-${court.id}'),
           style: _outline(_purple),
           onPressed: isBusy ? null : onViewNextMatch,
-          icon: const Icon(AppIcons.eye, size: 18),
+          icon: const Icon(AppIcons.eye, size: 16),
           label: Text(l10n.courtViewNextMatch),
         ),
       if (isPlaying)
@@ -105,7 +105,7 @@ class HostCourtActions extends StatelessWidget {
           key: ValueKey('end-${court.id}'),
           style: _solid(theme.colorScheme.error),
           onPressed: isBusy ? null : onEnd,
-          icon: const Icon(AppIcons.stop, size: 18),
+          icon: const Icon(AppIcons.stop, size: 16),
           label: Text(l10n.courtEndMatch),
         ),
     ];
@@ -139,16 +139,30 @@ class HostCourtActions extends StatelessWidget {
   }
 }
 
-/// Web's `colorPalette="green"`/`"red"` solid buttons.
+/// Web's `colorPalette="green"`/`"red"` solid buttons (size="sm").
 ButtonStyle _solid(Color color) => FilledButton.styleFrom(
   backgroundColor: color,
   foregroundColor: Colors.white,
+  visualDensity: VisualDensity.compact,
+  minimumSize: const Size(0, AppSizes.minTapTarget),
+  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 6),
+  textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(AppRadius.md),
+  ),
 );
 
-/// Web's `colorPalette="..."` `variant="outline"` buttons.
+/// Web's `colorPalette="..."` `variant="outline"` buttons (size="sm").
 ButtonStyle _outline(Color color) => OutlinedButton.styleFrom(
   foregroundColor: color,
   side: BorderSide(color: color),
+  visualDensity: VisualDensity.compact,
+  minimumSize: const Size(0, AppSizes.minTapTarget),
+  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 6),
+  textStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+  shape: RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(AppRadius.md),
+  ),
 );
 
 /// "Xem trận tiếp theo" — Chakra's `purple.500`, matched to the same shade

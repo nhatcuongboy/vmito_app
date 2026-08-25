@@ -12,12 +12,30 @@ import 'package:vmito_domain/vmito_domain.dart';
 /// only which API seat number sits in which square.
 abstract final class CourtSlotLayout {
   /// Visual squares in the web's order: top-left, top-right, bottom-left,
-  /// bottom-right. Fractions of the court box, converted to [Alignment].
+  /// bottom-right. Normalized (0..1) center coordinates matching the white court
+  /// boundary boxes:
+  /// - Left column: center at X = 25% (between 10% back service & 40% short service)
+  /// - Right column: center at X = 75% (between 60% short service & 90% back service)
+  /// - Top row: center at Y = 29% (between 8% doubles sideline & 50% centre line)
+  /// - Bottom row: center at Y = 71% (between 50% centre line & 92% doubles sideline)
+  static const _doublesOffsets = <Offset>[
+    Offset(0.25, 0.29),
+    Offset(0.75, 0.29),
+    Offset(0.25, 0.71),
+    Offset(0.75, 0.71),
+  ];
+
+  static const _singlesOffsets = <Offset>[
+    Offset(0.25, 0.50),
+    Offset(0.75, 0.50),
+  ];
+
+  /// Visual squares converted to [Alignment] (-1..1 range).
   static const _doubles = <Alignment>[
-    Alignment(-0.5, -0.4), // 25% / 30%
-    Alignment(0.5, -0.4), // 75% / 30%
-    Alignment(-0.5, 0.44), // 25% / 72%
-    Alignment(0.5, 0.44), // 75% / 72%
+    Alignment(-0.5, -0.42), // 25% / 29%
+    Alignment(0.5, -0.42), // 75% / 29%
+    Alignment(-0.5, 0.42), // 25% / 71%
+    Alignment(0.5, 0.42), // 75% / 71%
   ];
 
   static const _singles = <Alignment>[
@@ -27,6 +45,13 @@ abstract final class CourtSlotLayout {
 
   /// How many squares a format draws.
   static int slotCount(CourtFormat format) => format.playerCount;
+
+  /// The normalized offset [visualIndex] is centered at (0..1 range).
+  static Offset offsetAt(int visualIndex, CourtFormat format) {
+    final offsets =
+        format == CourtFormat.singles ? _singlesOffsets : _doublesOffsets;
+    return offsets[visualIndex.clamp(0, offsets.length - 1)];
+  }
 
   /// The square [visualIndex] is drawn in.
   static Alignment alignmentAt(int visualIndex, CourtFormat format) {

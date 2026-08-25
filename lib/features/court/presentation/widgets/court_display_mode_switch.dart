@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
-import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/court/application/court_display_mode_controller.dart';
 import 'package:vmito_app/features/court/presentation/widgets/court/court_view_mode.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -32,13 +31,6 @@ class CourtDisplayModeSwitch extends ConsumerWidget {
       selected: {mode},
       onSelectionChanged: (selection) => controller.select(selection.first),
       showSelectedIcon: false,
-      style: const ButtonStyle(
-        visualDensity: VisualDensity.compact,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        padding: WidgetStatePropertyAll(
-          EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-        ),
-      ),
     );
   }
 }

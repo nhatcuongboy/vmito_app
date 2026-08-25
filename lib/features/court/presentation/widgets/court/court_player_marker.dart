@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/features/court/presentation/widgets/court/court_view_mode.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
@@ -38,51 +39,77 @@ class CourtPlayerMarker extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
+    final isNameMode = displayMode.showsName;
     final level = player.level;
-    // Levels are the host's working data, not a player's business.
-    final levelLabel = mode.isHostView && level != null
+    // Levels are the host's working data, not a player's business. The
+    // selection sheet is also a host view, so keep its court markers as
+    // informative as the live host board.
+    final levelLabel = (mode.isHostView || mode.isSelection) && level != null
         ? levelShortLabel(level)
         : null;
     final pair = _pairColorsFor(pairNumber);
     final borderColor = isActive ? theme.colorScheme.primary : pair.border;
 
-    return Semantics(
-      button: onTap != null,
-      label: l10n.playerName(player),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            _Marker(
-              isNameMode: displayMode.showsName,
-              background: pair.background,
-              border: borderColor,
-              borderWidth: isActive ? 3 : 2.5,
-              child: Text(
-                _label(l10n),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: pair.border,
-                  fontWeight: FontWeight.w700,
+    return Stack(
+      clipBehavior: Clip.none,
+      alignment: Alignment.center,
+      children: [
+        Semantics(
+          button: onTap != null,
+          label: l10n.playerName(player),
+          child: GestureDetector(
+            onTap: onTap,
+            child: Stack(
+              clipBehavior: Clip.none,
+              alignment: Alignment.center,
+              children: [
+                _Marker(
+                  isNameMode: isNameMode,
+                  background: pair.background,
+                  border: borderColor,
+                  borderWidth: isActive ? 3.5 : 3,
+                  child: Text(
+                    _label(l10n),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: isNameMode
+                        ? TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: pair.border,
+                            height: 1.2,
+                          )
+                        : TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: pair.border,
+                            height: 1,
+                          ),
+                  ),
                 ),
-              ),
+                Positioned(
+                  top: isNameMode ? -10 : -8,
+                  left: isNameMode ? -10 : -8,
+                  child: _GenderBadge(gender: player.gender),
+                ),
+                if (levelLabel != null)
+                  Positioned(
+                    top: isNameMode ? -12 : -10,
+                    right: isNameMode ? -10 : -12,
+                    child: _LevelBadge(label: levelLabel, color: pair.border),
+                  ),
+              ],
             ),
-            Positioned(
-              top: -8,
-              left: -8,
-              child: _GenderBadge(gender: player.gender),
-            ),
-            if (levelLabel != null)
-              Positioned(
-                top: -10,
-                right: -12,
-                child: _LevelBadge(label: levelLabel, color: pair.border),
-              ),
-          ],
+          ),
         ),
-      ),
+        if (mode.isSelection && onTap != null)
+          Positioned(
+            right: -6,
+            bottom: -6,
+            child: _RemoveSelectionButton(onPressed: onTap!),
+          ),
+      ],
     );
   }
 
@@ -121,25 +148,29 @@ class _Marker extends StatelessWidget {
       borderRadius: isNameMode ? BorderRadius.circular(8) : null,
       border: Border.all(color: border, width: borderWidth),
       boxShadow: const [
-        BoxShadow(blurRadius: 4, offset: Offset(0, 2), color: Colors.black26),
+        BoxShadow(
+          blurRadius: 4,
+          offset: Offset(0, 2),
+          color: Color(0x33000000),
+        ),
       ],
     );
 
     if (!isNameMode) {
       return Container(
-        width: 40,
-        height: 40,
+        width: 50,
+        height: 50,
         alignment: Alignment.center,
         decoration: decoration,
-        child: FittedBox(
-          child: Padding(padding: const EdgeInsets.all(4), child: child),
-        ),
+        child: child,
       );
     }
 
     return Container(
-      constraints: const BoxConstraints(minWidth: 56, minHeight: 32),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      width: 96,
+      height: 38,
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+      alignment: Alignment.center,
       decoration: decoration,
       child: child,
     );
@@ -163,15 +194,22 @@ class _GenderBadge extends StatelessWidget {
     };
 
     return Container(
-      width: 18,
-      height: 18,
+      width: 22,
+      height: 22,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 1.5),
+        border: Border.all(color: Colors.white, width: 2),
+        boxShadow: const [
+          BoxShadow(
+            blurRadius: 2,
+            offset: Offset(0, 1),
+            color: Color(0x26000000),
+          ),
+        ],
       ),
-      child: Icon(icon, size: 11, color: Colors.white),
+      child: Icon(icon, size: 14, color: Colors.white),
     );
   }
 }
@@ -187,21 +225,56 @@ class _LevelBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      constraints: const BoxConstraints(minWidth: 26, minHeight: 16),
+      width: 35,
+      height: 22,
       alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(horizontal: 4),
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white, width: 1.5),
+        border: Border.all(color: Colors.white, width: 2),
       ),
       child: Text(
         label,
         maxLines: 1,
         style: const TextStyle(
-          fontSize: 9,
+          fontSize: 10,
           fontWeight: FontWeight.w700,
           color: Colors.white,
+        ),
+      ),
+    );
+  }
+}
+
+/// Explicitly removes this player from a seat in the pairing sheet.
+class _RemoveSelectionButton extends StatelessWidget {
+  const _RemoveSelectionButton({required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = AppLocalizations.of(context).hostAddPlayerRemove;
+    return Tooltip(
+      message: label,
+      child: Semantics(
+        button: true,
+        label: label,
+        child: Material(
+          color: const Color(0xFFEF4444),
+          shape: const CircleBorder(
+            side: BorderSide(color: Colors.white, width: 2),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            key: const ValueKey('remove-selected-court-player'),
+            onTap: onPressed,
+            customBorder: const CircleBorder(),
+            child: const SizedBox.square(
+              dimension: 22,
+              child: Icon(AppIcons.close, size: 14, color: Colors.white),
+            ),
+          ),
         ),
       ),
     );

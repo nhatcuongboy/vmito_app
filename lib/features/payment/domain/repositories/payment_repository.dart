@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:vmito_app/features/payment/domain/payment.dart';
+import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 
 /// The payment resource's data boundary — the manual bank-transfer ledger.
 ///
@@ -23,16 +26,30 @@ abstract interface class PaymentRepository {
 
   Future<void> saveSettings({
     String? id,
-    required String bankName,
-    required String accountNumber,
-    required String accountHolder,
+    String? bankName,
+    String? accountNumber,
+    String? accountHolder,
+    String? qrCodeUrl,
+    bool clearQrCode = false,
   });
+
+  Future<String> uploadQrCode(Uint8List bytes, String filename);
+
+  Future<List<VietnamBank>> vietnamBanks();
 
   Future<void> setDefault(String id);
 
   Future<void> deleteSettings(String id);
 
   Future<void> setSplitAmount(String sessionId, int totalAmount);
+
+  Future<SessionFeeConfig?> feeConfig(String sessionId);
+
+  Future<void> saveFeeConfig(String sessionId, SessionFeeConfig config);
+
+  Future<void> deleteFeeConfig(String sessionId);
+
+  Future<FeeRecalculationResult> recalculatePayments(String sessionId);
 
   Future<List<SessionExpense>> expenses(String sessionId);
 
@@ -52,6 +69,8 @@ abstract interface class PaymentRepository {
   Future<HostFinanceReport> financeReport(HostFinanceQuery query);
 
   Future<void> remindPayment(String paymentId);
+
+  Future<List<PaymentReminder>> remindersForCreator();
 
   Future<void> remindUser(String userId);
 }

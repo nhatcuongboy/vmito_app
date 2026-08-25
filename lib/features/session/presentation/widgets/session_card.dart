@@ -111,65 +111,69 @@ class SessionCard extends StatelessWidget {
                         ],
                       ),
                       if (showActions) ...[
-                        const SizedBox(height: AppSpacing.xs),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            if (onHost != null)
-                              FilledButton.icon(
-                                key: ValueKey(
-                                  'session-host-button-${session.id}',
-                                ),
-                                style: FilledButton.styleFrom(
-                                  backgroundColor: const Color(0xFF166534),
-                                  foregroundColor: Colors.white,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
+                        const SizedBox(height: AppSpacing.xs + 2),
+                        Container(
+                          padding: const EdgeInsets.only(top: AppSpacing.xs + 2),
+                          decoration: BoxDecoration(
+                            border: Border(
+                              top: BorderSide(color: palette.border),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              if (onHost != null)
+                                FilledButton.icon(
+                                  key: ValueKey(
+                                    'session-host-button-${session.id}',
                                   ),
-                                  minimumSize: const Size(0, 34),
-                                  shape: RoundedRectangleBorder(
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: theme.colorScheme.primary,
+                                    foregroundColor:
+                                        theme.colorScheme.onPrimary,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    minimumSize: const Size(0, 34),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                        AppRadius.md,
+                                      ),
+                                    ),
+                                  ),
+                                  icon: const Icon(AppIcons.settings, size: 16),
+                                  label: const Text(
+                                    'Host',
+                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  onPressed: onHost,
+                                ),
+                              const SizedBox(width: AppSpacing.xs),
+                              PopupMenuButton<_MoreAction>(
+                                key: ValueKey(
+                                  'session-more-button-${session.id}',
+                                ),
+                                style: ButtonStyle(
+                                  padding: WidgetStateProperty.all(
+                                    EdgeInsets.zero,
+                                  ),
+                                  minimumSize: WidgetStateProperty.all(
+                                    const Size(34, 34),
+                                  ),
+                                ),
+                                icon: Container(
+                                  width: 34,
+                                  height: 34,
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: palette.border),
                                     borderRadius: BorderRadius.circular(
                                       AppRadius.md,
                                     ),
                                   ),
+                                  child: const Icon(AppIcons.moreVert, size: 18),
                                 ),
-                                icon: const Icon(AppIcons.settings, size: 16),
-                                label: const Text(
-                                  'Host',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                onPressed: onHost,
-                              ),
-                            const SizedBox(width: AppSpacing.xs),
-                            PopupMenuButton<_MoreAction>(
-                              key: ValueKey(
-                                'session-more-button-${session.id}',
-                              ),
-                              style: ButtonStyle(
-                                padding: WidgetStateProperty.all(
-                                  EdgeInsets.zero,
-                                ),
-                                minimumSize: WidgetStateProperty.all(
-                                  const Size(34, 34),
-                                ),
-                              ),
-                              icon: Container(
-                                width: 34,
-                                height: 34,
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: theme.colorScheme.outline.withValues(
-                                      alpha: 0.3,
-                                    ),
-                                  ),
-                                  borderRadius: BorderRadius.circular(
-                                    AppRadius.md,
-                                  ),
-                                ),
-                                child: const Icon(AppIcons.moreVert, size: 18),
-                              ),
-                              itemBuilder: (context) {
+                                itemBuilder: (context) {
                                 final l10n = AppLocalizations.of(context);
                                 return [
                                   PopupMenuItem(
@@ -242,17 +246,18 @@ class SessionCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                      ],
+                      ),
                     ],
-                  ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
 
 class _SlotsBadge extends StatelessWidget {

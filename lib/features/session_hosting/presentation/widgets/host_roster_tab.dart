@@ -5,11 +5,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
-import 'package:vmito_app/features/registration/presentation/register_session_sheet.dart';
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session_hosting/application/host_session_management_controller.dart';
+import 'package:vmito_app/features/session_hosting/presentation/widgets/host_add_players_sheet.dart';
+import 'package:vmito_app/features/session_hosting/presentation/widgets/host_edit_player_sheet.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/player/player_search_field.dart';
+import 'package:vmito_app/features/session_hosting/presentation/widgets/player_detail_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 import 'package:vmito_domain/vmito_domain.dart';
@@ -30,7 +32,6 @@ class HostRosterTab extends ConsumerStatefulWidget {
 class _HostRosterTabState extends ConsumerState<HostRosterTab> {
   String _query = '';
   Set<PlayerStatus> _filters = const {};
-  bool _grid = true;
 
   List<SessionPlayer> get _approved =>
       widget.session.players
@@ -80,14 +81,7 @@ class _HostRosterTabState extends ConsumerState<HostRosterTab> {
             physics: const AlwaysScrollableScrollPhysics(),
             padding: EdgeInsets.all(compact ? AppSpacing.sm : AppSpacing.md),
             children: [
-              _RosterHeader(
-                approvedCount: _approved.length,
-                capacity: _capacity,
-                onAdd: () => _addPlayer(context),
-                compact: compact,
-              ),
               if (pending.isNotEmpty) ...[
-                SizedBox(height: compact ? AppSpacing.sm : AppSpacing.md),
                 Text(
                   l10n.hostManagePendingApprovals,
                   style: Theme.of(context).textTheme.titleMedium,
@@ -103,89 +97,93 @@ class _HostRosterTabState extends ConsumerState<HostRosterTab> {
                       controller.updateRegistration(player.id, approved: false),
                     ),
                   ),
+                SizedBox(height: compact ? AppSpacing.sm : AppSpacing.md),
               ],
-              SizedBox(height: compact ? AppSpacing.sm : AppSpacing.md),
-              SizedBox(
-                height: compact ? AppSizes.minTapTarget : null,
-                child: PlayerSearchField(
-                  compact: compact,
-                  onChanged: (value) => setState(() => _query = value),
-                ),
-              ),
-              SizedBox(height: compact ? AppSpacing.xs : AppSpacing.sm),
               Row(
                 children: [
-                  OutlinedButton.icon(
-                    key: const Key('host-roster-filter'),
-                    style: compact
-                        ? OutlinedButton.styleFrom(
-                            minimumSize: const Size(0, AppSizes.minTapTarget),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.sm + 4,
-                            ),
-                            textStyle: const TextStyle(fontSize: 14),
-                          )
-                        : null,
-                    onPressed: () => _showFilters(context, counts),
-                    icon: Badge(
-                      isLabelVisible: _filters.isNotEmpty,
-                      label: Text('${_filters.length}'),
-                      child: const Icon(AppIcons.filter),
+                  Expanded(
+                    child: SizedBox(
+                      height: 42,
+                      child: PlayerSearchField(
+                        compact: false,
+                        onChanged: (value) => setState(() => _query = value),
+                      ),
                     ),
-                    label: Text(_filters.isEmpty ? 'Bộ lọc' : 'Đã lọc'),
                   ),
-                  const Spacer(),
-                  SegmentedButton<bool>(
-                    style: compact
-                        ? const ButtonStyle(
-                            minimumSize: WidgetStatePropertyAll(
-                              Size(
-                                AppSizes.minTapTarget,
-                                AppSizes.minTapTarget,
-                              ),
-                            ),
-                            padding: WidgetStatePropertyAll(
-                              EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                            ),
-                          )
-                        : null,
-                    segments: const [
-                      ButtonSegment(
-                        value: true,
-                        icon: Icon(AppIcons.grid),
-                        tooltip: 'Dạng lưới',
+                  const SizedBox(width: AppSpacing.sm),
+                  SizedBox(
+                    width: 42,
+                    height: 42,
+                    child: OutlinedButton(
+                      key: const Key('host-roster-filter'),
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.pill),
+                        ),
+                        side: BorderSide(
+                          color: _filters.isNotEmpty
+                              ? Theme.of(context).colorScheme.primary
+                              : (Theme.of(context).brightness == Brightness.dark
+                                  ? Theme.of(context).colorScheme.outlineVariant.withValues(alpha: .3)
+                                  : const Color(0xFFE2E8F0)),
+                        ),
                       ),
-                      ButtonSegment(
-                        value: false,
-                        icon: Icon(AppIcons.list),
-                        tooltip: 'Dạng danh sách',
+                      onPressed: () => _showFilters(context, counts),
+                      child: Badge(
+                        isLabelVisible: _filters.isNotEmpty,
+                        label: Text('${_filters.length}'),
+                        child: const Icon(AppIcons.filter, size: 19),
                       ),
-                    ],
-                    selected: {_grid},
-                    showSelectedIcon: false,
-                    onSelectionChanged: (value) =>
-                        setState(() => _grid = value.first),
+                    ),
                   ),
                 ],
               ),
-              SizedBox(height: compact ? AppSpacing.sm : AppSpacing.md),
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                children: [
+                  Text(
+                    '${_approved.length}/$_capacity người',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                  const Spacer(),
+                  FilledButton.icon(
+                    key: const Key('host-roster-add'),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(0, 36),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 0,
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                      ),
+                    ),
+                    onPressed: () => _addPlayer(context),
+                    icon: const Icon(AppIcons.add, size: 17),
+                    label: Text(l10n.hostRosterAdd),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
               if (_filteredPlayers.isEmpty)
                 _RosterEmpty(
                   isFiltered: _query.isNotEmpty || _filters.isNotEmpty,
                 )
-              else if (_grid)
-                _RosterGrid(
+              else
+                _RosterListGrid(
                   players: _filteredPlayers,
                   maxWidth: constraints.maxWidth,
                   onAction: _playerAction,
-                  compact: compact,
-                )
-              else
-                for (final player in _filteredPlayers)
-                  _RosterListTile(
-                    player: player,
-                    onAction: (action) => _playerAction(player, action),
-                  ),
+                  onOpenDetail: _openDetail,
+                ),
             ],
           );
         },
@@ -194,10 +192,9 @@ class _HostRosterTabState extends ConsumerState<HostRosterTab> {
   }
 
   Future<void> _addPlayer(BuildContext context) async {
-    final added = await showRegisterSessionSheet(
+    final added = await showHostAddPlayersSheet(
       context,
       session: widget.session,
-      asGuest: true,
     );
     if (added == true) ref.invalidate(sessionDetailProvider(widget.session.id));
   }
@@ -219,27 +216,34 @@ class _HostRosterTabState extends ConsumerState<HostRosterTab> {
     final controller = ref.read(
       hostSessionManagementControllerProvider(widget.session.id).notifier,
     );
-    if (action == _RosterAction.toggleCheckIn) {
+    if (action == _RosterAction.view) {
+      await _openDetail(player);
+    } else if (action == _RosterAction.edit) {
+      await _editPlayer(player);
+    } else if (action == _RosterAction.toggleCheckIn) {
       await controller.toggleCheckIn(player.id);
     } else {
       final remove = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Xóa người chơi?'),
+          title: Text(AppLocalizations.of(context).hostRosterDeleteTitle),
           content: ConstrainedBox(
             constraints: const BoxConstraints(minWidth: 320),
             child: Text(
-              'Xóa ${player.displayName ?? 'người chơi này'} khỏi kèo?',
+              AppLocalizations.of(context).hostRosterDeleteMessage(
+                player.displayName ??
+                    AppLocalizations.of(context).playerName(player),
+              ),
             ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Hủy'),
+              child: Text(AppLocalizations.of(context).commonCancel),
             ),
             FilledButton.tonal(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Xóa'),
+              child: Text(AppLocalizations.of(context).hostRosterDeletePlayer),
             ),
           ],
         ),
@@ -247,47 +251,17 @@ class _HostRosterTabState extends ConsumerState<HostRosterTab> {
       if (remove == true && mounted) await controller.removePlayer(player.id);
     }
   }
-}
 
-class _RosterHeader extends StatelessWidget {
-  const _RosterHeader({
-    required this.approvedCount,
-    required this.capacity,
-    required this.onAdd,
-    required this.compact,
-  });
-  final int approvedCount;
-  final int capacity;
-  final VoidCallback onAdd;
-  final bool compact;
+  Future<void> _openDetail(SessionPlayer player) => showHostPlayerDetailSheet(
+    context,
+    sessionId: widget.session.id,
+    playerId: player.id,
+  );
 
-  @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      Expanded(
-        child: Text(
-          'Người chơi ($approvedCount/$capacity)',
-          style: compact
-              ? Theme.of(context).textTheme.titleMedium
-              : Theme.of(context).textTheme.titleLarge,
-        ),
-      ),
-      FilledButton.icon(
-        key: const Key('host-roster-add'),
-        style: compact
-            ? FilledButton.styleFrom(
-                minimumSize: const Size(0, AppSizes.minTapTarget),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm + 4,
-                ),
-                textStyle: const TextStyle(fontSize: 14),
-              )
-            : null,
-        onPressed: onAdd,
-        icon: Icon(AppIcons.add, size: compact ? 18 : null),
-        label: const Text('Thêm người'),
-      ),
-    ],
+  Future<void> _editPlayer(SessionPlayer player) => showHostEditPlayerSheet(
+    context,
+    session: widget.session,
+    player: player,
   );
 }
 
@@ -305,20 +279,24 @@ class _PendingPlayerCard extends StatelessWidget {
   Widget build(BuildContext context) => Card(
     child: ListTile(
       leading: const CircleAvatar(child: Icon(AppIcons.userPlus)),
-      title: Text(player.displayName ?? 'Người chơi'),
+      title: Text(
+        player.displayName ?? AppLocalizations.of(context).playerName(player),
+      ),
       subtitle: player.phone == null
-          ? const Text('Chờ duyệt')
-          : Text('${player.phone} · Chờ duyệt'),
+          ? Text(AppLocalizations.of(context).hostRosterPending)
+          : Text(
+              '${player.phone} · ${AppLocalizations.of(context).hostRosterPending}',
+            ),
       trailing: Wrap(
         spacing: 4,
         children: [
           IconButton(
-            tooltip: 'Từ chối',
+            tooltip: AppLocalizations.of(context).hostRosterReject,
             onPressed: onReject,
             icon: const Icon(AppIcons.close),
           ),
           IconButton.filled(
-            tooltip: 'Duyệt',
+            tooltip: AppLocalizations.of(context).hostRosterApprove,
             onPressed: onApprove,
             icon: const Icon(AppIcons.check),
           ),
@@ -328,106 +306,215 @@ class _PendingPlayerCard extends StatelessWidget {
   );
 }
 
-class _RosterGrid extends StatelessWidget {
-  const _RosterGrid({
+/// Uses two compact cards per row for the host roster and adds a third column
+/// only when the available width can keep each card comfortably readable.
+class _RosterListGrid extends StatelessWidget {
+  const _RosterListGrid({
     required this.players,
     required this.maxWidth,
     required this.onAction,
-    required this.compact,
+    required this.onOpenDetail,
   });
+
   final List<SessionPlayer> players;
   final double maxWidth;
   final void Function(SessionPlayer, _RosterAction) onAction;
-  final bool compact;
+  final ValueChanged<SessionPlayer> onOpenDetail;
 
   @override
   Widget build(BuildContext context) {
-    final columns = (maxWidth / 180).floor().clamp(2, 4);
+    final columns = (maxWidth / 340).floor().clamp(2, 3);
+    const spacing = AppSpacing.sm;
+    final itemWidth = (maxWidth - spacing * (columns - 1)) / columns;
+    final itemHeight = itemWidth < 240 ? 114.0 : 100.0;
     return GridView.builder(
-      key: const Key('host-roster-grid'),
+      key: const Key('host-roster-list-grid'),
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: players.length,
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: columns,
-        mainAxisSpacing: AppSpacing.sm,
-        crossAxisSpacing: AppSpacing.sm,
-        mainAxisExtent: compact ? 124 : 144,
+        mainAxisExtent: itemHeight,
+        crossAxisSpacing: spacing,
+        mainAxisSpacing: spacing,
       ),
-      itemBuilder: (context, index) => _RosterPlayerCard(
+      itemBuilder: (context, index) => _RosterListTile(
         player: players[index],
         onAction: (action) => onAction(players[index], action),
-        compact: compact,
+        onOpenDetail: () => onOpenDetail(players[index]),
       ),
     );
   }
 }
 
-class _RosterPlayerCard extends StatelessWidget {
-  const _RosterPlayerCard({
+class _RosterListTile extends StatelessWidget {
+  const _RosterListTile({
     required this.player,
     required this.onAction,
-    required this.compact,
+    required this.onOpenDetail,
   });
   final SessionPlayer player;
   final ValueChanged<_RosterAction> onAction;
-  final bool compact;
-
+  final VoidCallback onOpenDetail;
   @override
   Widget build(BuildContext context) {
     final colors = _statusColors(player.status, Theme.of(context).brightness);
     final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+
     return Card(
-      color: colors.background,
+      key: ValueKey('host-roster-player-${player.id}'),
+      clipBehavior: Clip.antiAlias,
       elevation: 0,
+      color: dark
+          ? scheme.surface
+          : Color.alphaBlend(
+              colors.background.withValues(alpha: .35),
+              const Color(0xFFF8FAFC),
+            ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
-        side: BorderSide(color: colors.border),
+        side: BorderSide(
+          color: dark
+              ? scheme.outlineVariant.withValues(alpha: .3)
+              : const Color(0xFFE2E8F0),
+        ),
       ),
-      child: Padding(
-        padding: EdgeInsets.all(compact ? AppSpacing.xs + 2 : AppSpacing.sm),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      child: InkWell(
+        onTap: onOpenDetail,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              children: [
-                _NumberBadge(number: player.playerNumber, compact: compact),
-                const Spacer(),
-                _ActionMenu(player: player, onAction: onAction),
-              ],
+            ColoredBox(
+              key: ValueKey('host-roster-status-${player.id}'),
+              color: colors.border,
+              child: const SizedBox(width: 6),
             ),
-            const Spacer(),
-            Text(
-              player.displayName ?? l10n.playerName(player),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: compact
-                  ? Theme.of(context).textTheme.titleSmall
-                  : Theme.of(context).textTheme.titleMedium,
-            ),
-            SizedBox(height: compact ? 4 : 6),
-            Row(
-              children: [
-                _InfoChip(label: _levelLabel(player.level), compact: compact),
-                SizedBox(width: compact ? 4 : 5),
-                _GenderChip(gender: player.gender, compact: compact),
-                const SizedBox(width: 4),
-                Expanded(
-                  child: Text(
-                    '${player.matchesPlayed} trận',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.end,
-                    style:
-                        Theme.of(
-                          context,
-                        ).textTheme.labelLarge?.copyWith(
-                          color: colors.foreground,
-                          fontSize: compact ? 12 : null,
-                        ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.sm,
+                        4,
+                        AppSpacing.xxs,
+                        4,
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          _PlayerAvatar(
+                            player: player,
+                            statusColor: colors.dot,
+                            radius: 19,
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  key: ValueKey(
+                                    'host-roster-name-${player.id}',
+                                  ),
+                                  player.displayName ?? l10n.playerName(player),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(
+                                        height: 1.15,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: -.2,
+                                      ),
+                                ),
+                                const SizedBox(height: 2),
+                                _StatusLabel(
+                                  key: ValueKey(
+                                    'host-roster-status-label-${player.id}',
+                                  ),
+                                  label: _statusLabel(l10n, player.status),
+                                  color: colors.foreground,
+                                ),
+                              ],
+                            ),
+                          ),
+                          SizedBox(
+                            width: 32,
+                            height: 32,
+                            child: _ActionMenu(
+                              player: player,
+                              onAction: onAction,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: dark
+                        ? scheme.outlineVariant.withValues(alpha: .2)
+                        : const Color(0xFFF1F5F9),
+                  ),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                      vertical: 4,
+                    ),
+                    color: dark
+                        ? scheme.surfaceContainerLow
+                        : Color.alphaBlend(
+                            colors.border.withValues(alpha: .08),
+                            const Color(0xFFF1F5F9).withValues(alpha: .6),
+                          ),
+                    child: Wrap(
+                      spacing: 5,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        _NumberBadge(
+                          number: player.playerNumber,
+                          compact: true,
+                        ),
+                        _LevelBadge(
+                          key: ValueKey('host-roster-level-${player.id}'),
+                          label: _levelLabel(l10n, player.level),
+                        ),
+                        _GenderBadge(
+                          key: ValueKey('host-roster-gender-${player.id}'),
+                          gender: player.gender,
+                        ),
+                        if (player.isClubMember &&
+                            player.clubName?.isNotEmpty == true)
+                          _ClubBadge(
+                            key: ValueKey('host-roster-club-${player.id}'),
+                            label: player.clubName!,
+                          ),
+                        Text(
+                          l10n.playerMatchesCount(player.matchesPlayed),
+                          style: Theme.of(context)
+                              .textTheme
+                              .labelSmall
+                              ?.copyWith(
+                                color: dark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF64748B),
+                                fontWeight: FontWeight.w500,
+                              ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -436,27 +523,110 @@ class _RosterPlayerCard extends StatelessWidget {
   }
 }
 
-class _RosterListTile extends StatelessWidget {
-  const _RosterListTile({required this.player, required this.onAction});
+class _PlayerAvatar extends StatelessWidget {
+  const _PlayerAvatar({
+    required this.player,
+    required this.statusColor,
+    this.radius = 19,
+  });
+
   final SessionPlayer player;
-  final ValueChanged<_RosterAction> onAction;
+  final Color statusColor;
+  final double radius;
+
   @override
   Widget build(BuildContext context) {
-    final colors = _statusColors(player.status, Theme.of(context).brightness);
-    return Card(
-      color: colors.background,
-      child: ListTile(
-        leading: _NumberBadge(number: player.playerNumber),
-        title: Text(
-          player.displayName ?? AppLocalizations.of(context).playerName(player),
+    final hasImage = player.userImage?.isNotEmpty == true;
+    final initials = _playerInitials(player.displayName ?? player.name);
+
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          width: radius * 2,
+          height: radius * 2,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: hasImage ? null : const Color(0xFF3B82F6),
+            border: Border.all(color: Colors.white, width: 1.5),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: .08),
+                blurRadius: 3,
+                offset: const Offset(0, 1),
+              ),
+            ],
+          ),
+          child: ClipOval(
+            child: hasImage
+                ? Image.network(
+                    player.userImage!,
+                    fit: BoxFit.cover,
+                    width: radius * 2,
+                    height: radius * 2,
+                    errorBuilder: (_, __, ___) =>
+                        _InitialsFallback(initials: initials),
+                  )
+                : _InitialsFallback(initials: initials),
+          ),
         ),
-        subtitle: Text(
-          '${_levelLabel(player.level)} · ${player.matchesPlayed} trận',
+        Positioned(
+          right: -1,
+          bottom: -1,
+          child: Container(
+            width: 11,
+            height: 11,
+            decoration: BoxDecoration(
+              color: statusColor,
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white, width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: .12),
+                  blurRadius: 2,
+                ),
+              ],
+            ),
+          ),
         ),
-        trailing: _ActionMenu(player: player, onAction: onAction),
+      ],
+    );
+  }
+}
+
+class _InitialsFallback extends StatelessWidget {
+  const _InitialsFallback({required this.initials});
+  final String initials;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: const Color(0xFF3B82F6),
+      alignment: Alignment.center,
+      child: Text(
+        initials,
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
+          fontSize: 12.5,
+          height: 1,
+        ),
       ),
     );
   }
+}
+
+String _playerInitials(String? name) {
+  if (name == null || name.trim().isEmpty) return '?';
+  final parts =
+      name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+  if (parts.isEmpty) return '?';
+  if (parts.length == 1) {
+    return parts.first.characters.first.toUpperCase();
+  }
+  final first = parts.first.characters.first.toUpperCase();
+  final last = parts.last.characters.first.toUpperCase();
+  return '$first$last';
 }
 
 class _ActionMenu extends StatelessWidget {
@@ -465,20 +635,33 @@ class _ActionMenu extends StatelessWidget {
   final ValueChanged<_RosterAction> onAction;
   @override
   Widget build(BuildContext context) => PopupMenuButton<_RosterAction>(
-    tooltip: 'Tác vụ người chơi',
+    key: ValueKey('host-roster-actions-${player.id}'),
+    tooltip: AppLocalizations.of(context).hostRosterActions,
+    padding: EdgeInsets.zero,
+    icon: const Icon(AppIcons.moreVert, size: 20),
     onSelected: onAction,
     itemBuilder: (context) => [
+      PopupMenuItem(
+        value: _RosterAction.view,
+        child: Text(AppLocalizations.of(context).hostRosterViewPlayer),
+      ),
+      PopupMenuItem(
+        value: _RosterAction.edit,
+        child: Text(AppLocalizations.of(context).hostRosterEditPlayer),
+      ),
       PopupMenuItem(
         value: _RosterAction.toggleCheckIn,
         enabled: !player.isOnCourt,
         child: Text(
-          player.status == PlayerStatus.inactive ? 'Check-in' : 'Check-out',
+          player.status == PlayerStatus.inactive
+              ? AppLocalizations.of(context).hostRosterContinuePlayer
+              : AppLocalizations.of(context).hostRosterPausePlayer,
         ),
       ),
       PopupMenuItem(
         value: _RosterAction.remove,
         enabled: !player.isOnCourt,
-        child: const Text('Xóa người chơi'),
+        child: Text(AppLocalizations.of(context).hostRosterDeletePlayer),
       ),
     ],
   );
@@ -489,68 +672,190 @@ class _NumberBadge extends StatelessWidget {
   final int? number;
   final bool compact;
   @override
-  Widget build(BuildContext context) => Container(
-    padding: EdgeInsets.symmetric(
-      horizontal: compact ? 6 : 8,
-      vertical: compact ? 3 : 4,
-    ),
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.tertiary,
-      borderRadius: BorderRadius.circular(AppRadius.pill),
-    ),
-    child: Text(
-      '#${number ?? '–'}',
-      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-        color: Theme.of(context).colorScheme.onTertiary,
-        fontWeight: FontWeight.bold,
-        fontSize: compact ? 12 : null,
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final bg = dark ? const Color(0xFF334155) : const Color(0xFFE2E8F0);
+    final fg = dark ? const Color(0xFFF8FAFC) : const Color(0xFF0F172A);
+
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 6 : 8,
+        vertical: compact ? 2 : 4,
       ),
-    ),
-  );
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+      ),
+      child: Text(
+        '#${number ?? '–'}',
+        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+          color: fg,
+          fontWeight: FontWeight.w800,
+          fontSize: compact ? 11 : null,
+        ),
+      ),
+    );
+  }
 }
 
-class _InfoChip extends StatelessWidget {
-  const _InfoChip({required this.label, this.compact = false});
+class _StatusLabel extends StatelessWidget {
+  const _StatusLabel({
+    required this.label,
+    required this.color,
+    super.key,
+  });
+
   final String label;
-  final bool compact;
+  final Color color;
+
   @override
-  Widget build(BuildContext context) => Container(
-    padding: EdgeInsets.symmetric(
-      horizontal: compact ? 5 : 7,
-      vertical: compact ? 2 : 3,
-    ),
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surface,
-      borderRadius: BorderRadius.circular(5),
-    ),
-    child: Text(
-      label,
-      style: compact ? Theme.of(context).textTheme.labelSmall : null,
-    ),
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      DecoratedBox(
+        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        child: const SizedBox.square(dimension: 6),
+      ),
+      const SizedBox(width: 4),
+      Flexible(
+        child: Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            color: color,
+            fontWeight: FontWeight.w600,
+            fontSize: 11.5,
+          ),
+        ),
+      ),
+    ],
   );
 }
 
-class _GenderChip extends StatelessWidget {
-  const _GenderChip({required this.gender, this.compact = false});
-  final Gender? gender;
-  final bool compact;
+class _ClubBadge extends StatelessWidget {
+  const _ClubBadge({required this.label, super.key});
+  final String label;
+
   @override
-  Widget build(BuildContext context) => Container(
-    padding: EdgeInsets.all(compact ? 2 : 3),
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.primary,
-      borderRadius: BorderRadius.circular(5),
-    ),
-    child: Icon(
-      switch (gender) {
-        Gender.female => AppIcons.user,
-        Gender.other => AppIcons.profile,
-        _ => AppIcons.user,
-      },
-      color: Theme.of(context).colorScheme.onPrimary,
-      size: compact ? 14 : 16,
-    ),
-  );
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final bg = dark ? const Color(0xFF1E1B4B) : const Color(0xFFEEF2FF);
+    final fg = dark ? const Color(0xFF818CF8) : const Color(0xFF4338CA);
+    final border = dark ? const Color(0xFF312E81) : const Color(0xFFC7D2FE);
+
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 100),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg,
+        border: Border.all(color: border),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+      ),
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: fg,
+          fontWeight: FontWeight.w600,
+          fontSize: 11,
+        ),
+      ),
+    );
+  }
+}
+
+class _LevelBadge extends StatelessWidget {
+  const _LevelBadge({required this.label, super.key});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final bg = dark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9);
+    final border = dark ? const Color(0xFF334155) : const Color(0xFFCBD5E1);
+    final fg = dark ? const Color(0xFFE2E8F0) : const Color(0xFF334155);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg,
+        border: Border.all(color: border),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: fg,
+          fontWeight: FontWeight.w700,
+          fontSize: 11,
+        ),
+      ),
+    );
+  }
+}
+
+class _GenderBadge extends StatelessWidget {
+  const _GenderBadge({required this.gender, super.key});
+  final Gender? gender;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final dark = Theme.of(context).brightness == Brightness.dark;
+
+    final (bg, border, fg, icon) = switch (gender) {
+      Gender.male => (
+        dark ? const Color(0xFF172554) : const Color(0xFFEFF6FF),
+        dark ? const Color(0xFF1E40AF) : const Color(0xFFBFDBFE),
+        dark ? const Color(0xFF60A5FA) : const Color(0xFF1D4ED8),
+        AppIcons.male,
+      ),
+      Gender.female => (
+        dark ? const Color(0xFF4C0519) : const Color(0xFFFDF2F8),
+        dark ? const Color(0xFF9D174D) : const Color(0xFFFBCFE8),
+        dark ? const Color(0xFFF472B6) : const Color(0xFFBE185D),
+        AppIcons.female,
+      ),
+      _ => (
+        dark ? const Color(0xFF2E1065) : const Color(0xFFFAF5FF),
+        dark ? const Color(0xFF581C87) : const Color(0xFFE9D5FF),
+        dark ? const Color(0xFFC084FC) : const Color(0xFF7E22CE),
+        AppIcons.user,
+      ),
+    };
+
+    final label = switch (gender) {
+      Gender.male => l10n.genderMale,
+      Gender.female => l10n.genderFemale,
+      _ => l10n.genderOther,
+    };
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: bg,
+        border: Border.all(color: border),
+        borderRadius: BorderRadius.circular(AppRadius.sm),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 12, color: fg),
+          const SizedBox(width: 3),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: fg,
+              fontWeight: FontWeight.w600,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _RosterEmpty extends StatelessWidget {
@@ -568,8 +873,8 @@ class _RosterEmpty extends StatelessWidget {
         const SizedBox(height: 10),
         Text(
           isFiltered
-              ? 'Không tìm thấy người chơi phù hợp.'
-              : 'Chưa có người chơi.',
+              ? AppLocalizations.of(context).hostRosterEmptyFiltered
+              : AppLocalizations.of(context).hostRosterEmpty,
         ),
       ],
     ),
@@ -594,7 +899,10 @@ class _StatusFilterSheetState extends State<_StatusFilterSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Lọc người chơi', style: Theme.of(context).textTheme.titleLarge),
+          Text(
+            AppLocalizations.of(context).hostRosterFilterTitle,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
           const SizedBox(height: 8),
           for (final status in PlayerStatus.values)
             CheckboxListTile(
@@ -605,19 +913,19 @@ class _StatusFilterSheetState extends State<_StatusFilterSheet> {
                     ? _selected.remove(status)
                     : _selected.add(status),
               ),
-              title: Text(_statusLabel(status)),
+              title: Text(_statusLabel(AppLocalizations.of(context), status)),
               secondary: Text('${widget.counts[status] ?? 0}'),
             ),
           Row(
             children: [
               TextButton(
                 onPressed: () => setState(() => _selected = {}),
-                child: const Text('Xóa lọc'),
+                child: Text(AppLocalizations.of(context).hostRosterClearFilter),
               ),
               const Spacer(),
               FilledButton(
                 onPressed: () => Navigator.pop(context, _selected),
-                child: const Text('Áp dụng'),
+                child: Text(AppLocalizations.of(context).hostRosterApplyFilter),
               ),
             ],
           ),
@@ -627,49 +935,56 @@ class _StatusFilterSheetState extends State<_StatusFilterSheet> {
   );
 }
 
-String _statusLabel(PlayerStatus status) => switch (status) {
-  PlayerStatus.waiting => 'Chờ',
-  PlayerStatus.playing => 'Đang chơi',
-  PlayerStatus.ready => 'Sẵn sàng',
-  PlayerStatus.inactive => 'Vắng mặt',
-  PlayerStatus.finished => 'Kết thúc',
-};
+String _statusLabel(AppLocalizations l10n, PlayerStatus status) =>
+    switch (status) {
+      PlayerStatus.waiting => l10n.hostPlayerDetailStatusWaiting,
+      PlayerStatus.playing => l10n.hostPlayerDetailStatusPlaying,
+      PlayerStatus.ready => l10n.hostPlayerDetailStatusReady,
+      PlayerStatus.inactive => l10n.hostPlayerDetailStatusInactive,
+      PlayerStatus.finished => l10n.hostPlayerDetailStatusFinished,
+    };
 
-String _levelLabel(int? level) =>
-    level == null ? 'Chưa xếp hạng' : levelShortLabel(level) ?? '$level';
+String _levelLabel(AppLocalizations l10n, int? level) => level == null
+    ? l10n.hostRosterUnranked
+    : levelShortLabel(level) ?? '$level';
 
-enum _RosterAction { toggleCheckIn, remove }
+enum _RosterAction { view, edit, toggleCheckIn, remove }
 
-({Color background, Color border, Color foreground}) _statusColors(
+({Color background, Color border, Color foreground, Color dot}) _statusColors(
   PlayerStatus status,
   Brightness brightness,
 ) {
   final dark = brightness == Brightness.dark;
   return switch (status) {
     PlayerStatus.playing => (
-      background: dark ? const Color(0xFF1D5334) : const Color(0xFF8FE0A9),
-      border: const Color(0xFF54B56F),
-      foreground: const Color(0xFF31764A),
+      background: dark ? const Color(0xFF132A1C) : const Color(0xFFF0FDF4),
+      border: dark ? const Color(0xFF22C55E) : const Color(0xFF86EFAC),
+      foreground: dark ? const Color(0xFF4ADE80) : const Color(0xFF16A34A),
+      dot: const Color(0xFF22C55E),
     ),
     PlayerStatus.ready => (
-      background: dark ? const Color(0xFF5C5121) : const Color(0xFFFFD9A4),
-      border: const Color(0xFFE2B06A),
-      foreground: const Color(0xFF86601D),
+      background: dark ? const Color(0xFF2A2410) : const Color(0xFFFEFCE8),
+      border: dark ? const Color(0xFFEAB308) : const Color(0xFFFDE047),
+      foreground: dark ? const Color(0xFFFACC15) : const Color(0xFFCA8A04),
+      dot: const Color(0xFFEAB308),
     ),
     PlayerStatus.waiting => (
-      background: dark ? const Color(0xFF5C3A1E) : const Color(0xFFFFD6A0),
-      border: const Color(0xFFEBA456),
-      foreground: const Color(0xFF945C1A),
+      background: dark ? const Color(0xFF2A1C10) : const Color(0xFFFFF7ED),
+      border: dark ? const Color(0xFFF97316) : const Color(0xFFFDBA74),
+      foreground: dark ? const Color(0xFFFB923C) : const Color(0xFFEA580C),
+      dot: const Color(0xFFF97316),
     ),
     PlayerStatus.inactive => (
-      background: dark ? const Color(0xFF404040) : const Color(0xFFE5E7EB),
-      border: const Color(0xFF9CA3AF),
-      foreground: const Color(0xFF6B7280),
+      background: dark ? const Color(0xFF1E2124) : const Color(0xFFF9FAFB),
+      border: dark ? const Color(0xFF9CA3AF) : const Color(0xFFE2E8F0),
+      foreground: dark ? const Color(0xFF9CA3AF) : const Color(0xFF64748B),
+      dot: const Color(0xFF9CA3AF),
     ),
     PlayerStatus.finished => (
-      background: dark ? const Color(0xFF38465A) : const Color(0xFFDDE8F5),
-      border: const Color(0xFF90A4BE),
-      foreground: const Color(0xFF526B84),
+      background: dark ? const Color(0xFF1B2230) : const Color(0xFFF8FAFC),
+      border: dark ? const Color(0xFF64748B) : const Color(0xFFCBD5E1),
+      foreground: dark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+      dot: const Color(0xFF64748B),
     ),
   };
 }

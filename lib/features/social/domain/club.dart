@@ -310,6 +310,34 @@ class ClubUserSearchResult {
   final String? image;
 }
 
+class ClubFeeConfig {
+  const ClubFeeConfig({this.maleFeePerSession, this.femaleFeePerSession});
+
+  factory ClubFeeConfig.fromJson(Map<String, dynamic> json) => ClubFeeConfig(
+    maleFeePerSession: (json['maleFeePerSession'] as num?)?.toInt(),
+    femaleFeePerSession: (json['femaleFeePerSession'] as num?)?.toInt(),
+  );
+
+  final int? maleFeePerSession;
+  final int? femaleFeePerSession;
+
+  int? feeForGender(String gender) => gender == 'FEMALE'
+      ? femaleFeePerSession ?? maleFeePerSession
+      : maleFeePerSession ?? femaleFeePerSession;
+
+  bool get hasPerSessionFee =>
+      maleFeePerSession != null || femaleFeePerSession != null;
+}
+
+class ClubMonthlyMember {
+  const ClubMonthlyMember({required this.userId});
+
+  factory ClubMonthlyMember.fromJson(Map<String, dynamic> json) =>
+      ClubMonthlyMember(userId: json['userId'] as String? ?? '');
+
+  final String userId;
+}
+
 class ClubPage {
   const ClubPage({
     required this.clubs,

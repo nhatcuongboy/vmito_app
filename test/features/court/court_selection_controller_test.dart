@@ -213,6 +213,34 @@ void main() {
         ],
       );
     });
+
+    test('clears picks when the pairing sheet is closed', () async {
+      final container = containerFor(sessionWith());
+      final subscription = container.listen(
+        courtSelectionControllerProvider(key),
+        (_, _) {},
+      );
+      final controller = container.read(
+        courtSelectionControllerProvider(key).notifier,
+      );
+
+      controller
+        ..togglePlayer('a')
+        ..togglePlayer('b');
+      expect(
+        container.read(courtSelectionControllerProvider(key)).selectedIds,
+        ['a', 'b'],
+      );
+
+      subscription.close();
+      await container.pump();
+
+      // Reopening the same court gets a new state, not the last line-up.
+      expect(
+        container.read(courtSelectionControllerProvider(key)).slots,
+        [null, null, null, null],
+      );
+    });
   });
 
   group('search', () {

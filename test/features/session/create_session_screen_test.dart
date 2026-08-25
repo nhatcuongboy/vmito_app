@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' show Tristate;
 
 import 'package:flutter/material.dart';
@@ -8,12 +9,19 @@ import 'package:vmito_app/core/network/paginated.dart' as pagination;
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
+import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
 import 'package:vmito_app/features/session/data/session_form_service.dart';
+import 'package:vmito_app/features/session/domain/create_session_request.dart';
+import 'package:vmito_app/features/session/domain/repositories/session_repository.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
+import 'package:vmito_app/features/session/domain/session_location_payload.dart';
 import 'package:vmito_app/features/session/presentation/player/create_session_screen.dart';
+import 'package:vmito_app/features/session/presentation/player/session_edit_modal.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 class _MockSessionFormService extends Mock implements SessionFormService {}
+
+class _MockSessionRepository extends Mock implements SessionRepository {}
 
 class _TestAuthController extends AuthController {
   @override
@@ -26,12 +34,15 @@ class _TestAuthController extends AuthController {
 Widget _app({
   Widget home = const CreateSessionScreen(),
   SessionFormService? sessionFormService,
+  SessionRepository? sessionRepository,
   bool host = false,
 }) => ProviderScope(
   overrides: [
     if (host) authControllerProvider.overrideWith(_TestAuthController.new),
     if (sessionFormService != null)
       sessionFormServiceProvider.overrideWithValue(sessionFormService),
+    if (sessionRepository != null)
+      sessionRepositoryProvider.overrideWithValue(sessionRepository),
   ],
   child: MaterialApp(
     theme: AppTheme.light,
@@ -72,6 +83,17 @@ Future<void> _scrollDownTo(WidgetTester tester, Finder finder) async {
 }
 
 void main() {
+  setUpAll(() {
+    registerFallbackValue(
+      const CreateSessionRequest(
+        name: 'Fallback',
+        location: CustomLocation(name: 'Fallback court'),
+        hostName: 'Host',
+        maxPlayersPerCourt: 8,
+      ),
+    );
+  });
+
   testWidgets('mobile form uses sticky submit and reports required fields', (
     tester,
   ) async {
@@ -221,6 +243,117 @@ void main() {
     expect(find.byKey(const Key('create-session-ai')), findsNothing);
     expect(find.byKey(const Key('venue-picker')), findsNothing);
     expect(find.byKey(const Key('custom-location-fields')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('phone edit modal prefills, locks pending submit, then closes', (
+    tester,
+  ) async {
+    _setSize(tester, const Size(390, 844));
+    final repository = _MockSessionRepository();
+    final pending = Completer<Session>();
+    final start = DateTime(2030, 8, 26, 18);
+    final initial = Session(
+      id: 'modal-1',
+      name: 'Kèo modal',
+      status: SessionStatus.preparing,
+      hostName: 'Chủ kèo',
+      hostPhone: '0901234567',
+      customLocationName: 'Sân modal',
+      startTime: start,
+      endTime: start.add(const Duration(hours: 2)),
+      numberOfCourts: 1,
+      maxPlayersPerCourt: 8,
+    );
+    when(() => repository.update('modal-1', any())).thenAnswer(
+      (_) => pending.future,
+    );
+    Session? result;
+
+    await tester.pumpWidget(
+      _app(
+        host: true,
+        sessionRepository: repository,
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: FilledButton(
+              onPressed: () async {
+                result = await showSessionEditModal(context, session: initial);
+              },
+              child: const Text('Mở chỉnh sửa'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Mở chỉnh sửa'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.byKey(const Key('session-edit-bottom-sheet')), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(const Key('session-edit-bottom-sheet'))).height,
+      lessThanOrEqualTo(844),
+    );
+    expect(find.text('Chỉnh sửa kèo'), findsOneWidget);
+    expect(find.text('Kèo modal'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('create-session-submit')));
+    await tester.pump();
+    expect(
+      tester
+          .widget<FilledButton>(
+            find.byKey(const Key('create-session-submit')),
+          )
+          .onPressed,
+      isNull,
+    );
+
+    final updated = initial.copyWith(name: 'Kèo đã sửa');
+    pending.complete(updated);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('session-edit-bottom-sheet')), findsNothing);
+    expect(result, updated);
+    verify(() => repository.update('modal-1', any())).called(1);
+  });
+
+  testWidgets('tablet edit modal uses a height-constrained dialog', (
+    tester,
+  ) async {
+    _setSize(tester, const Size(1024, 900));
+    const initial = Session(
+      id: 'tablet-modal',
+      name: 'Kèo tablet',
+      status: SessionStatus.inProgress,
+      hostName: 'Chủ kèo',
+      hostPhone: '0901234567',
+      customLocationName: 'Sân tablet',
+      maxPlayersPerCourt: 8,
+    );
+
+    await tester.pumpWidget(
+      _app(
+        home: Builder(
+          builder: (context) => Scaffold(
+            body: FilledButton(
+              onPressed: () => showSessionEditModal(
+                context,
+                session: initial,
+              ),
+              child: const Text('Mở tablet'),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.tap(find.text('Mở tablet'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(find.byKey(const Key('session-edit-dialog')), findsOneWidget);
+    expect(find.byKey(const Key('session-edit-bottom-sheet')), findsNothing);
+    expect(find.text('Kèo tablet'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

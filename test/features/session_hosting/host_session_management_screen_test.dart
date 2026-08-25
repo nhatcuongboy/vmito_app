@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:vmito_app/core/network/api_exception.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/court/application/live_session_controller.dart';
@@ -8,7 +10,11 @@ import 'package:vmito_app/features/court/application/match_history_provider.dart
 import 'package:vmito_app/features/payment/application/payment_providers.dart';
 import 'package:vmito_app/features/payment/domain/payment.dart';
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
+import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
+import 'package:vmito_app/features/session/domain/create_session_request.dart';
+import 'package:vmito_app/features/session/domain/repositories/session_repository.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
+import 'package:vmito_app/features/session/domain/session_location_payload.dart';
 import 'package:vmito_app/features/session_hosting/presentation/host_session_management_screen.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
@@ -21,7 +27,15 @@ const _session = Session(
   location: 'Quang Trung',
 );
 
-Future<void> _pump(WidgetTester tester, {Session session = _session}) async {
+class _SessionRepository extends Mock implements SessionRepository {}
+
+Future<void> _pump(
+  WidgetTester tester, {
+  Session session = _session,
+  SessionRepository? repository,
+  Locale locale = const Locale('vi'),
+  VoidCallback? onSessionLoad,
+}) async {
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = const Size(400, 800);
   addTearDown(tester.view.resetDevicePixelRatio);
@@ -30,7 +44,10 @@ Future<void> _pump(WidgetTester tester, {Session session = _session}) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
-        sessionDetailProvider('s1').overrideWith((ref) async => session),
+        sessionDetailProvider('s1').overrideWith((ref) async {
+          onSessionLoad?.call();
+          return session;
+        }),
         liveSessionRealtimeProvider('s1').overrideWith((ref) {}),
         matchHistoryProvider('s1').overrideWith((ref) async => const []),
         paymentLedgerProvider('s1').overrideWith(
@@ -41,10 +58,15 @@ Future<void> _pump(WidgetTester tester, {Session session = _session}) async {
         ),
         paymentSettingsProvider.overrideWith((ref) async => const []),
         sessionExpensesProvider('s1').overrideWith((ref) async => const []),
+        sessionFeeConfigProvider('s1').overrideWith((ref) async => null),
+        paymentRemindersProvider.overrideWith((ref) async => const {}),
+        vietnamBanksProvider.overrideWith((ref) async => const []),
+        if (repository != null)
+          sessionRepositoryProvider.overrideWithValue(repository),
       ],
       child: MaterialApp(
         theme: AppTheme.light,
-        locale: const Locale('vi'),
+        locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: const HostSessionManagementScreen(sessionId: 's1'),
@@ -55,6 +77,17 @@ Future<void> _pump(WidgetTester tester, {Session session = _session}) async {
 }
 
 void main() {
+  setUpAll(() {
+    registerFallbackValue(
+      const CreateSessionRequest(
+        name: 'Fallback',
+        location: CustomLocation(name: 'Fallback court'),
+        hostName: 'Host',
+        maxPlayersPerCourt: 8,
+      ),
+    );
+  });
+
   testWidgets('shows status badge, More actions and all five fixed tabs', (
     tester,
   ) async {
@@ -94,7 +127,7 @@ void main() {
     await tester.tap(find.byKey(const Key('host-session-more-menu')));
     await tester.pumpAndSettle();
     expect(find.text('Bắt đầu buổi chơi'), findsNWidgets(2));
-    expect(find.text('Sửa buổi chơi'), findsOneWidget);
+    expect(find.text('Chỉnh sửa kèo'), findsOneWidget);
     expect(find.text('Nhân bản buổi chơi'), findsOneWidget);
     expect(find.text('Hủy buổi chơi'), findsOneWidget);
   });
@@ -119,6 +152,128 @@ void main() {
 
     expect(find.text('Kết thúc buổi chơi'), findsNWidgets(2));
     expect(find.text('Sửa buổi chơi'), findsNothing);
+  });
+
+  testWidgets('compact header gives a long name two lines above the status', (
+    tester,
+  ) async {
+    const longName =
+        'Kèo Cường test chạy vị trí header với một tên buổi chơi thật dài';
+    await _pump(tester, session: _session.copyWith(name: longName));
+
+    final title = tester.widget<Text>(
+      find.byKey(const Key('host-session-title')),
+    );
+    final titleRect = tester.getRect(
+      find.byKey(const Key('host-session-title')),
+    );
+    final badgeRect = tester.getRect(
+      find.byKey(const Key('host-session-status-badge')),
+    );
+    final appBar = tester.widget<AppBar>(find.byType(AppBar));
+
+    expect(title.data, longName);
+    expect(title.maxLines, 2);
+    expect(title.style?.fontSize, 18);
+    expect(title.style?.fontWeight, FontWeight.w700);
+    expect(appBar.toolbarHeight, 72);
+    expect(
+      find.byKey(const Key('host-session-header-compact')),
+      findsOneWidget,
+    );
+    expect(badgeRect.top, greaterThanOrEqualTo(titleRect.bottom));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets(
+    'overview edit refreshes session detail after a successful save',
+    (
+      tester,
+    ) async {
+      final repository = _SessionRepository();
+      final start = DateTime(2030, 8, 26, 18);
+      final editable = _session.copyWith(
+        hostName: 'Chủ kèo',
+        hostPhone: '0901234567',
+        customLocationName: 'Sân Quang Trung',
+        startTime: start,
+        endTime: start.add(const Duration(hours: 2)),
+      );
+      when(() => repository.update('s1', any())).thenAnswer(
+        (_) async => editable.copyWith(name: 'Kèo đã cập nhật'),
+      );
+      var loads = 0;
+      await _pump(
+        tester,
+        session: editable,
+        repository: repository,
+        onSessionLoad: () => loads++,
+      );
+      expect(loads, 1);
+
+      await tester.tap(find.byKey(const Key('host-overview-edit-session')));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
+      await tester.tap(find.byKey(const Key('create-session-submit')));
+      await tester.pumpAndSettle();
+
+      expect(loads, 2);
+      verify(() => repository.update('s1', any())).called(1);
+    },
+  );
+
+  testWidgets('shows the API reason when starting without players fails', (
+    tester,
+  ) async {
+    final repository = _SessionRepository();
+    when(() => repository.startSession('s1')).thenThrow(
+      const ApiException(
+        kind: ApiErrorKind.validation,
+        message: 'Cannot start a session with no players',
+        statusCode: 400,
+        hasServerMessage: true,
+      ),
+    );
+    await _pump(tester, repository: repository);
+
+    await tester.tap(find.byKey(const Key('host-session-more-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Bắt đầu buổi chơi').last);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Không thể bắt đầu buổi chơi vì chưa có người chơi nào.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('translates the no-player start failure in English', (
+    tester,
+  ) async {
+    final repository = _SessionRepository();
+    when(() => repository.startSession('s1')).thenThrow(
+      const ApiException(
+        kind: ApiErrorKind.validation,
+        message: 'Cannot start a session with no players',
+        statusCode: 400,
+        hasServerMessage: true,
+      ),
+    );
+    await _pump(
+      tester,
+      repository: repository,
+      locale: const Locale('en'),
+    );
+
+    await tester.tap(find.byKey(const Key('host-session-more-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Start session').last);
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Cannot start the session because it has no players.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('each tab displays its implemented content', (tester) async {

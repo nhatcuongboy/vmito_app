@@ -26,6 +26,7 @@ abstract final class ApiEndpoints {
 
   // --- Users ----------------------------------------------------------------
   static const currentUser = '/users/me';
+  static const users = '/users';
 
   /// In-app account deletion. Required by App Store guideline 5.1.1(v).
   static const deleteAccount = '/users/me';
@@ -51,6 +52,10 @@ abstract final class ApiEndpoints {
   static const myClubs = '/clubs/my/list';
   static const managedClubs = '/clubs/manage';
   static const clubUserSearch = '/clubs/search-users';
+  static String clubFeeForMonth(String clubId, int year, int month) =>
+      '/clubs/$clubId/fees/$year/$month';
+  static String clubMonthlyMembers(String clubId, int year, int month) =>
+      '/clubs/$clubId/monthly-members/$year/$month';
   static String managedClub(String id) => '/clubs/$id';
   static String clubMembers(String id) => '/clubs/$id/members';
   static String clubMember(String clubId, String userId) =>
@@ -110,6 +115,7 @@ abstract final class ApiEndpoints {
   static String sessionEnd(String id) => '/sessions/$id/end';
   static String sessionCancel(String id) => '/sessions/$id/cancel';
   static String sessionPlayers(String id) => '/sessions/$id/players';
+  static String sessionPlayersBulk(String id) => '/sessions/$id/players/bulk';
   static String sessionPlayerStatistics(String id) =>
       '/sessions/$id/players/statistics';
 
@@ -149,6 +155,7 @@ abstract final class ApiEndpoints {
 
   // --- Payments ------------------------------------------------------------
   static const paymentSettings = '/payment-settings';
+  static const paymentQrUpload = '/upload/qr-code';
   static String paymentSetting(String id) => '/payment-settings/$id';
   static String paymentSettingDefault(String id) =>
       '/payment-settings/$id/set-default';
@@ -164,6 +171,9 @@ abstract final class ApiEndpoints {
   static const aggregatePaymentReminder = '/payment-reminders/aggregate';
   static String sessionPaymentSplit(String id) =>
       '/sessions/$id/payments/split';
+  static String sessionFeeConfig(String id) => '/sessions/$id/fee-config';
+  static String sessionFeeRecalculate(String id) =>
+      '/sessions/$id/fee-config/recalculate';
   static String sessionExpenses(String id) => '/sessions/$id/expenses';
   static String sessionExpense(String sessionId, String expenseId) =>
       '/sessions/$sessionId/expenses/$expenseId';

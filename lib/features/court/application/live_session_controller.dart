@@ -7,6 +7,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/realtime/socket_client.dart';
 import 'package:vmito_app/core/realtime/socket_events.dart';
+import 'package:vmito_app/features/court/application/match_history_provider.dart';
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
 
 /// Connection status used by the live screen's reconnecting banner.
@@ -39,7 +40,9 @@ final liveSessionRealtimeProvider = Provider.autoDispose.family<void, String>((
       .listen((_) {
         debounce?.cancel();
         debounce = Timer(const Duration(milliseconds: 250), () {
-          ref.invalidate(sessionDetailProvider(sessionId));
+          ref
+            ..invalidate(sessionDetailProvider(sessionId))
+            ..invalidate(matchHistoryProvider(sessionId));
         });
       });
 

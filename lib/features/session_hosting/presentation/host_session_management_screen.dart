@@ -1,18 +1,22 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/court/application/live_session_controller.dart';
+import 'package:vmito_app/features/court/application/match_history_provider.dart';
 import 'package:vmito_app/features/payment/application/payment_providers.dart';
 import 'package:vmito_app/features/session/application/player/my_sessions_controller.dart';
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
+import 'package:vmito_app/features/session/presentation/player/session_edit_modal.dart';
 import 'package:vmito_app/features/session_hosting/application/host_session_management_controller.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/host_courts_tab.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/host_overview_tab.dart';
@@ -53,23 +57,27 @@ class _HostSessionManagementScreenState
     if (state != AppLifecycleState.resumed) return;
     ref
       ..invalidate(sessionDetailProvider(sessionId))
+      ..invalidate(matchHistoryProvider(sessionId))
       ..invalidate(paymentLedgerProvider(sessionId))
-      ..invalidate(sessionExpensesProvider(sessionId));
+      ..invalidate(sessionExpensesProvider(sessionId))
+      ..invalidate(sessionFeeConfigProvider(sessionId))
+      ..invalidate(paymentSettingsProvider)
+      ..invalidate(paymentRemindersProvider);
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final session = ref.watch(sessionDetailProvider(sessionId));
-    final mutation = ref.watch(
-      hostSessionManagementControllerProvider(sessionId),
-    );
     ref
       ..watch(liveSessionRealtimeProvider(sessionId))
       ..listen(hostSessionManagementControllerProvider(sessionId), (_, next) {
         if (next.hasError) {
+          final error = next.error;
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.hostManageActionFailed)),
+            SnackBar(
+              content: Text(l10n.hostSessionManagementError(error)),
+            ),
           );
         }
       });
@@ -78,6 +86,7 @@ class _HostSessionManagementScreenState
       length: 5,
       child: Scaffold(
         appBar: AppBar(
+          toolbarHeight: 72,
           title: session.maybeWhen(
             data: (value) => _SessionHeaderTitle(
               name: value.name,
@@ -133,11 +142,10 @@ class _HostSessionManagementScreenState
                         ],
                       ),
                     ),
-                  if (value.status == SessionStatus.preparing)
-                    PopupMenuItem(
-                      value: _SessionAction.edit,
-                      child: Text(l10n.editSessionTitle),
-                    ),
+                  PopupMenuItem(
+                    value: _SessionAction.edit,
+                    child: Text(l10n.editSessionTitle),
+                  ),
                   PopupMenuItem(
                     value: _SessionAction.clone,
                     child: Text(l10n.cloneSessionTitle),
@@ -162,51 +170,40 @@ class _HostSessionManagementScreenState
             ],
           ),
         ),
-        body: Stack(
-          fit: StackFit.expand,
-          children: [
-            session.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => AppErrorView(
-                error: error,
-                onRetry: () => ref.invalidate(
-                  sessionDetailProvider(sessionId),
-                ),
-              ),
-              data: (value) => TabBarView(
-                key: const Key('host-session-tab-view'),
-                children: [
-                  HostOverviewTab(
-                    key: const Key('host-tab-overview-content'),
-                    session: value,
-                  ),
-                  HostRosterTab(
-                    key: const Key('host-tab-roster-content'),
-                    session: value,
-                  ),
-                  HostCourtsTab(
-                    key: const Key('host-tab-courts-content'),
-                    session: value,
-                  ),
-                  HostResultsTab(
-                    key: const Key('host-tab-results-content'),
-                    session: value,
-                  ),
-                  HostPaymentLedgerTab(
-                    key: const Key('host-tab-payments-content'),
-                    session: value,
-                  ),
-                ],
-              ),
+        body: session.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => AppErrorView(
+            error: error,
+            onRetry: () => ref.invalidate(
+              sessionDetailProvider(sessionId),
             ),
-            if (mutation.isLoading)
-              const Positioned.fill(
-                child: ColoredBox(
-                  color: Color(0x22000000),
-                  child: Center(child: CircularProgressIndicator()),
-                ),
+          ),
+          data: (value) => TabBarView(
+            key: const Key('host-session-tab-view'),
+            children: [
+              HostOverviewTab(
+                key: const Key('host-tab-overview-content'),
+                session: value,
+                onEdit: () => unawaited(_editSession(value)),
               ),
-          ],
+              HostRosterTab(
+                key: const Key('host-tab-roster-content'),
+                session: value,
+              ),
+              HostCourtsTab(
+                key: const Key('host-tab-courts-content'),
+                session: value,
+              ),
+              HostResultsTab(
+                key: const Key('host-tab-results-content'),
+                session: value,
+              ),
+              HostPaymentLedgerTab(
+                key: const Key('host-tab-payments-content'),
+                session: value,
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -225,8 +222,7 @@ class _HostSessionManagementScreenState
             .endSession();
         return;
       case _SessionAction.edit:
-        await context.push(AppRoutes.editSession(session.id));
-        ref.invalidate(sessionDetailProvider(session.id));
+        await _editSession(session);
         return;
       case _SessionAction.clone:
         await context.push(AppRoutes.cloneSession(session.id));
@@ -270,6 +266,12 @@ class _HostSessionManagementScreenState
         return;
     }
   }
+
+  Future<void> _editSession(Session session) async {
+    final updated = await showSessionEditModal(context, session: session);
+    if (updated == null || !mounted) return;
+    ref.invalidate(sessionDetailProvider(session.id));
+  }
 }
 
 class _SessionHeaderTitle extends StatelessWidget {
@@ -279,19 +281,41 @@ class _SessionHeaderTitle extends StatelessWidget {
   final SessionStatus status;
 
   @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      Expanded(
-        child: Text(
-          name,
-          key: const Key('host-session-title'),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final title = Text(
+        name,
+        key: const Key('host-session-title'),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+          fontSize: 18,
+          fontWeight: FontWeight.w700,
+          height: 1.15,
         ),
-      ),
-      const SizedBox(width: AppSpacing.sm),
-      _SessionStatusBadge(status: status),
-    ],
+      );
+
+      if (constraints.maxWidth >= 480) {
+        return Row(
+          children: [
+            Expanded(child: title),
+            const SizedBox(width: AppSpacing.md),
+            _SessionStatusBadge(status: status),
+          ],
+        );
+      }
+
+      return Column(
+        key: const Key('host-session-header-compact'),
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          title,
+          const SizedBox(height: AppSpacing.xs),
+          _SessionStatusBadge(status: status),
+        ],
+      );
+    },
   );
 }
 
@@ -324,7 +348,7 @@ class _SessionStatusBadge extends StatelessWidget {
       key: const Key('host-session-status-badge'),
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.sm,
-        vertical: 3,
+        vertical: AppSpacing.xs,
       ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.14),

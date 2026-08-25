@@ -36,10 +36,17 @@ void main() {
           {
             'id': 'pay-1',
             'playerId': 'p1',
+            'registeredByUserId': 'u1',
             'amount': 80000,
             'status': 'SUBMITTED',
             'paymentMethod': 'BANK_TRANSFER',
-            'player': {'id': 'p1', 'name': 'Linh'},
+            'player': {
+              'id': 'p1',
+              'name': 'Linh',
+              'clubFeeApplied': true,
+              'clubId': 'c1',
+              'club': {'id': 'c1', 'name': 'Nhóm tháng'},
+            },
           },
         ],
         'stats': {
@@ -53,7 +60,26 @@ void main() {
       expect(ledger.payments.single.status, PaymentStatus.submitted);
       expect(ledger.payments.single.paymentMethod, PaymentMethod.bankTransfer);
       expect(ledger.payments.single.player?.displayName, 'Linh');
+      expect(ledger.payments.single.registeredByUserId, 'u1');
+      expect(ledger.payments.single.player?.clubFeeApplied, isTrue);
+      expect(ledger.payments.single.player?.clubName, 'Nhóm tháng');
       expect(ledger.stats.totalAmount, 80000);
+    });
+
+    test('maps reminder metadata to linked payment ids', () {
+      final reminder = PaymentReminder.fromJson({
+        'id': 'r1',
+        'reminderCount': 2,
+        'lastRemindedAt': '2026-08-25T10:00:00.000Z',
+        'payments': [
+          {
+            'payment': {'id': 'p1'},
+          },
+        ],
+      });
+
+      expect(reminder.paymentIds, ['p1']);
+      expect(reminder.reminderCount, 2);
     });
 
     test('parses expenses and host transaction summaries', () {

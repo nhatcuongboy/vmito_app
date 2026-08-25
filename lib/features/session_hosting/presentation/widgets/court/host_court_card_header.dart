@@ -18,48 +18,86 @@ class HostCourtCardHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final palette = theme.extension<AppPalette>()!;
     final l10n = AppLocalizations.of(context);
     final startTime = court.currentMatch?.startTime;
 
-    final (statusLabel, statusColor, statusIcon) = switch (court.status) {
-      CourtStatus.inUse => (
-        l10n.courtStatusPlaying,
-        palette.success,
-        AppIcons.playCircle,
-      ),
+    final (
+      headerBg,
+      numberBg,
+      titleColor,
+      statusLabel,
+      badgeBg,
+      badgeTextColor,
+      badgeBorderColor,
+    ) = switch (court.status) {
       CourtStatus.ready => (
+        const Color(0xFFFEFCE8), // yellow.50
+        const Color(0xFFEAB308), // yellow.500
+        const Color(0xFF854D0E), // yellow.800
         l10n.courtStatusReady,
-        palette.warning,
-        AppIcons.clock,
+        const Color(0xFFFACC15), // yellow.400
+        const Color(0xFF713F12), // yellow.900
+        Colors.transparent,
+      ),
+      CourtStatus.inUse => (
+        const Color(0xFFF0FDF4), // green.50
+        const Color(0xFF22C55E), // green.500
+        const Color(0xFF15803D), // green.700
+        l10n.courtStatusPlaying,
+        const Color(0xFF22C55E), // green.500
+        Colors.white,
+        Colors.transparent,
       ),
       CourtStatus.empty => (
+        const Color(0xFFF9FAFB), // gray.50
+        const Color(0xFF6B7280), // gray.500
+        const Color(0xFF374151), // gray.700
         l10n.courtStatusEmpty,
-        palette.mutedForeground,
-        AppIcons.circle,
+        const Color(0xFFF3F4F6), // gray.100
+        const Color(0xFF374151), // gray.700
+        const Color(0xFFE5E7EB), // gray.200
       ),
     };
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.sm),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
       decoration: BoxDecoration(
-        color: statusColor.withValues(alpha: 0.12),
+        color: headerBg,
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(AppRadius.lg),
         ),
       ),
       child: Row(
         children: [
-          _NumberBadge(number: court.courtNumber, color: statusColor),
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: numberBg,
+              shape: BoxShape.circle,
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              '${court.courtNumber}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
               l10n.courtName(court),
-              style: theme.textTheme.titleSmall?.copyWith(
+              style: TextStyle(
+                fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: statusColor,
+                color: titleColor,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -70,74 +108,26 @@ class HostCourtCardHeader extends StatelessWidget {
             MatchElapsedBadge(startTime: startTime),
             const SizedBox(width: AppSpacing.xs),
           ],
-          _StatusPill(label: statusLabel, icon: statusIcon, color: statusColor),
-        ],
-      ),
-    );
-  }
-}
-
-/// Solid pill, matching the `Badge` on `CourtCard.tsx`'s header.
-class _StatusPill extends StatelessWidget {
-  const _StatusPill({
-    required this.label,
-    required this.icon,
-    required this.color,
-  });
-
-  final String label;
-  final IconData icon;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xxs,
-      ),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Icon plus text, never colour alone.
-          Icon(icon, size: 12, color: Colors.white),
-          const SizedBox(width: AppSpacing.xxs),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 4,
+            ),
+            decoration: BoxDecoration(
+              color: badgeBg,
+              borderRadius: BorderRadius.circular(AppRadius.md),
+              border: Border.all(color: badgeBorderColor),
+            ),
+            child: Text(
+              statusLabel,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: badgeTextColor,
+              ),
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _NumberBadge extends StatelessWidget {
-  const _NumberBadge({required this.number, required this.color});
-
-  final int number;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 28,
-      height: 28,
-      decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-      alignment: Alignment.center,
-      child: Text(
-        '$number',
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w700,
-        ),
       ),
     );
   }

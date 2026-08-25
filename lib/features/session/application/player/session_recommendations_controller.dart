@@ -5,11 +5,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
-import 'package:vmito_app/features/session/domain/session.dart';
+import 'package:vmito_app/features/session/domain/session_recommendation.dart';
 
 /// How many cards the detail screen's carousel shows. The web app asks for
 /// the same page size.
-const sessionRecommendationLimit = 6;
+const sessionRecommendationLimit = 12;
 
 /// Sessions to suggest below a session's detail.
 ///
@@ -17,7 +17,10 @@ const sessionRecommendationLimit = 6;
 /// generic ranking without a `userId`, which is what a browsing visitor
 /// should see rather than an empty rail.
 final sessionRecommendationsProvider =
-    FutureProvider.family<List<Session>, String>((ref, sessionId) async {
+    FutureProvider.family<SessionRecommendationsPage, String>((
+      ref,
+      sessionId,
+    ) async {
       final page = await ref
           .watch(sessionRepositoryProvider)
           .recommendations(
@@ -27,5 +30,14 @@ final sessionRecommendationsProvider =
           );
       // The current session can come back in its own recommendations when the
       // backend falls back to a generic ranking.
-      return page.items.where((session) => session.id != sessionId).toList();
+      return SessionRecommendationsPage(
+        items: page.items
+            .where((recommendation) => recommendation.session.id != sessionId)
+            .toList(growable: false),
+        page: page.page,
+        limit: page.limit,
+        total: page.total,
+        totalPages: page.totalPages,
+        isFallback: page.isFallback,
+      );
     });

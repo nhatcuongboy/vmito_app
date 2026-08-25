@@ -19,6 +19,16 @@ class CourtSurfacePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     canvas.drawRect(Offset.zero & size, Paint()..color = _background);
 
+    // 4px outer border matching BadmintonCourt.tsx
+    final outerBorder = Paint()
+      ..color = _borderColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 4.0;
+    canvas.drawRect(
+      Rect.fromLTWH(2, 2, size.width - 4, size.height - 4),
+      outerBorder,
+    );
+
     final line = Paint()
       ..color = Colors.white.withValues(alpha: 0.9)
       ..style = PaintingStyle.stroke
@@ -84,9 +94,15 @@ class CourtSurfacePainter extends CustomPainter {
   }
 
   Color get _background => switch (status) {
-    CourtStatus.inUse => courtColor ?? const Color(0xff16834c),
-    CourtStatus.ready => const Color(0xffc59318),
+    CourtStatus.inUse => courtColor ?? const Color(0xff179a3b),
+    CourtStatus.ready => const Color(0xfffef3c7),
     CourtStatus.empty => const Color(0xffe6e6e6),
+  };
+
+  Color get _borderColor => switch (status) {
+    CourtStatus.ready => const Color(0xfffacc15), // yellow.400
+    CourtStatus.inUse => const Color(0x4dffffff), // whiteAlpha.300
+    CourtStatus.empty => const Color(0xffe4e4e7), // border
   };
 
   @override

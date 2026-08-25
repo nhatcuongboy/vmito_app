@@ -23,8 +23,11 @@ class SessionExpensesCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final locale = Localizations.localeOf(context).languageCode;
     return Card(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        side: BorderSide(color: Theme.of(context).dividerColor),
+      ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: expenses.when(
@@ -44,56 +47,42 @@ class SessionExpensesCard extends ConsumerWidget {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ),
-                  IconButton(
-                    tooltip: l10n.sessionExpenseAdd,
-                    onPressed: () => showDialog<void>(
+                  OutlinedButton.icon(
+                    key: const Key('expense-add'),
+                    onPressed: () => showModalBottomSheet<void>(
                       context: context,
-                      builder: (_) => ExpenseDialog(sessionId: sessionId),
+                      isScrollControlled: true,
+                      showDragHandle: true,
+                      useSafeArea: true,
+                      builder: (_) => ExpenseBatchSheet(sessionId: sessionId),
                     ),
-                    icon: const Icon(AppIcons.add),
+                    icon: const Icon(AppIcons.add, size: 18),
+                    label: Text(l10n.sessionExpenseAdd),
                   ),
                 ],
               ),
+              const SizedBox(height: AppSpacing.md),
               if (items.isEmpty)
-                Text(l10n.sessionExpensesEmpty)
+                Padding(
+                  padding: const EdgeInsets.all(AppSpacing.xxl),
+                  child: Column(
+                    children: [
+                      const Icon(AppIcons.receipt, size: 36),
+                      const SizedBox(height: AppSpacing.sm),
+                      Text(l10n.sessionExpensesEmpty),
+                    ],
+                  ),
+                )
               else ...[
                 for (final expense in items)
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(expense.name),
-                    subtitle: Text(Money.vnd(expense.amount, locale: locale)),
-                    trailing: Wrap(
-                      spacing: AppSpacing.xs,
-                      children: [
-                        IconButton(
-                          tooltip: l10n.hostManageEditSettings,
-                          onPressed: () => showDialog<void>(
-                            context: context,
-                            builder: (_) => ExpenseDialog(
-                              sessionId: sessionId,
-                              expense: expense,
-                            ),
-                          ),
-                          icon: const Icon(AppIcons.edit),
-                        ),
-                        IconButton(
-                          tooltip: l10n.hostManageRemove,
-                          onPressed: () => ref
-                              .read(
-                                hostSessionManagementControllerProvider(
-                                  sessionId,
-                                ).notifier,
-                              )
-                              .deleteExpense(expense.id),
-                          icon: const Icon(AppIcons.delete),
-                        ),
-                      ],
-                    ),
+                  _ExpenseTile(
+                    sessionId: sessionId,
+                    expense: expense,
                   ),
                 const Divider(),
                 Text(
                   '${l10n.sessionExpensesTotal}: '
-                  '${Money.vnd(items.fold<int>(0, (sum, item) => sum + item.amount), locale: locale)}',
+                  '${Money.vnd(items.fold<int>(0, (sum, item) => sum + item.amount), locale: Localizations.localeOf(context).languageCode)}',
                   textAlign: TextAlign.end,
                   style: Theme.of(context).textTheme.titleSmall,
                 ),
@@ -101,6 +90,106 @@ class SessionExpensesCard extends ConsumerWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ExpenseTile extends ConsumerWidget {
+  const _ExpenseTile({required this.sessionId, required this.expense});
+  final String sessionId;
+  final SessionExpense expense;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final error = Theme.of(context).colorScheme.error;
+    return Container(
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+      ),
+      child: Row(
+        children: [
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: error.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              child: Icon(AppIcons.receipt, color: error),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  expense.name,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  Money.vnd(
+                    expense.amount,
+                    locale: Localizations.localeOf(context).languageCode,
+                  ),
+                  style: TextStyle(color: error, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            tooltip: l10n.commonEdit,
+            onPressed: () => showModalBottomSheet<void>(
+              context: context,
+              isScrollControlled: true,
+              showDragHandle: true,
+              useSafeArea: true,
+              builder: (_) => ExpenseDialog(
+                sessionId: sessionId,
+                expense: expense,
+              ),
+            ),
+            icon: const Icon(AppIcons.edit),
+          ),
+          IconButton(
+            tooltip: l10n.commonDelete,
+            onPressed: () async {
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (dialogContext) => AlertDialog(
+                  title: Text(l10n.hostManageDeleteExpenseTitle),
+                  content: Text(
+                    l10n.hostManageDeleteExpenseMessage(expense.name),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(dialogContext, false),
+                      child: Text(
+                        MaterialLocalizations.of(context).cancelButtonLabel,
+                      ),
+                    ),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(dialogContext, true),
+                      child: Text(l10n.commonDelete),
+                    ),
+                  ],
+                ),
+              );
+              if (confirmed != true) return;
+              await ref
+                  .read(
+                    hostSessionManagementControllerProvider(sessionId).notifier,
+                  )
+                  .deleteExpense(expense.id);
+            },
+            icon: const Icon(AppIcons.delete),
+          ),
+        ],
       ),
     );
   }

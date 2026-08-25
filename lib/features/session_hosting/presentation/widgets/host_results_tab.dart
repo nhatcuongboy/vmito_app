@@ -3,8 +3,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/features/court/application/live_session_controller.dart';
 import 'package:vmito_app/features/court/application/match_history_provider.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/shared/models/court.dart';
@@ -29,6 +31,7 @@ class _HostResultsTabState extends ConsumerState<HostResultsTab> {
 
   @override
   Widget build(BuildContext context) {
+    ref.watch(liveSessionRealtimeProvider(widget.session.id));
     final history = ref.watch(matchHistoryProvider(widget.session.id));
     return history.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -53,7 +56,13 @@ class _HostResultsTabState extends ConsumerState<HostResultsTab> {
       data: (matches) {
         final filtered =
             matches.where((match) {
-              final result = matchResult(match);
+              final court = widget.session.courts
+                  .where((court) => court.id == match.courtId)
+                  .firstOrNull;
+              final result = matchResult(
+                match,
+                direction: court?.direction ?? CourtDirection.horizontal,
+              );
               return (_courtId == null || match.courtId == _courtId) &&
                   switch (_filter) {
                     _ResultFilter.all => true,
@@ -148,11 +157,17 @@ class _ResultsControls extends StatelessWidget {
       children: [
         OutlinedButton.icon(
           key: const Key('host-results-filter'),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size(0, 36),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm + 4,
+            ),
+          ),
           onPressed: onShowFilters,
           icon: Badge(
             isLabelVisible: activeFilterCount > 0,
             label: Text('$activeFilterCount'),
-            child: const Icon(AppIcons.filter),
+            child: const Icon(AppIcons.filter, size: 16),
           ),
           label: Text(activeFilterCount == 0 ? 'Bộ lọc' : 'Đã lọc'),
         ),
@@ -225,123 +240,106 @@ class _MatchResultCard extends StatelessWidget {
   final Session session;
   @override
   Widget build(BuildContext context) {
-    final result = matchResult(match);
     final court = session.courts
         .where((court) => court.id == match.courtId)
         .firstOrNull;
+    final direction = court?.direction ?? CourtDirection.horizontal;
+    final teams = _matchTeamIds(match, direction);
+    final result = matchResult(match, direction: direction);
     final playerById = {
       for (final player in session.players) player.id: player,
     };
-    final ids = match.orderedPlayerIds;
-    final midpoint = (ids.length / 2).ceil();
-    final first = ids
-        .take(midpoint)
-        .map(
-          (id) =>
-              match.players
-                  .where((entry) => entry.playerId == id)
-                  .firstOrNull
-                  ?.player
-                  ?.name ??
-              playerById[id]?.displayName ??
-              'Người chơi',
-        )
-        .toList();
-    final second = ids
-        .skip(midpoint)
-        .map(
-          (id) =>
-              match.players
-                  .where((entry) => entry.playerId == id)
-                  .firstOrNull
-                  ?.player
-                  ?.name ??
-              playerById[id]?.displayName ??
-              'Người chơi',
-        )
-        .toList();
+    String playerLabel(String id) {
+      final matchPlayer = match.players
+          .where((entry) => entry.playerId == id)
+          .firstOrNull;
+      final sessionPlayer = playerById[id];
+      return matchPlayer?.player?.name ??
+          sessionPlayer?.displayName ??
+          'Người chơi';
+    }
+
+    final first = teams.first.map(playerLabel).toList(growable: false);
+    final second = teams.second.map(playerLabel).toList(growable: false);
+    final isSingles = match.players.length <= 2;
     final title = court == null
         ? 'Sân'
         : (court.customName ?? 'Sân ${court.courtNumber}');
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final palette = theme.extension<AppPalette>() ?? AppPalette.light();
     return Card(
       key: Key('host-result-card-${match.id}'),
+      color: colors.surfaceContainerHighest.withValues(alpha: 0.35),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.sm + 4),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            // -- Header: court name + badge + time --------------------------
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Icon(
-                  AppIcons.sessions,
-                  color: Theme.of(context).colorScheme.primary,
+                  AppIcons.mapPin,
+                  color: palette.mutedForeground,
                   size: 19,
                 ),
                 const SizedBox(width: 7),
                 Expanded(
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleSmall,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: theme.textTheme.titleMedium),
+                      const SizedBox(height: AppSpacing.xxs),
+                      Text(
+                        _timeLabel(match),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: palette.mutedForeground,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                if (match.isExtra) const Chip(label: Text('Thêm')),
+                if (match.isExtra) ...[
+                  const SizedBox(width: AppSpacing.sm),
+                  const _ExtraMatchBadge(),
+                ],
               ],
             ),
-            const SizedBox(height: AppSpacing.sm),
+
+            // -- Scoreboard -------------------------------------------------
+            const SizedBox(height: AppSpacing.md),
             _TeamLine(
+              label: isSingles ? 'Người chơi 1' : 'Cặp 1',
               names: first,
               score: result.first,
               winner: result.winner == 1,
+              palette: palette,
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-              child: Center(
-                child: Text(
-                  'VS',
-                  style: Theme.of(context).textTheme.labelSmall,
-                ),
-              ),
-            ),
+            _VsDivider(palette: palette),
             _TeamLine(
+              label: isSingles ? 'Người chơi 2' : 'Cặp 2',
               names: second,
               score: result.second,
               winner: result.winner == 2,
+              palette: palette,
             ),
-            const Divider(height: AppSpacing.lg),
-            Row(
-              children: [
-                Icon(
-                  AppIcons.clock,
-                  size: 15,
-                  color: Theme.of(context).colorScheme.outline,
-                ),
-                const SizedBox(width: 5),
-                Expanded(
-                  child: Text(
-                    _timeLabel(match),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelSmall,
+            if (match.isDraw && result.hasScore) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Center(
+                child: Text(
+                  'Hòa',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    color: colors.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                if (match.isDraw)
-                  Text(
-                    'Hòa',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  )
-                else if (result.hasScore)
-                  Icon(
-                    result.winner == null
-                        ? AppIcons.help
-                        : AppIcons.checkCircle,
-                    size: 18,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-              ],
-            ),
+              ),
+            ],
           ],
         ),
       ),
@@ -349,65 +347,149 @@ class _MatchResultCard extends StatelessWidget {
   }
 
   String _timeLabel(Match match) {
-    final time = match.endTime ?? match.startTime;
+    final start = match.startTime?.toLocal();
+    final end = match.endTime?.toLocal();
+    final time = start ?? end;
     if (time == null) return 'Không rõ thời gian';
-    final local = time.toLocal();
-    return '${local.day.toString().padLeft(2, '0')}/${local.month.toString().padLeft(2, '0')} · ${local.hour.toString().padLeft(2, '0')}:${local.minute.toString().padLeft(2, '0')}';
+
+    if (start == null || end == null) return _clock(time);
+
+    final duration = end.difference(start);
+    final range = '${_clock(start)}–${_clock(end)}';
+    if (duration.isNegative) return range;
+    return '$range · ${_durationLabel(duration)}';
+  }
+
+  String _clock(DateTime time) =>
+      '${time.hour.toString().padLeft(2, '0')}:${time.minute.toString().padLeft(2, '0')}';
+
+  String _durationLabel(Duration duration) {
+    final minutes = duration.inMinutes;
+    if (minutes < 1) return '< 1 phút';
+    final hours = minutes ~/ 60;
+    final remainingMinutes = minutes % 60;
+    if (hours == 0) return '$minutes phút';
+    if (remainingMinutes == 0) return '$hours giờ';
+    return '$hours giờ $remainingMinutes phút';
   }
 }
 
 class _TeamLine extends StatelessWidget {
   const _TeamLine({
+    required this.label,
     required this.names,
     required this.score,
     required this.winner,
+    required this.palette,
   });
+  final String label;
   final List<String> names;
   final int? score;
   final bool winner;
+  final AppPalette palette;
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: winner ? colors.primaryContainer : null,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final scoreColor = winner
+        ? palette.success
+        : (score == null ? palette.mutedForeground : colors.onSurface);
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.xs,
+        vertical: AppSpacing.xs,
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm,
-          vertical: AppSpacing.xs,
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                names.isEmpty ? '—' : names.join(' • '),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: winner ? FontWeight.w700 : null,
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: palette.mutedForeground,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
+                const SizedBox(height: AppSpacing.xxs),
+                Text(
+                  names.isEmpty ? '—' : names.join(' · '),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colors.onSurface,
+                    fontWeight: winner ? FontWeight.w700 : FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Text(
+            score?.toString() ?? '–',
+            style: theme.textTheme.headlineMedium?.copyWith(
+              color: scoreColor,
+              fontWeight: FontWeight.w800,
+              height: 1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VsDivider extends StatelessWidget {
+  const _VsDivider({required this.palette});
+  final AppPalette palette;
+  @override
+  Widget build(BuildContext context) {
+    final color = palette.mutedForeground.withValues(alpha: 0.35);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      child: Row(
+        children: [
+          Expanded(child: Divider(color: color, height: 1)),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+            child: Text(
+              'VS',
+              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                color: palette.mutedForeground,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.2,
               ),
             ),
-            const SizedBox(width: AppSpacing.sm),
-            Container(
-              width: 44,
-              alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-              decoration: BoxDecoration(
-                color: winner ? colors.primary : colors.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(AppRadius.md),
-              ),
-              child: Text(
-                score?.toString() ?? '–',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: winner ? colors.onPrimary : null,
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-            ),
-          ],
+          ),
+          Expanded(child: Divider(color: color, height: 1)),
+        ],
+      ),
+    );
+  }
+}
+
+class _ExtraMatchBadge extends StatelessWidget {
+  const _ExtraMatchBadge();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>() ?? AppPalette.light();
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: palette.warning.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+      ),
+      child: Text(
+        'Thêm',
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: palette.warning,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
@@ -613,7 +695,10 @@ class MatchResultSummary {
 
 /// Decodes the backend's JSON-string `score`: one line per player, but each
 /// pair shares the same score. Corrupt or older payloads simply render no score.
-MatchResultSummary matchResult(Match match) {
+MatchResultSummary matchResult(
+  Match match, {
+  CourtDirection direction = CourtDirection.horizontal,
+}) {
   final raw = match.score;
   if (raw == null || raw.isEmpty) return const MatchResultSummary();
   try {
@@ -624,35 +709,52 @@ MatchResultSummary matchResult(Match match) {
         if (row['playerId'] is String && row['score'] is num)
           row['playerId'] as String: (row['score'] as num).toInt(),
     };
-    final ids = match.orderedPlayerIds;
-    final split = (ids.length / 2).ceil();
+    final teams = _matchTeamIds(match, direction);
     return MatchResultSummary(
-      first: ids
-          .take(split)
-          .map((id) => scores[id])
-          .whereType<int>()
-          .firstOrNull,
-      second: ids
-          .skip(split)
-          .map((id) => scores[id])
-          .whereType<int>()
-          .firstOrNull,
-      winner: match.isDraw ? null : _winner(match, ids),
+      first: teams.first.map((id) => scores[id]).whereType<int>().firstOrNull,
+      second: teams.second.map((id) => scores[id]).whereType<int>().firstOrNull,
+      winner: match.isDraw ? null : _winner(match, teams),
     );
   } on Object {
     return const MatchResultSummary();
   }
 }
 
-int? _winner(Match match, List<String> ids) {
+({List<String> first, List<String> second}) _matchTeamIds(
+  Match match,
+  CourtDirection direction,
+) {
+  final ids = match.orderedPlayerIds;
+  if (ids.length <= 2) {
+    return (
+      first: ids.take(1).toList(growable: false),
+      second: ids.skip(1).toList(growable: false),
+    );
+  }
+  if (direction == CourtDirection.vertical) {
+    return (
+      first: [for (var index = 0; index < ids.length; index += 2) ids[index]],
+      second: [for (var index = 1; index < ids.length; index += 2) ids[index]],
+    );
+  }
+  final split = (ids.length / 2).ceil();
+  return (
+    first: ids.take(split).toList(growable: false),
+    second: ids.skip(split).toList(growable: false),
+  );
+}
+
+int? _winner(
+  Match match,
+  ({List<String> first, List<String> second}) teams,
+) {
   if (match.winnerIds == null) return null;
   try {
     final raw = jsonDecode(match.winnerIds!);
     if (raw is! List || raw.isEmpty) return null;
-    final split = (ids.length / 2).ceil();
-    return raw.whereType<String>().any(ids.take(split).contains)
+    return raw.whereType<String>().any(teams.first.contains)
         ? 1
-        : raw.whereType<String>().any(ids.skip(split).contains)
+        : raw.whereType<String>().any(teams.second.contains)
         ? 2
         : null;
   } on Object {

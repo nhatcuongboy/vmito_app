@@ -47,18 +47,18 @@ class _PlayerSearchFieldState extends State<PlayerSearchField> {
         isDense: true,
         contentPadding: widget.compact
             ? const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 6)
-            : null,
+            : const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         hintText: l10n.courtSearchPlayers,
         hintStyle: widget.compact
             ? Theme.of(context).textTheme.bodySmall
             : null,
         prefixIconConstraints: widget.compact
             ? const BoxConstraints(minWidth: 28, minHeight: 28)
-            : null,
+            : const BoxConstraints(minWidth: 36, minHeight: 36),
         prefixIcon: Icon(AppIcons.search, size: iconSize),
         suffixIconConstraints: widget.compact
             ? const BoxConstraints(minWidth: 24, minHeight: 24)
-            : null,
+            : const BoxConstraints(minWidth: 32, minHeight: 32),
         suffixIcon: ValueListenableBuilder<TextEditingValue>(
           valueListenable: _controller,
           builder: (context, value, _) => value.text.isEmpty

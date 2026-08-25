@@ -11,7 +11,9 @@ import 'package:vmito_app/l10n/app_localizations.dart';
 
 /// Opens the notification inbox and exposes the current unread count.
 class NotificationHeaderButton extends ConsumerStatefulWidget {
-  const NotificationHeaderButton({super.key});
+  const NotificationHeaderButton({super.key, this.color});
+
+  final Color? color;
 
   @override
   ConsumerState<NotificationHeaderButton> createState() =>
@@ -52,7 +54,7 @@ class _NotificationHeaderButtonState
           isLabelVisible: unreadCount > 0,
           label: Text(badgeLabel),
           offset: const Offset(6, -4),
-          child: const Icon(AppIcons.notifications),
+          child: Icon(AppIcons.notifications, color: widget.color),
         ),
       ),
     );

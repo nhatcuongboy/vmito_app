@@ -12,11 +12,13 @@ import 'package:vmito_app/features/registration/domain/pending_join_request.dart
 import 'package:vmito_app/features/session/domain/browse_session_filters.dart';
 import 'package:vmito_app/features/session/domain/bulk_create_session.dart';
 import 'package:vmito_app/features/session/domain/create_session_request.dart';
+import 'package:vmito_app/features/session/domain/host_player.dart';
 import 'package:vmito_app/features/session/domain/player_detail.dart';
 import 'package:vmito_app/features/session/domain/player_statistics.dart';
 import 'package:vmito_app/features/session/domain/repositories/session_repository.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_list_query.dart';
+import 'package:vmito_app/features/session/domain/session_recommendation.dart';
 // Shadows `dart:core`'s `Match` in this file. Intentional — the model mirrors
 // the backend entity, and no regex work happens here.
 import 'package:vmito_app/shared/models/match.dart';
@@ -292,19 +294,17 @@ class SessionRepositoryImpl implements SessionRepository {
   }
 
   @override
-  Future<Page<Session>> recommendations(
+  Future<SessionRecommendationsPage> recommendations(
     String sessionId, {
     required int limit,
+    int page = 1,
     String? userId,
   }) async {
     final response = await _client.get<Map<String, dynamic>>(
       ApiEndpoints.sessionRecommendations(sessionId),
-      queryParameters: {'limit': limit, 'userId': ?userId},
+      queryParameters: {'page': page, 'limit': limit, 'userId': ?userId},
     );
-    // The rows are sessions plus `relevanceScore`/`matchReasons`/`distance`.
-    // Only `distance` is rendered, and [Session] already carries it; the
-    // scoring fields stay unmodelled until a screen shows them.
-    return unwrapPage(response.data, Session.fromJson);
+    return _unwrapRecommendations(response.data);
   }
 
   @override
@@ -407,6 +407,50 @@ class SessionRepositoryImpl implements SessionRepository {
     );
   }
 
+  @override
+  Future<void> updatePlayer(
+    String sessionId,
+    String playerId,
+    Map<String, dynamic> player,
+  ) => _client.patch<void>(
+    ApiEndpoints.sessionPlayer(sessionId, playerId),
+    data: player,
+    options: apiOptions(skipGlobalError: true),
+  );
+
+  @override
+  Future<List<HostPlayerUserOption>> searchUsers(String query) async {
+    final response = await _client.get<dynamic>(
+      ApiEndpoints.users,
+      queryParameters: {'search': query.trim()},
+      dedup: false,
+    );
+    final envelope = response.data;
+    final payload =
+        envelope is Map<String, dynamic> && envelope.containsKey('success')
+        ? envelope['data']
+        : envelope;
+    final rows = payload is Map<String, dynamic>
+        ? payload['data'] as List<dynamic>? ?? const []
+        : payload as List<dynamic>? ?? const [];
+    return rows
+        .whereType<Map<String, dynamic>>()
+        .map(HostPlayerUserOption.fromJson)
+        .toList(growable: false);
+  }
+
+  @override
+  Future<void> createPlayers(
+    String sessionId,
+    List<Map<String, dynamic>> players,
+  ) async {
+    await _client.post<dynamic>(
+      ApiEndpoints.sessionPlayersBulk(sessionId),
+      data: players,
+      options: apiOptions(skipGlobalError: true),
+    );
+  }
+
   /// The backend speaks the TypeScript enum's wire values, and `status` is one
   /// of the query parameters the OpenAPI document leaves untyped — so the
   /// mapping is written out rather than derived from the Dart enum name.
@@ -416,6 +460,37 @@ class SessionRepositoryImpl implements SessionRepository {
     SessionStatus.finished => 'FINISHED',
     SessionStatus.cancelled => 'CANCELLED',
   };
+}
+
+SessionRecommendationsPage _unwrapRecommendations(dynamic body) {
+  final envelope = body is Map<String, dynamic> && body.containsKey('success')
+      ? body['data']
+      : body;
+  if (envelope is! Map<String, dynamic>) {
+    throw FormatException(
+      'Expected recommendation response, got ${envelope.runtimeType}',
+    );
+  }
+
+  final rows = (envelope['data'] as List<dynamic>? ?? const [])
+      .whereType<Map<String, dynamic>>()
+      .map(SessionRecommendation.fromJson)
+      .toList(growable: false);
+  final pagination =
+      envelope['pagination'] as Map<String, dynamic>? ?? envelope;
+  final meta = envelope['meta'] as Map<String, dynamic>? ?? const {};
+
+  int readInt(String key, int fallback) =>
+      (pagination[key] as num?)?.toInt() ?? fallback;
+
+  return SessionRecommendationsPage(
+    items: rows,
+    page: readInt('page', 1),
+    limit: readInt('limit', rows.length),
+    total: readInt('total', rows.length),
+    totalPages: readInt('totalPages', 1),
+    isFallback: meta['isFallback'] == true,
+  );
 }
 
 /// `GET /sessions/:id/matches` parses `score`/`winnerIds` into real JSON
