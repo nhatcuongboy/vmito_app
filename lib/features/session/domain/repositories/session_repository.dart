@@ -3,6 +3,7 @@ import 'package:vmito_app/features/registration/domain/pending_join_request.dart
 import 'package:vmito_app/features/session/domain/browse_session_filters.dart';
 import 'package:vmito_app/features/session/domain/bulk_create_session.dart';
 import 'package:vmito_app/features/session/domain/create_session_request.dart';
+import 'package:vmito_app/features/session/domain/form/match_update_draft.dart';
 import 'package:vmito_app/features/session/domain/host_player.dart';
 import 'package:vmito_app/features/session/domain/player_detail.dart';
 import 'package:vmito_app/features/session/domain/player_statistics.dart';
@@ -115,6 +116,10 @@ abstract interface class SessionRepository {
   /// Court *actions* live on `CourtRepository` — courts are their own backend
   /// resource — but match history belongs to the session that owns it.
   Future<List<Match>> matches(String sessionId);
+
+  Future<void> updateMatch(String matchId, MatchUpdateDraft draft);
+
+  Future<void> deleteMatch(String matchId);
 
   Future<List<PlayerStatistics>> playerStatistics(String sessionId);
 

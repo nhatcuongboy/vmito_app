@@ -17,6 +17,7 @@ import 'package:vmito_app/features/social/application/club_management_controller
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/data/social_service.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
+import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_lightbox.dart';
 
 class ClubDetailScreen extends ConsumerWidget {
@@ -213,7 +214,7 @@ class _ClubDetailState extends ConsumerState<_ClubDetail>
       ),
       if (club.requiredLevels.isNotEmpty)
         _card(
-          'Trình độ phù hợp',
+          AppLocalizations.of(context).clubRequiredLevels,
           Wrap(
             spacing: 8,
             children: club.requiredLevels

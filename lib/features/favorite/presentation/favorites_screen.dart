@@ -147,13 +147,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
     } else if (_type == 'SESSION') {
       unawaited(context.push(AppRoutes.sessionDetail(id)));
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context).favoritesTournamentUnavailable,
-          ),
-        ),
-      );
+      unawaited(context.push(AppRoutes.tournamentDetail(id)));
     }
   }
 }

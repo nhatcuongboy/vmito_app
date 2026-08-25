@@ -11,6 +11,7 @@ import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/widgets/city_selector.dart';
 import 'package:vmito_app/core/widgets/notification_header_button.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
+import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/features/home/presentation/widgets/home_discovery_tabs.dart';
 import 'package:vmito_app/features/session/application/player/browse_sessions_controller.dart';
 import 'package:vmito_app/features/session/presentation/player/public_sessions_content.dart';
@@ -87,8 +88,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final isAuthenticated =
-        ref.watch(authControllerProvider).status == AuthStatus.authenticated;
+    final authState = ref.watch(authControllerProvider);
+    final isAuthenticated = authState.status == AuthStatus.authenticated;
+    final currentUser = authState.user;
+    final canCreateTournament =
+        currentUser?.role == UserRole.host ||
+        currentUser?.role == UserRole.admin;
     final sessionState = ref.watch(browseSessionsControllerProvider);
     final venueState = ref.watch(venueBrowseControllerProvider);
     final clubsState = ref.watch(clubsControllerProvider);
@@ -191,20 +196,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   ),
                 ),
         ),
+        HomeDiscoveryTab.tournaments
+            when isAuthenticated && !canCreateTournament =>
+          null,
         HomeDiscoveryTab.tournaments => _buildCreateButton(
           context,
           l10n,
           key: 'home-create-tournament-fab',
           label: l10n.tournamentCreate,
-          onPressed: isAuthenticated
-              ? () => context.push(AppRoutes.createTournament)
-              : () => unawaited(
+          onPressed: !isAuthenticated
+              ? () => unawaited(
                   showLoginPromptDialog(
                     context,
                     featureName: l10n.loginRequiredCreateTournament,
                     targetRoute: AppRoutes.createTournament,
                   ),
-                ),
+                )
+              : () => context.push(AppRoutes.createTournament),
         ),
         HomeDiscoveryTab.venues => null,
       },

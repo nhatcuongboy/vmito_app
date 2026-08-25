@@ -50,13 +50,29 @@ abstract final class ApiEndpoints {
   static String clubJoin(String id) => '/clubs/$id/join';
   static String clubLeave(String id) => '/clubs/$id/leave';
   static const myClubs = '/clubs/my/list';
+  static const myClubRequests = '/clubs/my/requests';
+  static const managedClubJoinRequests = '/clubs/my/join-requests';
+  static const adminClubJoinRequests = '/clubs/admin/join-requests';
+  static const pendingClubs = '/clubs/admin/pending';
   static const managedClubs = '/clubs/manage';
   static const clubUserSearch = '/clubs/search-users';
   static String clubFeeForMonth(String clubId, int year, int month) =>
       '/clubs/$clubId/fees/$year/$month';
+  static String clubFees(String clubId) => '/clubs/$clubId/fees';
   static String clubMonthlyMembers(String clubId, int year, int month) =>
       '/clubs/$clubId/monthly-members/$year/$month';
+  static String clubMonthlyMember(String clubId) =>
+      '/clubs/$clubId/monthly-members';
+  static String deleteClubMonthlyMember(
+    String clubId,
+    String userId,
+    int year,
+    int month,
+  ) => '/clubs/$clubId/monthly-members/$userId/$year/$month';
   static String managedClub(String id) => '/clubs/$id';
+  static String cancelClubJoinRequest(String id) => '/clubs/$id/join-request';
+  static String approveClub(String id) => '/clubs/$id/approve';
+  static String rejectClub(String id) => '/clubs/$id/reject';
   static String clubMembers(String id) => '/clubs/$id/members';
   static String clubMember(String clubId, String userId) =>
       '/clubs/$clubId/members/$userId';
@@ -133,6 +149,9 @@ abstract final class ApiEndpoints {
 
   /// Finished matches for a session. Feeds the repeat-pairing warning.
   static String sessionMatches(String id) => '/sessions/$id/matches';
+
+  /// Read or mutate one completed match.
+  static String match(String id) => '/matches/$id';
 
   // --- Courts ---------------------------------------------------------------
   static String court(String id) => '/courts/$id';
@@ -218,6 +237,11 @@ abstract final class ApiEndpoints {
   /// Public tournament discovery. The backend filters drafts when
   /// `publishedOnly=true`; the client also checks `isPublished` defensively.
   static const tournaments = '/tournaments';
+  static String tournament(String id) => '/tournaments/$id';
+  static String tournamentMatches(String id) => '/tournaments/$id/all-matches';
+  static String tournamentSponsors(String id) => '/tournaments/$id/sponsors';
+  static String tournamentStandings(String categoryId) =>
+      '/categories/$categoryId/standings';
 
   // --- User images ----------------------------------------------------------
   static const userImages = '/user-images';

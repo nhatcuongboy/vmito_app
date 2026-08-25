@@ -212,11 +212,65 @@ class _HostSessionManagementScreenState
   Future<void> _handleAction(Session session, _SessionAction action) async {
     switch (action) {
       case _SessionAction.startSession:
+        final l10n = AppLocalizations.of(context);
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(l10n.startSessionConfirmTitle),
+            content: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 320),
+              child: Text(l10n.startSessionConfirm),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(
+                  MaterialLocalizations.of(context).cancelButtonLabel,
+                ),
+              ),
+              FilledButton(
+                key: const ValueKey('confirm-start-session'),
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(l10n.startSessionAction),
+              ),
+            ],
+          ),
+        );
+        if (confirmed != true || !mounted) return;
         await ref
             .read(hostSessionManagementControllerProvider(session.id).notifier)
             .startSession();
         return;
       case _SessionAction.endSession:
+        final l10n = AppLocalizations.of(context);
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(l10n.endSessionConfirmTitle),
+            content: ConstrainedBox(
+              constraints: const BoxConstraints(minWidth: 320),
+              child: Text(l10n.endSessionConfirm),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(
+                  MaterialLocalizations.of(context).cancelButtonLabel,
+                ),
+              ),
+              FilledButton(
+                key: const ValueKey('confirm-end-session'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.error,
+                  foregroundColor: Theme.of(context).colorScheme.onError,
+                ),
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(l10n.endSessionAction),
+              ),
+            ],
+          ),
+        );
+        if (confirmed != true || !mounted) return;
         await ref
             .read(hostSessionManagementControllerProvider(session.id).notifier)
             .endSession();

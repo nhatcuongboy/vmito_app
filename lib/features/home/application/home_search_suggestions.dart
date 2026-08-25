@@ -98,7 +98,7 @@ class ApiHomeSearchSuggestionService implements HomeSearchSuggestionService {
       for (final tournament in tournaments.take(_limit))
         DiscoverySuggestion(
           tab: HomeDiscoveryTab.tournaments,
-          entityId: tournament.id,
+          entityId: tournament.slug ?? tournament.id,
           title: tournament.name,
           subtitle: tournament.location,
           imageUrl: tournament.coverPhoto,

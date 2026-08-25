@@ -413,35 +413,21 @@ class _RosterListTile extends StatelessWidget {
                           ),
                           const SizedBox(width: AppSpacing.sm),
                           Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  key: ValueKey(
-                                    'host-roster-name-${player.id}',
+                            child: Text(
+                              key: ValueKey(
+                                'host-roster-name-${player.id}',
+                              ),
+                              player.displayName ?? l10n.playerName(player),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .titleMedium
+                                  ?.copyWith(
+                                    height: 1.15,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: -.2,
                                   ),
-                                  player.displayName ?? l10n.playerName(player),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
-                                      ?.copyWith(
-                                        height: 1.15,
-                                        fontWeight: FontWeight.w700,
-                                        letterSpacing: -.2,
-                                      ),
-                                ),
-                                const SizedBox(height: 2),
-                                _StatusLabel(
-                                  key: ValueKey(
-                                    'host-roster-status-label-${player.id}',
-                                  ),
-                                  label: _statusLabel(l10n, player.status),
-                                  color: colors.foreground,
-                                ),
-                              ],
                             ),
                           ),
                           SizedBox(
@@ -698,40 +684,6 @@ class _NumberBadge extends StatelessWidget {
   }
 }
 
-class _StatusLabel extends StatelessWidget {
-  const _StatusLabel({
-    required this.label,
-    required this.color,
-    super.key,
-  });
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      DecoratedBox(
-        decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        child: const SizedBox.square(dimension: 6),
-      ),
-      const SizedBox(width: 4),
-      Flexible(
-        child: Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: color,
-            fontWeight: FontWeight.w600,
-            fontSize: 11.5,
-          ),
-        ),
-      ),
-    ],
-  );
-}
 
 class _ClubBadge extends StatelessWidget {
   const _ClubBadge({required this.label, super.key});

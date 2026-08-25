@@ -12,6 +12,7 @@ import 'package:vmito_app/features/registration/domain/pending_join_request.dart
 import 'package:vmito_app/features/session/domain/browse_session_filters.dart';
 import 'package:vmito_app/features/session/domain/bulk_create_session.dart';
 import 'package:vmito_app/features/session/domain/create_session_request.dart';
+import 'package:vmito_app/features/session/domain/form/match_update_draft.dart';
 import 'package:vmito_app/features/session/domain/host_player.dart';
 import 'package:vmito_app/features/session/domain/player_detail.dart';
 import 'package:vmito_app/features/session/domain/player_statistics.dart';
@@ -339,6 +340,23 @@ class SessionRepositoryImpl implements SessionRepository {
         .map(_normalizeMatchJson)
         .map(Match.fromJson)
         .toList(growable: false);
+  }
+
+  @override
+  Future<void> updateMatch(String matchId, MatchUpdateDraft draft) async {
+    await _client.patch<void>(
+      ApiEndpoints.match(matchId),
+      data: draft.toRequestBody(),
+      options: apiOptions(skipGlobalError: true),
+    );
+  }
+
+  @override
+  Future<void> deleteMatch(String matchId) async {
+    await _client.delete<void>(
+      ApiEndpoints.match(matchId),
+      options: apiOptions(skipGlobalError: true),
+    );
   }
 
   @override

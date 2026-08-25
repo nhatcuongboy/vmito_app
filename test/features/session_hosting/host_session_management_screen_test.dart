@@ -126,7 +126,7 @@ void main() {
 
     await tester.tap(find.byKey(const Key('host-session-more-menu')));
     await tester.pumpAndSettle();
-    expect(find.text('Bắt đầu buổi chơi'), findsNWidgets(2));
+    expect(find.text('Bắt đầu kèo'), findsNWidgets(2));
     expect(find.text('Chỉnh sửa kèo'), findsOneWidget);
     expect(find.text('Nhân bản buổi chơi'), findsOneWidget);
     expect(find.text('Hủy buổi chơi'), findsOneWidget);
@@ -150,7 +150,7 @@ void main() {
     await tester.tap(find.byKey(const Key('host-session-more-menu')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Kết thúc buổi chơi'), findsNWidgets(2));
+    expect(find.text('Kết thúc kèo'), findsNWidgets(2));
     expect(find.text('Sửa buổi chơi'), findsNothing);
   });
 
@@ -238,7 +238,9 @@ void main() {
 
     await tester.tap(find.byKey(const Key('host-session-more-menu')));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Bắt đầu buổi chơi').last);
+    await tester.tap(find.text('Bắt đầu kèo').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('confirm-start-session')));
     await tester.pumpAndSettle();
 
     expect(
@@ -268,6 +270,8 @@ void main() {
     await tester.tap(find.byKey(const Key('host-session-more-menu')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Start session').last);
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('confirm-start-session')));
     await tester.pumpAndSettle();
 
     expect(

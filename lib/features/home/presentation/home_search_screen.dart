@@ -133,7 +133,9 @@ class _HomeSearchScreenState extends ConsumerState<HomeSearchScreen> {
       case HomeDiscoveryTab.clubs:
         unawaited(context.push(AppRoutes.clubDetail(suggestion.entityId)));
       case HomeDiscoveryTab.tournaments:
-        unawaited(_submit(suggestion.title));
+        unawaited(
+          context.push(AppRoutes.tournamentDetail(suggestion.entityId)),
+        );
     }
   }
 

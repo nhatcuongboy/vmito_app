@@ -975,6 +975,7 @@ class _ClubsTabState extends ConsumerState<_ClubsTab> {
       if (!snapshot.hasData) {
         return const Center(child: CircularProgressIndicator());
       }
+      final l10n = AppLocalizations.of(context);
       final all = snapshot.data!;
       final hosted = all.where((club) => club.hostId == widget.userId).toList();
       final member = all.where((club) => club.hostId != widget.userId).toList();
@@ -991,7 +992,24 @@ class _ClubsTabState extends ConsumerState<_ClubsTab> {
           children: [
             if (all.isEmpty) const _Empty('Chưa tham gia nhóm nào.'),
             if (hosted.isNotEmpty || widget.owner)
-              _clubGroup(context, 'Nhóm đã host', hosted),
+              _clubGroup(
+                context,
+                'Nhóm đã host',
+                hosted,
+                trailing: widget.owner
+                    ? TextButton(
+                        key: const Key('profile-manage-clubs-button'),
+                        style: TextButton.styleFrom(
+                          visualDensity: VisualDensity.compact,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm,
+                          ),
+                        ),
+                        onPressed: () => context.push(AppRoutes.manageClubs),
+                        child: Text(l10n.clubManageTitle),
+                      )
+                    : null,
+              ),
             if (widget.owner && member.isNotEmpty)
               _clubGroup(context, 'Nhóm đã tham gia', member),
           ],
@@ -1004,16 +1022,25 @@ class _ClubsTabState extends ConsumerState<_ClubsTab> {
 Widget _clubGroup(
   BuildContext context,
   String title,
-  List<ClubSummary> clubs,
-) => Card(
+  List<ClubSummary> clubs, {
+  Widget? trailing,
+}) => Card(
   child: Padding(
     padding: const EdgeInsets.all(12),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          '$title (${clubs.length})',
-          style: Theme.of(context).textTheme.titleMedium,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Text(
+                '$title (${clubs.length})',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+            ),
+            ?trailing,
+          ],
         ),
         if (clubs.isEmpty)
           const Padding(

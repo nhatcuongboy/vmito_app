@@ -184,13 +184,42 @@ class _StartSessionButton extends ConsumerWidget {
   const _StartSessionButton({required this.sessionId});
   final String sessionId;
 
+  Future<void> _handlePress(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.startSessionConfirmTitle),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 320),
+          child: Text(l10n.startSessionConfirm),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(
+              MaterialLocalizations.of(context).cancelButtonLabel,
+            ),
+          ),
+          FilledButton(
+            key: const ValueKey('confirm-start-session'),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.startSessionAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      await ref
+          .read(hostSessionManagementControllerProvider(sessionId).notifier)
+          .startSession();
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final controller = ref.read(
-      hostSessionManagementControllerProvider(sessionId).notifier,
-    );
     return SizedBox(
       width: double.infinity,
       child: FilledButton.icon(
@@ -202,7 +231,7 @@ class _StartSessionButton extends ConsumerWidget {
             vertical: AppSpacing.sm + 2,
           ),
         ),
-        onPressed: controller.startSession,
+        onPressed: () => _handlePress(context, ref),
         icon: const Icon(AppIcons.play, size: 18),
         label: Text(l10n.hostManageStartSession),
       ),
@@ -215,13 +244,47 @@ class _EndSessionButton extends ConsumerWidget {
   const _EndSessionButton({required this.sessionId});
   final String sessionId;
 
+  Future<void> _handlePress(BuildContext context, WidgetRef ref) async {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.endSessionConfirmTitle),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 320),
+          child: Text(l10n.endSessionConfirm),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(
+              MaterialLocalizations.of(context).cancelButtonLabel,
+            ),
+          ),
+          FilledButton(
+            key: const ValueKey('confirm-end-session'),
+            style: FilledButton.styleFrom(
+              backgroundColor: theme.colorScheme.error,
+              foregroundColor: theme.colorScheme.onError,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(l10n.endSessionAction),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      await ref
+          .read(hostSessionManagementControllerProvider(sessionId).notifier)
+          .endSession();
+    }
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final controller = ref.read(
-      hostSessionManagementControllerProvider(sessionId).notifier,
-    );
     return SizedBox(
       width: double.infinity,
       child: OutlinedButton.icon(
@@ -234,7 +297,7 @@ class _EndSessionButton extends ConsumerWidget {
             vertical: AppSpacing.sm + 2,
           ),
         ),
-        onPressed: controller.endSession,
+        onPressed: () => _handlePress(context, ref),
         icon: const Icon(AppIcons.stop, size: 18),
         label: Text(l10n.hostManageEndSession),
       ),

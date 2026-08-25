@@ -32,4 +32,69 @@ void main() {
     expect(club.scheduleVenues.single.id, 'v1');
     expect(club.socialLinks['facebook'], contains('facebook.com'));
   });
+
+  test('ClubSummary parses membership and operational fields', () {
+    final club = ClubSummary.fromJson({
+      'id': 'c2',
+      'name': 'Nhóm Thành viên',
+      'memberCount': 12,
+      'joinPolicy': 'APPROVAL_REQUIRED',
+      'role': 'MODERATOR',
+      'joinedAt': '2026-08-20T10:00:00.000Z',
+      'color': '#16A34A',
+      'operationalStatus': 'ACTIVE',
+    });
+
+    expect(club.role, 'MODERATOR');
+    expect(club.joinedAt, DateTime.utc(2026, 8, 20, 10));
+    expect(club.color, '#16A34A');
+    expect(club.operationalStatus, 'ACTIVE');
+  });
+
+  test('ClubJoinRequest parses outgoing club context', () {
+    final request = ClubJoinRequest.fromJson({
+      'id': 'r1',
+      'clubId': 'c1',
+      'userId': 'u1',
+      'status': 'PENDING',
+      'sessionsPlayedCount': 3,
+      'createdAt': '2026-08-20T10:00:00.000Z',
+      'user': {'name': 'Cường', 'email': 'cuong@example.com'},
+      'club': {
+        'id': 'c1',
+        'slug': 'nhom-a',
+        'name': 'Nhóm A',
+        'host': {'id': 'host-1', 'name': 'Chủ nhóm'},
+      },
+    });
+
+    expect(request.clubId, 'c1');
+    expect(request.club?.slug, 'nhom-a');
+    expect(request.club?.hostName, 'Chủ nhóm');
+    expect(request.sessionsPlayedCount, 3);
+  });
+
+  test('fee and monthly member payloads preserve all fields', () {
+    final fee = ClubFeeConfig.fromJson({
+      'id': 'fee-1',
+      'maleFeeMonthly': 500000,
+      'femaleFeeMonthly': 400000,
+      'maleFeePerSession': 80000,
+      'femaleFeePerSession': 70000,
+    });
+    final member = ClubMonthlyMember.fromJson({
+      'id': 'fixed-1',
+      'userId': 'u1',
+      'user': {
+        'name': 'Lan',
+        'email': 'lan@example.com',
+        'gender': 'FEMALE',
+      },
+    });
+
+    expect(fee.maleFeeMonthly, 500000);
+    expect(fee.femaleFeePerSession, 70000);
+    expect(member.name, 'Lan');
+    expect(member.gender, 'FEMALE');
+  });
 }

@@ -25,12 +25,15 @@ class SocketClient {
   SocketClient({
     required TokenStorage tokenStorage,
     this.namespace = SocketNamespace.sessions,
+    this.observedEvents = SessionEvent.all,
   }) : _tokens = tokenStorage;
 
   final TokenStorage _tokens;
   final String namespace;
+  final List<String> observedEvents;
 
   io.Socket? _socket;
+  String? _tournamentRoom;
   final _events = StreamController<SocketEvent>.broadcast();
   final _connection = StreamController<bool>.broadcast();
 
@@ -57,7 +60,7 @@ class SocketClient {
       },
     });
 
-    for (final name in SessionEvent.all) {
+    for (final name in observedEvents) {
       socket.on(name, (dynamic payload) {
         if (payload is Map) {
           _events.add(SocketEvent(name, Map<String, dynamic>.from(payload)));
@@ -69,6 +72,9 @@ class SocketClient {
       ..onConnect((_) {
         AppLogger.debug('socket connected: $namespace');
         _connection.add(true);
+        if (_tournamentRoom case final tournamentId?) {
+          socket.emit(SocketCommand.joinTournament, tournamentId);
+        }
       })
       ..onDisconnect((_) {
         AppLogger.debug('socket disconnected: $namespace');
@@ -88,6 +94,18 @@ class SocketClient {
 
   void leaveSession(String sessionId) =>
       _socket?.emit(SocketCommand.leaveSession, sessionId);
+
+  void joinTournament(String tournamentId) {
+    _tournamentRoom = tournamentId;
+    if (_socket?.connected ?? false) {
+      _socket?.emit(SocketCommand.joinTournament, tournamentId);
+    }
+  }
+
+  void leaveTournament(String tournamentId) {
+    _socket?.emit(SocketCommand.leaveTournament, tournamentId);
+    if (_tournamentRoom == tournamentId) _tournamentRoom = null;
+  }
 
   void emit(String event, Map<String, dynamic> payload) =>
       _socket?.emit(event, payload);
@@ -111,6 +129,22 @@ class SocketClient {
 /// Sessions-namespace client, alive for the whole app session.
 final socketClientProvider = Provider<SocketClient>((ref) {
   final client = SocketClient(tokenStorage: ref.watch(tokenStorageProvider));
+  ref.onDispose(client.dispose);
+  return client;
+});
+
+/// A short-lived public socket owned by one tournament detail screen.
+// Provider-family declarations are clearer with their inferred Riverpod type.
+// ignore: specify_nonobvious_property_types
+final tournamentSocketClientProvider = Provider.family<SocketClient, String>((
+  ref,
+  _,
+) {
+  final client = SocketClient(
+    tokenStorage: ref.watch(tokenStorageProvider),
+    namespace: SocketNamespace.tournaments,
+    observedEvents: TournamentEvent.all,
+  );
   ref.onDispose(client.dispose);
   return client;
 });

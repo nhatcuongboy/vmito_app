@@ -74,9 +74,15 @@ abstract final class AppRoutes {
   static String socialPost(String id) => '/feed/$id';
   static String socialClub(String id) => '/feed/clubs/$id';
   static const manageClubs = '/feed/manage';
+  static const clubManagementTabQuery = 'tab';
+  static String manageClubsForTab(String tab) => Uri(
+    path: manageClubs,
+    queryParameters: {clubManagementTabQuery: tab},
+  ).toString();
   static const createClub = '/feed/manage/create';
   static String manageClub(String id) => '/feed/manage/$id';
   static String editClub(String id) => '/feed/manage/$id/edit';
+  static String clubFees(String id) => '/feed/manage/$id/fees';
   static String publicProfile(String id) => '/user/$id';
 
   /// Routes that remain in a shell branch but need an uninterrupted workspace.
@@ -88,6 +94,7 @@ abstract final class AppRoutes {
         path != mySessionsSearch;
     return path == homeSearch ||
         path == mySessionsSearch ||
+        RegExp(r'^/tournaments/[^/]+$').hasMatch(path) ||
         isSessionDetail ||
         RegExp(r'^/sessions/[^/]+/manage$').hasMatch(path);
   }
@@ -140,6 +147,7 @@ abstract final class AppRoutes {
     leaderboard,
     venues,
     clubs,
+    tournaments,
     join,
     scanQr,
   ];
@@ -188,6 +196,7 @@ abstract final class AppRoutes {
     final rest = location.substring(
       match.end - (match.group(2) == '/' ? 1 : 0),
     );
-    return rest.isEmpty ? '/' : rest;
+    final stripped = rest.isEmpty ? '/' : rest;
+    return stripped.replaceFirst(RegExp('^/tournament/'), '/tournaments/');
   }
 }

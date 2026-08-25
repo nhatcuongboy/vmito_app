@@ -59,6 +59,7 @@ void main() {
       expect(AppRoutes.isPublic(AppRoutes.createClub), isFalse);
       expect(AppRoutes.isPublic(AppRoutes.manageClub('c1')), isFalse);
       expect(AppRoutes.isPublic(AppRoutes.editClub('c1')), isFalse);
+      expect(AppRoutes.isPublic(AppRoutes.clubFees('c1')), isFalse);
     });
 
     test('a protected route under a public one stays protected', () {
@@ -130,6 +131,13 @@ void main() {
     expect(uri.path, AppRoutes.homeSearch);
     expect(uri.queryParameters[AppRoutes.homeDiscoveryTabQuery], 'clubs');
     expect(uri.queryParameters['q'], 'Nhóm Quận 1');
+  });
+
+  test('manageClubsForTab encodes a stable tab query', () {
+    final uri = Uri.parse(AppRoutes.manageClubsForTab('member'));
+
+    expect(uri.path, AppRoutes.manageClubs);
+    expect(uri.queryParameters[AppRoutes.clubManagementTabQuery], 'member');
   });
 
   test('signInWithRedirect preserves the post-login destination', () {

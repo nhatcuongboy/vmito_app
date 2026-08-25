@@ -1,15 +1,32 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:vmito_app/features/court/application/live_session_controller.dart';
 import 'package:vmito_app/features/court/application/match_history_provider.dart';
+import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
+import 'package:vmito_app/features/session/domain/form/match_update_draft.dart';
+import 'package:vmito_app/features/session/domain/repositories/session_repository.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/host_results_tab.dart';
+import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/court.dart';
 import 'package:vmito_app/shared/models/match.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 
+class _Repository extends Mock implements SessionRepository {}
+
+class _DraftFake extends Fake implements MatchUpdateDraft {}
+
+Widget _app(Widget child) => MaterialApp(
+  locale: const Locale('vi'),
+  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  supportedLocales: AppLocalizations.supportedLocales,
+  home: Scaffold(body: child),
+);
+
 void main() {
+  setUpAll(() => registerFallbackValue(_DraftFake()));
   final match = Match(
     id: 'match-1',
     sessionId: 'session-1',
@@ -89,14 +106,14 @@ void main() {
       Court(id: 'court-2', courtNumber: 2),
     ],
     players: [
-      SessionPlayer(id: 'p-1', name: 'Sơn'),
-      SessionPlayer(id: 'p-2', name: 'Minh'),
-      SessionPlayer(id: 'p-3', name: 'Nam'),
-      SessionPlayer(id: 'p-4', name: 'Bảo'),
-      SessionPlayer(id: 'p-5', name: 'Anie'),
-      SessionPlayer(id: 'p-6', name: 'Player Pro'),
-      SessionPlayer(id: 'p-7', name: 'Sa Sa'),
-      SessionPlayer(id: 'p-8', name: 'Minh Lê'),
+      SessionPlayer(id: 'p-1', name: 'Sơn', playerNumber: 1),
+      SessionPlayer(id: 'p-2', name: 'Minh', playerNumber: 2),
+      SessionPlayer(id: 'p-3', name: 'Nam', playerNumber: 3),
+      SessionPlayer(id: 'p-4', name: 'Bảo', playerNumber: 4),
+      SessionPlayer(id: 'p-5', name: 'Anie', playerNumber: 5),
+      SessionPlayer(id: 'p-6', name: 'Player Pro', playerNumber: 6),
+      SessionPlayer(id: 'p-7', name: 'Sa Sa', playerNumber: 7),
+      SessionPlayer(id: 'p-8', name: 'Minh Lê', playerNumber: 8),
     ],
   );
 
@@ -124,6 +141,19 @@ void main() {
     expect(result.winner, 1);
   });
 
+  test('parses the compact pair score written by the web editor', () {
+    final edited = match.copyWith(
+      score: '{"pair1":19,"pair2":21}',
+      winnerIds: '["p-3","p-4"]',
+    );
+
+    final result = matchResult(edited);
+
+    expect(result.first, 19);
+    expect(result.second, 21);
+    expect(result.winner, 2);
+  });
+
   testWidgets('renders compact controls and completed result card', (
     tester,
   ) async {
@@ -133,9 +163,7 @@ void main() {
           liveSessionRealtimeProvider(session.id).overrideWith((ref) {}),
           matchHistoryProvider(session.id).overrideWith((ref) async => [match]),
         ],
-        child: const MaterialApp(
-          home: Scaffold(body: HostResultsTab(session: session)),
-        ),
+        child: _app(const HostResultsTab(session: session)),
       ),
     );
     await tester.pumpAndSettle();
@@ -151,8 +179,7 @@ void main() {
     expect(find.text('21'), findsOneWidget);
     expect(find.text('16'), findsOneWidget);
     expect(find.text('Thắng'), findsOneWidget);
-    expect(find.text('Chính'), findsOneWidget);
-    expect(find.text('VS'), findsNothing);
+    expect(find.text('VS'), findsOneWidget);
     expect(find.textContaining('1 phút'), findsOneWidget);
   });
 
@@ -184,9 +211,7 @@ void main() {
             verticalSession.id,
           ).overrideWith((ref) async => [verticalMatch]),
         ],
-        child: MaterialApp(
-          home: Scaffold(body: HostResultsTab(session: verticalSession)),
-        ),
+        child: _app(HostResultsTab(session: verticalSession)),
       ),
     );
     await tester.pumpAndSettle();
@@ -206,9 +231,7 @@ void main() {
             (ref) async => [match, unscoredMatch],
           ),
         ],
-        child: const MaterialApp(
-          home: Scaffold(body: HostResultsTab(session: session)),
-        ),
+        child: _app(const HostResultsTab(session: session)),
       ),
     );
     await tester.pumpAndSettle();
@@ -237,6 +260,194 @@ void main() {
     expect(find.byKey(const Key('host-result-card-match-2')), findsOneWidget);
   });
 
+  testWidgets('filters by any of the selected players', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          liveSessionRealtimeProvider(session.id).overrideWith((ref) {}),
+          matchHistoryProvider(session.id).overrideWith(
+            (ref) async => [match, unscoredMatch],
+          ),
+        ],
+        child: _app(const HostResultsTab(session: session)),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('host-results-filter')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const Key('host-results-filter-player-p-1')),
+    );
+    await tester.tap(find.byKey(const Key('host-results-filter-apply')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('host-result-card-match-1')), findsOneWidget);
+    expect(find.byKey(const Key('host-result-card-match-2')), findsNothing);
+
+    await tester.tap(find.byKey(const Key('host-results-filter')));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const Key('host-results-filter-player-p-5')),
+    );
+    await tester.tap(find.byKey(const Key('host-results-filter-apply')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('host-result-card-match-1')), findsOneWidget);
+    expect(find.byKey(const Key('host-result-card-match-2')), findsOneWidget);
+  });
+
+  testWidgets('edits a completed match from its bottom sheet', (tester) async {
+    final repository = _Repository();
+    when(
+      () => repository.updateMatch('match-1', any()),
+    ).thenAnswer((_) async {});
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sessionRepositoryProvider.overrideWithValue(repository),
+          liveSessionRealtimeProvider(session.id).overrideWith((ref) {}),
+          matchHistoryProvider(session.id).overrideWith((ref) async => [match]),
+        ],
+        child: _app(const HostResultsTab(session: session)),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('host-result-edit-match-1')));
+    await tester.pumpAndSettle();
+    expect(find.text('Chỉnh sửa trận đấu'), findsOneWidget);
+    await tester.enterText(
+      find.byKey(const Key('host-match-edit-score-1')),
+      '22',
+    );
+    await tester.tap(find.byKey(const Key('host-match-edit-submit')));
+    await tester.pumpAndSettle();
+
+    final captured =
+        verify(
+              () => repository.updateMatch('match-1', captureAny()),
+            ).captured.single
+            as MatchUpdateDraft;
+    expect(captured.pair1Score, 22);
+    expect(captured.pair1PlayerIds, ['p-1', 'p-2']);
+    expect(find.text('Cập nhật trận đấu thành công'), findsOneWidget);
+  });
+
+  testWidgets('keeps the edit sheet open when updating fails', (tester) async {
+    final repository = _Repository();
+    when(
+      () => repository.updateMatch('match-1', any()),
+    ).thenThrow(StateError('failed'));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sessionRepositoryProvider.overrideWithValue(repository),
+          liveSessionRealtimeProvider(session.id).overrideWith((ref) {}),
+          matchHistoryProvider(session.id).overrideWith((ref) async => [match]),
+        ],
+        child: _app(const HostResultsTab(session: session)),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('host-result-edit-match-1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('host-match-edit-submit')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Chỉnh sửa trận đấu'), findsOneWidget);
+    expect(find.text('Không thể cập nhật trận đấu'), findsOneWidget);
+  });
+
+  testWidgets('submits an unscored match as no result', (tester) async {
+    final repository = _Repository();
+    when(
+      () => repository.updateMatch('match-2', any()),
+    ).thenAnswer((_) async {});
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sessionRepositoryProvider.overrideWithValue(repository),
+          liveSessionRealtimeProvider(session.id).overrideWith((ref) {}),
+          matchHistoryProvider(
+            session.id,
+          ).overrideWith((ref) async => [unscoredMatch]),
+        ],
+        child: _app(const HostResultsTab(session: session)),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('host-result-edit-match-2')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('host-match-edit-submit')));
+    await tester.pumpAndSettle();
+
+    final captured =
+        verify(
+              () => repository.updateMatch('match-2', captureAny()),
+            ).captured.single
+            as MatchUpdateDraft;
+    expect(captured.noResult, isTrue);
+    expect(captured.toRequestBody()['score'], isNull);
+  });
+
+  testWidgets('confirms before deleting a completed match', (tester) async {
+    final repository = _Repository();
+    when(() => repository.deleteMatch('match-1')).thenAnswer((_) async {});
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sessionRepositoryProvider.overrideWithValue(repository),
+          liveSessionRealtimeProvider(session.id).overrideWith((ref) {}),
+          matchHistoryProvider(session.id).overrideWith((ref) async => [match]),
+        ],
+        child: _app(const HostResultsTab(session: session)),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('host-result-delete-match-1')));
+    await tester.pumpAndSettle();
+    expect(find.text('Xác nhận xóa'), findsOneWidget);
+    verifyNever(() => repository.deleteMatch(any()));
+
+    await tester.tap(find.byKey(const Key('host-result-delete-confirm')));
+    await tester.pumpAndSettle();
+
+    verify(() => repository.deleteMatch('match-1')).called(1);
+    expect(find.text('Đã xóa trận đấu'), findsOneWidget);
+  });
+
+  testWidgets('keeps the confirmation open when deleting fails', (
+    tester,
+  ) async {
+    final repository = _Repository();
+    when(
+      () => repository.deleteMatch('match-1'),
+    ).thenThrow(StateError('failed'));
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sessionRepositoryProvider.overrideWithValue(repository),
+          liveSessionRealtimeProvider(session.id).overrideWith((ref) {}),
+          matchHistoryProvider(session.id).overrideWith((ref) async => [match]),
+        ],
+        child: _app(const HostResultsTab(session: session)),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('host-result-delete-match-1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('host-result-delete-confirm')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Xác nhận xóa'), findsOneWidget);
+    expect(find.text('Không thể xóa trận đấu'), findsOneWidget);
+  });
+
   testWidgets('sort menu switches to oldest first on mobile', (tester) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -248,9 +459,7 @@ void main() {
             (ref) async => [match, unscoredMatch],
           ),
         ],
-        child: const MaterialApp(
-          home: Scaffold(body: HostResultsTab(session: session)),
-        ),
+        child: _app(const HostResultsTab(session: session)),
       ),
     );
     await tester.pumpAndSettle();

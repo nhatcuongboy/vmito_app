@@ -1,0 +1,285 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
+import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/features/tournament/application/tournament_create_controller.dart';
+import 'package:vmito_app/features/tournament/domain/form/tournament_create_form.dart';
+import 'package:vmito_app/features/tournament/presentation/widgets/tournament_create_chrome.dart';
+import 'package:vmito_app/features/tournament/presentation/widgets/tournament_create_fields.dart';
+import 'package:vmito_app/features/tournament/presentation/widgets/tournament_location_picker_sheet.dart';
+import 'package:vmito_app/l10n/app_localizations.dart';
+
+const _wideTournamentFormBreakpoint = 700.0;
+const _maxTournamentFormWidth = 760.0;
+
+class CreateTournamentScreen extends ConsumerStatefulWidget {
+  const CreateTournamentScreen({super.key});
+
+  @override
+  ConsumerState<CreateTournamentScreen> createState() =>
+      _CreateTournamentScreenState();
+}
+
+class _CreateTournamentScreenState
+    extends ConsumerState<CreateTournamentScreen> {
+  late final FormGroup _form;
+  StreamSubscription<Object?>? _formSubscription;
+  bool _allowNavigation = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _form = createTournamentReactiveForm();
+    _formSubscription = _form.valueChanges.listen((_) {
+      _applyDateErrors();
+      if (mounted) setState(() {});
+    });
+    unawaited(
+      Future<void>.microtask(
+        () => ref.read(tournamentCreateControllerProvider.notifier).reset(),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    unawaited(_formSubscription?.cancel());
+    _form.dispose();
+    super.dispose();
+  }
+
+  void _applyDateErrors() {
+    final startControl = _form.control(TournamentCreateControl.startDate);
+    final endControl = _form.control(TournamentCreateControl.endDate);
+    startControl.removeError(TournamentCreateValidation.startDatePast);
+    endControl.removeError(TournamentCreateValidation.endBeforeStart);
+    final errors = validateTournamentDates(
+      startDate: startControl.value as DateTime?,
+      endDate: endControl.value as DateTime?,
+      today: DateTime.now(),
+    );
+    if (errors[TournamentCreateField.startDate] ==
+        TournamentCreateError.startDatePast) {
+      startControl.setErrors({
+        ...startControl.errors,
+        TournamentCreateValidation.startDatePast: true,
+      });
+    }
+    if (errors[TournamentCreateField.endDate] ==
+        TournamentCreateError.endBeforeStart) {
+      endControl.setErrors({
+        ...endControl.errors,
+        TournamentCreateValidation.endBeforeStart: true,
+      });
+    }
+  }
+
+  Future<void> _submit() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    _form.markAllAsTouched();
+    _applyDateErrors();
+    if (_form.invalid || _form.pending) {
+      setState(() {});
+      return;
+    }
+    final created = await ref
+        .read(tournamentCreateControllerProvider.notifier)
+        .submit(_form.toTournamentCreateRequest());
+    if (!mounted) return;
+    if (created == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            AppLocalizations.of(context).tournamentCreateFailed,
+          ),
+        ),
+      );
+      return;
+    }
+    _allowNavigation = true;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          AppLocalizations.of(context).tournamentCreateSuccess,
+        ),
+      ),
+    );
+    context.go(AppRoutes.homeForDiscoveryTab('tournaments'));
+  }
+
+  Future<void> _pickLocation() async {
+    final query =
+        _form.control(TournamentCreateControl.locationQuery).value as String?;
+    final choice = await showModalBottomSheet<TournamentLocationChoice>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      builder: (context) => TournamentLocationPickerSheet(
+        initialQuery: query ?? '',
+      ),
+    );
+    if (choice == null) return;
+    final details = choice.details;
+    _form
+      ..control(TournamentCreateControl.locationQuery).value = choice.query
+      ..control(TournamentCreateControl.locationName).value = choice.name ?? ''
+      ..control(TournamentCreateControl.locationAddress).value =
+          details?.address ?? choice.query
+      ..control(TournamentCreateControl.locationPlaceId).value =
+          details?.placeId ?? ''
+      ..control(TournamentCreateControl.locationLatitude).value =
+          details?.latitude
+      ..control(TournamentCreateControl.locationLongitude).value =
+          details?.longitude
+      ..control(TournamentCreateControl.locationDistrict).value =
+          details?.district ?? ''
+      ..control(TournamentCreateControl.locationCity).value =
+          details?.city ?? ''
+      ..markAsDirty();
+  }
+
+  void _clearLocation() {
+    for (final name in [
+      TournamentCreateControl.locationQuery,
+      TournamentCreateControl.locationName,
+      TournamentCreateControl.locationAddress,
+      TournamentCreateControl.locationPlaceId,
+      TournamentCreateControl.locationLatitude,
+      TournamentCreateControl.locationLongitude,
+      TournamentCreateControl.locationDistrict,
+      TournamentCreateControl.locationCity,
+    ]) {
+      _form.control(name).reset();
+    }
+    _form.markAsDirty();
+  }
+
+  Future<bool> _confirmDiscard() async {
+    if (!_form.dirty || _allowNavigation) return true;
+    final l10n = AppLocalizations.of(context);
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(l10n.tournamentCreateUnsavedTitle),
+            content: Text(l10n.tournamentCreateUnsavedBody),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: Text(l10n.tournamentCreateUnsavedStay),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(l10n.tournamentCreateUnsavedLeave),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  Future<void> _leave() async {
+    if (!await _confirmDiscard() || !mounted) return;
+    setState(() => _allowNavigation = true);
+    await Future<void>.delayed(Duration.zero);
+    if (!mounted) return;
+    if (context.canPop()) {
+      context.pop();
+    } else {
+      context.go(AppRoutes.homeForDiscoveryTab('tournaments'));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isSubmitting = ref.watch(
+      tournamentCreateControllerProvider.select((state) => state.isLoading),
+    );
+    final l10n = AppLocalizations.of(context);
+    return PopScope<void>(
+      canPop: !_form.dirty || _allowNavigation,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) unawaited(_leave());
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+            onPressed: _leave,
+            icon: const Icon(AppIcons.arrowBack),
+          ),
+          title: Text(l10n.tournamentCreateTitle),
+        ),
+        bottomNavigationBar: LayoutBuilder(
+          builder: (context, constraints) =>
+              constraints.maxWidth < _wideTournamentFormBreakpoint
+              ? TournamentCreateActionBar(
+                  isSubmitting: isSubmitting,
+                  onCancel: _leave,
+                  onSubmit: _submit,
+                )
+              : const SizedBox.shrink(),
+        ),
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            final isWide =
+                constraints.maxWidth >= _wideTournamentFormBreakpoint;
+            return ReactiveForm(
+              formGroup: _form,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(AppSpacing.screenPadding),
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxWidth: _maxTournamentFormWidth,
+                    ),
+                    child: Column(
+                      children: [
+                        const TournamentCreateHero(),
+                        const SizedBox(height: AppSpacing.md),
+                        Card(
+                          child: Padding(
+                            padding: EdgeInsets.all(
+                              isWide ? AppSpacing.lg : AppSpacing.md,
+                            ),
+                            child: Column(
+                              children: [
+                                TournamentCreateFields(
+                                  form: _form,
+                                  isWide: isWide,
+                                  onPickLocation: _pickLocation,
+                                  onClearLocation: _clearLocation,
+                                ),
+                                if (isWide) ...[
+                                  const SizedBox(height: AppSpacing.lg),
+                                  const Divider(),
+                                  Align(
+                                    alignment: Alignment.centerRight,
+                                    child: TournamentCreateActionButtons(
+                                      isSubmitting: isSubmitting,
+                                      onCancel: _leave,
+                                      onSubmit: _submit,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+}

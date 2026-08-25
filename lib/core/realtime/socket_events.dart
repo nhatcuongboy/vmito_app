@@ -50,8 +50,27 @@ abstract final class SessionEvent {
 abstract final class SocketCommand {
   static const joinSession = 'joinSession';
   static const leaveSession = 'leaveSession';
-  static const joinTournament = 'join_tournament';
-  static const leaveTournament = 'leave_tournament';
+  static const joinTournament = 'joinTournament';
+  static const leaveTournament = 'leaveTournament';
+}
+
+/// Public tournament-room events from `TournamentsGateway`.
+abstract final class TournamentEvent {
+  static const matchStarted = 'tournament_match_started';
+  static const scoreUpdated = 'tournament_match_score_updated';
+  static const matchEnded = 'tournament_match_ended';
+  static const refereeAssigned = 'tournament_match_referee_assigned';
+  static const scheduleUpdated = 'tournament_schedule_updated';
+  static const ended = 'tournament_ended';
+
+  static const all = <String>[
+    matchStarted,
+    scoreUpdated,
+    matchEnded,
+    refereeAssigned,
+    scheduleUpdated,
+    ended,
+  ];
 }
 
 /// Socket.IO namespaces. The backend serves both at the API origin with

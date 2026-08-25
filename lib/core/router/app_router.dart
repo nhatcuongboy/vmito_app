@@ -33,6 +33,7 @@ import 'package:vmito_app/features/session/presentation/player/session_detail_sc
 import 'package:vmito_app/features/session_hosting/presentation/host_session_management_screen.dart';
 import 'package:vmito_app/features/social/presentation/browse_clubs_screen.dart';
 import 'package:vmito_app/features/social/presentation/club_detail_screen.dart';
+import 'package:vmito_app/features/social/presentation/club_fee_screen.dart';
 import 'package:vmito_app/features/social/presentation/club_form_screen.dart';
 import 'package:vmito_app/features/social/presentation/club_management_detail_screen.dart';
 import 'package:vmito_app/features/social/presentation/club_management_screen.dart';
@@ -41,6 +42,8 @@ import 'package:vmito_app/features/social/presentation/public_profile_screen.dar
 import 'package:vmito_app/features/social/presentation/session_rating_screen.dart';
 import 'package:vmito_app/features/social/presentation/social_hub_screen.dart';
 import 'package:vmito_app/features/splash/presentation/splash_screen.dart';
+import 'package:vmito_app/features/tournament/presentation/create_tournament_screen.dart';
+import 'package:vmito_app/features/tournament/presentation/tournament_detail_screen.dart';
 import 'package:vmito_app/features/venue/presentation/browse_venues_screen.dart';
 import 'package:vmito_app/features/venue/presentation/venue_detail_screen.dart';
 
@@ -71,7 +74,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: AppRoutes.splash,
     debugLogDiagnostics: true,
     redirect: (context, state) {
-      final location = AppRoutes.stripLocale(state.matchedLocation);
+      final location = AppRoutes.stripLocale(state.uri.path);
 
       // Tokens are still being read from the Keychain. Hold on the splash
       // screen rather than bouncing a signed-in user to sign-in.
@@ -193,6 +196,34 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => PublicProfileScreen(
           userId: state.pathParameters['id']!,
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.createTournament,
+        parentNavigatorKey: _rootNavigatorKey,
+        redirect: (context, state) {
+          final role = auth.user?.role;
+          return role == UserRole.host || role == UserRole.admin
+              ? null
+              : AppRoutes.homeForDiscoveryTab('tournaments');
+        },
+        builder: (context, state) => const CreateTournamentScreen(),
+      ),
+      GoRoute(
+        path: '${AppRoutes.tournaments}/:id',
+        parentNavigatorKey: _rootNavigatorKey,
+        builder: (context, state) => TournamentDetailScreen(
+          idOrSlug: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '/tournament/:id',
+        redirect: (context, state) =>
+            AppRoutes.tournamentDetail(state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/:locale/tournament/:id',
+        redirect: (context, state) =>
+            AppRoutes.tournamentDetail(state.pathParameters['id']!),
       ),
 
       // Branch order must match AppRoutes.shellDestinations — go_router
@@ -336,7 +367,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: 'manage',
-                    builder: (context, state) => const ClubManagementScreen(),
+                    builder: (context, state) => ClubManagementScreen(
+                      initialTab:
+                          state.uri.queryParameters[AppRoutes
+                              .clubManagementTabQuery] ??
+                          'managing',
+                    ),
                     routes: [
                       GoRoute(
                         path: 'create',
@@ -352,6 +388,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                             path: 'edit',
                             builder: (context, state) => ClubFormScreen(
                               clubId: state.pathParameters['id'],
+                            ),
+                          ),
+                          GoRoute(
+                            path: 'fees',
+                            builder: (context, state) => ClubFeeScreen(
+                              clubId: state.pathParameters['id']!,
                             ),
                           ),
                         ],

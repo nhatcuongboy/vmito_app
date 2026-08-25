@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/constants/image_constants.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
+import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -119,77 +121,82 @@ class TournamentBrowseCard extends StatelessWidget {
 
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            height: 140,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                if (tournament.coverPhoto case final cover?)
-                  CachedNetworkImage(
-                    imageUrl: cover,
-                    fit: BoxFit.cover,
-                    errorWidget: (_, _, _) => const _TournamentPlaceholder(),
-                  )
-                else
-                  const _TournamentPlaceholder(),
-                Positioned(
-                  top: AppSpacing.sm,
-                  left: AppSpacing.sm,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: _statusColor(tournament.status, palette),
-                      borderRadius: BorderRadius.circular(AppRadius.pill),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: AppSpacing.xs,
+      child: InkWell(
+        onTap: () => context.push(
+          AppRoutes.tournamentDetail(tournament.slug ?? tournament.id),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: 140,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (tournament.coverPhoto case final cover?)
+                    CachedNetworkImage(
+                      imageUrl: cover,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, _, _) => const _TournamentPlaceholder(),
+                    )
+                  else
+                    const _TournamentPlaceholder(),
+                  Positioned(
+                    top: AppSpacing.sm,
+                    left: AppSpacing.sm,
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: _statusColor(tournament.status, palette),
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
                       ),
-                      child: Text(
-                        _statusLabel(tournament.status, l10n),
-                        style: theme.textTheme.labelMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm,
+                          vertical: AppSpacing.xs,
+                        ),
+                        child: Text(
+                          _statusLabel(tournament.status, l10n),
+                          style: theme.textTheme.labelMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  tournament.name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                _MetadataLine(
-                  icon: AppIcons.calendarMonth,
-                  label: _dateRange(context, tournament),
-                ),
-                if (tournament.location case final location?) ...[
-                  const SizedBox(height: AppSpacing.xs),
-                  _MetadataLine(
-                    icon: AppIcons.location,
-                    label: location,
-                  ),
                 ],
-              ],
+              ),
             ),
-          ),
-        ],
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    tournament.name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  _MetadataLine(
+                    icon: AppIcons.calendarMonth,
+                    label: _dateRange(context, tournament),
+                  ),
+                  if (tournament.location case final location?) ...[
+                    const SizedBox(height: AppSpacing.xs),
+                    _MetadataLine(
+                      icon: AppIcons.location,
+                      label: location,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

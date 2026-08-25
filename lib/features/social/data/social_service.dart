@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:dio/dio.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +7,7 @@ import 'package:vmito_app/core/constants/api_endpoints.dart';
 import 'package:vmito_app/core/network/api_client.dart';
 import 'package:vmito_app/core/network/api_options.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
+import 'package:vmito_app/features/social/domain/club_user_option.dart';
 import 'package:vmito_app/features/social/domain/public_profile.dart';
 import 'package:vmito_app/features/social/domain/social_post.dart';
 
@@ -159,9 +162,52 @@ class SocialService {
   );
 
   Future<void> cancelClubJoinRequest(String id) => _client.delete<void>(
-    '/clubs/$id/join-request',
+    ApiEndpoints.cancelClubJoinRequest(id),
     options: apiOptions(skipGlobalError: true),
   );
+
+  Future<List<ClubSummary>> myClubs() async {
+    final response = await _client.get<dynamic>(ApiEndpoints.myClubs);
+    final raw = _payload(response.data) as List<dynamic>? ?? const [];
+    return raw
+        .whereType<Map<String, dynamic>>()
+        .map(ClubSummary.fromJson)
+        .toList(growable: false);
+  }
+
+  Future<List<ClubJoinRequest>> myClubRequests() =>
+      _clubRequests(ApiEndpoints.myClubRequests);
+
+  Future<List<ClubJoinRequest>> managedClubJoinRequests({
+    bool admin = false,
+  }) => _clubRequests(
+    admin
+        ? ApiEndpoints.adminClubJoinRequests
+        : ApiEndpoints.managedClubJoinRequests,
+  );
+
+  Future<List<ClubSummary>> pendingClubs() async {
+    final response = await _client.get<dynamic>(ApiEndpoints.pendingClubs);
+    final raw = _payload(response.data) as List<dynamic>? ?? const [];
+    return raw
+        .whereType<Map<String, dynamic>>()
+        .map(
+          (json) => ClubSummary.fromJson({
+            ...json,
+            'role': json['role'] ?? 'ADMIN',
+          }),
+        )
+        .toList(growable: false);
+  }
+
+  Future<List<ClubJoinRequest>> _clubRequests(String path) async {
+    final response = await _client.get<dynamic>(path);
+    final raw = _payload(response.data) as List<dynamic>? ?? const [];
+    return raw
+        .whereType<Map<String, dynamic>>()
+        .map(ClubJoinRequest.fromJson)
+        .toList(growable: false);
+  }
 
   Future<List<ClubSummary>> managedClubs() async {
     final response = await _client.get<dynamic>(ApiEndpoints.managedClubs);
@@ -169,7 +215,12 @@ class SocialService {
     final raw = payload as List<dynamic>? ?? const [];
     return raw
         .whereType<Map<String, dynamic>>()
-        .map(ClubSummary.fromJson)
+        .map(
+          (json) => ClubSummary.fromJson({
+            ...json,
+            'role': json['role'] ?? 'ADMIN',
+          }),
+        )
         .toList(growable: false);
   }
 
@@ -198,8 +249,88 @@ class SocialService {
     return ClubSummary.fromJson(_mapPayload(response.data));
   }
 
+  Future<List<ClubHostUserOption>> searchHostUsers(String query) async {
+    final response = await _client.get<dynamic>(
+      ApiEndpoints.users,
+      queryParameters: {'search': query.trim()},
+      dedup: false,
+    );
+    final payload = _payload(response.data);
+    final raw = payload is Map
+        ? payload['data'] as List<dynamic>? ?? const []
+        : payload as List<dynamic>? ?? const [];
+    return raw
+        .whereType<Map<String, dynamic>>()
+        .map(ClubHostUserOption.fromJson)
+        .where((user) => user.id.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  Future<({String url, String publicId})> uploadClubImage({
+    required Uint8List bytes,
+    required String filename,
+    required bool logo,
+  }) async {
+    final compressed = await FlutterImageCompress.compressWithList(
+      bytes,
+      quality: 82,
+    );
+    final response = await _client.post<dynamic>(
+      ApiEndpoints.userImages,
+      queryParameters: {'category': logo ? 'CLUB' : 'CLUB_COVER'},
+      data: FormData.fromMap({
+        'file': MultipartFile.fromBytes(compressed, filename: filename),
+      }),
+      options: apiOptions(skipGlobalError: true),
+    );
+    final payload = _payload(response.data) as Map<String, dynamic>;
+    final url = (payload['url'] ?? payload['secureUrl'] ?? '') as String;
+    final publicId =
+        (payload['publicId'] ?? payload['cloudinaryPublicId'] ?? '') as String;
+    if (url.isEmpty || publicId.isEmpty) {
+      throw StateError('Image upload returned no asset identifier');
+    }
+    return (url: url, publicId: publicId);
+  }
+
+  Future<List<ClubImageAsset>> myImages({
+    String? category,
+    int page = 1,
+    int limit = 30,
+  }) async {
+    final response = await _client.get<dynamic>(
+      ApiEndpoints.userImages,
+      queryParameters: {
+        'page': page,
+        'limit': limit,
+        'category': ?category,
+      },
+      dedup: false,
+    );
+    final payload = _payload(response.data);
+    final raw = payload is Map
+        ? payload['data'] as List<dynamic>? ?? const []
+        : payload as List<dynamic>? ?? const [];
+    return raw
+        .whereType<Map<String, dynamic>>()
+        .map(ClubImageAsset.fromJson)
+        .where((image) => image.url.isNotEmpty && image.publicId.isNotEmpty)
+        .toList(growable: false);
+  }
+
   Future<void> deleteClub(String clubId) => _client.delete<void>(
     ApiEndpoints.managedClub(clubId),
+    options: apiOptions(skipGlobalError: true),
+  );
+
+  Future<void> approveClub(String clubId) => _client.post<void>(
+    ApiEndpoints.approveClub(clubId),
+    options: apiOptions(skipGlobalError: true),
+  );
+
+  Future<void> rejectClub(String clubId, String reason) => _client.post<void>(
+    ApiEndpoints.rejectClub(clubId),
+    data: {'reason': reason.trim()},
     options: apiOptions(skipGlobalError: true),
   );
 
@@ -235,17 +366,13 @@ class SocialService {
     int year,
     int month,
   ) async {
-    try {
-      final response = await _client.get<dynamic>(
-        ApiEndpoints.clubFeeForMonth(clubId, year, month),
-      );
-      final payload = _payload(response.data);
-      return payload is Map<String, dynamic>
-          ? ClubFeeConfig.fromJson(payload)
-          : null;
-    } on Object {
-      return null;
-    }
+    final response = await _client.get<dynamic>(
+      ApiEndpoints.clubFeeForMonth(clubId, year, month),
+    );
+    final payload = _payload(response.data);
+    return payload is Map<String, dynamic>
+        ? ClubFeeConfig.fromJson(payload)
+        : null;
   }
 
   Future<List<ClubMonthlyMember>> clubMonthlyMembers(
@@ -262,6 +389,54 @@ class SocialService {
         .map(ClubMonthlyMember.fromJson)
         .toList(growable: false);
   }
+
+  Future<ClubFeeConfig> saveClubFee(
+    String clubId, {
+    required int year,
+    required int month,
+    int? maleFeeMonthly,
+    int? femaleFeeMonthly,
+    int? maleFeePerSession,
+    int? femaleFeePerSession,
+  }) async {
+    final response = await _client.post<Map<String, dynamic>>(
+      ApiEndpoints.clubFees(clubId),
+      data: {
+        'year': year,
+        'month': month,
+        'maleFeeMonthly': maleFeeMonthly,
+        'femaleFeeMonthly': femaleFeeMonthly,
+        'maleFeePerSession': maleFeePerSession,
+        'femaleFeePerSession': femaleFeePerSession,
+      },
+      options: apiOptions(skipGlobalError: true),
+    );
+    return ClubFeeConfig.fromJson(_mapPayload(response.data));
+  }
+
+  Future<ClubMonthlyMember> addClubMonthlyMember(
+    String clubId, {
+    required String userId,
+    required int year,
+    required int month,
+  }) async {
+    final response = await _client.post<Map<String, dynamic>>(
+      ApiEndpoints.clubMonthlyMember(clubId),
+      data: {'userId': userId, 'year': year, 'month': month},
+      options: apiOptions(skipGlobalError: true),
+    );
+    return ClubMonthlyMember.fromJson(_mapPayload(response.data));
+  }
+
+  Future<void> removeClubMonthlyMember(
+    String clubId, {
+    required String userId,
+    required int year,
+    required int month,
+  }) => _client.delete<void>(
+    ApiEndpoints.deleteClubMonthlyMember(clubId, userId, year, month),
+    options: apiOptions(skipGlobalError: true),
+  );
 
   Future<void> addClubMember(String clubId, String userId) =>
       _client.post<void>(

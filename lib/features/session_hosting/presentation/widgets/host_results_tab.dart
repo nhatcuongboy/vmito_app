@@ -1,21 +1,26 @@
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/core/localization/localized_values.dart';
+import 'package:vmito_app/core/network/api_exception.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/court/application/live_session_controller.dart';
 import 'package:vmito_app/features/court/application/match_history_provider.dart';
+import 'package:vmito_app/features/session/domain/match_result_summary.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
+import 'package:vmito_app/features/session_hosting/application/host_match_actions_controller.dart';
+import 'package:vmito_app/features/session_hosting/presentation/widgets/host_match_edit_sheet.dart';
+import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/court.dart';
 import 'package:vmito_app/shared/models/match.dart';
+import 'package:vmito_app/shared/models/session_player.dart';
 
-/// Read-only mobile port of the web host's `SessionMatchesTab`.
-///
-/// Results are created when a host ends a match on the Courts tab; this tab is
-/// deliberately a history and filter surface, not a second result editor.
+export 'package:vmito_app/features/session/domain/match_result_summary.dart'
+    show MatchResultSummary, matchResult;
+
+/// Mobile port of the web host's `SessionMatchesTab`.
 class HostResultsTab extends ConsumerStatefulWidget {
   const HostResultsTab({required this.session, super.key});
   final Session session;
@@ -26,6 +31,7 @@ class HostResultsTab extends ConsumerStatefulWidget {
 
 class _HostResultsTabState extends ConsumerState<HostResultsTab> {
   String? _courtId;
+  Set<String> _playerIds = {};
   _ResultFilter _filter = _ResultFilter.all;
   bool _newestFirst = true;
 
@@ -64,6 +70,8 @@ class _HostResultsTabState extends ConsumerState<HostResultsTab> {
                 direction: court?.direction ?? CourtDirection.horizontal,
               );
               return (_courtId == null || match.courtId == _courtId) &&
+                  (_playerIds.isEmpty ||
+                      match.orderedPlayerIds.any(_playerIds.contains)) &&
                   switch (_filter) {
                     _ResultFilter.all => true,
                     _ResultFilter.withScore => result.hasScore,
@@ -89,6 +97,7 @@ class _HostResultsTabState extends ConsumerState<HostResultsTab> {
                   children: [
                     _ResultsControls(
                       courtId: _courtId,
+                      hasPlayerFilter: _playerIds.isNotEmpty,
                       filter: _filter,
                       newestFirst: _newestFirst,
                       onShowFilters: () => _showFilters(context),
@@ -99,13 +108,17 @@ class _HostResultsTabState extends ConsumerState<HostResultsTab> {
                     if (filtered.isEmpty)
                       _EmptyResults(
                         isFiltered:
-                            _courtId != null || _filter != _ResultFilter.all,
+                            _courtId != null ||
+                            _playerIds.isNotEmpty ||
+                            _filter != _ResultFilter.all,
                       )
                     else
                       _MatchesGrid(
                         matches: filtered,
                         session: widget.session,
                         maxWidth: constraints.maxWidth,
+                        onEdit: _editMatch,
+                        onDelete: _deleteMatch,
                       ),
                   ],
                 ),
@@ -124,27 +137,58 @@ class _HostResultsTabState extends ConsumerState<HostResultsTab> {
       isScrollControlled: true,
       builder: (context) => _ResultsFilterSheet(
         courts: widget.session.orderedCourts,
-        initial: _ResultsFilterDraft(courtId: _courtId, filter: _filter),
+        players: widget.session.players,
+        initial: _ResultsFilterDraft(
+          courtId: _courtId,
+          playerIds: _playerIds,
+          filter: _filter,
+        ),
       ),
     );
     if (selected != null && mounted) {
       setState(() {
         _courtId = selected.courtId;
+        _playerIds = selected.playerIds;
         _filter = selected.filter;
       });
     }
+  }
+
+  Future<void> _editMatch(Match match) async {
+    final court = widget.session.courts
+        .where((court) => court.id == match.courtId)
+        .firstOrNull;
+    await showHostMatchEditSheet(
+      context,
+      session: widget.session,
+      match: match,
+      direction: court?.direction ?? CourtDirection.horizontal,
+    );
+  }
+
+  Future<void> _deleteMatch(Match match) async {
+    await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => _DeleteMatchDialog(
+        sessionId: widget.session.id,
+        match: match,
+      ),
+    );
   }
 }
 
 class _ResultsControls extends StatelessWidget {
   const _ResultsControls({
     required this.courtId,
+    required this.hasPlayerFilter,
     required this.filter,
     required this.newestFirst,
     required this.onShowFilters,
     required this.onSortChanged,
   });
   final String? courtId;
+  final bool hasPlayerFilter;
   final _ResultFilter filter;
   final bool newestFirst;
   final VoidCallback onShowFilters;
@@ -152,7 +196,9 @@ class _ResultsControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final activeFilterCount =
-        (courtId == null ? 0 : 1) + (filter == _ResultFilter.all ? 0 : 1);
+        (courtId == null ? 0 : 1) +
+        (hasPlayerFilter ? 1 : 0) +
+        (filter == _ResultFilter.all ? 0 : 1);
     return Row(
       children: [
         OutlinedButton.icon(
@@ -210,10 +256,14 @@ class _MatchesGrid extends StatelessWidget {
     required this.matches,
     required this.session,
     required this.maxWidth,
+    required this.onEdit,
+    required this.onDelete,
   });
   final List<Match> matches;
   final Session session;
   final double maxWidth;
+  final ValueChanged<Match> onEdit;
+  final ValueChanged<Match> onDelete;
   @override
   Widget build(BuildContext context) {
     final columns = maxWidth >= 680 ? 2 : 1;
@@ -227,7 +277,12 @@ class _MatchesGrid extends StatelessWidget {
         for (final match in matches)
           SizedBox(
             width: cardWidth,
-            child: _MatchResultCard(match: match, session: session),
+            child: _MatchResultCard(
+              match: match,
+              session: session,
+              onEdit: () => onEdit(match),
+              onDelete: () => onDelete(match),
+            ),
           ),
       ],
     );
@@ -235,16 +290,23 @@ class _MatchesGrid extends StatelessWidget {
 }
 
 class _MatchResultCard extends StatelessWidget {
-  const _MatchResultCard({required this.match, required this.session});
+  const _MatchResultCard({
+    required this.match,
+    required this.session,
+    required this.onEdit,
+    required this.onDelete,
+  });
   final Match match;
   final Session session;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
   @override
   Widget build(BuildContext context) {
     final court = session.courts
         .where((court) => court.id == match.courtId)
         .firstOrNull;
     final direction = court?.direction ?? CourtDirection.horizontal;
-    final teams = _matchTeamIds(match, direction);
+    final teams = matchTeamIds(match, direction);
     final result = matchResult(match, direction: direction);
     final playerById = {
       for (final player in session.players) player.id: player,
@@ -254,9 +316,13 @@ class _MatchResultCard extends StatelessWidget {
           .where((entry) => entry.playerId == id)
           .firstOrNull;
       final sessionPlayer = playerById[id];
-      return matchPlayer?.player?.name ??
+      final name =
+          matchPlayer?.player?.name ??
           sessionPlayer?.displayName ??
           'Người chơi';
+      final number =
+          matchPlayer?.player?.playerNumber ?? sessionPlayer?.playerNumber;
+      return number == null ? name : '#$number $name';
     }
 
     final first = teams.first.map(playerLabel).toList(growable: false);
@@ -308,6 +374,18 @@ class _MatchResultCard extends StatelessWidget {
                   const SizedBox(width: AppSpacing.sm),
                   const _ExtraMatchBadge(),
                 ],
+                IconButton(
+                  key: Key('host-result-edit-${match.id}'),
+                  tooltip: AppLocalizations.of(context).hostResultsEditAction,
+                  onPressed: onEdit,
+                  icon: const Icon(AppIcons.edit, size: 19),
+                ),
+                IconButton(
+                  key: Key('host-result-delete-${match.id}'),
+                  tooltip: AppLocalizations.of(context).hostResultsDeleteAction,
+                  onPressed: onDelete,
+                  icon: const Icon(AppIcons.delete, size: 19),
+                ),
               ],
             ),
 
@@ -422,6 +500,14 @@ class _TeamLine extends StatelessWidget {
                     fontWeight: winner ? FontWeight.w700 : FontWeight.w600,
                   ),
                 ),
+                if (winner)
+                  Text(
+                    AppLocalizations.of(context).hostResultsWinner,
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: palette.success,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -497,9 +583,14 @@ class _ExtraMatchBadge extends StatelessWidget {
 }
 
 class _ResultsFilterSheet extends StatefulWidget {
-  const _ResultsFilterSheet({required this.courts, required this.initial});
+  const _ResultsFilterSheet({
+    required this.courts,
+    required this.players,
+    required this.initial,
+  });
 
   final List<Court> courts;
+  final List<SessionPlayer> players;
   final _ResultsFilterDraft initial;
 
   @override
@@ -508,6 +599,7 @@ class _ResultsFilterSheet extends StatefulWidget {
 
 abstract final class _ResultsFilterControl {
   static const court = 'court';
+  static const players = 'players';
   static const result = 'result';
 }
 
@@ -520,6 +612,9 @@ class _ResultsFilterSheetState extends State<_ResultsFilterSheet> {
     _form = FormGroup({
       _ResultsFilterControl.court: FormControl<String>(
         value: widget.initial.courtId,
+      ),
+      _ResultsFilterControl.players: FormControl<Set<String>>(
+        value: {...widget.initial.playerIds},
       ),
       _ResultsFilterControl.result: FormControl<_ResultFilter>(
         value: widget.initial.filter,
@@ -539,6 +634,10 @@ class _ResultsFilterSheetState extends State<_ResultsFilterSheet> {
     Navigator.of(context).pop(
       _ResultsFilterDraft(
         courtId: _form.control(_ResultsFilterControl.court).value as String?,
+        playerIds:
+            _form.control(_ResultsFilterControl.players).value
+                as Set<String>? ??
+            const {},
         filter:
             _form.control(_ResultsFilterControl.result).value as _ResultFilter,
       ),
@@ -594,6 +693,54 @@ class _ResultsFilterSheetState extends State<_ResultsFilterSheet> {
               ),
             ),
             const SizedBox(height: AppSpacing.md),
+            Text(
+              AppLocalizations.of(context).hostResultsFilterPlayers,
+              style: Theme.of(context).textTheme.titleSmall,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            ReactiveValueListenableBuilder<Set<String>>(
+              formControlName: _ResultsFilterControl.players,
+              builder: (context, control, _) {
+                final selected = control.value ?? const <String>{};
+                return Wrap(
+                  spacing: AppSpacing.sm,
+                  runSpacing: AppSpacing.sm,
+                  children: [
+                    ChoiceChip(
+                      key: const Key('host-results-filter-player-all'),
+                      label: Text(
+                        AppLocalizations.of(context).hostResultsAllPlayers,
+                      ),
+                      selected: selected.isEmpty,
+                      onSelected: (_) => control.value = <String>{},
+                    ),
+                    for (final player in widget.players)
+                      FilterChip(
+                        key: Key('host-results-filter-player-${player.id}'),
+                        label: Text(
+                          player.playerNumber == null
+                              ? (player.displayName ??
+                                    AppLocalizations.of(
+                                      context,
+                                    ).hostResultsSelectPlayer)
+                              : '#${player.playerNumber} ${player.displayName ?? ''}',
+                        ),
+                        selected: selected.contains(player.id),
+                        onSelected: (isSelected) {
+                          final next = {...selected};
+                          if (isSelected) {
+                            next.add(player.id);
+                          } else {
+                            next.remove(player.id);
+                          }
+                          control.value = next;
+                        },
+                      ),
+                  ],
+                );
+              },
+            ),
+            const SizedBox(height: AppSpacing.md),
             Text('Kết quả', style: Theme.of(context).textTheme.titleSmall),
             const SizedBox(height: AppSpacing.sm),
             ReactiveValueListenableBuilder<_ResultFilter>(
@@ -642,10 +789,12 @@ class _ResultsFilterSheetState extends State<_ResultsFilterSheet> {
 class _ResultsFilterDraft {
   const _ResultsFilterDraft({
     this.courtId,
+    this.playerIds = const {},
     this.filter = _ResultFilter.all,
   });
 
   final String? courtId;
+  final Set<String> playerIds;
   final _ResultFilter filter;
 }
 
@@ -683,81 +832,69 @@ class _EmptyResults extends StatelessWidget {
   );
 }
 
+class _DeleteMatchDialog extends ConsumerWidget {
+  const _DeleteMatchDialog({required this.sessionId, required this.match});
+
+  final String sessionId;
+  final Match match;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final state = ref.watch(hostMatchActionsControllerProvider(sessionId));
+    final busy = state.isBusy(match.id);
+    return AlertDialog(
+      title: Text(l10n.hostResultsDeleteTitle),
+      content: Text(l10n.hostResultsDeleteMessage),
+      actions: [
+        TextButton(
+          onPressed: busy ? null : () => Navigator.pop(context, false),
+          child: Text(l10n.commonCancel),
+        ),
+        FilledButton(
+          key: const Key('host-result-delete-confirm'),
+          style: FilledButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+          onPressed: busy
+              ? null
+              : () async {
+                  final succeeded = await ref
+                      .read(
+                        hostMatchActionsControllerProvider(sessionId).notifier,
+                      )
+                      .delete(match.id);
+                  if (!context.mounted) return;
+                  if (succeeded) {
+                    Navigator.pop(context, true);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(l10n.hostResultsDeleteSuccess)),
+                    );
+                    return;
+                  }
+                  final error = ref
+                      .read(hostMatchActionsControllerProvider(sessionId))
+                      .error;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        error is ApiException
+                            ? l10n.apiError(error)
+                            : l10n.hostResultsDeleteError,
+                      ),
+                    ),
+                  );
+                },
+          child: busy
+              ? const SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(l10n.commonDelete),
+        ),
+      ],
+    );
+  }
+}
+
 enum _ResultFilter { all, withScore, withoutScore }
-
-class MatchResultSummary {
-  const MatchResultSummary({this.first, this.second, this.winner});
-  final int? first;
-  final int? second;
-  final int? winner;
-  bool get hasScore => first != null || second != null;
-}
-
-/// Decodes the backend's JSON-string `score`: one line per player, but each
-/// pair shares the same score. Corrupt or older payloads simply render no score.
-MatchResultSummary matchResult(
-  Match match, {
-  CourtDirection direction = CourtDirection.horizontal,
-}) {
-  final raw = match.score;
-  if (raw == null || raw.isEmpty) return const MatchResultSummary();
-  try {
-    final decoded = jsonDecode(raw);
-    if (decoded is! List) return const MatchResultSummary();
-    final scores = <String, int>{
-      for (final row in decoded.whereType<Map<String, dynamic>>())
-        if (row['playerId'] is String && row['score'] is num)
-          row['playerId'] as String: (row['score'] as num).toInt(),
-    };
-    final teams = _matchTeamIds(match, direction);
-    return MatchResultSummary(
-      first: teams.first.map((id) => scores[id]).whereType<int>().firstOrNull,
-      second: teams.second.map((id) => scores[id]).whereType<int>().firstOrNull,
-      winner: match.isDraw ? null : _winner(match, teams),
-    );
-  } on Object {
-    return const MatchResultSummary();
-  }
-}
-
-({List<String> first, List<String> second}) _matchTeamIds(
-  Match match,
-  CourtDirection direction,
-) {
-  final ids = match.orderedPlayerIds;
-  if (ids.length <= 2) {
-    return (
-      first: ids.take(1).toList(growable: false),
-      second: ids.skip(1).toList(growable: false),
-    );
-  }
-  if (direction == CourtDirection.vertical) {
-    return (
-      first: [for (var index = 0; index < ids.length; index += 2) ids[index]],
-      second: [for (var index = 1; index < ids.length; index += 2) ids[index]],
-    );
-  }
-  final split = (ids.length / 2).ceil();
-  return (
-    first: ids.take(split).toList(growable: false),
-    second: ids.skip(split).toList(growable: false),
-  );
-}
-
-int? _winner(
-  Match match,
-  ({List<String> first, List<String> second}) teams,
-) {
-  if (match.winnerIds == null) return null;
-  try {
-    final raw = jsonDecode(match.winnerIds!);
-    if (raw is! List || raw.isEmpty) return null;
-    return raw.whereType<String>().any(teams.first.contains)
-        ? 1
-        : raw.whereType<String>().any(teams.second.contains)
-        ? 2
-        : null;
-  } on Object {
-    return null;
-  }
-}

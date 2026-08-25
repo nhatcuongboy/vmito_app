@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
 import 'package:vmito_app/features/session/domain/host_player.dart';
@@ -159,11 +158,6 @@ void main() {
       );
       expect(name.maxLines, 2);
       expect(name.style?.fontWeight, FontWeight.w700);
-      expect(
-        find.byKey(const Key('host-roster-status-label-p-1')),
-        findsOneWidget,
-      );
-      expect(find.text('Đang chờ'), findsOneWidget);
       expect(find.byKey(const Key('host-roster-level-p-1')), findsOneWidget);
       expect(find.text('TB'), findsOneWidget);
       expect(find.byKey(const Key('host-roster-gender-p-1')), findsOneWidget);

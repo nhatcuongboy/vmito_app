@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
-import 'package:vmito_app/core/theme/app_colors.dart';
-import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/court/presentation/widgets/court/match_elapsed_badge.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
