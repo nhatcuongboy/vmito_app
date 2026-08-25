@@ -21,7 +21,7 @@
 		<string>zh</string>
 	</array>
 	<key>CFBundleName</key>
-	<string>vmito_app</string>
+	<string>Vmito</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -34,6 +34,10 @@
 	<string>Vmito uses selected photos when you add images to a community post.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Vmito uses your location to sort venues and clubs near you.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Vmito uses the camera to scan QR codes for session check-in.</string>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>
