@@ -197,8 +197,10 @@ class ClubSummary {
 
   String? get heroImage => image ?? logo;
   List<String> get gallery => [
-    if (image?.isNotEmpty ?? false) image!,
-    ...images.where((url) => url != image),
+    if (image?.trim().isNotEmpty ?? false) image!.trim(),
+    ...images
+        .map((url) => url.trim())
+        .where((url) => url.isNotEmpty && url != image?.trim()),
   ];
   bool get isInvitationOnly => joinPolicy == 'INVITATION_ONLY';
 }

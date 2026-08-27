@@ -86,6 +86,7 @@ abstract final class AppIcons {
   static const IconData location = LucideIcons.map_pin;
   static const IconData addLocation = LucideIcons.map_pin_plus;
   static const IconData navigation = LucideIcons.navigation;
+  static const IconData directions = LucideIcons.route;
   static const IconData myLocation = LucideIcons.crosshair;
 
   // --- Media & Social --------------------------------------------------------

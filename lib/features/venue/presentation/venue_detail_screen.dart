@@ -51,7 +51,6 @@ class _VenueDetailState extends ConsumerState<_VenueDetail> {
   Widget build(BuildContext context) {
     final venue = widget.venue;
     final priceBooks = ref.watch(venuePriceBooksProvider(venue.id));
-    final minimumPrice = priceBooks.whenOrNull(data: minimumVenuePrice);
 
     return Scaffold(
       body: VenueDetailContent(
@@ -60,7 +59,6 @@ class _VenueDetailState extends ConsumerState<_VenueDetail> {
         onBack: _back,
         onShare: () => unawaited(_share(venue)),
         onCall: () => unawaited(_call(venue)),
-        onWebsite: () => unawaited(_website(venue)),
         onZalo: () => unawaited(_zalo(venue)),
         onDirections: () => unawaited(_directions(venue)),
         onFindSessions: () => _findSessions(venue),
@@ -68,9 +66,10 @@ class _VenueDetailState extends ConsumerState<_VenueDetail> {
       ),
       bottomNavigationBar: VenueDetailBottomBar(
         phone: venue.phone,
-        minimumPrice: minimumPrice,
+        website: venue.website,
         onCall: () => unawaited(_call(venue)),
         onZalo: () => unawaited(_zalo(venue)),
+        onWebsite: () => unawaited(_website(venue)),
         onFindSessions: () => _findSessions(venue),
       ),
     );

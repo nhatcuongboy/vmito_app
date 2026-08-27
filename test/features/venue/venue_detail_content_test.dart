@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
@@ -126,7 +127,6 @@ Future<void> _pump(
             onBack: () {},
             onShare: () {},
             onCall: onCall ?? () {},
-            onWebsite: onWebsite ?? () {},
             onZalo: onZalo ?? () {},
             onDirections: onDirections ?? () {},
             onFindSessions: () {},
@@ -134,9 +134,10 @@ Future<void> _pump(
           ),
           bottomNavigationBar: VenueDetailBottomBar(
             phone: bottomPhone,
-            minimumPrice: minimumPrice,
+            website: venue.website,
             onCall: onCall ?? () {},
             onZalo: onZalo ?? () {},
+            onWebsite: onWebsite ?? () {},
             onFindSessions: () {},
           ),
         ),
@@ -167,7 +168,8 @@ void main() {
       ),
       findsNothing,
     );
-    expect(find.byKey(const Key('venue-verified-badge')), findsOneWidget);
+    expect(find.byKey(const Key('venue-verified-badge')), findsNothing);
+    expect(find.byKey(const Key('venue-verified-icon')), findsOneWidget);
     expect(find.byKey(const Key('venue-info-card')), findsOneWidget);
     expect(find.byKey(const Key('venue-about-card')), findsOneWidget);
     expect(find.byKey(const Key('venue-pricing-card')), findsOneWidget);
@@ -187,7 +189,11 @@ void main() {
     expect(find.text('Đề xuất chỉnh sửa'), findsOneWidget);
     expect(find.text('Gửi ảnh bảng giá'), findsNothing);
     expect(find.text('Gửi ảnh sân'), findsNothing);
-    expect(find.textContaining('80.000'), findsNWidgets(2));
+    expect(find.textContaining('80.000'), findsOneWidget);
+    expect(
+      find.byKey(const Key('venue-website-bottom-button')),
+      findsOneWidget,
+    );
 
     final appBar = tester.widget<SliverAppBar>(find.byType(SliverAppBar));
     expect(appBar.expandedHeight, 220);
@@ -222,7 +228,56 @@ void main() {
 
   testWidgets('opens directions from the address row', (tester) async {
     var openedDirections = false;
-    await _pump(tester, onDirections: () => openedDirections = true);
+    await _pump(
+      tester,
+      venue: const Venue(
+        id: 'long-address',
+        name: 'Sân địa chỉ dài',
+        address: '5 Hoàng Minh Giám',
+        district: 'Phường Đức Nhuận',
+        city:
+            'Thành Phố Hồ Chí Minh, Phường Đức Nhuận, '
+            'Thành Phố Hồ Chí Minh',
+        newAddress: '5 Hoàng Minh Giám',
+        newDistrict: 'Phường Đức Nhuận',
+        newCity:
+            'Thành Phố Hồ Chí Minh, Phường Đức Nhuận, '
+            'Thành Phố Hồ Chí Minh',
+      ),
+      onDirections: () => openedDirections = true,
+    );
+
+    final address = tester.getRect(find.byKey(const Key('venue-address')));
+    final directions = tester.getRect(
+      find.byKey(const Key('venue-address-directions-button')),
+    );
+    final leadingAddressLines = tester.getRect(
+      find
+          .descendant(
+            of: find.byKey(const Key('venue-address')),
+            matching: find.byType(Text),
+          )
+          .first,
+    );
+    final locationIcon = tester.getRect(
+      find.byKey(const Key('venue-address-location-icon')),
+    );
+    expect(locationIcon.top, closeTo(leadingAddressLines.top, 3));
+    expect(directions.bottom, closeTo(address.bottom, 0.1));
+    expect(directions.right, closeTo(address.right, 0.1));
+    expect(directions.height, lessThanOrEqualTo(24));
+    expect(leadingAddressLines.right, closeTo(address.right, 0.1));
+
+    final directionsButton = tester.widget<IconButton>(
+      find.byKey(const Key('venue-address-directions-button')),
+    );
+    final directionsIcon = directionsButton.icon as Icon;
+    expect(directionsIcon.icon, AppIcons.navigation);
+    expect(directionsButton.color, AppTheme.light.colorScheme.primary);
+    expect(
+      directionsButton.style?.backgroundColor?.resolve({}),
+      isNull,
+    );
 
     await tester.tap(find.byKey(const Key('venue-address-directions-button')));
     await tester.pump();
@@ -351,11 +406,19 @@ void main() {
 
     expect(find.text('Điện thoại'), findsNothing);
     expect(find.text('0901 234 567'), findsNothing);
-    expect(find.text('https://vmito.com'), findsOneWidget);
+    expect(find.text('https://vmito.com'), findsNothing);
+
+    final zalo = tester.getTopRight(
+      find.byKey(const Key('venue-zalo-bottom-button')),
+    );
+    final website = tester.getTopLeft(
+      find.byKey(const Key('venue-website-bottom-button')),
+    );
+    expect(website.dx, greaterThan(zalo.dx));
 
     await tester.tap(find.byKey(const Key('venue-call-button')));
     await tester.tap(find.byKey(const Key('venue-zalo-bottom-button')));
-    await tester.tap(find.byKey(const Key('venue-website-button')));
+    await tester.tap(find.byKey(const Key('venue-website-bottom-button')));
     await tester.pump();
 
     expect(callCount, 1);
@@ -390,7 +453,7 @@ void main() {
     expect(find.byKey(const Key('venue-phone-button')), findsNothing);
     expect(find.byKey(const Key('venue-zalo-button')), findsNothing);
     expect(find.byKey(const Key('venue-zalo-bottom-button')), findsOneWidget);
-    expect(find.byKey(const Key('venue-website-button')), findsNothing);
+    expect(find.byKey(const Key('venue-website-bottom-button')), findsNothing);
 
     await _pump(
       tester,
@@ -402,7 +465,10 @@ void main() {
     );
     expect(find.byKey(const Key('venue-phone-button')), findsNothing);
     expect(find.byKey(const Key('venue-zalo-button')), findsNothing);
-    expect(find.byKey(const Key('venue-website-button')), findsOneWidget);
+    expect(
+      find.byKey(const Key('venue-website-bottom-button')),
+      findsOneWidget,
+    );
   });
 
   testWidgets('dispatches the suggest-edit action from the ghost button', (

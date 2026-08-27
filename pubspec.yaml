@@ -59,6 +59,8 @@ dependencies:
   cached_network_image: ^3.4.1
   flutter_svg: ^2.3.0
   flutter_lucide: ^1.11.0
+  flutter_widget_from_html_core: ^0.17.2
+  html: ^0.15.6
   # The application-wide standard for model-driven, validated forms.
   reactive_forms: ^18.2.2
   shimmer: ^3.0.0

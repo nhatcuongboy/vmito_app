@@ -247,9 +247,23 @@ abstract final class ApiEndpoints {
   static const tournaments = '/tournaments';
   static String tournament(String id) => '/tournaments/$id';
   static String tournamentMatches(String id) => '/tournaments/$id/all-matches';
+  static String tournamentCourts(String id) => '/tournaments/$id/courts';
+  static String tournamentUmpires(String id) => '/tournaments/$id/umpires';
   static String tournamentSponsors(String id) => '/tournaments/$id/sponsors';
+  static String tournamentCategoryGroups(String categoryId) =>
+      '/categories/$categoryId/groups';
   static String tournamentStandings(String categoryId) =>
       '/categories/$categoryId/standings';
+  static String categoryMatch(String id) => '/category-matches/$id';
+  static String categoryMatchResult(String id) => '/category-matches/$id/end';
+  static String categoryMatchReset(String id) =>
+      '/category-matches/$id/reset-result';
+  static String categoryMatchReferee(String id) =>
+      '/category-matches/$id/referee';
+  static const categoryMatchAssignments = '/category-matches/my-assignments';
+  static const categoryMatchBulkSchedule = '/category-matches/bulk-schedule';
+  static String tournamentCompleteGroupStage(String categoryId) =>
+      '/categories/$categoryId/complete-group-stage';
 
   // --- User images ----------------------------------------------------------
   static const userImages = '/user-images';

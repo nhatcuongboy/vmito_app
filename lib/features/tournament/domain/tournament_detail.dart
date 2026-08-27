@@ -1,4 +1,5 @@
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
+import 'package:vmito_domain/vmito_domain.dart' as scoring;
 
 enum TournamentCategoryFormat {
   roundRobin,
@@ -58,6 +59,7 @@ class TournamentDetail {
     this.contactEmail,
     this.contactPhone,
     this.host,
+    this.sportType = scoring.SportType.badminton,
   });
 
   factory TournamentDetail.fromJson(Map<String, dynamic> json) {
@@ -92,6 +94,9 @@ class TournamentDetail {
       contactEmail: _nullableString(json['contactEmail']),
       contactPhone: _nullableString(json['contactPhone']),
       host: host == null ? null : TournamentHost.fromJson(host),
+      sportType: json['sportType'] == 'PICKLEBALL'
+          ? scoring.SportType.pickleball
+          : scoring.SportType.badminton,
       categories: categories,
       venues: resolvedVenues,
       playerCount: _integer(counts?['players']),
@@ -114,6 +119,7 @@ class TournamentDetail {
   final String? contactEmail;
   final String? contactPhone;
   final TournamentHost? host;
+  final scoring.SportType sportType;
   final List<TournamentCategory> categories;
   final List<TournamentVenue> venues;
   final int playerCount;
@@ -172,6 +178,16 @@ class TournamentCategory {
     this.matchFormat,
     this.eliminationMatchFormat,
     this.thirdPlaceMatch,
+    this.teamSize = 1,
+    this.pointsToWin,
+    this.winByTwo,
+    this.pointCap,
+    this.knockoutPointsToWin,
+    this.knockoutWinByTwo,
+    this.knockoutPointCap,
+    this.finalPointsToWin,
+    this.finalWinByTwo,
+    this.finalPointCap,
   });
 
   factory TournamentCategory.fromJson(Map<String, dynamic> json) {
@@ -191,6 +207,16 @@ class TournamentCategory {
       matchFormat: _nullableString(json['matchFormat']),
       eliminationMatchFormat: _nullableString(json['eliminationMatchFormat']),
       thirdPlaceMatch: json['thirdPlaceMatch'] as bool?,
+      teamSize: _nullableInteger(json['teamSize']) ?? 1,
+      pointsToWin: _nullableInteger(json['pointsToWin']),
+      winByTwo: json['winByTwo'] as bool?,
+      pointCap: _nullableInteger(json['pointCap']),
+      knockoutPointsToWin: _nullableInteger(json['knockoutPointsToWin']),
+      knockoutWinByTwo: json['knockoutWinByTwo'] as bool?,
+      knockoutPointCap: _nullableInteger(json['knockoutPointCap']),
+      finalPointsToWin: _nullableInteger(json['finalPointsToWin']),
+      finalWinByTwo: json['finalWinByTwo'] as bool?,
+      finalPointCap: _nullableInteger(json['finalPointCap']),
     );
   }
 
@@ -205,6 +231,30 @@ class TournamentCategory {
   final String? matchFormat;
   final String? eliminationMatchFormat;
   final bool? thirdPlaceMatch;
+  final int teamSize;
+  final int? pointsToWin;
+  final bool? winByTwo;
+  final int? pointCap;
+  final int? knockoutPointsToWin;
+  final bool? knockoutWinByTwo;
+  final int? knockoutPointCap;
+  final int? finalPointsToWin;
+  final bool? finalWinByTwo;
+  final int? finalPointCap;
+
+  scoring.StageScoringCategory get scoringCategory =>
+      scoring.StageScoringCategory(
+        matchFormat: _matchFormat(matchFormat),
+        pointsToWin: pointsToWin,
+        winByTwo: winByTwo,
+        pointCap: pointCap,
+        knockoutPointsToWin: knockoutPointsToWin,
+        knockoutWinByTwo: knockoutWinByTwo,
+        knockoutPointCap: knockoutPointCap,
+        finalPointsToWin: finalPointsToWin,
+        finalWinByTwo: finalWinByTwo,
+        finalPointCap: finalPointCap,
+      );
 
   Map<String, dynamic> get roundRobinConfig {
     final nested = _map(formatConfig['roundRobin']);
@@ -337,10 +387,35 @@ class TournamentMatch {
     this.court,
     this.player1Score,
     this.player2Score,
+    this.matchCode,
+    this.endTime,
+    this.estimatedEndTime,
+    this.courtId,
+    this.isDraw = false,
+    this.isForfeit = false,
+    this.player3Score,
+    this.player4Score,
+    this.player1Points,
+    this.player2Points,
+    this.matchFormat,
+    this.pointsToWin,
+    this.winByTwo,
+    this.pointCap,
+    this.notes,
+    this.refereeId,
+    this.referee,
+    this.refereeName,
+    this.bracketType,
+    this.winnerNextMatchId,
+    this.winnerNextSlot,
+    this.loserNextMatchId,
+    this.loserNextSlot,
+    this.updatedAt,
   });
 
   factory TournamentMatch.fromJson(Map<String, dynamic> json) {
     final court = _map(json['court']);
+    final referee = _map(json['referee']);
     return TournamentMatch(
       id: _string(json['id']),
       categoryId: _string(json['categoryId']),
@@ -349,11 +424,37 @@ class TournamentMatch {
       matchNumber: _integer(json['matchNumber']),
       status: TournamentMatchStatus.fromWire(json['status'] as String?),
       startTime: _nullableDate(json['startTime']),
+      endTime: _nullableDate(json['endTime']),
+      estimatedEndTime: _nullableDate(json['estimatedEndTime']),
+      matchCode: _nullableString(json['matchCode']),
+      courtId:
+          _nullableString(json['courtId']) ?? _nullableString(court?['id']),
       score: _nullableString(json['score']),
       sets: _maps(json['sets']).map(TournamentMatchSet.fromJson).toList(),
       winnerId: _nullableString(json['winnerId']),
       player1Score: _nullableInteger(json['player1Score']),
       player2Score: _nullableInteger(json['player2Score']),
+      player3Score: _nullableInteger(json['player3Score']),
+      player4Score: _nullableInteger(json['player4Score']),
+      player1Points: _nullableInteger(json['player1Points']),
+      player2Points: _nullableInteger(json['player2Points']),
+      isDraw: json['isDraw'] as bool? ?? false,
+      isForfeit: json['isForfeit'] as bool? ?? false,
+      matchFormat: _nullableString(json['matchFormat']),
+      pointsToWin: _nullableInteger(json['pointsToWin']),
+      winByTwo: json['winByTwo'] as bool?,
+      pointCap: _nullableInteger(json['pointCap']),
+      notes: _nullableString(json['notes']),
+      refereeId:
+          _nullableString(json['refereeId']) ?? _nullableString(referee?['id']),
+      referee: referee == null ? null : TournamentUmpire.fromJson(referee),
+      refereeName: _nullableString(json['refereeName']),
+      bracketType: _nullableString(json['bracketType']),
+      winnerNextMatchId: _nullableString(json['winnerNextMatchId']),
+      winnerNextSlot: _nullableInteger(json['winnerNextSlot']),
+      loserNextMatchId: _nullableString(json['loserNextMatchId']),
+      loserNextSlot: _nullableInteger(json['loserNextSlot']),
+      updatedAt: _nullableDate(json['updatedAt']),
       participants: _maps(
         json['participants'],
       ).map(TournamentMatchParticipant.fromJson).toList(),
@@ -368,6 +469,10 @@ class TournamentMatch {
   final int matchNumber;
   final TournamentMatchStatus status;
   final DateTime? startTime;
+  final DateTime? endTime;
+  final DateTime? estimatedEndTime;
+  final String? matchCode;
+  final String? courtId;
   final String? score;
   final List<TournamentMatchSet> sets;
   final String? winnerId;
@@ -375,6 +480,26 @@ class TournamentMatch {
   final TournamentCourt? court;
   final int? player1Score;
   final int? player2Score;
+  final int? player3Score;
+  final int? player4Score;
+  final int? player1Points;
+  final int? player2Points;
+  final bool isDraw;
+  final bool isForfeit;
+  final String? matchFormat;
+  final int? pointsToWin;
+  final bool? winByTwo;
+  final int? pointCap;
+  final String? notes;
+  final String? refereeId;
+  final TournamentUmpire? referee;
+  final String? refereeName;
+  final String? bracketType;
+  final String? winnerNextMatchId;
+  final int? winnerNextSlot;
+  final String? loserNextMatchId;
+  final int? loserNextSlot;
+  final DateTime? updatedAt;
 
   TournamentRegistration? side(int position) => participants
       .where((participant) => participant.position == position)
@@ -385,33 +510,144 @@ class TournamentMatch {
       player1Score ?? (sets.isEmpty ? null : sets.last.player1Score);
   int? get score2 =>
       player2Score ?? (sets.isEmpty ? null : sets.last.player2Score);
+
+  bool get participantsResolved => side(1) != null && side(2) != null;
+
+  scoring.ScoringMatch scoringMatch(TournamentCategory? category) =>
+      scoring.ScoringMatch(
+        matchFormat: _matchFormat(matchFormat),
+        pointsToWin: pointsToWin,
+        winByTwo: winByTwo,
+        pointCap: pointCap,
+        round: round,
+        category: category?.scoringCategory,
+      );
+
+  TournamentMatch copyWith({
+    TournamentMatchStatus? status,
+    DateTime? startTime,
+    bool clearStartTime = false,
+    DateTime? endTime,
+    bool clearEndTime = false,
+    DateTime? estimatedEndTime,
+    bool clearEstimatedEndTime = false,
+    String? matchCode,
+    String? courtId,
+    bool clearCourt = false,
+    String? score,
+    List<TournamentMatchSet>? sets,
+    String? winnerId,
+    bool clearWinner = false,
+    bool? isDraw,
+    bool? isForfeit,
+    TournamentCourt? court,
+    int? player1Score,
+    int? player2Score,
+    int? player1Points,
+    int? player2Points,
+    String? refereeId,
+    bool clearReferee = false,
+    TournamentUmpire? referee,
+    String? refereeName,
+    DateTime? updatedAt,
+  }) => TournamentMatch(
+    id: id,
+    categoryId: categoryId,
+    groupId: groupId,
+    round: round,
+    matchNumber: matchNumber,
+    status: status ?? this.status,
+    participants: participants,
+    startTime: clearStartTime ? null : startTime ?? this.startTime,
+    endTime: clearEndTime ? null : endTime ?? this.endTime,
+    estimatedEndTime: clearEstimatedEndTime
+        ? null
+        : estimatedEndTime ?? this.estimatedEndTime,
+    matchCode: matchCode ?? this.matchCode,
+    courtId: clearCourt ? null : courtId ?? this.courtId,
+    score: score ?? this.score,
+    sets: sets ?? this.sets,
+    winnerId: clearWinner ? null : winnerId ?? this.winnerId,
+    court: clearCourt ? null : court ?? this.court,
+    player1Score: player1Score ?? this.player1Score,
+    player2Score: player2Score ?? this.player2Score,
+    player3Score: player3Score,
+    player4Score: player4Score,
+    player1Points: player1Points ?? this.player1Points,
+    player2Points: player2Points ?? this.player2Points,
+    isDraw: isDraw ?? this.isDraw,
+    isForfeit: isForfeit ?? this.isForfeit,
+    matchFormat: matchFormat,
+    pointsToWin: pointsToWin,
+    winByTwo: winByTwo,
+    pointCap: pointCap,
+    notes: notes,
+    refereeId: clearReferee ? null : refereeId ?? this.refereeId,
+    referee: clearReferee ? null : referee ?? this.referee,
+    refereeName: refereeName ?? this.refereeName,
+    bracketType: bracketType,
+    winnerNextMatchId: winnerNextMatchId,
+    winnerNextSlot: winnerNextSlot,
+    loserNextMatchId: loserNextMatchId,
+    loserNextSlot: loserNextSlot,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
 }
 
 class TournamentMatchSet {
   const TournamentMatchSet({
+    this.setNumber = 1,
     required this.player1Score,
     required this.player2Score,
+    this.player3Score,
+    this.player4Score,
   });
 
   factory TournamentMatchSet.fromJson(Map<String, dynamic> json) =>
       TournamentMatchSet(
+        setNumber: _nullableInteger(json['setNumber']) ?? 1,
         player1Score: _integer(json['player1Score']),
         player2Score: _integer(json['player2Score']),
+        player3Score: _nullableInteger(json['player3Score']),
+        player4Score: _nullableInteger(json['player4Score']),
       );
 
+  final int setNumber;
   final int player1Score;
   final int player2Score;
+  final int? player3Score;
+  final int? player4Score;
+
+  scoring.MatchSet get scoringSet => scoring.MatchSet(
+    setNumber: setNumber,
+    player1Score: player1Score,
+    player2Score: player2Score,
+    player3Score: player3Score,
+    player4Score: player4Score,
+  );
 }
 
 class TournamentCourt {
-  const TournamentCourt({required this.number, this.name, this.venueName});
+  const TournamentCourt({
+    required this.number,
+    this.id = '',
+    this.tournamentId,
+    this.tournamentVenueId,
+    this.name,
+    this.venueName,
+    this.notes,
+  });
 
   factory TournamentCourt.fromJson(Map<String, dynamic> json) {
     final tournamentVenue = _map(json['tournamentVenue']);
     final linkedVenue = _map(tournamentVenue?['venue']);
     return TournamentCourt(
+      id: _nullableString(json['id']) ?? '',
+      tournamentId: _nullableString(json['tournamentId']),
+      tournamentVenueId: _nullableString(json['tournamentVenueId']),
       number: _integer(json['courtNumber']),
       name: _nullableString(json['courtName']),
+      notes: _nullableString(json['notes']),
       venueName:
           _nullableString(tournamentVenue?['name']) ??
           _nullableString(linkedVenue?['name']),
@@ -419,8 +655,70 @@ class TournamentCourt {
   }
 
   final int number;
+  final String id;
+  final String? tournamentId;
+  final String? tournamentVenueId;
   final String? name;
   final String? venueName;
+  final String? notes;
+
+  String label(String courtLabel) =>
+      name?.trim().isNotEmpty ?? false ? name! : '$courtLabel $number';
+}
+
+class TournamentUmpire {
+  const TournamentUmpire({
+    required this.id,
+    required this.name,
+    this.tournamentId,
+    this.email,
+    this.phone,
+    this.notes,
+    this.userId,
+  });
+
+  factory TournamentUmpire.fromJson(Map<String, dynamic> json) =>
+      TournamentUmpire(
+        id: _string(json['id']),
+        name: _nullableString(json['name']) ?? '',
+        tournamentId: _nullableString(json['tournamentId']),
+        email: _nullableString(json['email']),
+        phone: _nullableString(json['phone']),
+        notes: _nullableString(json['notes']),
+        userId:
+            _nullableString(json['userId']) ??
+            _nullableString(_map(json['user'])?['id']),
+      );
+
+  final String id;
+  final String name;
+  final String? tournamentId;
+  final String? email;
+  final String? phone;
+  final String? notes;
+  final String? userId;
+}
+
+class TournamentCategoryGroup {
+  const TournamentCategoryGroup({
+    required this.id,
+    required this.categoryId,
+    required this.number,
+    this.name,
+  });
+
+  factory TournamentCategoryGroup.fromJson(Map<String, dynamic> json) =>
+      TournamentCategoryGroup(
+        id: _string(json['id']),
+        categoryId: _string(json['categoryId']),
+        number: _integer(json['groupNumber']),
+        name: _nullableString(json['name']),
+      );
+
+  final String id;
+  final String categoryId;
+  final int number;
+  final String? name;
 }
 
 class TournamentMatchParticipant {
@@ -434,7 +732,10 @@ class TournamentMatchParticipant {
     final registration = _map(json['categoryRegistration']);
     return TournamentMatchParticipant(
       position: _integer(json['position']),
-      registrationId: _nullableString(json['categoryRegistrationId']) ?? '',
+      registrationId:
+          _nullableString(json['categoryRegistrationId']) ??
+          _nullableString(registration?['id']) ??
+          '',
       registration: registration == null
           ? null
           : TournamentRegistration.fromJson(registration),
@@ -605,3 +906,10 @@ DateTime? _nullableDate(dynamic value) {
   if (value is String) return DateTime.tryParse(value);
   return null;
 }
+
+scoring.MatchFormat? _matchFormat(String? value) => switch (value) {
+  'BEST_OF_1' => scoring.MatchFormat.bestOf1,
+  'BEST_OF_3' => scoring.MatchFormat.bestOf3,
+  'BEST_OF_5' => scoring.MatchFormat.bestOf5,
+  _ => null,
+};

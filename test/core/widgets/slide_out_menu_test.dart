@@ -129,6 +129,7 @@ void main() {
     expect(find.text('Tìm giải'), findsOneWidget);
     expect(find.text('Bảng xếp hạng'), findsOneWidget);
     expect(find.text('Bảng tin'), findsNothing);
+    expect(find.text('ADMIN'), findsNothing);
     expect(find.text('Quản lý'), findsNothing);
     expect(find.text('Cài đặt'), findsNothing);
     expect(find.text('Đăng xuất'), findsNothing);
@@ -166,6 +167,7 @@ void main() {
 
     expect(find.text('Cá nhân'), findsNothing);
     expect(find.text('Quản lý'), findsNothing);
+    expect(find.text('ADMIN'), findsNothing);
     expect(find.text('Đăng nhập'), findsOneWidget);
   });
 
@@ -202,11 +204,10 @@ void main() {
     expect(find.text('Nhật Cường'), findsOneWidget);
     expect(find.text('Chủ kèo'), findsOneWidget);
     expect(find.text('Quản lý'), findsOneWidget);
-    expect(find.text('Bảng tin'), findsOneWidget);
-    expect(find.text('5'), findsOneWidget);
     expect(find.text('Kèo'), findsOneWidget);
     expect(find.text('Nhóm'), findsOneWidget);
     expect(find.text('Giao dịch'), findsOneWidget);
+    expect(find.text('ADMIN'), findsNothing);
     expect(find.text('Yêu thích'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('Trợ giúp & phản hồi'),
@@ -215,6 +216,52 @@ void main() {
     );
     expect(find.text('Trợ giúp & phản hồi'), findsOneWidget);
     expect(find.text('Đăng nhập'), findsNothing);
+  });
+
+  testWidgets('administrator sees every embedded admin destination', (
+    tester,
+  ) async {
+    final router = _buildRouter();
+    await tester.pumpWidget(
+      _harness(
+        const AuthState(
+          status: AuthStatus.authenticated,
+          user: User(
+            id: 'admin',
+            email: 'admin@example.com',
+            role: UserRole.admin,
+          ),
+        ),
+        router,
+      ),
+    );
+    await _openDrawer(tester);
+
+    await tester.scrollUntilVisible(
+      find.text('ADMIN'),
+      240,
+      scrollable: find.byType(Scrollable),
+    );
+    expect(find.text('ADMIN'), findsOneWidget);
+    for (final label in const [
+      'Bảng điều khiển',
+      'Người dùng',
+      'Quản lý kèo (Admin)',
+      'Thông báo',
+      'Liên hệ & Báo lỗi',
+      'Cài đặt chung',
+      'Mô tả trình độ',
+      'Điểm & xếp hạng',
+      'Sân bãi',
+      'Duyệt nhóm',
+    ]) {
+      await tester.scrollUntilVisible(
+        find.text(label),
+        240,
+        scrollable: find.byType(Scrollable),
+      );
+      expect(find.text(label), findsOneWidget);
+    }
   });
 
   testWidgets('profile header uses balanced text and compact height', (

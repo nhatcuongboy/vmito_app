@@ -10,6 +10,7 @@ import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
+import 'package:vmito_app/core/web/admin_web_destination.dart';
 import 'package:vmito_app/core/widgets/language_selector.dart';
 import 'package:vmito_app/core/widgets/sign_out_confirmation.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
@@ -152,6 +153,31 @@ class SlideOutMenu extends ConsumerWidget {
                         ),
                       ],
                     ),
+                    if (user.isAdmin) ...[
+                      const _MenuDivider(),
+                      _MenuSection(
+                        title: 'ADMIN',
+                        children: [
+                          for (final destination in AdminWebDestination.values)
+                            _MenuItem(
+                              icon: destination.icon,
+                              label: destination.titleFor(
+                                Localizations.localeOf(context),
+                              ),
+                              onTap: () {
+                                closeDrawer();
+                                unawaited(
+                                  openAdminWebDestination(
+                                    context,
+                                    user,
+                                    destination,
+                                  ),
+                                );
+                              },
+                            ),
+                        ],
+                      ),
+                    ],
                     const _MenuDivider(),
                     _MenuSection(
                       children: [

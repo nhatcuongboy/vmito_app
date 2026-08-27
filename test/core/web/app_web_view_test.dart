@@ -26,15 +26,38 @@ void main() {
     expect(page.requiresAuth, isTrue);
   });
 
+  test('embedded page marker keeps existing query parameters', () {
+    const page = AppWebPage(
+      title: 'Manage tournament',
+      path: '/vi/tournament/vmito-open/manage?option=categories',
+      embedded: true,
+    );
+
+    expect(
+      AppWebView.resolvedPath(page),
+      '/vi/tournament/vmito-open/manage?option=categories&embedded=1',
+    );
+  });
+
+  test('embedded page marker replaces a stale embedded value', () {
+    const page = AppWebPage(
+      title: 'Admin',
+      path: '/vi/admin?embedded=0',
+      embedded: true,
+    );
+
+    expect(AppWebView.resolvedPath(page), '/vi/admin?embedded=1');
+  });
+
   test('callback keeps locale only on callback path, not return URL', () {
     final uri = AppWebView.buildCallbackUri(
-      '/vi/tournament/vmito-open/schedule',
+      '/vi/tournament/vmito-open/schedule?embedded=1',
       'one-time-code',
     );
     final fragment = Uri.splitQueryString(uri.fragment);
 
     expect(uri.path, '/vi/auth/mobile-callback');
     expect(fragment['code'], 'one-time-code');
-    expect(fragment['returnUrl'], '/tournament/vmito-open/schedule');
+    expect(fragment['returnUrl'], '/tournament/vmito-open/schedule?embedded=1');
   });
 }

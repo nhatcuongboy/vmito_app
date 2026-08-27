@@ -51,6 +51,19 @@ void main() {
     expect(club.operationalStatus, 'ACTIVE');
   });
 
+  test('ClubSummary gallery ignores empty image URLs', () {
+    final club = ClubSummary.fromJson({
+      'id': 'c3',
+      'name': 'Nhóm ảnh lỗi',
+      'memberCount': 1,
+      'joinPolicy': 'OPEN',
+      'image': '  cover.jpg  ',
+      'images': ['', '  ', 'gallery.jpg', 'cover.jpg'],
+    });
+
+    expect(club.gallery, ['cover.jpg', 'gallery.jpg']);
+  });
+
   test('ClubJoinRequest parses outgoing club context', () {
     final request = ClubJoinRequest.fromJson({
       'id': 'r1',

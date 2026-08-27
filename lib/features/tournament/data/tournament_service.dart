@@ -4,6 +4,7 @@ import 'package:vmito_app/core/network/api_client.dart';
 import 'package:vmito_app/core/network/api_response.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_create_request.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_detail.dart';
+import 'package:vmito_app/features/tournament/domain/tournament_schedule.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
 
 class TournamentService {
@@ -31,6 +32,106 @@ class TournamentService {
       ApiEndpoints.tournamentMatches(tournamentId),
     );
     return unwrapList(response.data, TournamentMatch.fromJson);
+  }
+
+  Future<List<TournamentCourt>> courts(String tournamentId) async {
+    final response = await _client.get<dynamic>(
+      ApiEndpoints.tournamentCourts(tournamentId),
+    );
+    return unwrapList(response.data, TournamentCourt.fromJson);
+  }
+
+  Future<List<TournamentCategoryGroup>> categoryGroups(
+    String categoryId,
+  ) async {
+    final response = await _client.get<dynamic>(
+      ApiEndpoints.tournamentCategoryGroups(categoryId),
+    );
+    return unwrapList(response.data, TournamentCategoryGroup.fromJson);
+  }
+
+  Future<List<TournamentUmpire>> umpires(String tournamentId) async {
+    final response = await _client.get<dynamic>(
+      ApiEndpoints.tournamentUmpires(tournamentId),
+    );
+    return unwrapList(response.data, TournamentUmpire.fromJson);
+  }
+
+  Future<List<TournamentMatch>> ownAssignments(String tournamentId) async {
+    final response = await _client.get<dynamic>(
+      ApiEndpoints.categoryMatchAssignments,
+      queryParameters: {'tournamentId': tournamentId},
+    );
+    return unwrapList(response.data, TournamentMatch.fromJson);
+  }
+
+  Future<void> updateMatchCode(String matchId, String matchCode) async {
+    await _client.put<dynamic>(
+      ApiEndpoints.categoryMatch(matchId),
+      data: {'matchCode': matchCode},
+    );
+  }
+
+  Future<void> updateMatchSchedule(TournamentScheduleUpdateDraft draft) async {
+    await _client.put<dynamic>(
+      ApiEndpoints.categoryMatchBulkSchedule,
+      data: {
+        'updates': [
+          {
+            'matchId': draft.matchId,
+            'courtId': draft.courtId,
+            'startTime': draft.startTime?.toUtc().toIso8601String(),
+            'endTime': draft.endTime?.toUtc().toIso8601String(),
+          },
+        ],
+      },
+    );
+  }
+
+  Future<TournamentMatch> assignReferee(
+    String matchId,
+    String refereeId,
+  ) async {
+    final response = await _client.patch<dynamic>(
+      ApiEndpoints.categoryMatchReferee(matchId),
+      data: {'refereeId': refereeId},
+    );
+    return unwrap(response.data, TournamentMatch.fromJson);
+  }
+
+  Future<TournamentMatch> unassignReferee(String matchId) async {
+    final response = await _client.delete<dynamic>(
+      ApiEndpoints.categoryMatchReferee(matchId),
+    );
+    return unwrap(response.data, TournamentMatch.fromJson);
+  }
+
+  Future<TournamentMatch> saveResult(
+    String matchId,
+    TournamentResultDraft draft,
+  ) async {
+    final response = await _client.post<dynamic>(
+      ApiEndpoints.categoryMatchResult(matchId),
+      data: draft.toJson(),
+    );
+    return unwrap(response.data, TournamentMatch.fromJson);
+  }
+
+  Future<TournamentMatch> resetResult(String matchId) async {
+    final response = await _client.post<dynamic>(
+      ApiEndpoints.categoryMatchReset(matchId),
+    );
+    return unwrap(response.data, TournamentMatch.fromJson);
+  }
+
+  Future<void> deleteMatch(String matchId) async {
+    await _client.delete<dynamic>(ApiEndpoints.categoryMatch(matchId));
+  }
+
+  Future<void> completeGroupStage(String categoryId) async {
+    await _client.post<dynamic>(
+      ApiEndpoints.tournamentCompleteGroupStage(categoryId),
+    );
   }
 
   Future<List<TournamentSponsor>> sponsors(String tournamentId) async {

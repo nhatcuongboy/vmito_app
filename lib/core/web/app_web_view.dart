@@ -17,11 +17,16 @@ class AppWebPage {
     required this.path,
     required this.title,
     this.requiresAuth = false,
+    this.embedded = false,
   });
 
   final String path;
   final String title;
   final bool requiresAuth;
+
+  /// Requests a web page without its web chrome because Flutter supplies the
+  /// app bar and navigation surface.
+  final bool embedded;
 }
 
 class WebViewSession {
@@ -104,6 +109,21 @@ abstract final class AppWebView {
   static Uri _trustedUri(String path) =>
       Uri.parse('${AppConfig.webBaseUrl}$path');
 
+  /// Adds the shared embedded-page marker without discarding existing query
+  /// parameters. The marker lets the web app hide duplicate navigation chrome.
+  static String resolvedPath(AppWebPage page) {
+    if (!page.embedded) return page.path;
+    final uri = Uri.parse(page.path);
+    return uri
+        .replace(
+          queryParameters: {
+            ...uri.queryParameters,
+            'embedded': '1',
+          },
+        )
+        .toString();
+  }
+
   static Future<_PreparedWebPage> _prepare(
     AppWebPage page, {
     required bool hasToken,
@@ -115,11 +135,12 @@ abstract final class AppWebView {
     if (page.requiresAuth && !hasToken) {
       throw StateError('This web page requires an authenticated user.');
     }
-    if (!hasToken) return _PreparedWebPage(url: _trustedUri(page.path));
+    final path = resolvedPath(page);
+    if (!hasToken) return _PreparedWebPage(url: _trustedUri(path));
 
     final session = await service!.create();
     return _PreparedWebPage(
-      url: buildCallbackUri(page.path, session.code),
+      url: buildCallbackUri(path, session.code),
       sessionId: session.id,
     );
   }
@@ -171,7 +192,8 @@ class _AppWebViewPageState extends ConsumerState<AppWebViewPage> {
   void didUpdateWidget(covariant AppWebViewPage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.page.path != widget.page.path ||
-        oldWidget.page.requiresAuth != widget.page.requiresAuth) {
+        oldWidget.page.requiresAuth != widget.page.requiresAuth ||
+        oldWidget.page.embedded != widget.page.embedded) {
       _load();
     }
   }

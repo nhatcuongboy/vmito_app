@@ -63,8 +63,9 @@ void main() {
     expect(webViewPage.page.title, 'Vmito Open');
     expect(
       webViewPage.page.path,
-      '/vi/tournament/vmito%20open?embedded=1',
+      '/vi/tournament/vmito%20open',
     );
+    expect(webViewPage.page.embedded, isTrue);
     expect(find.byType(TournamentHomeContent), findsNothing);
   });
 

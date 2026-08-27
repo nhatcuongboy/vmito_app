@@ -37,15 +37,12 @@ class TournamentDetailScreen extends ConsumerWidget {
         l10n.tournamentDetailTitle;
     final language = Localizations.localeOf(context).languageCode;
     final locale = language == 'zh' ? 'cn' : language;
-    final path =
-        '/${Uri(
-          pathSegments: [locale, 'tournament', idOrSlug],
-          queryParameters: const {'embedded': '1'},
-        )}';
+    final path = '/${Uri(pathSegments: [locale, 'tournament', idOrSlug])}';
     return AppWebViewPage(
       page: AppWebPage(
         path: path,
         title: title,
+        embedded: true,
       ),
     );
   }

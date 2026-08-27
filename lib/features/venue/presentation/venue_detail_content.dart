@@ -31,7 +31,6 @@ class VenueDetailContent extends StatefulWidget {
     required this.onBack,
     required this.onShare,
     required this.onCall,
-    required this.onWebsite,
     required this.onZalo,
     required this.onDirections,
     required this.onFindSessions,
@@ -44,7 +43,6 @@ class VenueDetailContent extends StatefulWidget {
   final VoidCallback onBack;
   final VoidCallback onShare;
   final VoidCallback onCall;
-  final VoidCallback onWebsite;
   final VoidCallback onZalo;
   final VoidCallback onDirections;
   final VoidCallback onFindSessions;
@@ -163,11 +161,12 @@ class _VenueDetailContentState extends State<VenueDetailContent> {
                   children: [
                     _InfoCard(
                       venue: widget.venue,
-                      onWebsite: widget.onWebsite,
                       onDirections: widget.onDirections,
                     ),
                     const SizedBox(height: AppSpacing.md),
-                    _AboutCard(venue: widget.venue),
+                    _AboutCard(
+                      venue: widget.venue,
+                    ),
                     const SizedBox(height: AppSpacing.md),
                     _PricingCard(priceBooks: widget.priceBooks),
                     if (widget.venue.images.isNotEmpty) ...[
@@ -324,13 +323,6 @@ class _VenueHeroState extends State<_VenueHero> {
                       ? Colors.red
                       : Colors.orange,
                 ),
-              if (widget.venue.isVerified)
-                _StatusBadge(
-                  key: const Key('venue-verified-badge'),
-                  icon: AppIcons.verified,
-                  label: l10n.venueVerified,
-                  color: Colors.green,
-                ),
             ],
           ),
         ),
@@ -344,7 +336,6 @@ class _StatusBadge extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.color,
-    super.key,
   });
 
   final IconData icon;
@@ -373,12 +364,10 @@ class _StatusBadge extends StatelessWidget {
 class _InfoCard extends StatelessWidget {
   const _InfoCard({
     required this.venue,
-    required this.onWebsite,
     required this.onDirections,
   });
 
   final Venue venue;
-  final VoidCallback onWebsite;
   final VoidCallback onDirections;
 
   @override
@@ -423,6 +412,16 @@ class _InfoCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (venue.isVerified)
+                  Tooltip(
+                    message: l10n.venueVerified,
+                    child: Icon(
+                      key: const Key('venue-verified-icon'),
+                      AppIcons.verified,
+                      size: 22,
+                      color: Colors.green.shade700,
+                    ),
+                  ),
               ],
             ),
             if (venue.addressLabel.isNotEmpty) ...[
@@ -430,10 +429,14 @@ class _InfoCard extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    AppIcons.location,
-                    size: 19,
-                    color: palette.mutedForeground,
+                  Padding(
+                    padding: const EdgeInsets.only(top: 3),
+                    child: Icon(
+                      key: const Key('venue-address-location-icon'),
+                      AppIcons.location,
+                      size: 19,
+                      color: palette.mutedForeground,
+                    ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
@@ -451,20 +454,21 @@ class _InfoCard extends StatelessWidget {
                           : ' (${l10n.venueDistance(venue.distance!)})',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: palette.mutedForeground,
+                        height: 1.5,
                       ),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  IconButton(
-                    key: const Key('venue-address-directions-button'),
-                    tooltip: l10n.venueGoogleMaps,
-                    onPressed: onDirections,
-                    icon: const Icon(AppIcons.navigation, size: 20),
-                    color: theme.colorScheme.primary,
-                    visualDensity: VisualDensity.compact,
-                    constraints: const BoxConstraints.tightFor(
-                      width: 36,
-                      height: 36,
+                      trailing: IconButton(
+                        key: const Key('venue-address-directions-button'),
+                        tooltip: l10n.venueGoogleMaps,
+                        onPressed: onDirections,
+                        icon: const Icon(AppIcons.navigation, size: 20),
+                        color: theme.colorScheme.primary,
+                        style: IconButton.styleFrom(
+                          minimumSize: const Size.square(24),
+                          maximumSize: const Size.square(24),
+                          padding: EdgeInsets.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -496,190 +500,9 @@ class _InfoCard extends StatelessWidget {
                 ),
               ),
             ],
-            if (venue.website?.trim().isNotEmpty ?? false) ...[
-              const SizedBox(height: AppSpacing.md),
-              Divider(color: palette.border),
-              _VenueWebsiteBlock(
-                phone: null,
-                website: venue.website,
-                onCall: () {},
-                onZalo: () {},
-                onWebsite: onWebsite,
-              ),
-            ],
           ],
         ),
       ),
-    );
-  }
-}
-
-class _VenueWebsiteBlock extends StatelessWidget {
-  const _VenueWebsiteBlock({
-    required this.phone,
-    required this.website,
-    required this.onCall,
-    required this.onZalo,
-    required this.onWebsite,
-  });
-
-  final String? phone;
-  final String? website;
-  final VoidCallback? onCall;
-  final VoidCallback? onZalo;
-  final VoidCallback onWebsite;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context);
-    final palette = theme.extension<AppPalette>()!;
-    final hasPhone = phone?.trim().isNotEmpty ?? false;
-    final hasWebsite = website?.trim().isNotEmpty ?? false;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (hasPhone)
-          DecoratedBox(
-            decoration: BoxDecoration(
-              border: Border.all(color: palette.border),
-              borderRadius: BorderRadius.circular(AppRadius.xl),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(AppRadius.xl),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        key: const Key('venue-phone-button'),
-                        onTap: onCall,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.md,
-                            vertical: AppSpacing.sm,
-                          ),
-                          child: Row(
-                            children: [
-                              DecoratedBox(
-                                decoration: BoxDecoration(
-                                  color: Colors.green.shade100,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(10),
-                                  child: Icon(
-                                    AppIcons.phone,
-                                    size: 18,
-                                    color: Colors.green.shade700,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: AppSpacing.md),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      l10n.venuePhone,
-                                      style: theme.textTheme.bodySmall
-                                          ?.copyWith(
-                                            color: palette.mutedForeground,
-                                          ),
-                                    ),
-                                    Text(
-                                      _formatPhoneDisplay(phone!),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: theme.textTheme.titleMedium
-                                          ?.copyWith(
-                                            color: Colors.green.shade800,
-                                            fontWeight: FontWeight.bold,
-                                            letterSpacing: 1,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Container(width: 1, height: 64, color: palette.border),
-                  Material(
-                    color: Colors.transparent,
-                    child: InkWell(
-                      key: const Key('venue-zalo-button'),
-                      onTap: onZalo,
-                      child: const SizedBox(
-                        width: 52,
-                        height: 64,
-                        child: Center(
-                          child: Image(
-                            image: AssetImage('assets/icons/zalo.png'),
-                            width: 24,
-                            height: 24,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        if (hasPhone && hasWebsite) const SizedBox(height: AppSpacing.sm),
-        if (hasWebsite)
-          Material(
-            color: palette.muted,
-            borderRadius: BorderRadius.circular(AppRadius.xl),
-            child: InkWell(
-              key: const Key('venue-website-button'),
-              borderRadius: BorderRadius.circular(AppRadius.xl),
-              onTap: onWebsite,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.sm,
-                ),
-                child: Row(
-                  children: [
-                    DecoratedBox(
-                      decoration: BoxDecoration(
-                        color: Colors.purple.shade50,
-                        borderRadius: BorderRadius.circular(AppRadius.lg),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(7),
-                        child: Icon(
-                          AppIcons.language,
-                          size: 17,
-                          color: Colors.purple.shade600,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: Text(
-                        website!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-      ],
     );
   }
 }
@@ -1317,17 +1140,19 @@ class _SectionCard extends StatelessWidget {
 class VenueDetailBottomBar extends StatelessWidget {
   const VenueDetailBottomBar({
     required this.phone,
-    required this.minimumPrice,
+    required this.website,
     required this.onCall,
     required this.onZalo,
+    required this.onWebsite,
     required this.onFindSessions,
     super.key,
   });
 
   final String? phone;
-  final int? minimumPrice;
+  final String? website;
   final VoidCallback onCall;
   final VoidCallback onZalo;
+  final VoidCallback onWebsite;
   final VoidCallback onFindSessions;
 
   @override
@@ -1356,10 +1181,7 @@ class VenueDetailBottomBar extends StatelessWidget {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final hasPhone = phone?.trim().isNotEmpty ?? false;
-                  final minWidthForPrice = hasPhone ? 360 : 280;
-                  final showPrice =
-                      minimumPrice != null &&
-                      constraints.maxWidth >= minWidthForPrice;
+                  final hasWebsite = website?.trim().isNotEmpty ?? false;
 
                   final actionButtons = <Widget>[
                     if (hasPhone) ...[
@@ -1398,8 +1220,25 @@ class VenueDetailBottomBar extends StatelessWidget {
                       ),
                       const SizedBox(width: AppSpacing.sm),
                     ],
-                    if (showPrice)
-                      FilledButton.icon(
+                    if (hasWebsite) ...[
+                      IconButton.outlined(
+                        key: const Key('venue-website-bottom-button'),
+                        tooltip: l10n.tournamentDetailOpenWebsite,
+                        onPressed: onWebsite,
+                        style: IconButton.styleFrom(
+                          foregroundColor: theme.colorScheme.primary,
+                          side: BorderSide(color: theme.colorScheme.primary),
+                          minimumSize: const Size.square(44),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.lg),
+                          ),
+                        ),
+                        icon: const Icon(AppIcons.language, size: 20),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                    ],
+                    Expanded(
+                      child: FilledButton.icon(
                         key: const Key('venue-find-sessions-button'),
                         onPressed: onFindSessions,
                         icon: const Icon(AppIcons.search),
@@ -1407,47 +1246,12 @@ class VenueDetailBottomBar extends StatelessWidget {
                           l10n.venueFindSessions,
                           maxLines: 1,
                         ),
-                      )
-                    else
-                      Expanded(
-                        child: FilledButton.icon(
-                          key: const Key('venue-find-sessions-button'),
-                          onPressed: onFindSessions,
-                          icon: const Icon(AppIcons.search),
-                          label: Text(
-                            l10n.venueFindSessions,
-                            maxLines: 1,
-                          ),
-                        ),
                       ),
+                    ),
                   ];
 
                   return Row(
                     children: [
-                      if (showPrice) ...[
-                        Expanded(
-                          child: Text.rich(
-                            TextSpan(
-                              text: l10n.venuePriceFrom(_money(minimumPrice!)),
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                color: theme.colorScheme.error,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              children: [
-                                TextSpan(
-                                  text: ' ${l10n.venuePerHour}',
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: palette.mutedForeground,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        const SizedBox(width: AppSpacing.sm),
-                      ],
                       ...actionButtons,
                     ],
                   );
@@ -1541,15 +1345,6 @@ String _money(int value) => value.toString().replaceAllMapped(
   RegExp(r'\B(?=(\d{3})+(?!\d))'),
   (_) => '.',
 );
-
-String _formatPhoneDisplay(String value) {
-  final compact = value.trim().replaceAll(RegExp(r'\s+'), '');
-  if (RegExp(r'^0\d{9}$').hasMatch(compact)) {
-    return '${compact.substring(0, 4)} ${compact.substring(4, 7)} '
-        '${compact.substring(7)}';
-  }
-  return value.trim();
-}
 
 String _plainText(String? html) => (html ?? '')
     .replaceAll(RegExp('<[^>]*>'), ' ')
