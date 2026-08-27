@@ -5,29 +5,36 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:vmito_app/core/config/app_config.dart';
+import 'package:vmito_app/core/constants/image_constants.dart';
 import 'package:vmito_app/core/network/paginated.dart' as pagination;
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/app_shell_scaffold_key.dart';
+import 'package:vmito_app/core/shell/tab_reselection_controller.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/utils/avatar_url.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
+import 'package:vmito_app/features/profile/application/profile_controller.dart';
+import 'package:vmito_app/features/profile/data/profile_image_picker.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/widgets/session_card.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/data/profile_tabs_service.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
-import 'package:vmito_app/features/social/domain/profile_tabs.dart';
 import 'package:vmito_app/features/social/domain/public_profile.dart';
 import 'package:vmito_app/features/social/domain/social_post.dart';
 import 'package:vmito_app/features/social/presentation/widgets/profile_collapsing_header.dart';
 import 'package:vmito_app/features/social/presentation/widgets/profile_header_geometry.dart';
 import 'package:vmito_app/features/social/presentation/widgets/social_post_card.dart';
+import 'package:vmito_app/features/social/presentation/widgets/user_achievements_tab.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_lightbox.dart';
 
 const _publicTabs = [
   'Bài viết',
@@ -88,6 +95,7 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
   late TabController _controller;
   final _outerScrollController = ScrollController();
   final _scrollOffset = ValueNotifier<double>(0);
+  VoidCallback? _removeReselectHandler;
   var _screenWidth = 375.0;
   var _usesCompactSystemOverlay = false;
   var _loadedTabs = <int>{0};
@@ -101,6 +109,14 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
     );
     _controller.addListener(_loadSelectedTab);
     _outerScrollController.addListener(_handleOuterScroll);
+    if (widget.isRootProfile) {
+      _removeReselectHandler = ref
+          .read(tabReselectionControllerProvider)
+          .register(
+            tabIndex: 4,
+            onReselect: () => scrollToTop(_outerScrollController),
+          );
+    }
   }
 
   void _handleOuterScroll() {
@@ -128,8 +144,70 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
     }
   }
 
+  bool get _supportsCamera =>
+      !kIsWeb &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS);
+
+  Future<void> _pickProfileImage({required bool avatar}) async {
+    final l10n = AppLocalizations.of(context);
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(AppIcons.image),
+              title: Text(l10n.profileChooseGallery),
+              onTap: () => Navigator.of(context).pop(ImageSource.gallery),
+            ),
+            if (_supportsCamera)
+              ListTile(
+                leading: const Icon(AppIcons.camera),
+                title: Text(l10n.profileTakePhoto),
+                onTap: () => Navigator.of(context).pop(ImageSource.camera),
+              ),
+          ],
+        ),
+      ),
+    );
+    if (source == null || !mounted) return;
+
+    bool success;
+    try {
+      final image = await ref.read(profileImagePickerProvider)(source);
+      if (image == null || !mounted) return;
+      success = avatar
+          ? await ref
+                .read(profileControllerProvider.notifier)
+                .uploadAvatar(widget.userId, image)
+          : await ref
+                .read(profileControllerProvider.notifier)
+                .uploadCover(widget.userId, image);
+    } on Object {
+      success = false;
+    }
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          avatar
+              ? success
+                    ? l10n.profileAvatarUpdated
+                    : l10n.profileAvatarUploadFailed
+              : success
+              ? l10n.profileCoverUpdated
+              : l10n.profileCoverUploadFailed,
+        ),
+      ),
+    );
+  }
+
   @override
   void dispose() {
+    _removeReselectHandler?.call();
     _outerScrollController
       ..removeListener(_handleOuterScroll)
       ..dispose();
@@ -142,6 +220,7 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
   Widget build(BuildContext context) {
     final labels = publicProfileTabLabels();
     final safeAreaTop = MediaQuery.paddingOf(context).top;
+    final mutations = ref.watch(profileControllerProvider);
     return Stack(
       children: [
         NestedScrollView(
@@ -159,6 +238,9 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
               menuTooltip: AppLocalizations.of(context).menuOpenTooltip,
               shareTooltip: AppLocalizations.of(context).commonShare,
               settingsTooltip: AppLocalizations.of(context).settingsTitle,
+              changeCoverTooltip: AppLocalizations.of(
+                context,
+              ).profileChangeCover,
               onMenuTap: () => ref
                   .read(appShellScaffoldKeyProvider)
                   .currentState
@@ -169,28 +251,31 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
                 ),
               ),
               onSettings: () => context.pushNamed(AppRoutes.nameSettings),
+              coverProgress: mutations.coverProgress,
+              onChangeCover: _isOwner
+                  ? () => _pickProfileImage(avatar: false)
+                  : null,
+              onViewCover: () => showAppLightbox(
+                context,
+                images: [
+                  widget.bundle.profile.coverPhoto ?? kDefaultCoverPhoto,
+                ],
+              ),
             ),
             SliverToBoxAdapter(
               child: _ProfileHeader(
                 profile: widget.bundle.profile,
                 bundle: widget.bundle,
                 scrollOffset: _scrollOffset,
-                isOwner: _isOwner,
-                onEdit: () => context.pushNamed(AppRoutes.nameSettings),
                 onSelectTab: _controller.animateTo,
               ),
             ),
             SliverPersistentHeader(
               pinned: true,
               delegate: _ProfileTabBarDelegate(
-                child: Material(
-                  color: Theme.of(context).scaffoldBackgroundColor,
-                  child: TabBar(
-                    controller: _controller,
-                    isScrollable: true,
-                    tabAlignment: TabAlignment.start,
-                    tabs: [for (final label in labels) Tab(text: label)],
-                  ),
+                child: _ProfileTabBar(
+                  controller: _controller,
+                  labels: labels,
                 ),
               ),
             ),
@@ -199,7 +284,14 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
             controller: _controller,
             children: [
               _lazyTab(0, () => _PostsTab(userId: widget.userId)),
-              _lazyTab(1, () => _AchievementsTab(userId: widget.userId)),
+              _lazyTab(
+                1,
+                () => UserAchievementsTab(
+                  userId: widget.userId,
+                  profile: widget.bundle.profile,
+                  isOwner: _isOwner,
+                ),
+              ),
               _lazyTab(2, () => _HostedTab(userId: widget.userId)),
               _lazyTab(
                 3,
@@ -214,6 +306,18 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
           scrollOffset: _scrollOffset,
           screenWidth: _screenWidth,
           safeAreaTop: safeAreaTop,
+          isOwner: _isOwner,
+          avatarProgress: mutations.avatarProgress,
+          changeAvatarTooltip: AppLocalizations.of(
+            context,
+          ).profileChangeAvatar,
+          onChangeAvatar: () => _pickProfileImage(avatar: true),
+          onViewAvatar: widget.bundle.profile.image == null
+              ? null
+              : () => showAppLightbox(
+                  context,
+                  images: [fullSizeAvatarUrl(widget.bundle.profile.image!)],
+                ),
         ),
       ],
     );
@@ -235,12 +339,22 @@ class _OverlayAvatar extends StatelessWidget {
     required this.scrollOffset,
     required this.screenWidth,
     required this.safeAreaTop,
+    required this.isOwner,
+    required this.avatarProgress,
+    required this.changeAvatarTooltip,
+    required this.onChangeAvatar,
+    required this.onViewAvatar,
   });
 
   final PublicProfile profile;
   final ValueListenable<double> scrollOffset;
   final double screenWidth;
   final double safeAreaTop;
+  final bool isOwner;
+  final int? avatarProgress;
+  final String changeAvatarTooltip;
+  final VoidCallback onChangeAvatar;
+  final VoidCallback? onViewAvatar;
 
   static const _radius = 44.0;
 
@@ -252,7 +366,9 @@ class _OverlayAvatar extends StatelessWidget {
         offset,
         screenWidth,
       );
-      if (opacity == 0) return const SizedBox.shrink();
+      if (opacity <= 0.01) return const SizedBox.shrink();
+      final showEditAction =
+          ProfileHeaderGeometry.collapseProgress(offset, screenWidth) < .5;
       final coverBottom =
           safeAreaTop +
           ProfileHeaderGeometry.visibleHeight(offset, screenWidth);
@@ -266,18 +382,86 @@ class _OverlayAvatar extends StatelessWidget {
             opacity: opacity,
             child: Transform.scale(
               scale: .85 + (.15 * opacity),
-              child: DecoratedBox(
+              child: Container(
+                key: const ValueKey('profile-avatar-frame'),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.surface,
-                    width: 4,
-                  ),
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: .16),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                child: ProfileAvatar(
-                  profile: profile,
-                  radius: _radius,
-                  iconSize: _radius,
+                padding: const EdgeInsets.all(3),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    GestureDetector(
+                      onTap: avatarProgress == null ? onViewAvatar : null,
+                      child: ProfileAvatar(
+                        profile: profile,
+                        radius: _radius,
+                        iconSize: _radius,
+                      ),
+                    ),
+                    if (avatarProgress != null)
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          key: const ValueKey('profile-avatar-upload-progress'),
+                          decoration: const BoxDecoration(
+                            color: Color(0x99000000),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Center(
+                            child: Text(
+                              '$avatarProgress%',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    if (isOwner && avatarProgress == null && showEditAction)
+                      Positioned(
+                        right: -10,
+                        bottom: -10,
+                        child: IconButton(
+                          key: const ValueKey(
+                            'profile-change-avatar-button',
+                          ),
+                          tooltip: changeAvatarTooltip,
+                          onPressed: onChangeAvatar,
+                          constraints: const BoxConstraints.tightFor(
+                            width: 44,
+                            height: 44,
+                          ),
+                          padding: EdgeInsets.zero,
+                          icon: Material(
+                            key: const ValueKey(
+                              'profile-change-avatar-visual',
+                            ),
+                            color: Theme.of(context).colorScheme.primary,
+                            elevation: 2,
+                            shape: const CircleBorder(
+                              side: BorderSide(color: Colors.white, width: 2),
+                            ),
+                            child: const SizedBox.square(
+                              dimension: 30,
+                              child: Icon(
+                                AppIcons.camera,
+                                size: 14,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
@@ -293,16 +477,12 @@ class _ProfileHeader extends StatelessWidget {
     required this.profile,
     required this.bundle,
     required this.scrollOffset,
-    required this.isOwner,
-    required this.onEdit,
     required this.onSelectTab,
   });
 
   final PublicProfile profile;
   final PublicProfileBundle bundle;
   final ValueListenable<double> scrollOffset;
-  final bool isOwner;
-  final VoidCallback onEdit;
   final ValueChanged<int> onSelectTab;
 
   @override
@@ -317,35 +497,7 @@ class _ProfileHeader extends StatelessWidget {
       ),
       child: Column(
         children: [
-          SizedBox(
-            height: 56,
-            child: isOwner
-                ? Align(
-                    alignment: Alignment.topRight,
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.sm),
-                      child: SizedBox(
-                        width: 92,
-                        child: OutlinedButton.icon(
-                          key: const ValueKey('profile-edit-button'),
-                          style: OutlinedButton.styleFrom(
-                            minimumSize: const Size(0, AppSizes.minTapTarget),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.xs,
-                            ),
-                            textStyle: Theme.of(context).textTheme.labelMedium,
-                          ),
-                          onPressed: onEdit,
-                          icon: const Icon(AppIcons.edit, size: 14),
-                          label: Text(
-                            AppLocalizations.of(context).profileEditAction,
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                : null,
-          ),
+          const SizedBox(height: 60),
           ValueListenableBuilder<double>(
             valueListenable: scrollOffset,
             builder: (context, offset, _) => Opacity(
@@ -383,7 +535,7 @@ class _ProfileHeader extends StatelessWidget {
             const SizedBox(height: AppSpacing.xs),
             Chip(label: Text(profile.levelDescription!)),
           ],
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.sm + 4),
           Row(
             children: [
               Expanded(
@@ -460,6 +612,37 @@ class _ProfileTabBarDelegate extends SliverPersistentHeaderDelegate {
   @override
   bool shouldRebuild(_ProfileTabBarDelegate oldDelegate) =>
       child != oldDelegate.child;
+}
+
+class _ProfileTabBar extends StatelessWidget {
+  const _ProfileTabBar({required this.controller, required this.labels});
+
+  final TabController controller;
+  final List<String> labels;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return DecoratedBox(
+      key: const ValueKey('profile-tab-bar'),
+      decoration: BoxDecoration(
+        color: theme.scaffoldBackgroundColor,
+        border: Border(
+          top: BorderSide(color: theme.dividerColor, width: .5),
+          bottom: BorderSide(color: theme.dividerColor),
+        ),
+      ),
+      child: TabBar(
+        controller: controller,
+        isScrollable: true,
+        tabAlignment: TabAlignment.start,
+        // The container owns both separators; the indicator should remain
+        // the only strong visual accent in the tab bar.
+        dividerColor: Colors.transparent,
+        tabs: [for (final label in labels) Tab(text: label)],
+      ),
+    );
+  }
 }
 
 class _Empty extends StatelessWidget {
@@ -585,162 +768,6 @@ class _PostsTabState extends ConsumerState<_PostsTab> {
   );
 }
 
-class _AchievementsTab extends ConsumerStatefulWidget {
-  const _AchievementsTab({required this.userId});
-  final String userId;
-  @override
-  ConsumerState<_AchievementsTab> createState() => _AchievementsTabState();
-}
-
-class _AchievementsTabState extends ConsumerState<_AchievementsTab> {
-  late Future<UserAchievements> _future;
-  @override
-  void initState() {
-    super.initState();
-    _future = ref.read(profileTabsServiceProvider).achievements(widget.userId);
-  }
-
-  @override
-  Widget build(BuildContext context) => FutureBuilder<UserAchievements>(
-    future: _future,
-    builder: (context, snapshot) {
-      if (snapshot.hasError) {
-        return AppErrorView(
-          error: snapshot.error!,
-          onRetry: () => setState(
-            () => _future = ref
-                .read(profileTabsServiceProvider)
-                .achievements(widget.userId),
-          ),
-        );
-      }
-      if (!snapshot.hasData) {
-        return const Center(child: CircularProgressIndicator());
-      }
-      final data = snapshot.data!;
-      final stats = data.stats;
-      return RefreshIndicator(
-        onRefresh: () async => setState(
-          () => _future = ref
-              .read(profileTabsServiceProvider)
-              .achievements(widget.userId),
-        ),
-        child: ListView(
-          key: PageStorageKey('profile-achievements-${widget.userId}'),
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(AppSpacing.screenPadding),
-          children: [
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  children: [
-                    Icon(
-                      AppIcons.award,
-                      color: _tierColor(data.tier),
-                      size: 54,
-                    ),
-                    Text(
-                      data.tier,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    Text(
-                      '${data.totalPoints} điểm',
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final rank in data.ranks)
-                  Chip(
-                    label: Text(
-                      '${rank.period}: ${rank.rank == null ? '—' : '#${rank.rank}'} · ${rank.points}đ',
-                    ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Wrap(
-                  spacing: 16,
-                  runSpacing: 12,
-                  children: [
-                    _metric('Thắng', stats.wins),
-                    _metric('Hòa', stats.draws),
-                    _metric('Thua', stats.losses),
-                    _metric('Trận', stats.matchesPlayed),
-                    _metric('Vô địch', stats.tournamentTitles),
-                    _metric('Á quân', stats.tournamentRunnerUps),
-                  ],
-                ),
-              ),
-            ),
-            if (data.recentTransactions.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              Text(
-                'Lịch sử điểm',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              for (final tx in data.recentTransactions)
-                ListTile(
-                  title: Text(tx.reason),
-                  leading: CircleAvatar(
-                    child: Text('${tx.points >= 0 ? '+' : ''}${tx.points}'),
-                  ),
-                  subtitle: Text(
-                    Dates.dateOnly(
-                      tx.occurredAt,
-                      locale: Localizations.localeOf(context).languageCode,
-                    ),
-                  ),
-                ),
-            ],
-            const SizedBox(height: AppSpacing.md),
-            OutlinedButton.icon(
-              onPressed: () => unawaited(
-                context.pushNamed(AppRoutes.nameLeaderboard),
-              ),
-              icon: const Icon(AppIcons.award),
-              label: Text(
-                AppLocalizations.of(context).leaderboardViewLeaderboard,
-              ),
-            ),
-          ],
-        ),
-      );
-    },
-  );
-}
-
-Widget _metric(String label, int value) => SizedBox(
-  width: 86,
-  child: Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        '$value',
-        style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold),
-      ),
-      Text(label),
-    ],
-  ),
-);
-Color _tierColor(String tier) => switch (tier) {
-  'GOLD' => Colors.amber,
-  'SILVER' => Colors.blueGrey,
-  'PLATINUM' => Colors.cyan,
-  'DIAMOND' => Colors.blue,
-  _ => Colors.brown,
-};
-
 class _HostedTab extends ConsumerStatefulWidget {
   const _HostedTab({required this.userId});
   final String userId;
@@ -862,7 +889,7 @@ class _HostedFilterChips extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+    padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
     child: SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
@@ -873,7 +900,7 @@ class _HostedFilterChips extends StatelessWidget {
               selected: selected == filter.value,
               onTap: () => onSelected(filter.value),
             ),
-            if (filter != _hostedFilters.last) const SizedBox(width: 12),
+            if (filter != _hostedFilters.last) const SizedBox(width: 8),
           ],
         ],
       ),
@@ -921,15 +948,15 @@ class _HostedFilterChip extends StatelessWidget {
         onTap: onTap,
         customBorder: const StadiumBorder(),
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 52),
+          constraints: const BoxConstraints(minHeight: 40),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             child: Center(
               child: Text(
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleMedium?.copyWith(
+                style: theme.textTheme.labelLarge?.copyWith(
                   color: foreground,
                   fontWeight: FontWeight.w700,
                 ),

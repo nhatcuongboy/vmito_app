@@ -7,6 +7,8 @@ import 'package:vmito_app/core/network/paginated.dart' as pagination;
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
+import 'package:vmito_app/features/leaderboard/domain/leaderboard.dart';
+import 'package:vmito_app/features/notification/application/notification_controller.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/data/profile_tabs_service.dart';
@@ -140,6 +142,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          notificationControllerProvider.overrideWith(
+            _FakeNotificationController.new,
+          ),
           currentUserProvider.overrideWithValue(_user),
           publicProfileProvider('user-1').overrideWith(
             (ref) async => const PublicProfileBundle(
@@ -162,6 +167,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+
+    expect(find.byKey(const ValueKey('profile-edit-button')), findsNothing);
 
     final posts = find.byKey(const PageStorageKey('profile-posts-user-1'));
     await tester.drag(posts, const Offset(0, -900));
@@ -186,7 +193,7 @@ void main() {
     expect(_opacity(tester, 'profile-compact-identity'), 1);
   });
 
-  testWidgets('fits overlapped avatar and edit action at 375dp', (
+  testWidgets('fits the overlapped avatar at 375dp without an edit action', (
     tester,
   ) async {
     tester.view.devicePixelRatio = 1;
@@ -197,6 +204,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          notificationControllerProvider.overrideWith(
+            _FakeNotificationController.new,
+          ),
           currentUserProvider.overrideWithValue(_user),
           publicProfileProvider('user-1').overrideWith(
             (ref) async => const PublicProfileBundle(
@@ -222,25 +232,114 @@ void main() {
 
     final cover = find.byKey(const ValueKey('profile-cover'));
     final avatar = find.byKey(const ValueKey('profile-avatar-44.0'));
-    final editButton = find.byKey(const ValueKey('profile-edit-button'));
-    expect(tester.getSize(cover).height, 150);
+    expect(tester.getSize(cover).height, closeTo(150, 4));
     expect(
       tester.getCenter(avatar).dy,
       closeTo(tester.getBottomLeft(cover).dy, 1),
     );
-    expect(editButton, findsOneWidget);
+    expect(find.byKey(const ValueKey('profile-edit-button')), findsNothing);
     expect(
-      tester.getTopRight(avatar).dx,
-      lessThanOrEqualTo(tester.getTopLeft(editButton).dx),
+      find.byKey(const ValueKey('profile-change-avatar-button')),
+      findsOneWidget,
     );
-    expect(find.text('Chỉnh sửa'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('profile-change-cover-button')),
+      findsOneWidget,
+    );
+    expect(
+      tester.getSize(
+        find.byKey(const ValueKey('profile-change-cover-visual')),
+      ),
+      const Size.square(34),
+    );
+    expect(
+      tester.getSize(
+        find.byKey(const ValueKey('profile-change-avatar-visual')),
+      ),
+      const Size.square(30),
+    );
+    expect(
+      find.byKey(const ValueKey('profile-cover-divider')),
+      findsOneWidget,
+    );
+    final avatarFrame = tester.widget<Container>(
+      find.byKey(const ValueKey('profile-avatar-frame')),
+    );
+    final avatarDecoration = avatarFrame.decoration as BoxDecoration;
+    expect(avatarDecoration.color, Colors.white);
+    expect(avatarFrame.padding, const EdgeInsets.all(3));
+    expect(avatarDecoration.boxShadow, isNotEmpty);
+
     expect(find.text('HOST'), findsNothing);
+
+    await tester.drag(
+      find.byKey(const PageStorageKey('profile-posts-user-1')),
+      const Offset(0, -900),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      find.byKey(const ValueKey('profile-change-avatar-button')),
+      findsNothing,
+    );
+    expect(
+      find.byKey(const ValueKey('profile-change-cover-button')),
+      findsNothing,
+    );
+  });
+
+  testWidgets('tab bar uses subtle separators on both edges', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          notificationControllerProvider.overrideWith(
+            _FakeNotificationController.new,
+          ),
+          currentUserProvider.overrideWithValue(_user),
+          publicProfileProvider('user-1').overrideWith(
+            (ref) async => const PublicProfileBundle(
+              profile: _profile,
+              stats: RatingStats(average: 4.8, total: 20),
+              ratings: [],
+              hostedSessionsCount: 34,
+            ),
+          ),
+          profileTabsServiceProvider.overrideWithValue(
+            const _FakeProfileTabsService(hasPosts: false),
+          ),
+        ],
+        child: const MaterialApp(
+          locale: Locale('vi'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: PublicProfileScreen(userId: 'user-1'),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final tabBar = tester.widget<DecoratedBox>(
+      find.byKey(const ValueKey('profile-tab-bar')),
+    );
+    final decoration = tabBar.decoration as BoxDecoration;
+    expect(decoration.border?.top.width, .5);
+    expect(decoration.border?.bottom.width, 1);
+    expect(
+      decoration.border?.top.color,
+      decoration.border?.bottom.color,
+    );
+    expect(
+      tester.widget<TabBar>(find.byType(TabBar)).dividerColor,
+      Colors.transparent,
+    );
   });
 
   testWidgets('renders hosted session filters as count chips', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          notificationControllerProvider.overrideWith(
+            _FakeNotificationController.new,
+          ),
           currentUserProvider.overrideWithValue(_user),
           publicProfileProvider('user-1').overrideWith(
             (ref) async => const PublicProfileBundle(
@@ -312,6 +411,11 @@ Future<void> _pumpHeader(
   VoidCallback? onMenuTap,
 }) => tester.pumpWidget(
   ProviderScope(
+    overrides: [
+      notificationControllerProvider.overrideWith(
+        _FakeNotificationController.new,
+      ),
+    ],
     child: MaterialApp(
       locale: const Locale('vi'),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -329,9 +433,13 @@ Future<void> _pumpHeader(
               menuTooltip: 'Mở menu',
               shareTooltip: 'Chia sẻ',
               settingsTooltip: 'Cài đặt',
+              changeCoverTooltip: 'Đổi ảnh bìa',
               onMenuTap: onMenuTap ?? _doNothing,
               onShare: _doNothing,
               onSettings: _doNothing,
+              coverProgress: null,
+              onChangeCover: _doNothing,
+              onViewCover: null,
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 1000)),
           ],
@@ -342,6 +450,14 @@ Future<void> _pumpHeader(
 );
 
 void _doNothing() {}
+
+class _FakeNotificationController extends NotificationController {
+  @override
+  NotificationState build() => const NotificationState();
+
+  @override
+  Future<void> refreshUnreadCount() async {}
+}
 
 class _FakeProfileTabsService implements ProfileTabsService {
   const _FakeProfileTabsService({this.hasPosts = true});
@@ -377,7 +493,7 @@ class _FakeProfileTabsService implements ProfileTabsService {
   @override
   Future<UserAchievements> achievements(String id) async => UserAchievements(
     totalPoints: 420,
-    tier: 'GOLD',
+    tier: RankingTier.gold,
     ranks: const [],
     stats: const UserAchievementStats(),
     recentTransactions: [

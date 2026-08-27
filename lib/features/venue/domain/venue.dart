@@ -232,6 +232,7 @@ class VenuePriceRule {
     required this.endMinute,
     required this.pricePerHour,
     this.daysOfWeek = const [],
+    this.specificDate,
   });
   factory VenuePriceRule.fromJson(Map<String, dynamic> json) => VenuePriceRule(
     dayType: json['dayType'] as String? ?? 'EVERYDAY',
@@ -243,6 +244,7 @@ class VenuePriceRule {
         .whereType<num>()
         .map((day) => day.toInt())
         .toList(growable: false),
+    specificDate: json['specificDate'] as String?,
   );
   final String dayType;
   final String customerType;
@@ -250,6 +252,7 @@ class VenuePriceRule {
   final int endMinute;
   final int pricePerHour;
   final List<int> daysOfWeek;
+  final String? specificDate;
 }
 
 class VenueFilter {

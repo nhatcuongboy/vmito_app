@@ -91,6 +91,36 @@ void main() {
     }
   });
 
+  test('AppTheme distinguishes selected navigation destinations', () {
+    for (final theme in [AppTheme.light, AppTheme.dark]) {
+      final navigationTheme = theme.navigationBarTheme;
+      final selectedStates = <WidgetState>{WidgetState.selected};
+      final unselectedStates = <WidgetState>{};
+      final selectedIcon = navigationTheme.iconTheme?.resolve(selectedStates);
+      final unselectedIcon = navigationTheme.iconTheme?.resolve(
+        unselectedStates,
+      );
+      final selectedLabel = navigationTheme.labelTextStyle?.resolve(
+        selectedStates,
+      );
+      final unselectedLabel = navigationTheme.labelTextStyle?.resolve(
+        unselectedStates,
+      );
+
+      expect(navigationTheme.height, AppSizes.bottomNavHeight);
+      expect(selectedIcon?.size, 24);
+      expect(unselectedIcon?.size, 24);
+      expect(selectedIcon?.color, theme.colorScheme.primary);
+      expect(
+        unselectedIcon?.color,
+        theme.extension<AppPalette>()!.mutedForeground,
+      );
+      expect(selectedLabel?.color, theme.colorScheme.primary);
+      expect(selectedLabel?.fontWeight, FontWeight.w600);
+      expect(unselectedLabel?.fontWeight, FontWeight.w400);
+    }
+  });
+
   testWidgets('form labels show the correct marker and semantics', (
     tester,
   ) async {

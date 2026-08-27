@@ -1,11 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/app_shell_scaffold_key.dart';
+import 'package:vmito_app/core/shell/tab_reselection_controller.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
+import 'package:vmito_app/core/widgets/newsfeed_badge_icon.dart';
 import 'package:vmito_app/core/widgets/slide_out_menu.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -103,32 +107,35 @@ class _AppShellState extends ConsumerState<AppShell> {
                       border: Border(top: BorderSide(color: palette.border)),
                     ),
                     child: NavigationBar(
+                      maintainBottomViewPadding: true,
                       selectedIndex: widget.navigationShell.currentIndex,
                       onDestinationSelected: _onDestinationSelected,
                       destinations: [
                         NavigationDestination(
                           icon: const Icon(AppIcons.home),
-                          selectedIcon: const Icon(AppIcons.home),
                           label: l10n.navHome,
                         ),
                         NavigationDestination(
                           icon: const Icon(AppIcons.sessions),
-                          selectedIcon: const Icon(AppIcons.sessions),
                           label: l10n.navSessions,
                         ),
                         NavigationDestination(
-                          icon: const Icon(AppIcons.feed),
-                          selectedIcon: const Icon(AppIcons.feed),
+                          icon: NewsfeedBadgeIcon(
+                            icon: AppIcons.feed,
+                            semanticLabel: l10n.navFeed,
+                          ),
+                          selectedIcon: NewsfeedBadgeIcon(
+                            icon: AppIcons.feed,
+                            semanticLabel: l10n.navFeed,
+                          ),
                           label: l10n.navFeed,
                         ),
                         NavigationDestination(
                           icon: const Icon(AppIcons.favorite),
-                          selectedIcon: const Icon(AppIcons.favorite),
                           label: l10n.navFavorites,
                         ),
                         NavigationDestination(
                           icon: const Icon(AppIcons.profile),
-                          selectedIcon: const Icon(AppIcons.profile),
                           label: l10n.navProfile,
                         ),
                       ],
@@ -142,12 +149,24 @@ class _AppShellState extends ConsumerState<AppShell> {
   }
 
   void _onDestinationSelected(int index) {
+    final isCurrentTab = index == widget.navigationShell.currentIndex;
+    final isAtTabRoot =
+        GoRouterState.of(context).uri.path ==
+        AppRoutes.shellDestinations[index];
+
+    if (isCurrentTab && isAtTabRoot) {
+      unawaited(
+        ref.read(tabReselectionControllerProvider).handleReselect(index),
+      );
+      return;
+    }
+
     // `initialLocation: true` when re-tapping the current tab pops it back to
     // its root — the behaviour every native app has, and the only way out of a
     // deep stack without hunting for the back button.
     widget.navigationShell.goBranch(
       index,
-      initialLocation: index == widget.navigationShell.currentIndex,
+      initialLocation: isCurrentTab,
     );
   }
 }

@@ -1,0 +1,99 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/shell/app_shell.dart';
+import 'package:vmito_app/core/theme/app_theme.dart';
+import 'package:vmito_app/core/widgets/newsfeed_badge_icon.dart';
+import 'package:vmito_app/features/auth/application/auth_controller.dart';
+import 'package:vmito_app/features/auth/domain/user.dart';
+import 'package:vmito_app/features/social/application/newsfeed_badge_controller.dart';
+import 'package:vmito_app/l10n/app_localizations.dart';
+
+class _TestAuthController extends AuthController {
+  @override
+  AuthState build() => const AuthState(
+    status: AuthStatus.authenticated,
+    user: User(
+      id: 'user-1',
+      email: 'user@example.test',
+      role: UserRole.player,
+    ),
+  );
+}
+
+class _TestBadgeController extends NewsfeedBadgeController {
+  _TestBadgeController(this.count);
+
+  final int count;
+
+  @override
+  NewsfeedBadgeState build() => NewsfeedBadgeState(count: count);
+}
+
+GoRouter _router() => GoRouter(
+  initialLocation: AppRoutes.home,
+  routes: [
+    StatefulShellRoute.indexedStack(
+      builder: (_, _, navigationShell) =>
+          AppShell(navigationShell: navigationShell),
+      branches: [
+        for (final path in AppRoutes.shellDestinations)
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: path,
+                builder: (_, _) => Scaffold(body: Text(path)),
+              ),
+            ],
+          ),
+      ],
+    ),
+  ],
+);
+
+Widget _harness(GoRouter router, int count) => ProviderScope(
+  overrides: [
+    authControllerProvider.overrideWith(_TestAuthController.new),
+    newsfeedBadgeControllerProvider.overrideWith(
+      () => _TestBadgeController(count),
+    ),
+  ],
+  child: MaterialApp.router(
+    locale: const Locale('vi'),
+    theme: AppTheme.light,
+    routerConfig: router,
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+  ),
+);
+
+void main() {
+  testWidgets('bottom navigation shows the shared newsfeed badge', (
+    tester,
+  ) async {
+    final router = _router();
+    addTearDown(router.dispose);
+
+    await tester.pumpWidget(_harness(router, 6));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(NewsfeedBadgeIcon), findsWidgets);
+    expect(find.text('6'), findsWidgets);
+    expect(
+      tester.getSemantics(find.byType(NewsfeedBadgeIcon).first).label,
+      contains('Bảng tin: 6'),
+    );
+  });
+
+  testWidgets('bottom navigation hides a zero badge', (tester) async {
+    final router = _router();
+    addTearDown(router.dispose);
+
+    await tester.pumpWidget(_harness(router, 0));
+    await tester.pumpAndSettle();
+
+    expect(find.text('0'), findsNothing);
+  });
+}

@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/app_shell_scaffold_key.dart';
+import 'package:vmito_app/core/shell/tab_reselection_controller.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
@@ -72,11 +73,18 @@ class _FeedTab extends ConsumerStatefulWidget {
 
 class _FeedTabState extends ConsumerState<_FeedTab> {
   final _scrollController = ScrollController();
+  late final VoidCallback _removeReselectHandler;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _removeReselectHandler = ref
+        .read(tabReselectionControllerProvider)
+        .register(
+          tabIndex: 2,
+          onReselect: () => scrollToTop(_scrollController),
+        );
     unawaited(
       Future<void>.microtask(
         () => ref.read(feedControllerProvider.notifier).load(),
@@ -86,6 +94,7 @@ class _FeedTabState extends ConsumerState<_FeedTab> {
 
   @override
   void dispose() {
+    _removeReselectHandler();
     _scrollController
       ..removeListener(_onScroll)
       ..dispose();
@@ -113,7 +122,9 @@ class _FeedTabState extends ConsumerState<_FeedTab> {
       );
     }
     return RefreshIndicator(
-      onRefresh: ref.read(feedControllerProvider.notifier).refresh,
+      onRefresh: () async {
+        await ref.read(feedControllerProvider.notifier).refresh();
+      },
       child: CustomScrollView(
         controller: _scrollController,
         slivers: [

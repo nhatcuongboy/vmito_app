@@ -22,6 +22,8 @@ import 'package:vmito_app/features/legal/presentation/legal_screen.dart';
 import 'package:vmito_app/features/notification/presentation/notifications_screen.dart';
 import 'package:vmito_app/features/payment/presentation/transaction_dashboard_screen.dart';
 import 'package:vmito_app/features/profile/presentation/account_security_screen.dart';
+import 'package:vmito_app/features/profile/presentation/change_password_screen.dart';
+import 'package:vmito_app/features/profile/presentation/edit_profile_screen.dart';
 import 'package:vmito_app/features/profile/presentation/profile_screen.dart';
 import 'package:vmito_app/features/profile/presentation/settings_screen.dart';
 import 'package:vmito_app/features/session/application/player/my_sessions_controller.dart';
@@ -429,6 +431,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 path: AppRoutes.profile,
                 name: AppRoutes.nameProfile,
                 builder: (context, state) => const ProfileScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'edit',
+                    name: AppRoutes.nameEditProfile,
+                    parentNavigatorKey: _rootNavigatorKey,
+                    builder: (context, state) => const EditProfileScreen(),
+                  ),
+                ],
               ),
               GoRoute(
                 path: AppRoutes.settings,
@@ -440,6 +450,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: AppRoutes.nameAccountSecurity,
                     parentNavigatorKey: _rootNavigatorKey,
                     builder: (context, state) => const AccountSecurityScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'change-password',
+                        name: AppRoutes.nameChangePassword,
+                        builder: (context, state) =>
+                            const ChangePasswordScreen(),
+                      ),
+                    ],
                   ),
                 ],
               ),

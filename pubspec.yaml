@@ -83,6 +83,7 @@ dependencies:
 
   # --- Platform utils -------------------------------------------------------
   url_launcher: ^6.3.2
+  flutter_inappwebview: ^6.1.5
   share_plus: ^13.3.0
   pdf: ^3.13.0
   printing: ^5.15.0

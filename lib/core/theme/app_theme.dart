@@ -142,6 +142,18 @@ abstract final class AppTheme {
         unselectedItemColor: palette.mutedForeground,
         type: BottomNavigationBarType.fixed,
       ),
+      navigationBarTheme: NavigationBarThemeData(
+        height: AppSizes.bottomNavHeight,
+        elevation: 0,
+        backgroundColor: scheme.surface,
+        surfaceTintColor: Colors.transparent,
+        indicatorColor: scheme.primary.withValues(alpha: 0.12),
+        indicatorShape: const StadiumBorder(),
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+        labelPadding: const EdgeInsets.only(top: AppSpacing.xxs),
+        iconTheme: _navigationIconTheme(scheme, palette),
+        labelTextStyle: _navigationLabelStyle(scheme, palette),
+      ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
@@ -203,5 +215,41 @@ abstract final class AppTheme {
       return TextStyle(color: scheme.primary);
     }
     return TextStyle(color: palette.mutedForeground);
+  });
+
+  static WidgetStateProperty<IconThemeData?> _navigationIconTheme(
+    ColorScheme scheme,
+    AppPalette palette,
+  ) => WidgetStateProperty.resolveWith((states) {
+    if (states.contains(WidgetState.disabled)) {
+      return IconThemeData(
+        color: scheme.onSurface.withValues(alpha: 0.38),
+        size: 24,
+      );
+    }
+    return IconThemeData(
+      color: states.contains(WidgetState.selected)
+          ? scheme.primary
+          : palette.mutedForeground,
+      size: 24,
+    );
+  });
+
+  static WidgetStateTextStyle _navigationLabelStyle(
+    ColorScheme scheme,
+    AppPalette palette,
+  ) => WidgetStateTextStyle.resolveWith((states) {
+    if (states.contains(WidgetState.disabled)) {
+      return TextStyle(
+        color: scheme.onSurface.withValues(alpha: 0.38),
+        fontSize: 12,
+      );
+    }
+    final selected = states.contains(WidgetState.selected);
+    return TextStyle(
+      color: selected ? scheme.primary : palette.mutedForeground,
+      fontSize: 12,
+      fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+    );
   });
 }

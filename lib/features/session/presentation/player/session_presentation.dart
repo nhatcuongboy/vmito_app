@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -32,7 +33,7 @@ String? sessionDetailTimeLabel(Session session, String locale) {
   return end == null ? from : '$from - ${Dates.timeOnly(end, locale: locale)}';
 }
 
-/// `Hôm nay, 02/08/2026` — relative day, then the full date.
+/// `Hôm nay, 02/08/2026` for nearby sessions, or `Th 6, 28/08/2026`.
 String? sessionDetailDateLabel(
   Session session,
   AppLocalizations l10n,
@@ -47,7 +48,16 @@ String? sessionDetailDateLabel(
     tomorrowLabel: l10n.dateTomorrow,
     yesterdayLabel: l10n.dateYesterday,
   );
-  return '$day, ${Dates.dateOnly(start, locale: locale)}';
+  final date = Dates.dateOnly(start, locale: locale);
+  final relativeDays = {
+    l10n.dateToday,
+    l10n.dateTomorrow,
+    l10n.dateYesterday,
+  };
+  if (relativeDays.contains(day)) return '$day, $date';
+
+  final weekday = DateFormat('EEE', locale).format(start.toLocal());
+  return '$weekday, $date';
 }
 
 String? sessionPriceLabel(Session session, String locale) {

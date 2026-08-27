@@ -30,6 +30,11 @@ Widget _app() {
         name: AppRoutes.nameTerms,
         builder: (_, _) => _destination('Legal destination'),
       ),
+      GoRoute(
+        path: AppRoutes.editProfile,
+        name: AppRoutes.nameEditProfile,
+        builder: (_, _) => _destination('Edit profile destination'),
+      ),
     ],
   );
   return ProviderScope(
@@ -61,6 +66,15 @@ void main() {
     await tester.tap(find.text('Điều khoản và chính sách'));
     await tester.pumpAndSettle();
     expect(find.text('Legal destination'), findsOneWidget);
+  });
+
+  testWidgets('opens the profile editing screen', (tester) async {
+    await tester.pumpWidget(_app());
+    await tester.pump();
+
+    await tester.tap(find.byKey(const ValueKey('settings-edit-profile')));
+    await tester.pumpAndSettle();
+    expect(find.text('Edit profile destination'), findsOneWidget);
   });
 
   testWidgets('opens and closes About Vmito dialog', (tester) async {

@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/shell/tab_reselection_controller.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -33,11 +34,18 @@ class BrowseSessionsContent extends ConsumerStatefulWidget {
 class _BrowseSessionsContentState extends ConsumerState<BrowseSessionsContent> {
   final _scrollController = ScrollController();
   bool _hasLoaded = false;
+  late final VoidCallback _removeReselectHandler;
 
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    _removeReselectHandler = ref
+        .read(tabReselectionControllerProvider)
+        .register(
+          tabIndex: 0,
+          onReselect: () => scrollToTop(_scrollController),
+        );
     // The controller cannot fetch in build(), so kick off the first load once
     // the frame is committed.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -63,6 +71,7 @@ class _BrowseSessionsContentState extends ConsumerState<BrowseSessionsContent> {
 
   @override
   void dispose() {
+    _removeReselectHandler();
     _scrollController.dispose();
     super.dispose();
   }

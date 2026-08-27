@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/app_shell_scaffold_key.dart';
+import 'package:vmito_app/core/shell/tab_reselection_controller.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -39,6 +40,7 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
   final _searchQueries = <MySessionScope, String>{};
   final _browseSnapshots = <MySessionScope, MySessionsState>{};
   bool _isFabExtended = true;
+  late final VoidCallback _removeReselectHandler;
 
   @override
   void initState() {
@@ -47,11 +49,18 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
       _scrollControllers[scope] = ScrollController()
         ..addListener(() => _onScroll(scope));
     }
+    _removeReselectHandler = ref
+        .read(tabReselectionControllerProvider)
+        .register(
+          tabIndex: 1,
+          onReselect: () => scrollToTop(_scrollControllers[_scope]!),
+        );
     WidgetsBinding.instance.addPostFrameCallback((_) => _loadScope(_scope));
   }
 
   @override
   void dispose() {
+    _removeReselectHandler();
     for (final controller in _scrollControllers.values) {
       controller.dispose();
     }

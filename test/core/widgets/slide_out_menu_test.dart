@@ -8,6 +8,7 @@ import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/core/widgets/slide_out_menu.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
+import 'package:vmito_app/features/social/application/newsfeed_badge_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 class _TestAuthController extends AuthController {
@@ -17,6 +18,11 @@ class _TestAuthController extends AuthController {
 
   @override
   AuthState build() => _state;
+}
+
+class _TestNewsfeedBadgeController extends NewsfeedBadgeController {
+  @override
+  NewsfeedBadgeState build() => const NewsfeedBadgeState(count: 5);
 }
 
 Widget _screen(String label) => Scaffold(
@@ -42,6 +48,7 @@ GoRouter _buildRouter() => GoRouter(
       builder: (_, _) => _screen('Sessions'),
     ),
     GoRoute(path: AppRoutes.leaderboard, builder: (_, _) => _screen('Rank')),
+    GoRoute(path: AppRoutes.feed, builder: (_, _) => _screen('Feed')),
     GoRoute(path: AppRoutes.manageClubs, builder: (_, _) => _screen('Groups')),
     GoRoute(
       path: AppRoutes.transactions,
@@ -62,6 +69,9 @@ GoRouter _buildRouter() => GoRouter(
 Widget _harness(AuthState state, GoRouter router) => ProviderScope(
   overrides: [
     authControllerProvider.overrideWith(() => _TestAuthController(state)),
+    newsfeedBadgeControllerProvider.overrideWith(
+      _TestNewsfeedBadgeController.new,
+    ),
   ],
   child: MaterialApp.router(
     locale: const Locale('vi'),
@@ -118,6 +128,7 @@ void main() {
     expect(find.text('Tìm nhóm'), findsOneWidget);
     expect(find.text('Tìm giải'), findsOneWidget);
     expect(find.text('Bảng xếp hạng'), findsOneWidget);
+    expect(find.text('Bảng tin'), findsNothing);
     expect(find.text('Quản lý'), findsNothing);
     expect(find.text('Cài đặt'), findsNothing);
     expect(find.text('Đăng xuất'), findsNothing);
@@ -191,6 +202,8 @@ void main() {
     expect(find.text('Nhật Cường'), findsOneWidget);
     expect(find.text('Chủ kèo'), findsOneWidget);
     expect(find.text('Quản lý'), findsOneWidget);
+    expect(find.text('Bảng tin'), findsOneWidget);
+    expect(find.text('5'), findsOneWidget);
     expect(find.text('Kèo'), findsOneWidget);
     expect(find.text('Nhóm'), findsOneWidget);
     expect(find.text('Giao dịch'), findsOneWidget);

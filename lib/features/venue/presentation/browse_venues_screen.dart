@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/constants/image_constants.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/shell/tab_reselection_controller.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_address_text.dart';
@@ -44,10 +45,19 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
   final _search = TextEditingController();
   final _scroll = ScrollController();
   Timer? _debounce;
+  VoidCallback? _removeReselectHandler;
   @override
   void initState() {
     super.initState();
     _scroll.addListener(_onScroll);
+    if (widget.embedded) {
+      _removeReselectHandler = ref
+          .read(tabReselectionControllerProvider)
+          .register(
+            tabIndex: 0,
+            onReselect: () => scrollToTop(_scroll),
+          );
+    }
     unawaited(
       Future<void>.microtask(
         () => ref
@@ -67,6 +77,7 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
 
   @override
   void dispose() {
+    _removeReselectHandler?.call();
     _debounce?.cancel();
     _search.dispose();
     _scroll.dispose();

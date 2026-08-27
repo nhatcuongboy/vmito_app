@@ -46,6 +46,13 @@ class SettingsScreen extends ConsumerWidget {
               title: l10n.settingsAccount,
               children: [
                 ListTile(
+                  key: const ValueKey('settings-edit-profile'),
+                  leading: const Icon(AppIcons.edit),
+                  title: Text(l10n.profileEditTitle),
+                  trailing: const Icon(AppIcons.chevronRight),
+                  onTap: () => context.pushNamed(AppRoutes.nameEditProfile),
+                ),
+                ListTile(
                   leading: const Icon(AppIcons.shield),
                   title: Text(l10n.settingsAccountSecurity),
                   trailing: const Icon(AppIcons.chevronRight),

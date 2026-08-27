@@ -36,6 +36,8 @@ abstract class User with _$User {
     String? coverPhotoPublicId,
     String? phone,
     String? gender,
+    int? level,
+    String? levelDescription,
 
     // Guest-only. A guest has no JWT: identity is the player/session pair
     // obtained from a join code.

@@ -11,7 +11,7 @@ import 'package:vmito_app/core/config/app_config.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
-import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/core/web/app_web_view.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
@@ -24,70 +24,28 @@ import 'package:vmito_app/features/tournament/domain/tournament_pulse.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
-class TournamentDetailScreen extends ConsumerStatefulWidget {
+class TournamentDetailScreen extends ConsumerWidget {
   const TournamentDetailScreen({required this.idOrSlug, super.key});
 
   final String idOrSlug;
 
   @override
-  ConsumerState<TournamentDetailScreen> createState() =>
-      _TournamentDetailScreenState();
-}
-
-class _TournamentDetailScreenState extends ConsumerState<TournamentDetailScreen>
-    with WidgetsBindingObserver {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addObserver(this);
-  }
-
-  @override
-  void dispose() {
-    WidgetsBinding.instance.removeObserver(this);
-    super.dispose();
-  }
-
-  @override
-  void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed) {
-      unawaited(
-        ref
-            .read(tournamentDetailControllerProvider(widget.idOrSlug).notifier)
-            .refresh(),
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final detail = ref.watch(
-      tournamentDetailControllerProvider(widget.idOrSlug),
-    );
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.tournamentDetailTitle)),
-      body: detail.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) => AppErrorView(
-          error: error,
-          onRetry: () => ref.invalidate(
-            tournamentDetailControllerProvider(widget.idOrSlug),
-          ),
-        ),
-        data: (state) => TournamentHomeContent(
-          state: state,
-          onRefresh: () => ref
-              .read(
-                tournamentDetailControllerProvider(widget.idOrSlug).notifier,
-              )
-              .refresh(),
-          onRetryMatches: () => ref
-              .read(
-                tournamentDetailControllerProvider(widget.idOrSlug).notifier,
-              )
-              .refreshLiveSections(),
-        ),
+    final title =
+        ref.watch(tournamentTitleProvider(idOrSlug)).value ??
+        l10n.tournamentDetailTitle;
+    final language = Localizations.localeOf(context).languageCode;
+    final locale = language == 'zh' ? 'cn' : language;
+    final path =
+        '/${Uri(
+          pathSegments: [locale, 'tournament', idOrSlug],
+          queryParameters: const {'embedded': '1'},
+        )}';
+    return AppWebViewPage(
+      page: AppWebPage(
+        path: path,
+        title: title,
       ),
     );
   }
@@ -98,6 +56,7 @@ class TournamentHomeContent extends ConsumerWidget {
     required this.state,
     required this.onRefresh,
     required this.onRetryMatches,
+    super.key,
   });
 
   final TournamentDetailState state;
@@ -855,7 +814,7 @@ class _CompetitionSheet extends StatelessWidget {
                           for (final (index, item)
                               in category.tiebreakers.indexed)
                             Text(
-                              '${index + 1}. ${item['label'] ?? item['id'] ?? '—'}',
+                              '${index + 1}. ${_tiebreakerLabel(item, l10n)}',
                             ),
                         ],
                       ],
@@ -902,6 +861,17 @@ class _CompetitionSheet extends StatelessWidget {
       l10n.tournamentDetailRoundRobinPlayoff,
     TournamentCategoryFormat.doubleElimination =>
       l10n.tournamentDetailDoubleElimination,
+  };
+
+  static String _tiebreakerLabel(
+    Map<String, dynamic> item,
+    AppLocalizations l10n,
+  ) => switch (item['id']) {
+    'total_points' => l10n.tournamentDetailTiebreakerTotalPoints,
+    'game_differential' => l10n.tournamentDetailTiebreakerGameDifferential,
+    'total_wins' => l10n.tournamentDetailTiebreakerTotalWins,
+    'point_differential' => l10n.tournamentDetailTiebreakerPointDifferential,
+    _ => item['label']?.toString() ?? item['id']?.toString() ?? '—',
   };
 }
 
@@ -1569,9 +1539,13 @@ Future<void> _openTournamentWeb(
   BuildContext context,
   TournamentDetail tournament,
   String segment,
-) => _launchExternal(
+) => AppWebView.open(
   context,
-  Uri.parse('${_publicUrl(context, tournament)}/$segment'),
+  ProviderScope.containerOf(context),
+  AppWebPage(
+    title: tournament.name,
+    path: '${_publicPath(context, tournament)}/$segment',
+  ),
 );
 
 Future<void> _openManage(
@@ -1579,16 +1553,25 @@ Future<void> _openManage(
   TournamentDetail tournament,
   String option,
 ) {
-  final uri = Uri.parse(
-    '${_publicUrl(context, tournament)}/manage',
-  ).replace(queryParameters: {'option': option});
-  return _launchExternal(context, uri);
+  final path = Uri(
+    path: '${_publicPath(context, tournament)}/manage',
+    queryParameters: {'option': option},
+  ).toString();
+  return AppWebView.open(
+    context,
+    ProviderScope.containerOf(context),
+    AppWebPage(path: path, title: tournament.name, requiresAuth: true),
+  );
 }
 
 String _publicUrl(BuildContext context, TournamentDetail tournament) {
+  return '${AppConfig.webBaseUrl}${_publicPath(context, tournament)}';
+}
+
+String _publicPath(BuildContext context, TournamentDetail tournament) {
   final language = Localizations.localeOf(context).languageCode;
   final locale = language == 'zh' ? 'cn' : language;
-  return '${AppConfig.webBaseUrl}/$locale/tournament/${tournament.slug}';
+  return '/$locale/tournament/${tournament.slug}';
 }
 
 Future<void> _shareTournament(

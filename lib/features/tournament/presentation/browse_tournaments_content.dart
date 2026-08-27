@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/constants/image_constants.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/shell/tab_reselection_controller.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -32,9 +33,18 @@ class BrowseTournamentsContent extends ConsumerStatefulWidget {
 
 class _BrowseTournamentsContentState
     extends ConsumerState<BrowseTournamentsContent> {
+  final _scrollController = ScrollController();
+  late final VoidCallback _removeReselectHandler;
+
   @override
   void initState() {
     super.initState();
+    _removeReselectHandler = ref
+        .read(tabReselectionControllerProvider)
+        .register(
+          tabIndex: 0,
+          onReselect: () => scrollToTop(_scrollController),
+        );
     unawaited(
       Future<void>.microtask(
         () => ref
@@ -51,6 +61,8 @@ class _BrowseTournamentsContentState
 
   @override
   void dispose() {
+    _removeReselectHandler();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -72,6 +84,7 @@ class _BrowseTournamentsContentState
               _ when state.error != null && state.tournaments.isEmpty =>
                 AppErrorView(error: state.error!, onRetry: controller.load),
               _ when state.tournaments.isEmpty => ListView(
+                controller: _scrollController,
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: [
                   SizedBox(height: MediaQuery.sizeOf(context).height * 0.25),
@@ -91,6 +104,7 @@ class _BrowseTournamentsContentState
                 ],
               ),
               _ => ListView.separated(
+                controller: _scrollController,
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(AppSpacing.md),
                 itemCount: state.tournaments.length,

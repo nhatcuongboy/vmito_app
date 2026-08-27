@@ -81,6 +81,7 @@ class ApiClient {
     Map<String, dynamic>? queryParameters,
     Options? options,
     CancelToken? cancelToken,
+    ProgressCallback? onSendProgress,
   }) {
     return _guard(
       () => _dio.post<T>(
@@ -89,6 +90,7 @@ class ApiClient {
         queryParameters: queryParameters,
         options: options,
         cancelToken: cancelToken,
+        onSendProgress: onSendProgress,
       ),
     );
   }

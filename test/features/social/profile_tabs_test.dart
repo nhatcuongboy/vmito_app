@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vmito_app/features/leaderboard/domain/leaderboard.dart';
 import 'package:vmito_app/features/social/domain/profile_tabs.dart';
 import 'package:vmito_app/features/social/domain/social_post.dart';
 import 'package:vmito_app/features/social/presentation/public_profile_screen.dart';
@@ -62,10 +63,65 @@ void main() {
       });
 
       expect(result.totalPoints, 420);
-      expect(result.tier, 'GOLD');
+      expect(result.tier, RankingTier.gold);
       expect(result.ranks.single.rank, 4);
       expect(result.stats.wins, 8);
       expect(result.recentTransactions.single.points, 15);
+    });
+
+    test('parses complete tier, progress, stats, and transaction data', () {
+      final value = UserAchievements.fromJson({
+        'sport': 'BADMINTON',
+        'totalPoints': 1750,
+        'hostPoints': 80,
+        'tier': 'GOLD',
+        'nextTier': {'nextTier': 'PLATINUM', 'pointsToNext': 2250},
+        'ranks': [
+          {'period': 'week', 'rank': 3, 'points': 90},
+        ],
+        'stats': {
+          'wins': 8,
+          'draws': 2,
+          'losses': 4,
+          'matchesPlayed': 14,
+          'sessionsPlayed': 6,
+          'sessionsHosted': 1,
+          'tournamentTitles': 2,
+          'tournamentRunnerUps': 1,
+        },
+        'recentTransactions': [
+          {
+            'id': 'tx-1',
+            'points': 20,
+            'reason': 'TOURNAMENT_MATCH_WIN',
+            'refType': 'TOURNAMENT_MATCH',
+            'refId': 'match-1',
+            'occurredAt': '2026-08-20T10:00:00.000Z',
+          },
+        ],
+      });
+
+      expect(value.sport, 'BADMINTON');
+      expect(value.hostPoints, 80);
+      expect(value.nextTier?.tier, RankingTier.platinum);
+      expect(value.nextTier?.pointsToNext, 2250);
+      expect(value.stats.sessionsPlayed, 6);
+      expect(value.stats.sessionsHosted, 1);
+      expect(value.recentTransactions.single.refId, 'match-1');
+    });
+
+    test('uses safe defaults and keeps absent periods absent', () {
+      final value = UserAchievements.fromJson(const {});
+
+      expect(value.sport, 'BADMINTON');
+      expect(value.totalPoints, 0);
+      expect(value.hostPoints, 0);
+      expect(value.tier, RankingTier.bronze);
+      expect(value.nextTier, isNull);
+      expect(value.ranks, isEmpty);
+      expect(value.stats.matchesPlayed, 0);
+      expect(value.recentTransactions, isEmpty);
+      expect(value.ranks.any((rank) => rank.period == 'all'), isFalse);
     });
   });
 

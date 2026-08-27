@@ -8,6 +8,10 @@ void main() {
       expect(AppRoutes.stripLocale('/en/sessions/abc'), '/sessions/abc');
       expect(AppRoutes.stripLocale('/cn/sessions/abc'), '/sessions/abc');
       expect(AppRoutes.stripLocale('/vi/leaderboard'), '/leaderboard');
+      expect(
+        AppRoutes.stripLocale('/vi/tournament/vmito-open'),
+        '/tournaments/vmito-open',
+      );
     });
 
     test('maps a bare locale root to /', () {
@@ -17,6 +21,10 @@ void main() {
 
     test('leaves a path without a locale alone', () {
       expect(AppRoutes.stripLocale('/sessions/abc'), '/sessions/abc');
+      expect(
+        AppRoutes.stripLocale('/tournament/vmito-open'),
+        '/tournaments/vmito-open',
+      );
     });
 
     test('does not strip a segment that merely starts with a locale code', () {
@@ -37,6 +45,7 @@ void main() {
         expect(AppRoutes.isPublic(AppRoutes.join), isTrue);
         expect(AppRoutes.isPublic(AppRoutes.scanQr), isTrue);
         expect(AppRoutes.isPublic(AppRoutes.publicProfile('u1')), isTrue);
+        expect(AppRoutes.isPublic(AppRoutes.tournamentDetail('t1')), isTrue);
         expect(AppRoutes.isPublic(AppRoutes.signUp), isTrue);
         expect(AppRoutes.isPublic(AppRoutes.forgotPassword), isTrue);
         expect(AppRoutes.isPublic(AppRoutes.resetPassword), isTrue);
@@ -54,6 +63,8 @@ void main() {
       // public and the auth gate never fired.
       expect(AppRoutes.isPublic(AppRoutes.browseSessions), isFalse);
       expect(AppRoutes.isPublic('/profile'), isFalse);
+      expect(AppRoutes.isPublic(AppRoutes.editProfile), isFalse);
+      expect(AppRoutes.isPublic(AppRoutes.changePassword), isFalse);
       expect(AppRoutes.isPublic(AppRoutes.feed), isFalse);
       expect(AppRoutes.isPublic(AppRoutes.manageClubs), isFalse);
       expect(AppRoutes.isPublic(AppRoutes.createClub), isFalse);
@@ -85,6 +96,20 @@ void main() {
     test('only matches on a segment boundary', () {
       expect(AppRoutes.isPublic('/sessions/abc'), isTrue);
       expect(AppRoutes.isPublic('/sessionsecret'), isFalse);
+    });
+  });
+
+  group('isFeedLocation', () {
+    test('recognizes the feed root and a post detail', () {
+      expect(AppRoutes.isFeedLocation(AppRoutes.feed), isTrue);
+      expect(AppRoutes.isFeedLocation(AppRoutes.socialPost('post-1')), isTrue);
+    });
+
+    test('excludes management and unrelated routes', () {
+      expect(AppRoutes.isFeedLocation(AppRoutes.manageClubs), isFalse);
+      expect(AppRoutes.isFeedLocation(AppRoutes.manageClub('club-1')), isFalse);
+      expect(AppRoutes.isFeedLocation('/feed/clubs/club-1'), isFalse);
+      expect(AppRoutes.isFeedLocation(AppRoutes.home), isFalse);
     });
   });
 

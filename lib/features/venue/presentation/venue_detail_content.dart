@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
 import 'package:vmito_app/core/constants/image_constants.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
@@ -1035,6 +1036,14 @@ class _PricingCard extends StatelessWidget {
               );
             }
             final groups = _pricingGroups(book.rules, l10n);
+            if (groups.isEmpty) {
+              return Text(
+                l10n.venueNoPricing,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  height: 1.5,
+                ),
+              );
+            }
             return Column(
               children: [
                 for (
@@ -1063,14 +1072,21 @@ class _PricingCard extends StatelessWidget {
 }
 
 class _PricingGroup {
-  const _PricingGroup(this.day, this.rows);
+  const _PricingGroup(this.day, this.daySort, this.rows);
   final String day;
+  final int daySort;
   final List<_PricingRow> rows;
 }
 
 class _PricingRow {
-  const _PricingRow({required this.time, this.fixed, this.walkIn});
+  const _PricingRow({
+    required this.time,
+    required this.startMinute,
+    this.fixed,
+    this.walkIn,
+  });
   final String time;
+  final int startMinute;
   final int? fixed;
   final int? walkIn;
 }
@@ -1079,31 +1095,33 @@ List<_PricingGroup> _pricingGroups(
   List<VenuePriceRule> rules,
   AppLocalizations l10n,
 ) {
-  final grouped = <String, Map<String, (int?, int?)>>{};
+  final grouped = <String, (int, Map<String, _PricingRow>)>{};
   for (final rule in rules) {
+    if (rule.customerType != 'FIXED' && rule.customerType != 'WALK_IN') {
+      continue;
+    }
     final day = _dayLabel(rule, l10n);
-    final time = '${_time(rule.startMinute)} – ${_time(rule.endMinute)}';
-    final current = grouped.putIfAbsent(day, () => {})[time] ?? (null, null);
-    grouped[day]![time] = rule.customerType == 'FIXED'
-        ? (rule.pricePerHour, current.$2)
-        : (current.$1, rule.pricePerHour);
+    final time = '${_time(rule.startMinute)} - ${_time(rule.endMinute)}';
+    final group = grouped.putIfAbsent(
+      day,
+      () => (_daySort(rule), <String, _PricingRow>{}),
+    );
+    final current = group.$2[time];
+    group.$2[time] = _PricingRow(
+      time: time,
+      startMinute: rule.startMinute,
+      fixed: rule.customerType == 'FIXED' ? rule.pricePerHour : current?.fixed,
+      walkIn: rule.customerType == 'WALK_IN'
+          ? rule.pricePerHour
+          : current?.walkIn,
+    );
   }
-  return grouped.entries
-      .map(
-        (entry) => _PricingGroup(
-          entry.key,
-          entry.value.entries
-              .map(
-                (row) => _PricingRow(
-                  time: row.key,
-                  fixed: row.value.$1,
-                  walkIn: row.value.$2,
-                ),
-              )
-              .toList(growable: false),
-        ),
-      )
-      .toList(growable: false);
+  final groups = grouped.entries.map((entry) {
+    final rows = entry.value.$2.values.toList()
+      ..sort((a, b) => a.startMinute.compareTo(b.startMinute));
+    return _PricingGroup(entry.key, entry.value.$1, rows);
+  }).toList()..sort((a, b) => a.daySort.compareTo(b.daySort));
+  return groups;
 }
 
 class _PricingGroupCard extends StatelessWidget {
@@ -1179,7 +1197,7 @@ class _PricingLine extends StatelessWidget {
         const SizedBox(width: AppSpacing.sm),
         if (same)
           Text(
-            '${_money(row.fixed!)}đ',
+            '${_money(row.fixed!)} đ',
             key: const Key('venue-price-collapsed-rate'),
             style: const TextStyle(fontWeight: FontWeight.bold),
           )
@@ -1188,9 +1206,9 @@ class _PricingLine extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (row.fixed != null)
-                Text('${l10n.venueFixedCustomer}: ${_money(row.fixed!)}đ'),
+                Text('${l10n.venueFixedCustomer}: ${_money(row.fixed!)} đ'),
               if (row.walkIn != null)
-                Text('${l10n.venueWalkInCustomer}: ${_money(row.walkIn!)}đ'),
+                Text('${l10n.venueWalkInCustomer}: ${_money(row.walkIn!)} đ'),
             ],
           ),
       ],
@@ -1452,12 +1470,22 @@ VenuePriceBook? activeVenuePriceBook(List<VenuePriceBook> values) {
                 !(book.notes?.trimLeft().startsWith('Tự động tạo từ') ?? false),
           )
           .toList()
-        ..sort((a, b) => b.priority.compareTo(a.priority));
+        ..sort((a, b) {
+          final priority = b.priority.compareTo(a.priority);
+          if (priority != 0) return priority;
+          return b.effectiveFrom.compareTo(a.effectiveFrom);
+        });
   return active.isEmpty ? null : active.first;
 }
 
 int? minimumVenuePrice(List<VenuePriceBook> values) {
-  final rules = activeVenuePriceBook(values)?.rules ?? const <VenuePriceRule>[];
+  final rules =
+      (activeVenuePriceBook(values)?.rules ?? const <VenuePriceRule>[])
+          .where(
+            (rule) =>
+                rule.customerType == 'FIXED' || rule.customerType == 'WALK_IN',
+          )
+          .toList();
   if (rules.isEmpty) return null;
   return rules
       .map((rule) => rule.pricePerHour)
@@ -1470,15 +1498,47 @@ String _dayLabel(VenuePriceRule rule, AppLocalizations l10n) =>
     switch (rule.dayType) {
       'EVERYDAY' => l10n.venueEveryDay,
       'WEEKEND' => l10n.venueWeekend,
-      'WEEKDAY' => l10n.venueWeekday,
-      _ => l10n.venueBySchedule,
+      'WEEKDAY' => _weekdayRangeLabel(rule.daysOfWeek, l10n),
+      'HOLIDAY' => l10n.venueHoliday,
+      'SPECIFIC_DATE' => _specificDateLabel(rule.specificDate, l10n),
+      _ => l10n.venueOtherDay,
     };
+
+String _weekdayRangeLabel(List<int> values, AppLocalizations l10n) {
+  final days = values.toSet().toList()..sort();
+  final key = days.join(',');
+  return switch (key) {
+    '' => l10n.venueBySchedule,
+    '1,2,3,4,5' => l10n.venueWeekday,
+    '6,7' => l10n.venueWeekend,
+    '1,2,3,4,5,6,7' => l10n.venueEveryDay,
+    _ => days.map((day) => l10n.venueWeekdayShort('$day')).join(', '),
+  };
+}
+
+String _specificDateLabel(String? value, AppLocalizations l10n) {
+  final date = DateTime.tryParse(value ?? '');
+  return date == null
+      ? l10n.venueOtherDay
+      : DateFormat.yMd(l10n.localeName).format(date);
+}
+
+int _daySort(VenuePriceRule rule) => switch (rule.dayType) {
+  'EVERYDAY' => 0,
+  'WEEKDAY' =>
+    rule.daysOfWeek.isEmpty
+        ? 1
+        : rule.daysOfWeek.reduce((a, b) => a < b ? a : b),
+  'WEEKEND' => 6,
+  'HOLIDAY' => 8,
+  _ => 9,
+};
 
 String _time(int minutes) =>
     '${minutes ~/ 60}h${minutes % 60 == 0 ? '' : (minutes % 60).toString().padLeft(2, '0')}';
 
 String _money(int value) => value.toString().replaceAllMapped(
-  RegExp(r'(?=(\d{3})+(?!\d))'),
+  RegExp(r'\B(?=(\d{3})+(?!\d))'),
   (_) => '.',
 );
 

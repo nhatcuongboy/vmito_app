@@ -1,12 +1,22 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
 import 'package:vmito_app/core/realtime/socket_client.dart';
 import 'package:vmito_app/core/realtime/socket_events.dart';
+import 'package:vmito_app/core/storage/token_storage.dart';
 import 'package:vmito_app/features/tournament/data/tournament_service.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_detail.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_podium.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
+
+final FutureProviderFamily<String, String> tournamentTitleProvider =
+    FutureProvider.family<String, String>((ref, idOrSlug) async {
+      final tournament = await ref
+          .watch(tournamentServiceProvider)
+          .detail(idOrSlug);
+      return tournament.name;
+    });
 
 class TournamentDetailState {
   const TournamentDetailState({
@@ -85,6 +95,7 @@ class TournamentDetailController extends AsyncNotifier<TournamentDetailState> {
       if (_tournamentId case final tournamentId?) {
         _socket?.leaveTournament(tournamentId);
       }
+      _socket?.dispose();
     });
     final tournament = await ref
         .read(tournamentServiceProvider)
@@ -93,7 +104,10 @@ class TournamentDetailController extends AsyncNotifier<TournamentDetailState> {
     final loaded = await _loadSections(tournament);
     if (loaded.effectiveStatus == TournamentStatus.preparing ||
         loaded.effectiveStatus == TournamentStatus.inProgress) {
-      _startRealtime(loaded.tournament.id);
+      _startRealtime(
+        loaded.tournament.id,
+        ref.read(tokenStorageProvider),
+      );
     }
     return loaded;
   }
@@ -110,22 +124,20 @@ class TournamentDetailController extends AsyncNotifier<TournamentDetailState> {
     Object? standingsError;
 
     await Future.wait([
-      service
-          .matches(tournament.id)
-          .then((value) => matches = value)
-          .catchError((Object error) {
-            matchesError = error;
-            return <TournamentMatch>[];
-          }),
-      service
-          .sponsors(tournament.id)
-          .then((value) => sponsors = value)
-          .catchError((Object error) {
-            sponsorsError = error;
-            return <TournamentSponsor>[];
-          }),
-      _loadStandings(
-        tournament.categories,
+      Future.sync(
+        () => service.matches(tournament.id),
+      ).then((value) => matches = value).catchError((Object error) {
+        matchesError = error;
+        return <TournamentMatch>[];
+      }),
+      Future.sync(
+        () => service.sponsors(tournament.id),
+      ).then((value) => sponsors = value).catchError((Object error) {
+        sponsorsError = error;
+        return <TournamentSponsor>[];
+      }),
+      Future.sync(
+        () => _loadStandings(tournament.categories),
       ).then((value) => standings = value).catchError((Object error) {
         standingsError = error;
         return <String, List<TournamentStandingGroup>>{};
@@ -155,27 +167,37 @@ class TournamentDetailController extends AsyncNotifier<TournamentDetailState> {
     return Map.fromEntries(entries);
   }
 
-  void _startRealtime(String tournamentId) {
-    final socket = ref.read(tournamentSocketClientProvider(tournamentId));
+  void _startRealtime(String tournamentId, TokenStorage tokenStorage) {
+    final socket = SocketClient(
+      tokenStorage: tokenStorage,
+      namespace: SocketNamespace.tournaments,
+      observedEvents: TournamentEvent.all,
+    );
     _socket = socket..connect();
     socket.joinTournament(tournamentId);
     _eventSubscription = socket.events
         .where((event) => event.data['tournamentId'] == tournamentId)
         .listen((event) {
           if (event.name == TournamentEvent.ended) {
-            final status = TournamentStatus.fromWire(
-              event.data['status'] as String?,
-            );
-            final current = state.value;
-            if (current != null) {
-              state = AsyncData(current.copyWith(statusOverride: status));
+            final wireStatus = event.data['status'] as String?;
+            if (wireStatus == 'FINISHED' || wireStatus == 'CANCELLED') {
+              final current = state.value;
+              if (current != null) {
+                state = AsyncData(
+                  current.copyWith(
+                    statusOverride: TournamentStatus.fromWire(wireStatus),
+                  ),
+                );
+              }
             }
             socket.leaveTournament(tournamentId);
+            _scheduleRealtimeRefresh(refreshStandings: true);
+            socket.dispose();
+            _socket = null;
+            return;
           }
           _scheduleRealtimeRefresh(
-            refreshStandings:
-                event.name == TournamentEvent.matchEnded ||
-                event.name == TournamentEvent.ended,
+            refreshStandings: event.name == TournamentEvent.matchEnded,
           );
         });
   }

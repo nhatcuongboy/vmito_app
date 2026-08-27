@@ -253,6 +253,74 @@ void main() {
     expect(pricingHeading.style?.fontSize, 16);
   });
 
+  testWidgets('shows the complete pricing row like the web venue detail', (
+    tester,
+  ) async {
+    final book = VenuePriceBook(
+      id: 'current-prices',
+      isActive: true,
+      effectiveFrom: DateTime(2026, 8),
+      priority: 10,
+      rules: const [
+        VenuePriceRule(
+          dayType: 'WEEKEND',
+          customerType: 'FIXED',
+          startMinute: 360,
+          endMinute: 1440,
+          pricePerHour: 150000,
+        ),
+        VenuePriceRule(
+          dayType: 'WEEKEND',
+          customerType: 'WALK_IN',
+          startMinute: 360,
+          endMinute: 1440,
+          pricePerHour: 130000,
+        ),
+      ],
+    );
+
+    await _pump(tester, priceBooks: AsyncData([book]));
+
+    expect(find.text('T7 - CN'), findsOneWidget);
+    expect(find.text('6h - 24h'), findsOneWidget);
+    expect(find.text('Cố định: 150.000 đ'), findsOneWidget);
+    expect(find.text('Vãng lai: 130.000 đ'), findsOneWidget);
+    expect(find.textContaining('.150.000'), findsNothing);
+  });
+
+  testWidgets('shows configured weekdays and specific dates', (tester) async {
+    final book = VenuePriceBook(
+      id: 'scheduled-prices',
+      isActive: true,
+      effectiveFrom: DateTime(2026, 8),
+      rules: const [
+        VenuePriceRule(
+          dayType: 'SPECIFIC_DATE',
+          specificDate: '2026-09-02',
+          customerType: 'WALK_IN',
+          startMinute: 480,
+          endMinute: 600,
+          pricePerHour: 120000,
+        ),
+        VenuePriceRule(
+          dayType: 'WEEKDAY',
+          daysOfWeek: [1, 3, 5],
+          customerType: 'FIXED',
+          startMinute: 360,
+          endMinute: 480,
+          pricePerHour: 100000,
+        ),
+      ],
+    );
+
+    await _pump(tester, priceBooks: AsyncData([book]));
+
+    expect(find.text('T2, T4, T6'), findsOneWidget);
+    expect(find.text('6h - 8h'), findsOneWidget);
+    expect(find.text('2/9/2026'), findsOneWidget);
+    expect(find.text('8h - 10h'), findsOneWidget);
+  });
+
   testWidgets(
     'shows the new-address badge only for the preferred new address',
     (
@@ -420,6 +488,68 @@ void main() {
 
   test('selects the minimum price from the active price book', () {
     expect(minimumVenuePrice([_book]), 80000);
+  });
+
+  test('ignores non-public customer types in the minimum price', () {
+    final book = VenuePriceBook(
+      id: 'customer-specific-prices',
+      isActive: true,
+      effectiveFrom: DateTime(2026),
+      rules: const [
+        VenuePriceRule(
+          dayType: 'EVERYDAY',
+          customerType: 'STUDENT',
+          startMinute: 360,
+          endMinute: 1440,
+          pricePerHour: 50000,
+        ),
+        VenuePriceRule(
+          dayType: 'EVERYDAY',
+          customerType: 'WALK_IN',
+          startMinute: 360,
+          endMinute: 1440,
+          pricePerHour: 130000,
+        ),
+      ],
+    );
+
+    expect(minimumVenuePrice([book]), 130000);
+  });
+
+  test('selects the newest active price book when priorities are equal', () {
+    final older = VenuePriceBook(
+      id: 'older',
+      isActive: true,
+      effectiveFrom: DateTime(2026),
+      priority: 10,
+      rules: const [
+        VenuePriceRule(
+          dayType: 'EVERYDAY',
+          customerType: 'FIXED',
+          startMinute: 360,
+          endMinute: 1440,
+          pricePerHour: 150000,
+        ),
+      ],
+    );
+    final newer = VenuePriceBook(
+      id: 'newer',
+      isActive: true,
+      effectiveFrom: DateTime(2026, 8),
+      priority: 10,
+      rules: const [
+        VenuePriceRule(
+          dayType: 'EVERYDAY',
+          customerType: 'WALK_IN',
+          startMinute: 360,
+          endMinute: 1440,
+          pricePerHour: 130000,
+        ),
+      ],
+    );
+
+    expect(activeVenuePriceBook([older, newer])?.id, 'newer');
+    expect(minimumVenuePrice([older, newer]), 130000);
   });
 
   test('builds a Home route carrying the venue filter', () {

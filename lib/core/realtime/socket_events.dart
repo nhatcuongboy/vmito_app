@@ -25,6 +25,7 @@ abstract final class SessionEvent {
   static const notificationReceived = 'notification_received';
   static const favoriteUpdated = 'favorite_updated';
   static const postLikeUpdated = 'post_like_updated';
+  static const newPostCreated = 'new_post_created';
 
   static const all = <String>[
     sessionUpdated,
@@ -43,6 +44,7 @@ abstract final class SessionEvent {
     notificationReceived,
     favoriteUpdated,
     postLikeUpdated,
+    newPostCreated,
   ];
 }
 

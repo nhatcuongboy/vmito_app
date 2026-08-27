@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/profile/presentation/widgets/delete_account_dialog.dart';
@@ -18,6 +20,12 @@ class AccountSecurityScreen extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
           children: [
+            ListTile(
+              leading: const Icon(AppIcons.lock),
+              title: Text(l10n.profileChangePassword),
+              trailing: const Icon(AppIcons.chevronRight),
+              onTap: () => context.pushNamed(AppRoutes.nameChangePassword),
+            ),
             ListTile(
               leading: Icon(AppIcons.userMinus, color: theme.colorScheme.error),
               title: Text(

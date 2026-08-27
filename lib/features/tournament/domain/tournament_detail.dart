@@ -214,10 +214,18 @@ class TournamentCategory {
   String get pointsEarning =>
       _nullableString(roundRobinConfig['pointsEarning']) ?? 'match_results';
   int get winPoints => _nullableInteger(roundRobinConfig['winPoints']) ?? 2;
-  int get lossPoints => _nullableInteger(roundRobinConfig['lossPoints']) ?? 0;
-  int get tiePoints => _nullableInteger(roundRobinConfig['tiePoints']) ?? 1;
-  List<Map<String, dynamic>> get tiebreakers =>
-      _maps(roundRobinConfig['tiebreakers']);
+  int get lossPoints => _nullableInteger(roundRobinConfig['lossPoints']) ?? 1;
+  int get tiePoints => _nullableInteger(roundRobinConfig['tiePoints']) ?? 0;
+  List<Map<String, dynamic>> get tiebreakers {
+    final configured = _maps(roundRobinConfig['tiebreakers']);
+    if (configured.isNotEmpty) return configured;
+    return const [
+      {'id': 'total_points', 'label': 'totalPoints'},
+      {'id': 'game_differential', 'label': 'gameDifferential'},
+      {'id': 'total_wins', 'label': 'totalWins'},
+      {'id': 'point_differential', 'label': 'pointDifferential'},
+    ];
+  }
 }
 
 class TournamentVenue {
@@ -327,6 +335,8 @@ class TournamentMatch {
     this.sets = const [],
     this.winnerId,
     this.court,
+    this.player1Score,
+    this.player2Score,
   });
 
   factory TournamentMatch.fromJson(Map<String, dynamic> json) {
@@ -342,6 +352,8 @@ class TournamentMatch {
       score: _nullableString(json['score']),
       sets: _maps(json['sets']).map(TournamentMatchSet.fromJson).toList(),
       winnerId: _nullableString(json['winnerId']),
+      player1Score: _nullableInteger(json['player1Score']),
+      player2Score: _nullableInteger(json['player2Score']),
       participants: _maps(
         json['participants'],
       ).map(TournamentMatchParticipant.fromJson).toList(),
@@ -361,14 +373,18 @@ class TournamentMatch {
   final String? winnerId;
   final List<TournamentMatchParticipant> participants;
   final TournamentCourt? court;
+  final int? player1Score;
+  final int? player2Score;
 
   TournamentRegistration? side(int position) => participants
       .where((participant) => participant.position == position)
       .firstOrNull
       ?.registration;
 
-  int? get score1 => sets.isEmpty ? null : sets.last.player1Score;
-  int? get score2 => sets.isEmpty ? null : sets.last.player2Score;
+  int? get score1 =>
+      player1Score ?? (sets.isEmpty ? null : sets.last.player1Score);
+  int? get score2 =>
+      player2Score ?? (sets.isEmpty ? null : sets.last.player2Score);
 }
 
 class TournamentMatchSet {

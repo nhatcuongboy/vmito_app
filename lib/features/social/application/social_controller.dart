@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/features/auth/application/auth_controller.dart';
+import 'package:vmito_app/features/social/application/newsfeed_badge_controller.dart';
 import 'package:vmito_app/features/social/data/profile_tabs_service.dart';
 import 'package:vmito_app/features/social/data/social_service.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
@@ -60,7 +64,7 @@ class FeedController extends Notifier<FeedState> {
     }
   }
 
-  Future<void> refresh() async {
+  Future<bool> refresh() async {
     try {
       final result = await _service.feed(page: 1);
       state = FeedState(
@@ -68,8 +72,15 @@ class FeedController extends Notifier<FeedState> {
         page: result.page,
         hasMore: result.hasMore,
       );
+      if (ref.read(authControllerProvider).status == AuthStatus.authenticated) {
+        unawaited(
+          ref.read(newsfeedBadgeControllerProvider.notifier).markAsRead(),
+        );
+      }
+      return true;
     } on Object catch (error) {
       state = state.copyWith(error: error);
+      return false;
     }
   }
 

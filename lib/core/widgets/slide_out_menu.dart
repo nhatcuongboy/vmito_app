@@ -355,15 +355,20 @@ class _MenuSection extends StatelessWidget {
 
 class _MenuItem extends StatelessWidget {
   const _MenuItem({
-    required this.icon,
     required this.label,
+    this.icon,
+    this.leading,
     this.isActive = false,
     this.trailing,
     this.destructive = false,
     this.onTap,
-  });
+  }) : assert(
+         icon != null || leading != null,
+         'A menu item needs either an icon or a leading widget.',
+       );
 
-  final IconData icon;
+  final IconData? icon;
+  final Widget? leading;
   final String label;
   final bool isActive;
   final String? trailing;
@@ -387,7 +392,10 @@ class _MenuItem extends StatelessWidget {
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
         minTileHeight: 56,
-        leading: Icon(icon, color: color),
+        leading: IconTheme.merge(
+          data: IconThemeData(color: color),
+          child: leading ?? Icon(icon),
+        ),
         title: Text(
           label,
           style: theme.textTheme.titleMedium?.copyWith(

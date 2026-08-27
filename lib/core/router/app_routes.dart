@@ -61,8 +61,10 @@ abstract final class AppRoutes {
   static const favorites = '/favorites';
   static const transactions = '/transactions';
   static const profile = '/profile';
+  static const editProfile = '/profile/edit';
   static const settings = '/settings';
   static const accountSecurity = '/settings/account-security';
+  static const changePassword = '/settings/account-security/change-password';
   static const feedback = '/feedback';
   static const terms = '/terms';
   static const privacy = '/privacy';
@@ -84,6 +86,16 @@ abstract final class AppRoutes {
   static String editClub(String id) => '/feed/manage/$id/edit';
   static String clubFees(String id) => '/feed/manage/$id/fees';
   static String publicProfile(String id) => '/user/$id';
+
+  /// True for the feed root and one post detail, but not club-management
+  /// routes that happen to share the `/feed` shell branch.
+  static bool isFeedLocation(String location) {
+    final path = Uri.tryParse(location)?.path ?? location;
+    if (path == feed) return true;
+    final match = RegExp(r'^/feed/([^/]+)$').firstMatch(path);
+    if (match == null) return false;
+    return match.group(1) != 'manage' && match.group(1) != 'clubs';
+  }
 
   /// Routes that remain in a shell branch but need an uninterrupted workspace.
   static bool hidesBottomNavigation(String location) {
@@ -121,8 +133,10 @@ abstract final class AppRoutes {
   static const nameHome = 'home';
   static const nameLeaderboard = 'leaderboard';
   static const nameProfile = 'profile';
+  static const nameEditProfile = 'editProfile';
   static const nameSettings = 'settings';
   static const nameAccountSecurity = 'accountSecurity';
+  static const nameChangePassword = 'changePassword';
   static const nameFeedback = 'feedback';
   static const nameTerms = 'terms';
   static const namePrivacy = 'privacy';
@@ -192,11 +206,14 @@ abstract final class AppRoutes {
   /// so web URLs resolve against these paths.
   static String stripLocale(String location) {
     final match = RegExp(r'^/(vi|en|cn)(/|$)').firstMatch(location);
-    if (match == null) return location;
-    final rest = location.substring(
-      match.end - (match.group(2) == '/' ? 1 : 0),
-    );
-    final stripped = rest.isEmpty ? '/' : rest;
+    final stripped = match == null
+        ? location
+        : () {
+            final rest = location.substring(
+              match.end - (match.group(2) == '/' ? 1 : 0),
+            );
+            return rest.isEmpty ? '/' : rest;
+          }();
     return stripped.replaceFirst(RegExp('^/tournament/'), '/tournaments/');
   }
 }

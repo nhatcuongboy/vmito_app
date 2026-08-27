@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/app_shell_scaffold_key.dart';
+import 'package:vmito_app/core/shell/tab_reselection_controller.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
@@ -25,11 +26,26 @@ class FavoritesScreen extends ConsumerStatefulWidget {
 class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
   var _type = 'SESSION';
   late Future<List<FavoriteTarget>> _future;
+  final _scrollController = ScrollController();
+  late final VoidCallback _removeReselectHandler;
 
   @override
   void initState() {
     super.initState();
     _future = _load();
+    _removeReselectHandler = ref
+        .read(tabReselectionControllerProvider)
+        .register(
+          tabIndex: 3,
+          onReselect: () => scrollToTop(_scrollController),
+        );
+  }
+
+  @override
+  void dispose() {
+    _removeReselectHandler();
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<List<FavoriteTarget>> _load() async =>
@@ -105,6 +121,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
                   return _EmptyFavorites(l10n.favoritesEmpty);
                 }
                 return ListView.separated(
+                  controller: _scrollController,
                   key: PageStorageKey('favorites-$_type'),
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.all(AppSpacing.screenPadding),

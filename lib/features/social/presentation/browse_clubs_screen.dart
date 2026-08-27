@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/constants/image_constants.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/shell/tab_reselection_controller.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
@@ -38,6 +39,7 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
   final _search = TextEditingController();
   final _scroll = ScrollController();
   Timer? _timer;
+  VoidCallback? _removeReselectHandler;
   @override
   void initState() {
     super.initState();
@@ -46,6 +48,14 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
         unawaited(ref.read(clubsControllerProvider.notifier).loadMore());
       }
     });
+    if (widget.embedded) {
+      _removeReselectHandler = ref
+          .read(tabReselectionControllerProvider)
+          .register(
+            tabIndex: 0,
+            onReselect: () => scrollToTop(_scroll),
+          );
+    }
     unawaited(
       Future<void>.microtask(
         () => ref
@@ -62,6 +72,7 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
 
   @override
   void dispose() {
+    _removeReselectHandler?.call();
     _timer?.cancel();
     _search.dispose();
     _scroll.dispose();

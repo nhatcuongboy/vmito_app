@@ -12,6 +12,10 @@ abstract final class ApiEndpoints {
   static const forgotPassword = '/auth/forgot-password';
   static const resetPassword = '/auth/reset-password';
   static const verifyResetToken = '/auth/verify-reset-token';
+  static const webViewSessions = '/auth/webview-sessions';
+  static const webViewSessionExchange = '/auth/webview-sessions/exchange';
+  static String revokeWebViewSession(String id) =>
+      '/auth/webview-sessions/$id/revoke';
 
   /// Backend-driven OAuth. The app opens these in a web auth session; the
   /// backend redirects back with tokens as **query parameters** — there is no
@@ -27,11 +31,15 @@ abstract final class ApiEndpoints {
   // --- Users ----------------------------------------------------------------
   static const currentUser = '/users/me';
   static const users = '/users';
+  static const unreadFeedCount = '/users/unread-feed-count';
+  static const markFeedAsRead = '/users/mark-feed-as-read';
 
   /// In-app account deletion. Required by App Store guideline 5.1.1(v).
   static const deleteAccount = '/users/me';
   static String user(String id) => '/users/$id';
   static String publicUser(String id) => '/users/public/$id';
+  static const uploadAvatar = '/upload/avatar';
+  static const uploadCover = '/upload/cover';
 
   // --- Social ---------------------------------------------------------------
   static const postsFeed = '/posts/feed';

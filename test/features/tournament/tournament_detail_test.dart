@@ -58,7 +58,7 @@ void main() {
     expect(tournament.venues.last.address, '2 Lê Lợi');
     expect(tournament.categories.single.winPoints, 3);
     expect(tournament.categories.single.tiePoints, 1);
-    expect(tournament.categories.single.lossPoints, 0);
+    expect(tournament.categories.single.lossPoints, 1);
   });
 
   test('pulse prioritizes a live match before the next scheduled match', () {
