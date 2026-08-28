@@ -93,46 +93,60 @@ class CityOnboardingDialog extends ConsumerWidget {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) => AlertDialog(
-    insetPadding: const EdgeInsets.symmetric(
-      horizontal: AppSpacing.md,
-      vertical: AppSpacing.lg,
-    ),
-    title: const Text('Bạn đang ở đâu?', textAlign: TextAlign.center),
-    content: ConstrainedBox(
-      constraints: const BoxConstraints(maxWidth: 560),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Text(
-            'Chọn thành phố để xem các kèo và sân gần bạn nhất.',
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            childAspectRatio: 2.7,
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-            children: [
-              for (final city in vietnamCities)
-                OutlinedButton.icon(
-                  onPressed: () => _select(context, ref, city),
-                  icon: const Icon(AppIcons.location, size: 17),
-                  label: Text(city, overflow: TextOverflow.ellipsis),
-                ),
-            ],
-          ),
-        ],
+  Widget build(BuildContext context, WidgetRef ref) {
+    // AlertDialog measures its content intrinsically. A shrink-wrapped
+    // GridView has no intrinsic size, which can leave the dialog unlaid out
+    // while its route is being animated and then receives a pointer event.
+    final gridHeight = (MediaQuery.sizeOf(context).height * .3).clamp(
+      120.0,
+      300.0,
+    );
+
+    return AlertDialog(
+      insetPadding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.lg,
       ),
-    ),
-    actionsAlignment: MainAxisAlignment.center,
-    actions: [
-      TextButton(
-        onPressed: () => _select(context, ref, 'Hồ Chí Minh'),
-        child: const Text('Bỏ qua, dùng TP. Hồ Chí Minh'),
+      title: const Text('Bạn đang ở đâu?', textAlign: TextAlign.center),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 560),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Chọn thành phố để xem các kèo và sân gần bạn nhất.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.maxFinite,
+              height: gridHeight,
+              child: GridView.count(
+                primary: false,
+                crossAxisCount: 2,
+                childAspectRatio: 2.7,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+                children: [
+                  for (final city in vietnamCities)
+                    OutlinedButton.icon(
+                      onPressed: () => _select(context, ref, city),
+                      icon: const Icon(AppIcons.location, size: 17),
+                      label: Text(city, overflow: TextOverflow.ellipsis),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
-    ],
-  );
+      actionsAlignment: MainAxisAlignment.center,
+      actions: [
+        TextButton(
+          onPressed: () => _select(context, ref, 'Hồ Chí Minh'),
+          child: const Text('Bỏ qua, dùng TP. Hồ Chí Minh'),
+        ),
+      ],
+    );
+  }
 }

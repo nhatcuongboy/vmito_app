@@ -23,7 +23,10 @@ class SessionRecommendations extends ConsumerWidget {
   static double _cardWidth(double availableWidth) =>
       (availableWidth * .75).clamp(280.0, 320.0);
 
-  static const _cardHeight = 220.0;
+  // The metadata and price row need 108 logical pixels below the image at a
+  // normal text scale. At 220 the card body only gets 100 pixels, which made
+  // the detail page's recommendation cards overflow by 8 pixels vertically.
+  static const _cardHeight = 228.0;
   static const _coverHeight = 120.0;
 
   @override

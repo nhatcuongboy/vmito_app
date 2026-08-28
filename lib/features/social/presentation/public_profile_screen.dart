@@ -575,20 +575,36 @@ class _Stat extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) => InkWell(
-    onTap: onTap,
-    borderRadius: BorderRadius.circular(AppRadius.md),
-    child: SizedBox(
-      height: AppSizes.minTapTarget + AppSpacing.md,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(value, style: Theme.of(context).textTheme.titleLarge),
-          Text(label, style: Theme.of(context).textTheme.bodySmall),
-        ],
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final mutedForeground =
+        theme.extension<AppPalette>()?.mutedForeground ??
+        theme.colorScheme.onSurfaceVariant;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.md),
+      child: SizedBox(
+        height: AppSizes.minTapTarget + AppSpacing.md,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              value,
+              style: theme.textTheme.titleLarge?.copyWith(
+                color: mutedForeground,
+              ),
+            ),
+            Text(
+              label,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: mutedForeground,
+              ),
+            ),
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class _ProfileTabBarDelegate extends SliverPersistentHeaderDelegate {

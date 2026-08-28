@@ -78,10 +78,14 @@ abstract final class AppWebView {
   ) async {
     try {
       final hasToken = container.read(tokenStorageProvider).hasAccessToken;
+      final shouldBridgeAuth = shouldBridgeAuthentication(
+        page,
+        hasToken: hasToken,
+      );
       final prepared = await _prepare(
         page,
         hasToken: hasToken,
-        service: hasToken
+        service: shouldBridgeAuth
             ? container.read(webViewSessionServiceProvider)
             : null,
       );
@@ -108,6 +112,16 @@ abstract final class AppWebView {
 
   static Uri _trustedUri(String path) =>
       Uri.parse('${AppConfig.webBaseUrl}$path');
+
+  /// Whether this destination needs the app's authenticated web session.
+  ///
+  /// Public pages must be loaded directly even when the app has an access
+  /// token. Sending them through the mobile auth callback can make the web app
+  /// resolve a valid public route as a missing authenticated destination.
+  static bool shouldBridgeAuthentication(
+    AppWebPage page, {
+    required bool hasToken,
+  }) => page.requiresAuth && hasToken;
 
   /// Adds the shared embedded-page marker without discarding existing query
   /// parameters. The marker lets the web app hide duplicate navigation chrome.
@@ -136,7 +150,9 @@ abstract final class AppWebView {
       throw StateError('This web page requires an authenticated user.');
     }
     final path = resolvedPath(page);
-    if (!hasToken) return _PreparedWebPage(url: _trustedUri(path));
+    if (!shouldBridgeAuthentication(page, hasToken: hasToken)) {
+      return _PreparedWebPage(url: _trustedUri(path));
+    }
 
     final session = await service!.create();
     return _PreparedWebPage(
@@ -200,10 +216,16 @@ class _AppWebViewPageState extends ConsumerState<AppWebViewPage> {
 
   void _load() {
     final hasToken = ref.read(tokenStorageProvider).hasAccessToken;
+    final shouldBridgeAuth = AppWebView.shouldBridgeAuthentication(
+      widget.page,
+      hasToken: hasToken,
+    );
     _prepared = AppWebView._prepare(
       widget.page,
       hasToken: hasToken,
-      service: hasToken ? ref.read(webViewSessionServiceProvider) : null,
+      service: shouldBridgeAuth
+          ? ref.read(webViewSessionServiceProvider)
+          : null,
     );
   }
 

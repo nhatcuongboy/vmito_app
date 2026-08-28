@@ -66,7 +66,8 @@ class SessionActionButtons extends StatelessWidget {
           Flexible(
             child: _Primary(
               label: l10n.sessionViewOriginalPost,
-              icon: AppIcons.externalLink,
+              icon: AppIcons.facebook,
+              backgroundColor: const Color(0xFF1877F2),
               onPressed: url == null || url.isEmpty
                   ? null
                   : () => unawaited(
@@ -204,12 +205,14 @@ class _Primary extends StatelessWidget {
     required this.icon,
     required this.onPressed,
     this.tonal = false,
+    this.backgroundColor,
   });
 
   final String label;
   final IconData icon;
   final VoidCallback? onPressed;
   final bool tonal;
+  final Color? backgroundColor;
 
   @override
   Widget build(BuildContext context) {
@@ -218,6 +221,8 @@ class _Primary extends StatelessWidget {
     final style = FilledButton.styleFrom(
       minimumSize: const Size(0, AppSizes.minTapTarget),
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+      backgroundColor: backgroundColor,
+      foregroundColor: backgroundColor == null ? null : Colors.white,
     );
     // Ellipsize rather than overflow: three buttons plus a price is already
     // tight at phone width, and a longer translation or a large text scale

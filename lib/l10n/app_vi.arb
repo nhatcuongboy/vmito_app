@@ -435,6 +435,7 @@
     }
   },
   "sessionCrawledReadOnly": "Kèo được sưu tầm từ Facebook — chỉ xem",
+  "sessionCrawledBadge": "Bài Facebook",
   "sessionClosed": "Kèo này đã đóng",
   "sessionSlotsLeft": "Còn {count} slot",
   "@sessionSlotsLeft": {

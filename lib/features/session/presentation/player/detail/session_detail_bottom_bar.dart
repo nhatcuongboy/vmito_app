@@ -10,6 +10,7 @@ import 'package:vmito_app/features/registration/application/my_registration_cont
 import 'package:vmito_app/features/registration/presentation/my_registration_sheet.dart';
 import 'package:vmito_app/features/registration/presentation/register_session_sheet.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
+import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_action_buttons.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_fee_detail_dialog.dart';
 import 'package:vmito_app/features/session/presentation/player/session_presentation.dart';
@@ -47,6 +48,12 @@ class SessionDetailBottomBar extends ConsumerWidget {
         (user?.isAdmin ?? false);
 
     final price = sessionPriceLabel(session, locale);
+    // A split fee has useful information even before the host enters the
+    // final per-player amount. Showing just the info button looked like a
+    // missing price rather than an intentional payment arrangement.
+    final feeLabel = session.feeConfig?.isSplitEvenly == true
+        ? l10n.sessionRecommendationSplitEvenly
+        : price;
 
     return Container(
       decoration: BoxDecoration(
@@ -68,23 +75,27 @@ class SessionDetailBottomBar extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             spacing: AppSpacing.sm,
             children: [
-              if (price != null || session.feeConfig != null)
+              if (feeLabel != null || session.feeConfig != null)
                 Flexible(
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (price != null)
+                      if (feeLabel != null)
                         Flexible(
                           child: Text.rich(
                             TextSpan(
-                              text: price,
+                              text: feeLabel,
                               style: theme.textTheme.titleLarge?.copyWith(
                                 color: theme.colorScheme.error,
                                 fontWeight: FontWeight.bold,
                               ),
                               children: [
                                 TextSpan(
-                                  text: l10n.sessionPerSlot,
+                                  text:
+                                      session.feeConfig?.feeType ==
+                                          FeeType.splitEvenly
+                                      ? ''
+                                      : l10n.sessionPerSlot,
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: palette.mutedForeground,
                                   ),

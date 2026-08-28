@@ -91,7 +91,9 @@ class _SessionDetailHeroState extends State<SessionDetailHero> {
         Positioned(
           bottom: AppSpacing.lg,
           left: AppSpacing.md,
-          child: _SlotBadge(session: widget.session),
+          child: widget.session.isCrawled
+              ? const _CrawledBadge()
+              : _SlotBadge(session: widget.session),
         ),
         Positioned(
           bottom: AppSpacing.lg,
@@ -101,6 +103,16 @@ class _SessionDetailHeroState extends State<SessionDetailHero> {
       ],
     );
   }
+}
+
+class _CrawledBadge extends StatelessWidget {
+  const _CrawledBadge();
+
+  @override
+  Widget build(BuildContext context) => _Pill(
+    label: AppLocalizations.of(context).sessionCrawledBadge,
+    background: const Color(0xFF1877F2),
+  );
 }
 
 class _Dots extends StatelessWidget {

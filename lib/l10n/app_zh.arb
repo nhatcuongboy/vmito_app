@@ -431,6 +431,7 @@
     }
   },
   "sessionCrawledReadOnly": "收集自 Facebook — 仅供查看",
+  "sessionCrawledBadge": "Facebook 帖子",
   "sessionClosed": "此场次已关闭",
   "sessionSlotsLeft": "剩余 {count} 个名额",
   "@sessionSlotsLeft": {

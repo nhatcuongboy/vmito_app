@@ -205,7 +205,8 @@ void main() {
   testWidgets('marks a crawled session', (tester) async {
     await _pump(tester, _session(isCrawled: true));
 
-    expect(find.text('Facebook'), findsOneWidget);
+    expect(find.text('Bài Facebook'), findsOneWidget);
+    expect(find.byKey(const Key('session-slots-badge')), findsNothing);
   });
 
   group('availability badge', () {

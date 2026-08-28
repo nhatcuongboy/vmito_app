@@ -26,6 +26,46 @@ void main() {
     expect(page.requiresAuth, isTrue);
   });
 
+  group('authentication bridge', () {
+    test('does not authenticate public pages when an access token exists', () {
+      const page = AppWebPage(
+        title: 'HCM Open Cup 2026',
+        path: '/vi/tournament/hcm-open-cup-2026',
+      );
+
+      expect(
+        AppWebView.shouldBridgeAuthentication(page, hasToken: true),
+        isFalse,
+      );
+    });
+
+    test('authenticates protected pages when an access token exists', () {
+      const page = AppWebPage(
+        title: 'Manage tournament',
+        path: '/vi/tournament/hcm-open-cup-2026/manage',
+        requiresAuth: true,
+      );
+
+      expect(
+        AppWebView.shouldBridgeAuthentication(page, hasToken: true),
+        isTrue,
+      );
+    });
+
+    test('does not authenticate a protected page without an access token', () {
+      const page = AppWebPage(
+        title: 'Manage tournament',
+        path: '/vi/tournament/hcm-open-cup-2026/manage',
+        requiresAuth: true,
+      );
+
+      expect(
+        AppWebView.shouldBridgeAuthentication(page, hasToken: false),
+        isFalse,
+      );
+    });
+  });
+
   test('embedded page marker keeps existing query parameters', () {
     const page = AppWebPage(
       title: 'Manage tournament',

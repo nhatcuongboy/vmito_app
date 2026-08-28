@@ -20,7 +20,6 @@ import 'package:vmito_app/features/session/presentation/player/detail/session_de
 import 'package:vmito_app/features/session/presentation/player/detail/session_detail_hero.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_detail_info.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_detail_stats.dart';
-import 'package:vmito_app/features/session/presentation/player/detail/session_host_detail_sheet.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_recommendations.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_reference_video.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -159,7 +158,7 @@ class _BodyState extends State<_Body> {
     final theme = Theme.of(context);
     final palette = theme.extension<AppPalette>()!;
     final l10n = AppLocalizations.of(context);
-    final heroHeight = SessionDetailHero.heroHeight;
+    const heroHeight = SessionDetailHero.heroHeight;
     final pinnedForeground = theme.colorScheme.onSurface;
     const overlayForeground = Colors.white;
 
@@ -275,10 +274,16 @@ class _BodyState extends State<_Body> {
                             : () => _openZalo(widget.session),
                         onOpenHost: widget.session.hostAccountId == null
                             ? null
-                            : () => showSessionHostDetailSheet(
-                                context,
-                                session: widget.session,
+                            : () => context.push(
+                                AppRoutes.publicProfile(
+                                  widget.session.hostAccountId!,
+                                ),
                               ),
+                        onOpenOriginalPost:
+                            widget.session.isCrawled &&
+                                _externalUrl(widget.session) != null
+                            ? () => _openOriginalPost(widget.session)
+                            : null,
                       ),
                       Divider(height: AppSpacing.lg, color: palette.border),
                       SessionDetailStats(session: widget.session),
@@ -303,10 +308,6 @@ class _BodyState extends State<_Body> {
           SliverToBoxAdapter(
             child: SessionRecommendations(sessionId: widget.session.id),
           ),
-          // Keep the final recommendation/link clear of the sticky action bar.
-          const SliverToBoxAdapter(
-            child: SizedBox(height: AppSpacing.xxl + AppSpacing.lg),
-          ),
         ],
       ),
     );
@@ -327,6 +328,15 @@ class _BodyState extends State<_Body> {
       'api': '1',
       'query': query,
     });
+  }
+
+  static Uri? _externalUrl(Session session) =>
+      Uri.tryParse(session.externalUrl?.trim() ?? '');
+
+  Future<void> _openOriginalPost(Session session) async {
+    final uri = _externalUrl(session);
+    if (uri == null) return;
+    await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 
   Future<void> _openMap(Session session) async {

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/core/theme/theme_mode_controller.dart';
 import 'package:vmito_app/core/widgets/theme_mode_selector.dart';
@@ -72,6 +72,9 @@ void main() {
     expect(find.text('System'), findsOneWidget);
     expect(find.text('Light'), findsOneWidget);
     expect(find.text('Dark'), findsOneWidget);
+    expect(find.byIcon(AppIcons.themeSystem), findsOneWidget);
+    expect(find.byIcon(AppIcons.light), findsOneWidget);
+    expect(find.byIcon(AppIcons.dark), findsNWidgets(2));
 
     await tester.tap(find.text('Dark'));
     await tester.pumpAndSettle();

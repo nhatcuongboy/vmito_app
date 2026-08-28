@@ -106,6 +106,7 @@ abstract final class AppIcons {
   static const IconData image = LucideIcons.image;
   static const IconData imagePlus = LucideIcons.image_plus;
   static const IconData imageOff = LucideIcons.image_off;
+  static const IconData facebook = Icons.facebook;
   static const IconData play = LucideIcons.play;
   static const IconData playCircle = LucideIcons.circle_play;
   static const IconData pause = LucideIcons.pause;
@@ -142,6 +143,7 @@ abstract final class AppIcons {
   static const IconData ticket = LucideIcons.ticket;
 
   // --- Theme & Notes ---------------------------------------------------------
+  static const IconData themeSystem = Icons.brightness_auto;
   static const IconData dark = LucideIcons.moon;
   static const IconData light = LucideIcons.sun;
   static const IconData notes = LucideIcons.notebook_text;

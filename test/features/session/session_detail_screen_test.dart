@@ -341,23 +341,33 @@ void main() {
     expect(find.text('Player details'), findsOneWidget);
   });
 
-  testWidgets('host row opens the host detail sheet', (tester) async {
+  testWidgets('host name and avatar link to the public profile', (
+    tester,
+  ) async {
     await _pump(tester, _session());
 
-    await tester.tap(find.byKey(const Key('session-detail-host-row')));
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const Key('session-host-detail-sheet')), findsOneWidget);
-    expect(find.text('Sessions Hosted'), findsOneWidget);
+    final row = tester.widget<InkWell>(
+      find.byKey(const Key('session-detail-host-row')),
+    );
+    expect(row.onTap, isNotNull);
   });
 
-  testWidgets('crawled session keeps the host row inert', (tester) async {
-    await _pump(tester, _session(isCrawled: true));
+  testWidgets('crawled session links its author row to the original post', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _session(isCrawled: true).copyWith(
+        externalUrl: 'https://facebook.com/post/1',
+        externalSource: 'Badminton group',
+      ),
+    );
 
-    await tester.tap(find.byKey(const Key('session-detail-host-row')));
-    await tester.pumpAndSettle();
-
-    expect(find.byKey(const Key('session-host-detail-sheet')), findsNothing);
+    final row = tester.widget<InkWell>(
+      find.byKey(const Key('session-detail-host-row')),
+    );
+    expect(row.onTap, isNotNull);
+    expect(find.text('Badminton group'), findsOneWidget);
   });
 
   testWidgets('empty roster shows placeholder text and no circles', (
@@ -428,6 +438,7 @@ void main() {
       );
 
       expect(find.text('View original'), findsOneWidget);
+      expect(find.byIcon(AppIcons.facebook), findsOneWidget);
       expect(find.text('Register now'), findsNothing);
     });
 
@@ -727,6 +738,20 @@ void main() {
     expect(find.text('Bring a shuttlecock tube'), findsOneWidget);
   });
 
+  testWidgets('split-evenly fee is labelled beside its details button', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _session().copyWith(
+        feeConfig: const SessionFeeConfig(feeType: FeeType.splitEvenly),
+      ),
+    );
+
+    expect(find.text('Split evenly'), findsOneWidget);
+    expect(find.byKey(const Key('session-fee-details')), findsOneWidget);
+  });
+
   testWidgets('managed club is included in the session facts', (tester) async {
     await _pump(
       tester,
@@ -777,5 +802,6 @@ void main() {
       find.text('Kèo sáng chủ nhật ở sân The B Hòa Bình'),
       findsOneWidget,
     );
+    expect(tester.takeException(), isNull);
   });
 }

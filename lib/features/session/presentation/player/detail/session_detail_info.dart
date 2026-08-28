@@ -1,12 +1,50 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/widget_previews.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/player/session_presentation.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/match.dart';
+
+@Preview(
+  name: 'Session detail overview',
+  group: 'Sessions',
+  size: Size(390, 640),
+)
+Widget sessionDetailInfoPreview() => MaterialApp(
+  theme: AppTheme.light,
+  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  supportedLocales: AppLocalizations.supportedLocales,
+  home: Scaffold(
+    body: Padding(
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: SessionDetailInfo(
+        session: Session(
+          id: 'preview-session',
+          name: 'Buổi cầu lông tối nay',
+          status: SessionStatus.preparing,
+          startTime: DateTime(2026, 8, 28, 18),
+          scheduledEndTime: DateTime(2026, 8, 28, 20),
+          venue: const SessionVenue(
+            id: 'preview-venue',
+            name: 'AKA Badminton Center',
+            address: '730/4 Hương Lộ 2, Phường Bình Trị Đông',
+          ),
+          host: const SessionHost(id: 'preview-host', name: 'Ngọc Trâm'),
+        ),
+        onOpenMap: null,
+        onCallHost: null,
+        onZaloHost: null,
+        onOpenHost: null,
+        onOpenOriginalPost: null,
+      ),
+    ),
+  ),
+);
 
 /// Title, schedule, place and host — the top of the web app's
 /// `SessionDetailBody`.
@@ -17,6 +55,7 @@ class SessionDetailInfo extends StatelessWidget {
     required this.onCallHost,
     required this.onZaloHost,
     required this.onOpenHost,
+    required this.onOpenOriginalPost,
     super.key,
   });
 
@@ -25,6 +64,7 @@ class SessionDetailInfo extends StatelessWidget {
   final VoidCallback? onCallHost;
   final VoidCallback? onZaloHost;
   final VoidCallback? onOpenHost;
+  final VoidCallback? onOpenOriginalPost;
 
   @override
   Widget build(BuildContext context) {
@@ -47,7 +87,7 @@ class SessionDetailInfo extends StatelessWidget {
           ),
         ),
         if (time != null || date != null) ...[
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.sm + AppSpacing.xxs),
           _ScheduleRow(time: time, date: date),
         ],
         const SizedBox(height: AppSpacing.xs),
@@ -62,6 +102,7 @@ class SessionDetailInfo extends StatelessWidget {
           onCall: onCallHost,
           onZalo: onZaloHost,
           onOpenHost: onOpenHost,
+          onOpenOriginalPost: onOpenOriginalPost,
         ),
         if (session.description case final text? when text.trim().isNotEmpty)
           Padding(
@@ -220,12 +261,26 @@ class _LocationRow extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                title,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: theme.colorScheme.primary,
-                  fontWeight: FontWeight.w600,
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  if (onOpenMap != null)
+                    IconButton(
+                      key: const Key('session-get-directions'),
+                      tooltip: l10n.sessionGetDirections,
+                      icon: const Icon(AppIcons.navigation, size: 20),
+                      color: theme.colorScheme.primary,
+                      onPressed: onOpenMap,
+                    ),
+                ],
               ),
               // Suppress an address that just repeats the venue name.
               if (address != null && address != title)
@@ -243,13 +298,6 @@ class _LocationRow extends StatelessWidget {
             ],
           ),
         ),
-        if (onOpenMap != null)
-          IconButton(
-            tooltip: l10n.sessionGetDirections,
-            icon: const Icon(AppIcons.navigation, size: 20),
-            color: theme.colorScheme.primary,
-            onPressed: onOpenMap,
-          ),
       ],
     );
   }
@@ -261,19 +309,21 @@ class _HostRow extends StatelessWidget {
     required this.onCall,
     required this.onZalo,
     required this.onOpenHost,
+    required this.onOpenOriginalPost,
   });
 
   final Session session;
   final VoidCallback? onCall;
   final VoidCallback? onZalo;
   final VoidCallback? onOpenHost;
+  final VoidCallback? onOpenOriginalPost;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = theme.extension<AppPalette>()!;
     final l10n = AppLocalizations.of(context);
-    final image = session.host?.image;
+    final image = session.displayHostImage;
     final name = session.displayHostName;
 
     return Padding(
@@ -283,7 +333,10 @@ class _HostRow extends StatelessWidget {
           Expanded(
             child: InkWell(
               key: const Key('session-detail-host-row'),
-              onTap: onOpenHost,
+              // Imported Facebook sessions have no Vmito profile. Their
+              // author, avatar and source-group label therefore all lead to
+              // the one verified destination we have: the original post.
+              onTap: onOpenHost ?? onOpenOriginalPost,
               borderRadius: BorderRadius.circular(AppRadius.lg),
               child: Row(
                 children: [

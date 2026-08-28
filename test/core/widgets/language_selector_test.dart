@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vmito_app/core/localization/locale_controller.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/widgets/language_selector.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
@@ -62,6 +62,9 @@ void main() {
     expect(find.text('Tiếng Việt'), findsOneWidget);
     expect(find.text('Tiếng Anh'), findsOneWidget);
     expect(find.text('Tiếng Trung'), findsOneWidget);
+    expect(find.text('🇻🇳'), findsOneWidget);
+    expect(find.text('🇬🇧'), findsOneWidget);
+    expect(find.text('🇨🇳'), findsOneWidget);
 
     await tester.tap(find.text('Tiếng Anh'));
     await tester.pumpAndSettle();

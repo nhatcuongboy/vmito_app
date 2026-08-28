@@ -10,9 +10,11 @@ import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
+import 'package:vmito_app/core/theme/theme_mode_controller.dart';
 import 'package:vmito_app/core/web/admin_web_destination.dart';
 import 'package:vmito_app/core/widgets/language_selector.dart';
 import 'package:vmito_app/core/widgets/sign_out_confirmation.dart';
+import 'package:vmito_app/core/widgets/theme_mode_selector.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -31,6 +33,7 @@ class SlideOutMenu extends ConsumerWidget {
       ),
     );
     final localeCode = ref.watch(localeControllerProvider).languageCode;
+    final themeMode = ref.watch(themeModeControllerProvider);
     final uri = GoRouterState.of(context).uri;
     final location = uri.path;
     final selectedDiscoveryTab =
@@ -197,6 +200,15 @@ class SlideOutMenu extends ConsumerWidget {
                           },
                         ),
                         _MenuItem(
+                          icon: AppIcons.dark,
+                          label: l10n.profileTheme,
+                          trailing: _themeModeLabel(l10n, themeMode),
+                          onTap: () {
+                            closeDrawer();
+                            unawaited(showThemeModeSelector(context));
+                          },
+                        ),
+                        _MenuItem(
                           icon: AppIcons.help,
                           label: l10n.menuHelpFeedback,
                           isActive: isActive(AppRoutes.feedback),
@@ -212,7 +224,7 @@ class SlideOutMenu extends ConsumerWidget {
                         ),
                       ],
                     ),
-                  ] else
+                  ] else ...[
                     Padding(
                       padding: const EdgeInsets.fromLTRB(
                         AppSpacing.md,
@@ -244,6 +256,30 @@ class SlideOutMenu extends ConsumerWidget {
                         ],
                       ),
                     ),
+                    const _MenuDivider(),
+                    _MenuSection(
+                      children: [
+                        _MenuItem(
+                          icon: AppIcons.language,
+                          label: l10n.profileLanguage,
+                          trailing: _languageLabel(l10n, localeCode),
+                          onTap: () {
+                            closeDrawer();
+                            unawaited(showLanguageSelector(context));
+                          },
+                        ),
+                        _MenuItem(
+                          icon: AppIcons.dark,
+                          label: l10n.profileTheme,
+                          trailing: _themeModeLabel(l10n, themeMode),
+                          onTap: () {
+                            closeDrawer();
+                            unawaited(showThemeModeSelector(context));
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -267,6 +303,13 @@ class SlideOutMenu extends ConsumerWidget {
     'zh' => l10n.languageChinese,
     _ => l10n.languageVietnamese,
   };
+
+  String _themeModeLabel(AppLocalizations l10n, ThemeMode mode) =>
+      switch (mode) {
+        ThemeMode.light => l10n.themeModeLight,
+        ThemeMode.dark => l10n.themeModeDark,
+        ThemeMode.system => l10n.themeModeSystem,
+      };
 }
 
 class _ProfileHeader extends StatelessWidget {

@@ -162,6 +162,7 @@ abstract class Session with _$Session {
     @Default(false) bool isCrawled,
     @Default(false) bool isFavorite,
     String? externalUrl,
+    String? externalAuthorAvatar,
     @Default(SessionSportType.badminton) SessionSportType sportType,
 
     /// Empty means **all levels welcome** — never render that as a range.
@@ -288,6 +289,14 @@ abstract class Session with _$Session {
 
   String get displayHostName =>
       hostName?.trim().isNotEmpty ?? false ? hostName! : (host?.name ?? '');
+
+  /// Crawled posts have no Vmito host account, but do carry the public
+  /// Facebook author's avatar separately from [host].
+  String? get displayHostImage {
+    final image = isCrawled ? externalAuthorAvatar : host?.image;
+    final value = image?.trim();
+    return value == null || value.isEmpty ? null : value;
+  }
 
   /// The host's user account, or null when there is none to open — crawled
   /// Facebook sessions carry a name but no account.

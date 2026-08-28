@@ -223,22 +223,25 @@ class _CoverSpace extends StatelessWidget {
               ).scaffoldBackgroundColor.withValues(alpha: compactOpacity),
             ),
           ),
-          const Positioned(
-            key: ValueKey('profile-cover-divider'),
+          Positioned(
+            key: const ValueKey('profile-cover-divider'),
             left: 0,
             right: 0,
             bottom: 0,
             height: 12,
             child: IgnorePointer(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [Colors.transparent, Color(0x18000000)],
-                  ),
-                  border: Border(
-                    bottom: BorderSide(color: Color(0x14000000)),
+              child: Opacity(
+                opacity: 1 - compactOpacity,
+                child: const DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Colors.transparent, Color(0x18000000)],
+                    ),
+                    border: Border(
+                      bottom: BorderSide(color: Color(0x14000000)),
+                    ),
                   ),
                 ),
               ),

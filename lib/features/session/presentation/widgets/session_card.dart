@@ -113,7 +113,9 @@ class SessionCard extends StatelessWidget {
                       if (showActions) ...[
                         const SizedBox(height: AppSpacing.xs + 2),
                         Container(
-                          padding: const EdgeInsets.only(top: AppSpacing.xs + 2),
+                          padding: const EdgeInsets.only(
+                            top: AppSpacing.xs + 2,
+                          ),
                           decoration: BoxDecoration(
                             border: Border(
                               top: BorderSide(color: palette.border),
@@ -145,7 +147,9 @@ class SessionCard extends StatelessWidget {
                                   icon: const Icon(AppIcons.settings, size: 16),
                                   label: const Text(
                                     'Host',
-                                    style: TextStyle(fontWeight: FontWeight.bold),
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                   onPressed: onHost,
                                 ),
@@ -171,93 +175,99 @@ class SessionCard extends StatelessWidget {
                                       AppRadius.md,
                                     ),
                                   ),
-                                  child: const Icon(AppIcons.moreVert, size: 18),
+                                  child: const Icon(
+                                    AppIcons.moreVert,
+                                    size: 18,
+                                  ),
                                 ),
                                 itemBuilder: (context) {
-                                final l10n = AppLocalizations.of(context);
-                                return [
-                                  PopupMenuItem(
-                                    value: _MoreAction.clone,
-                                    child: Row(
-                                      children: [
-                                        const Icon(AppIcons.copy, size: 18),
-                                        const SizedBox(width: AppSpacing.sm),
-                                        Text(l10n.mySessionsClone),
-                                      ],
+                                  final l10n = AppLocalizations.of(context);
+                                  return [
+                                    PopupMenuItem(
+                                      value: _MoreAction.clone,
+                                      child: Row(
+                                        children: [
+                                          const Icon(AppIcons.copy, size: 18),
+                                          const SizedBox(width: AppSpacing.sm),
+                                          Text(l10n.mySessionsClone),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  PopupMenuItem(
-                                    value: _MoreAction.downloadImage,
-                                    child: Row(
-                                      children: [
-                                        const Icon(AppIcons.download, size: 18),
-                                        const SizedBox(width: AppSpacing.sm),
-                                        Text(l10n.mySessionsDownloadImage),
-                                      ],
+                                    PopupMenuItem(
+                                      value: _MoreAction.downloadImage,
+                                      child: Row(
+                                        children: [
+                                          const Icon(
+                                            AppIcons.download,
+                                            size: 18,
+                                          ),
+                                          const SizedBox(width: AppSpacing.sm),
+                                          Text(l10n.mySessionsDownloadImage),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  PopupMenuItem(
-                                    value: _MoreAction.share,
-                                    child: Row(
-                                      children: [
-                                        const Icon(AppIcons.share, size: 18),
-                                        const SizedBox(width: AppSpacing.sm),
-                                        Text(l10n.mySessionsShare),
-                                      ],
+                                    PopupMenuItem(
+                                      value: _MoreAction.share,
+                                      child: Row(
+                                        children: [
+                                          const Icon(AppIcons.share, size: 18),
+                                          const SizedBox(width: AppSpacing.sm),
+                                          Text(l10n.mySessionsShare),
+                                        ],
+                                      ),
                                     ),
-                                  ),
-                                  PopupMenuItem(
-                                    value: _MoreAction.delete,
-                                    child: Builder(
-                                      builder: (context) {
-                                        final errorColor = Theme.of(
-                                          context,
-                                        ).colorScheme.error;
-                                        return Row(
-                                          children: [
-                                            Icon(
-                                              AppIcons.delete,
-                                              size: 18,
-                                              color: errorColor,
-                                            ),
-                                            const SizedBox(
-                                              width: AppSpacing.sm,
-                                            ),
-                                            Text(
-                                              l10n.mySessionsDelete,
-                                              style: TextStyle(
+                                    PopupMenuItem(
+                                      value: _MoreAction.delete,
+                                      child: Builder(
+                                        builder: (context) {
+                                          final errorColor = Theme.of(
+                                            context,
+                                          ).colorScheme.error;
+                                          return Row(
+                                            children: [
+                                              Icon(
+                                                AppIcons.delete,
+                                                size: 18,
                                                 color: errorColor,
                                               ),
-                                            ),
-                                          ],
-                                        );
-                                      },
+                                              const SizedBox(
+                                                width: AppSpacing.sm,
+                                              ),
+                                              Text(
+                                                l10n.mySessionsDelete,
+                                                style: TextStyle(
+                                                  color: errorColor,
+                                                ),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      ),
                                     ),
-                                  ),
-                                ];
-                              },
-                              onSelected: (action) => switch (action) {
-                                _MoreAction.clone => onClone?.call(),
-                                _MoreAction.downloadImage =>
-                                  onDownloadImage?.call(),
-                                _MoreAction.share => onShare?.call(),
-                                _MoreAction.delete => onDelete?.call(),
-                              },
-                            ),
-                          ],
+                                  ];
+                                },
+                                onSelected: (action) => switch (action) {
+                                  _MoreAction.clone => onClone?.call(),
+                                  _MoreAction.downloadImage =>
+                                    onDownloadImage?.call(),
+                                  _MoreAction.share => onShare?.call(),
+                                  _MoreAction.delete => onDelete?.call(),
+                                },
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 }
 
 class _SlotsBadge extends StatelessWidget {
@@ -343,18 +353,19 @@ class _Cover extends StatelessWidget {
             placeholder: (context, _) => ColoredBox(color: palette.muted),
             errorWidget: (context, _, _) => _Placeholder(palette: palette),
           ),
-          if (session.availableSlots != null ||
-              session.status == SessionStatus.finished)
+          if (session.isCrawled)
+            const Positioned(
+              top: AppSpacing.xs,
+              left: AppSpacing.xs,
+              child: _CrawledBadge(),
+            ),
+          if (!session.isCrawled &&
+              (session.availableSlots != null ||
+                  session.status == SessionStatus.finished))
             Positioned(
               top: AppSpacing.xs,
               left: AppSpacing.xs,
               child: _SlotsBadge(session: session),
-            ),
-          if (session.isCrawled)
-            Positioned(
-              bottom: AppSpacing.xs,
-              left: AppSpacing.xs,
-              child: _CrawledBadge(source: session.externalSource),
             ),
         ],
       ),
@@ -382,20 +393,20 @@ class _Placeholder extends StatelessWidget {
 /// Marks a session imported from a public Facebook post — view-only, with no
 /// host account behind it.
 class _CrawledBadge extends StatelessWidget {
-  const _CrawledBadge({this.source});
-
-  final String? source;
+  const _CrawledBadge();
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
       decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.65),
+        color: const Color(0xFF1877F2),
         borderRadius: BorderRadius.circular(AppRadius.sm),
+        border: Border.all(color: const Color(0xFF8BB9FF)),
+        boxShadow: const [BoxShadow(color: Color(0x471877F2), blurRadius: 8)],
       ),
       child: Text(
-        'Facebook',
+        AppLocalizations.of(context).sessionCrawledBadge,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
           color: Colors.white,
           fontSize: 10,
@@ -415,7 +426,7 @@ class _HostLine extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = theme.extension<AppPalette>()!;
-    final image = session.host?.image;
+    final image = session.displayHostImage;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.xs),

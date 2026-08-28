@@ -135,6 +135,13 @@ void main() {
     expect(find.text('Đăng xuất'), findsNothing);
     expect(find.text('Đăng nhập'), findsOneWidget);
     expect(find.text('Đăng ký'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('Ngôn ngữ'),
+      240,
+      scrollable: find.byType(Scrollable),
+    );
+    expect(find.text('Ngôn ngữ'), findsOneWidget);
+    expect(find.text('Giao diện'), findsOneWidget);
     expect(find.text('© 2026 Vmito.'), findsOneWidget);
     expect(find.textContaining('Tất cả quyền'), findsNothing);
     expect(find.textContaining('v1.4.0'), findsNothing);

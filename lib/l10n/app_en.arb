@@ -431,6 +431,7 @@
     }
   },
   "sessionCrawledReadOnly": "Collected from Facebook — view only",
+  "sessionCrawledBadge": "Facebook post",
   "sessionClosed": "This session is closed",
   "sessionSlotsLeft": "{count} slots left",
   "@sessionSlotsLeft": {

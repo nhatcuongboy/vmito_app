@@ -33,10 +33,11 @@ class _LanguageSelectorSheet extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final selected = ref.watch(localeControllerProvider).languageCode;
-    final options = <(String, String)>[
-      ('vi', l10n.languageVietnamese),
-      ('en', l10n.languageEnglish),
-      ('zh', l10n.languageChinese),
+    // Keeps the native sheet aligned with the web language panel.
+    final options = <(String, String, String)>[
+      ('vi', l10n.languageVietnamese, '🇻🇳'),
+      ('en', l10n.languageEnglish, '🇬🇧'),
+      ('zh', l10n.languageChinese, '🇨🇳'),
     ];
 
     return SafeArea(
@@ -53,8 +54,14 @@ class _LanguageSelectorSheet extends ConsumerWidget {
                 style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
-            for (final (code, label) in options)
+            for (final (code, label, flag) in options)
               ListTile(
+                leading: ExcludeSemantics(
+                  child: Text(
+                    flag,
+                    style: const TextStyle(fontSize: 22, height: 1),
+                  ),
+                ),
                 title: Text(label),
                 trailing: selected == code ? const Icon(AppIcons.check) : null,
                 selected: selected == code,
