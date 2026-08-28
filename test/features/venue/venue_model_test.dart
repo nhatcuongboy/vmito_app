@@ -16,7 +16,14 @@ void main() {
         'newCity': 'TP mới',
       });
 
-      expect(venue.addressLabel, '12 Đường Mới, Phường Mới, TP mới');
+      expect(
+        venue.addressLabel(showNewAddress: true),
+        '12 Đường Mới',
+      );
+      expect(
+        venue.addressLabel(showNewAddress: false),
+        'Địa chỉ cũ, Quận cũ, TP cũ',
+      );
     });
 
     test('parses paginated search response and image objects', () {

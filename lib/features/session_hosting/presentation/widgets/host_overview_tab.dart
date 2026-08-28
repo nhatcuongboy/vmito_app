@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
+import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -51,6 +52,9 @@ class HostOverviewTab extends ConsumerWidget {
         .where((player) => player.gender == Gender.female)
         .length;
     final images = session.galleryImages;
+    final showNewAddress = ref
+        .watch(locationPreferencesControllerProvider)
+        .showNewAddress;
 
     final showStartButton = session.status == SessionStatus.preparing;
     final showEndButton = session.status == SessionStatus.inProgress;
@@ -87,7 +91,11 @@ class HostOverviewTab extends ConsumerWidget {
                     ),
                   ],
                   const SizedBox(height: AppSpacing.md),
-                  _InfoCard(session: session, onEdit: onEdit),
+                  _InfoCard(
+                    session: session,
+                    onEdit: onEdit,
+                    showNewAddress: showNewAddress,
+                  ),
                   const SizedBox(height: AppSpacing.md),
                   Text(
                     'Thống kê kèo',
@@ -169,8 +177,8 @@ class _SessionActionBar extends StatelessWidget {
               child: showStart
                   ? _StartSessionButton(sessionId: sessionId)
                   : (showEnd
-                      ? _EndSessionButton(sessionId: sessionId)
-                      : const SizedBox.shrink()),
+                        ? _EndSessionButton(sessionId: sessionId)
+                        : const SizedBox.shrink()),
             ),
           ),
         ),
@@ -468,8 +476,13 @@ class _SessionGalleryState extends State<_SessionGallery> {
 }
 
 class _InfoCard extends StatelessWidget {
-  const _InfoCard({required this.session, this.onEdit});
+  const _InfoCard({
+    required this.session,
+    required this.showNewAddress,
+    this.onEdit,
+  });
   final Session session;
+  final bool showNewAddress;
   final VoidCallback? onEdit;
   @override
   Widget build(BuildContext context) {
@@ -511,10 +524,10 @@ class _InfoCard extends StatelessWidget {
                       locale: locale,
                     ),
             ),
-            if (session.displayPlace.isNotEmpty)
+            if (session.hasLocation)
               _InfoRow(
                 icon: AppIcons.location,
-                label: session.displayPlace,
+                label: session.displayPlace(showNewAddress: showNewAddress),
               ),
             _InfoRow(
               icon: AppIcons.sessions,

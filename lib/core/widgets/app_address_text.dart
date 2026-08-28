@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/core/location/address_display.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
@@ -14,6 +15,7 @@ class AppAddressText extends ConsumerWidget {
     this.newCity,
     this.style,
     this.maxLines = 1,
+    this.showNewAddressBadge = true,
     this.suffix,
     this.trailing,
     this.trailingWidth = 44,
@@ -28,6 +30,7 @@ class AppAddressText extends ConsumerWidget {
   final String? newCity;
   final TextStyle? style;
   final int maxLines;
+  final bool showNewAddressBadge;
   final String? suffix;
   final Widget? trailing;
   final double trailingWidth;
@@ -38,16 +41,16 @@ class AppAddressText extends ConsumerWidget {
     final showNew = ref
         .watch(locationPreferencesControllerProvider)
         .showNewAddress;
-    final hasNew = newAddress?.trim().isNotEmpty ?? false;
-    final values = showNew && hasNew
-        ? [newAddress, newDistrict, newCity]
-        : [address, district, city];
-    final label = values
-        .whereType<String>()
-        .where((value) => value.trim().isNotEmpty)
-        .join(', ');
+    final resolved = resolveAppAddress(
+      showNewAddress: showNew,
+      address: address,
+      district: district,
+      city: city,
+      newAddress: newAddress,
+    );
+    final label = resolved.text;
     final l10n = AppLocalizations.of(context);
-    final showNewBadge = showNew && hasNew;
+    final showNewBadge = showNewAddressBadge && resolved.isNew;
 
     InlineSpan contentSpan(String text, {required bool includeDetails}) =>
         TextSpan(

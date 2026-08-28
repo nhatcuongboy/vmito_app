@@ -47,7 +47,10 @@ abstract final class AppRoutes {
   ).toString();
   static String sessionDetail(String id) => '/sessions/$id';
   static String liveSession(String id) => '/sessions/$id/live';
-  static String manageSession(String id) => '/sessions/$id/manage';
+  static String manageSession(String id, {String? tab}) => Uri(
+    path: '/sessions/$id/manage',
+    queryParameters: tab == null ? null : {'tab': tab},
+  ).toString();
   static String editSession(String id) => '/sessions/$id/edit';
   static String cloneSession(String id) => '/sessions/$id/clone';
   static String rateSession(String id) => '/sessions/$id/rate';
@@ -82,7 +85,10 @@ abstract final class AppRoutes {
     queryParameters: {clubManagementTabQuery: tab},
   ).toString();
   static const createClub = '/feed/manage/create';
-  static String manageClub(String id) => '/feed/manage/$id';
+  static String manageClub(String id, {String? tab}) => Uri(
+    path: '/feed/manage/$id',
+    queryParameters: tab == null ? null : {'tab': tab},
+  ).toString();
   static String editClub(String id) => '/feed/manage/$id/edit';
   static String clubFees(String id) => '/feed/manage/$id/fees';
   static String publicProfile(String id) => '/user/$id';

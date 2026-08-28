@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:vmito_app/core/network/api_client.dart';
 import 'package:vmito_app/features/tournament/data/tournament_service.dart';
+import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
 
 class _ApiClient extends Mock implements ApiClient {}
 
@@ -52,5 +53,50 @@ void main() {
     final sponsors = await TournamentService(client).sponsors('t1');
 
     expect(sponsors.map((sponsor) => sponsor.id), ['s1', 's2']);
+  });
+
+  test('browse sends the active discovery filters and sort', () async {
+    final client = _ApiClient();
+    const query = {
+      'publishedOnly': true,
+      'status': 'PREPARING,IN_PROGRESS',
+      'sportType': 'PICKLEBALL',
+      'favoriteOnly': true,
+      'sortBy': 'name',
+      'sortOrder': 'desc',
+      'keyword': 'open',
+      'city': 'Hà Nội',
+    };
+    when(
+      () => client.get<Map<String, dynamic>>(
+        '/tournaments',
+        queryParameters: query,
+      ),
+    ).thenAnswer(
+      (_) async => Response<Map<String, dynamic>>(
+        requestOptions: RequestOptions(path: '/tournaments'),
+        data: const {'success': true, 'data': <dynamic>[]},
+      ),
+    );
+
+    await TournamentService(client).browse(
+      search: 'open',
+      city: 'Hà Nội',
+      statuses: const {
+        TournamentStatus.preparing,
+        TournamentStatus.inProgress,
+      },
+      sportTypes: const {'PICKLEBALL'},
+      favoriteOnly: true,
+      sortBy: 'name',
+      sortOrder: 'desc',
+    );
+
+    verify(
+      () => client.get<Map<String, dynamic>>(
+        '/tournaments',
+        queryParameters: query,
+      ),
+    ).called(1);
   });
 }

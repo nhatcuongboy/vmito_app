@@ -86,6 +86,7 @@ class _AppShellState extends ConsumerState<AppShell> {
       child: Scaffold(
         key: _scaffoldKey,
         drawer: const SlideOutMenu(),
+        drawerEnableOpenDragGesture: false,
         drawerScrimColor: Colors.black.withValues(alpha: 0.6),
         body: NotificationListener<ScrollNotification>(
           onNotification: shouldKeepBottomBarVisible

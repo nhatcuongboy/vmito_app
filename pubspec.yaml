@@ -90,6 +90,8 @@ dependencies:
   pdf: ^3.13.0
   printing: ^5.15.0
   geolocator: ^14.0.2
+  geocoding: ^5.0.0
+  google_maps_flutter: ^2.18.0
   package_info_plus: ^10.2.1
   device_info_plus: ^13.2.0
 

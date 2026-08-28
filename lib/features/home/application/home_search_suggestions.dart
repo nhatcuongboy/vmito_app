@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/features/home/domain/discovery_suggestion.dart';
 import 'package:vmito_app/features/home/domain/home_discovery_tab.dart';
 import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
@@ -52,6 +53,9 @@ class ApiHomeSearchSuggestionService implements HomeSearchSuggestionService {
   }
 
   Future<List<DiscoverySuggestion>> _venues(String query, String? city) async {
+    final showNewAddress = _ref
+        .read(locationPreferencesControllerProvider)
+        .showNewAddress;
     final page = await _ref
         .read(venueServiceProvider)
         .browse(
@@ -65,7 +69,7 @@ class ApiHomeSearchSuggestionService implements HomeSearchSuggestionService {
           tab: HomeDiscoveryTab.venues,
           entityId: venue.id,
           title: venue.name,
-          subtitle: venue.addressLabel,
+          subtitle: venue.addressLabel(showNewAddress: showNewAddress),
           imageUrl: venue.logo ?? venue.coverPhoto,
         ),
     ];
@@ -94,13 +98,16 @@ class ApiHomeSearchSuggestionService implements HomeSearchSuggestionService {
     final tournaments = await _ref
         .read(tournamentServiceProvider)
         .browse(search: query, city: city);
+    final showNewAddress = _ref
+        .read(locationPreferencesControllerProvider)
+        .showNewAddress;
     return [
       for (final tournament in tournaments.take(_limit))
         DiscoverySuggestion(
           tab: HomeDiscoveryTab.tournaments,
           entityId: tournament.slug ?? tournament.id,
           title: tournament.name,
-          subtitle: tournament.location,
+          subtitle: tournament.displayLocation(showNewAddress: showNewAddress),
           imageUrl: tournament.coverPhoto,
         ),
     ];

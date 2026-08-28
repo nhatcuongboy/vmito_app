@@ -357,6 +357,7 @@ class _OverlayAvatar extends StatelessWidget {
   final VoidCallback? onViewAvatar;
 
   static const _radius = 44.0;
+  static const _framePadding = 3.0;
 
   @override
   Widget build(BuildContext context) => ValueListenableBuilder<double>(
@@ -373,7 +374,8 @@ class _OverlayAvatar extends StatelessWidget {
           safeAreaTop +
           ProfileHeaderGeometry.visibleHeight(offset, screenWidth);
       return Positioned(
-        top: coverBottom - _radius,
+        // Align the centre of the complete framed avatar with the cover edge.
+        top: coverBottom - _radius - _framePadding,
         left: 0,
         right: 0,
         child: Center(
@@ -395,7 +397,7 @@ class _OverlayAvatar extends StatelessWidget {
                     ),
                   ],
                 ),
-                padding: const EdgeInsets.all(3),
+                padding: const EdgeInsets.all(_framePadding),
                 child: Stack(
                   clipBehavior: Clip.none,
                   children: [

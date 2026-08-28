@@ -205,6 +205,21 @@ void main() {
           .overlay,
       isFalse,
     );
+    expect(
+      tester.getSize(find.byKey(const Key('club-share-button'))),
+      tester.getSize(find.byKey(const Key('club-favorite-button'))),
+    );
+  });
+
+  testWidgets('share button matches favorite button on the cover', (
+    tester,
+  ) async {
+    await _pump(tester);
+
+    expect(
+      tester.getSize(find.byKey(const Key('club-share-button'))),
+      tester.getSize(find.byKey(const Key('club-favorite-button'))),
+    );
   });
 
   testWidgets('limits long identity and sticky names', (tester) async {
@@ -224,6 +239,9 @@ void main() {
     expect(identityName.overflow, TextOverflow.ellipsis);
     expect(stickyName.maxLines, 1);
     expect(stickyName.overflow, TextOverflow.ellipsis);
+    expect(stickyName.style?.fontSize, 20);
+    expect(stickyName.style?.height, closeTo(28 / 20, 0.0001));
+    expect(stickyName.style?.fontWeight, FontWeight.w700);
     expect(tester.takeException(), isNull);
   });
 

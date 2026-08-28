@@ -116,6 +116,7 @@ abstract final class ApiEndpoints {
       '/players/me/join-requests/$sessionId';
   static const pendingJoinRequests = '/players/pending-requests';
   static const pendingJoinRequestCount = '/players/pending-requests/count';
+  static const pendingJoinRequestsBatch = '/players/pending-requests/batch';
 
   // --- Sessions -------------------------------------------------------------
   static const sessions = '/sessions';
@@ -239,6 +240,7 @@ abstract final class ApiEndpoints {
   static String venue(String id) => '/venues/$id';
   static String venuePriceBooks(String id) => '/venues/$id/price-books';
   static const venueRequests = '/venue-requests';
+  static const adminVenueRequests = '/venue-requests/admin';
   static const venueAdminUnits = '/venues/new-admin-units';
 
   // --- Tournaments ---------------------------------------------------------

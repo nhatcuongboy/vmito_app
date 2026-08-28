@@ -77,6 +77,8 @@ class SessionRepositoryImpl implements SessionRepository {
     double? longitude,
     required bool sortByDistance,
     String? venueId,
+    String? sortBy,
+    String? sortOrder,
   }) async {
     final queryParameters = {
       'page': page,
@@ -107,6 +109,8 @@ class SessionRepositoryImpl implements SessionRepository {
         'sessionType': sessionType,
       if (venueId != null && venueId.trim().isNotEmpty)
         'venueId': venueId.trim(),
+      'sortBy': ?sortBy,
+      'sortOrder': ?sortOrder,
     };
     final url =
         Uri.parse(
@@ -204,6 +208,19 @@ class SessionRepositoryImpl implements SessionRepository {
     if (payload is Map) return (payload['count'] as num?)?.toInt() ?? 0;
     return 0;
   }
+
+  @override
+  Future<void> updatePendingRegistrations(
+    List<String> playerIds, {
+    required bool approved,
+  }) => _client.post<void>(
+    ApiEndpoints.pendingJoinRequestsBatch,
+    data: {
+      'playerIds': playerIds,
+      'status': approved ? 'APPROVED' : 'REJECTED',
+    },
+    options: apiOptions(skipGlobalError: true),
+  );
 
   Map<String, dynamic> _sessionListParameters(
     SessionListQuery query, {

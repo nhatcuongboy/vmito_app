@@ -1,18 +1,20 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vmito_app/core/location/device_location_service.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/app_shell_scaffold_key.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
-import 'package:vmito_app/core/widgets/city_selector.dart';
+import 'package:vmito_app/core/widgets/city_onboarding_dialog.dart';
 import 'package:vmito_app/core/widgets/notification_header_button.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
+import 'package:vmito_app/features/home/presentation/widgets/home_discovery_filter_sheets.dart';
 import 'package:vmito_app/features/home/presentation/widgets/home_discovery_tabs.dart';
+import 'package:vmito_app/features/home/presentation/widgets/home_discovery_toolbar.dart';
 import 'package:vmito_app/features/session/application/player/browse_sessions_controller.dart';
 import 'package:vmito_app/features/session/presentation/player/public_sessions_content.dart';
 import 'package:vmito_app/features/session/presentation/player/session_filter_sheet.dart';
@@ -52,7 +54,6 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   late HomeDiscoveryTab _selectedTab;
   var _contentRevision = 0;
-  bool _isFabExtended = true;
   final _searchQueries = <HomeDiscoveryTab, String>{};
   final _browseSnapshots = <HomeDiscoveryTab, Object>{};
 
@@ -68,7 +69,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     super.initState();
     _selectedTab = widget.initialDiscoveryTab ?? HomeDiscoveryTab.sessions;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) unawaited(CityOnboardingDialog.maybeShow(context, ref));
+      if (mounted) unawaited(_showCityOnboarding());
     });
   }
 
@@ -82,7 +83,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
     _selectedTab = widget.initialDiscoveryTab ?? HomeDiscoveryTab.sessions;
     _contentRevision++;
-    _isFabExtended = true;
   }
 
   @override
@@ -102,133 +102,142 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         .watch(locationPreferencesControllerProvider)
         .preferredCity;
     final activeQuery = _activeQuery;
-    final discoveryHeader = HomeDiscoveryTabs(
-      selected: _selectedTab,
-      onSelected: _selectTab,
+    final discoveryHeader = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        HomeDiscoveryTabs(
+          selected: _selectedTab,
+          onSelected: _selectTab,
+        ),
+        HomeDiscoveryToolbar(
+          sortLabel: _sortLabel(
+            l10n,
+            sessionState,
+            venueState,
+            clubsState,
+            tournamentState,
+          ),
+          filterCount: _filterCount(
+            sessionState,
+            venueState,
+            clubsState,
+            tournamentState,
+            preferredCity,
+          ),
+          onSort: _openActiveSort,
+          onFilter: _openActiveFilters,
+          onCityChanged: _onPreferredCityChanged,
+        ),
+      ],
     );
 
     return Scaffold(
       appBar: activeQuery == null
-          ? _buildBrowseAppBar(context, l10n, isAuthenticated)
+          ? _buildBrowseAppBar(
+              context,
+              l10n,
+              isAuthenticated,
+              canCreateTournament,
+            )
           : _buildSearchResultsAppBar(
               context,
               l10n,
               activeQuery,
-              sessionState.filters.activeCount,
-              venueState.filter.activeCount(preferredCity: preferredCity),
             ),
-      body: NotificationListener<ScrollNotification>(
-        onNotification: (notification) {
-          if (notification.metrics.axis == Axis.vertical) {
-            if (notification.metrics.pixels <= 0) {
-              if (!_isFabExtended) {
-                setState(() => _isFabExtended = true);
-              }
-            } else if (notification is UserScrollNotification) {
-              if (notification.direction == ScrollDirection.reverse) {
-                if (_isFabExtended) {
-                  setState(() => _isFabExtended = false);
-                }
-              } else if (notification.direction == ScrollDirection.forward) {
-                if (!_isFabExtended) {
-                  setState(() => _isFabExtended = true);
-                }
-              }
-            }
-          }
-          return false;
+      body: KeyedSubtree(
+        key: ValueKey('${_selectedTab.name}-$_contentRevision'),
+        child: switch (_selectedTab) {
+          HomeDiscoveryTab.sessions => BrowseSessionsContent(
+            discoveryHeader: discoveryHeader,
+            showMapToggle: isAuthenticated,
+            initialFilters: activeQuery == null
+                ? _initialSessionFilters
+                : sessionState.filters,
+          ),
+          HomeDiscoveryTab.venues => BrowseVenuesScreen(
+            embedded: true,
+            discoveryHeader: discoveryHeader,
+            initialFilter: activeQuery == null ? null : venueState.filter,
+            showFilterSummary: activeQuery != null,
+          ),
+          HomeDiscoveryTab.clubs => BrowseClubsScreen(
+            embedded: true,
+            discoveryHeader: discoveryHeader,
+            initialSearch: activeQuery ?? clubsState.search,
+          ),
+          HomeDiscoveryTab.tournaments => BrowseTournamentsContent(
+            discoveryHeader: discoveryHeader,
+            initialSearch: activeQuery ?? tournamentState.search,
+          ),
         },
-        child: KeyedSubtree(
-          key: ValueKey('${_selectedTab.name}-$_contentRevision'),
-          child: switch (_selectedTab) {
-            HomeDiscoveryTab.sessions => BrowseSessionsContent(
-              discoveryHeader: discoveryHeader,
-              initialFilters: activeQuery == null
-                  ? _initialSessionFilters
-                  : sessionState.filters,
-            ),
-            HomeDiscoveryTab.venues => BrowseVenuesScreen(
-              embedded: true,
-              discoveryHeader: discoveryHeader,
-              initialFilter: activeQuery == null ? null : venueState.filter,
-              showFilterSummary: activeQuery != null,
-            ),
-            HomeDiscoveryTab.clubs => BrowseClubsScreen(
-              embedded: true,
-              discoveryHeader: discoveryHeader,
-              initialSearch: activeQuery ?? clubsState.search,
-            ),
-            HomeDiscoveryTab.tournaments => BrowseTournamentsContent(
-              discoveryHeader: discoveryHeader,
-              initialSearch: activeQuery ?? tournamentState.search,
-            ),
-          },
-        ),
       ),
-      floatingActionButton: switch (_selectedTab) {
-        HomeDiscoveryTab.sessions => _buildCreateButton(
-          context,
-          l10n,
-          key: 'home-create-session-fab',
-          label: l10n.createSessionTitle,
-          onPressed: isAuthenticated
-              ? () => context.push(AppRoutes.createSession)
-              : () => unawaited(
-                  showLoginPromptDialog(
-                    context,
-                    featureName: l10n.loginRequiredCreateSession,
-                    targetRoute: AppRoutes.createSession,
-                  ),
-                ),
-        ),
-        HomeDiscoveryTab.clubs => _buildCreateButton(
-          context,
-          l10n,
-          key: 'home-create-club-fab',
-          label: l10n.clubCreate,
-          onPressed: isAuthenticated
-              ? () => context.push(AppRoutes.createClub)
-              : () => unawaited(
-                  showLoginPromptDialog(
-                    context,
-                    featureName: l10n.loginRequiredCreateClub,
-                    targetRoute: AppRoutes.createClub,
-                  ),
-                ),
-        ),
-        HomeDiscoveryTab.tournaments
-            when isAuthenticated && !canCreateTournament =>
-          null,
-        HomeDiscoveryTab.tournaments => _buildCreateButton(
-          context,
-          l10n,
-          key: 'home-create-tournament-fab',
-          label: l10n.tournamentCreate,
-          onPressed: !isAuthenticated
-              ? () => unawaited(
-                  showLoginPromptDialog(
-                    context,
-                    featureName: l10n.loginRequiredCreateTournament,
-                    targetRoute: AppRoutes.createTournament,
-                  ),
-                )
-              : () => context.push(AppRoutes.createTournament),
-        ),
-        HomeDiscoveryTab.venues => null,
-      },
     );
   }
 
   void _selectTab(HomeDiscoveryTab tab) => setState(() {
     _selectedTab = tab;
     _contentRevision++;
-    _isFabExtended = true;
   });
+
+  Future<void> _showCityOnboarding() async {
+    final result = await CityOnboardingDialog.maybeShow(context, ref);
+    if (result != null && mounted) {
+      await _onPreferredCityChanged(result.city);
+    }
+  }
+
+  Future<void> _onPreferredCityChanged(String? city) async {
+    switch (_selectedTab) {
+      case HomeDiscoveryTab.sessions:
+        final controller = ref.read(browseSessionsControllerProvider.notifier);
+        final filters = ref.read(browseSessionsControllerProvider).filters;
+        await controller.load(
+          filters: city == null
+              ? filters.copyWith(clearCity: true, cityIsDefault: true)
+              : filters.copyWith(city: city, cityIsDefault: true),
+        );
+      case HomeDiscoveryTab.venues:
+        final controller = ref.read(venueBrowseControllerProvider.notifier);
+        final filter = ref.read(venueBrowseControllerProvider).filter;
+        await controller.load(
+          filter: city == null
+              ? filter.copyWith(
+                  clearCity: true,
+                  clearDistrict: true,
+                  cityIsDefault: true,
+                )
+              : filter.copyWith(
+                  city: city,
+                  clearDistrict: true,
+                  cityIsDefault: true,
+                ),
+        );
+      case HomeDiscoveryTab.clubs:
+        final state = ref.read(clubsControllerProvider);
+        await ref
+            .read(clubsControllerProvider.notifier)
+            .load(
+              search: state.search,
+              city: city,
+              clearCity: city == null,
+            );
+      case HomeDiscoveryTab.tournaments:
+        final state = ref.read(tournamentBrowseControllerProvider);
+        await ref
+            .read(tournamentBrowseControllerProvider.notifier)
+            .load(
+              search: state.search,
+              city: city,
+              clearCity: city == null,
+            );
+    }
+  }
 
   PreferredSizeWidget _buildBrowseAppBar(
     BuildContext context,
     AppLocalizations l10n,
     bool isAuthenticated,
+    bool canCreateTournament,
   ) => AppBar(
     leading: IconButton(
       tooltip: l10n.menuOpenTooltip,
@@ -236,8 +245,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       onPressed: () =>
           ref.read(appShellScaffoldKeyProvider).currentState?.openDrawer(),
     ),
-    title: Text(_selectedTab.label(l10n)),
+    title: Text(
+      l10n.appName,
+      style: TextStyle(color: Theme.of(context).colorScheme.primary),
+    ),
     actions: [
+      ?_buildCreateAction(
+        context,
+        l10n,
+        isAuthenticated,
+        canCreateTournament,
+      ),
       IconButton(
         key: const Key('home-search-button'),
         tooltip: l10n.homeSearchTooltip,
@@ -255,12 +273,63 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ],
   );
 
+  Widget? _buildCreateAction(
+    BuildContext context,
+    AppLocalizations l10n,
+    bool isAuthenticated,
+    bool canCreateTournament,
+  ) => switch (_selectedTab) {
+    HomeDiscoveryTab.sessions => IconButton(
+      key: const Key('home-create-session-button'),
+      tooltip: l10n.createSessionTitle,
+      icon: const Icon(AppIcons.add),
+      onPressed: isAuthenticated
+          ? () => context.push(AppRoutes.createSession)
+          : () => unawaited(
+              showLoginPromptDialog(
+                context,
+                featureName: l10n.loginRequiredCreateSession,
+                targetRoute: AppRoutes.createSession,
+              ),
+            ),
+    ),
+    HomeDiscoveryTab.clubs => IconButton(
+      key: const Key('home-create-club-button'),
+      tooltip: l10n.clubCreate,
+      icon: const Icon(AppIcons.add),
+      onPressed: isAuthenticated
+          ? () => context.push(AppRoutes.createClub)
+          : () => unawaited(
+              showLoginPromptDialog(
+                context,
+                featureName: l10n.loginRequiredCreateClub,
+                targetRoute: AppRoutes.createClub,
+              ),
+            ),
+    ),
+    HomeDiscoveryTab.tournaments when isAuthenticated && !canCreateTournament =>
+      null,
+    HomeDiscoveryTab.tournaments => IconButton(
+      key: const Key('home-create-tournament-button'),
+      tooltip: l10n.tournamentCreate,
+      icon: const Icon(AppIcons.add),
+      onPressed: isAuthenticated
+          ? () => context.push(AppRoutes.createTournament)
+          : () => unawaited(
+              showLoginPromptDialog(
+                context,
+                featureName: l10n.loginRequiredCreateTournament,
+                targetRoute: AppRoutes.createTournament,
+              ),
+            ),
+    ),
+    HomeDiscoveryTab.venues => null,
+  };
+
   PreferredSizeWidget _buildSearchResultsAppBar(
     BuildContext context,
     AppLocalizations l10n,
     String query,
-    int sessionFilterCount,
-    int venueFilterCount,
   ) => AppBar(
     leading: IconButton(
       key: const Key('home-search-exit-results'),
@@ -300,32 +369,186 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ),
       ),
     ),
-    actions: [
-      if (_selectedTab == HomeDiscoveryTab.sessions)
-        Badge(
-          isLabelVisible: sessionFilterCount > 0,
-          label: Text('$sessionFilterCount'),
-          child: IconButton(
-            key: const Key('home-search-session-filter'),
-            tooltip: l10n.sessionFiltersTitle,
-            icon: const Icon(AppIcons.tune),
-            onPressed: _openSessionFilters,
-          ),
-        ),
-      if (_selectedTab == HomeDiscoveryTab.venues)
-        Badge(
-          isLabelVisible: venueFilterCount > 0,
-          label: Text('$venueFilterCount'),
-          child: IconButton(
-            key: const Key('home-search-venue-filter'),
-            tooltip: l10n.venueFiltersTitle,
-            icon: const Icon(AppIcons.tune),
-            onPressed: _openVenueFilters,
-          ),
-        ),
-      const SizedBox(width: 4),
-    ],
+    actions: const [SizedBox(width: 8)],
   );
+
+  int _filterCount(
+    BrowseSessionsState sessionState,
+    VenueBrowseState venueState,
+    ClubsState clubsState,
+    TournamentBrowseState tournamentState,
+    String? preferredCity,
+  ) => switch (_selectedTab) {
+    HomeDiscoveryTab.sessions => sessionState.filters.activeCount,
+    HomeDiscoveryTab.venues => venueState.filter.activeCount(
+      preferredCity: preferredCity,
+    ),
+    HomeDiscoveryTab.clubs => clubsState.activeFilterCount,
+    HomeDiscoveryTab.tournaments => tournamentState.activeFilterCount,
+  };
+
+  String _sortLabel(
+    AppLocalizations l10n,
+    BrowseSessionsState sessionState,
+    VenueBrowseState venueState,
+    ClubsState clubsState,
+    TournamentBrowseState tournamentState,
+  ) => switch (_selectedTab) {
+    HomeDiscoveryTab.sessions => _sessionSortLabel(
+      l10n,
+      sessionState.filters.sort,
+    ),
+    HomeDiscoveryTab.venues => VenueSortOption.fromValue(
+      venueState.filter.sortBy,
+    ).label(l10n),
+    HomeDiscoveryTab.clubs => switch (clubsState.sortBy) {
+      'name' => l10n.homeDiscoverySortNameAsc,
+      'createdAt' => l10n.homeDiscoverySortNewest,
+      _ => l10n.homeDiscoverySortPopular,
+    },
+    HomeDiscoveryTab.tournaments => switch (tournamentState.sort) {
+      TournamentBrowseSort.startAsc => l10n.homeDiscoverySortStartSoonest,
+      TournamentBrowseSort.newest => l10n.homeDiscoverySortNewest,
+      TournamentBrowseSort.nameAsc => l10n.homeDiscoverySortNameAsc,
+      TournamentBrowseSort.nameDesc => l10n.homeDiscoverySortNameDesc,
+    },
+  };
+
+  String _sessionSortLabel(
+    AppLocalizations l10n,
+    SessionBrowseSort sort,
+  ) => switch (sort) {
+    SessionBrowseSort.dateAsc => l10n.homeDiscoverySortDateNearest,
+    SessionBrowseSort.dateDesc => l10n.homeDiscoverySortDateFurthest,
+    SessionBrowseSort.newest => l10n.homeDiscoverySortNewest,
+    SessionBrowseSort.priceAsc => l10n.homeDiscoverySortPriceLow,
+    SessionBrowseSort.priceDesc => l10n.homeDiscoverySortPriceHigh,
+  };
+
+  Future<void> _openActiveSort() async {
+    final l10n = AppLocalizations.of(context);
+    switch (_selectedTab) {
+      case HomeDiscoveryTab.sessions:
+        final controller = ref.read(browseSessionsControllerProvider.notifier);
+        final current = ref.read(browseSessionsControllerProvider).filters;
+        final selected = await showDiscoverySortSheet<SessionBrowseSort>(
+          context,
+          title: l10n.homeDiscoverySortBy,
+          selected: current.sort,
+          options: [
+            for (final option in SessionBrowseSort.values)
+              DiscoverySortOption(
+                value: option,
+                label: _sessionSortLabel(l10n, option),
+              ),
+          ],
+        );
+        if (selected != null) {
+          unawaited(controller.load(filters: current.copyWith(sort: selected)));
+        }
+      case HomeDiscoveryTab.venues:
+        final controller = ref.read(venueBrowseControllerProvider.notifier);
+        final current = ref.read(venueBrowseControllerProvider).filter;
+        final selected = await showDiscoverySortSheet<VenueSortOption>(
+          context,
+          title: l10n.homeDiscoverySortBy,
+          selected: VenueSortOption.fromValue(current.sortBy),
+          options: [
+            for (final option in VenueSortOption.values)
+              DiscoverySortOption(value: option, label: option.label(l10n)),
+          ],
+        );
+        if (selected != null) {
+          var next = current.copyWith(
+            sortBy: selected.value,
+            clearLocation: selected != VenueSortOption.distance,
+          );
+          if (selected == VenueSortOption.distance &&
+              (current.latitude == null || current.longitude == null)) {
+            try {
+              final coordinates = await ref
+                  .read(deviceLocationServiceProvider)
+                  .call();
+              next = next.copyWith(
+                latitude: coordinates.latitude,
+                longitude: coordinates.longitude,
+              );
+            } on Object {
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(l10n.venueFilterLocationDenied)),
+                );
+              }
+              return;
+            }
+          }
+          unawaited(controller.load(filter: next));
+        }
+      case HomeDiscoveryTab.clubs:
+        final controller = ref.read(clubsControllerProvider.notifier);
+        final current = ref.read(clubsControllerProvider);
+        final selected = await showDiscoverySortSheet<String>(
+          context,
+          title: l10n.homeDiscoverySortBy,
+          selected: current.sortBy,
+          options: [
+            DiscoverySortOption(
+              value: 'sessionCount',
+              label: l10n.homeDiscoverySortPopular,
+            ),
+            DiscoverySortOption(
+              value: 'createdAt',
+              label: l10n.homeDiscoverySortNewest,
+            ),
+            DiscoverySortOption(
+              value: 'name',
+              label: l10n.homeDiscoverySortNameAsc,
+            ),
+          ],
+        );
+        if (selected != null) {
+          unawaited(controller.load(search: current.search, sortBy: selected));
+        }
+      case HomeDiscoveryTab.tournaments:
+        final controller = ref.read(
+          tournamentBrowseControllerProvider.notifier,
+        );
+        final current = ref.read(tournamentBrowseControllerProvider);
+        final selected = await showDiscoverySortSheet<TournamentBrowseSort>(
+          context,
+          title: l10n.homeDiscoverySortBy,
+          selected: current.sort,
+          options: [
+            DiscoverySortOption(
+              value: TournamentBrowseSort.startAsc,
+              label: l10n.homeDiscoverySortStartSoonest,
+            ),
+            DiscoverySortOption(
+              value: TournamentBrowseSort.newest,
+              label: l10n.homeDiscoverySortNewest,
+            ),
+            DiscoverySortOption(
+              value: TournamentBrowseSort.nameAsc,
+              label: l10n.homeDiscoverySortNameAsc,
+            ),
+            DiscoverySortOption(
+              value: TournamentBrowseSort.nameDesc,
+              label: l10n.homeDiscoverySortNameDesc,
+            ),
+          ],
+        );
+        if (selected != null) {
+          unawaited(controller.load(sort: selected));
+        }
+    }
+  }
+
+  Future<void> _openActiveFilters() => switch (_selectedTab) {
+    HomeDiscoveryTab.sessions => _openSessionFilters(),
+    HomeDiscoveryTab.venues => _openVenueFilters(),
+    HomeDiscoveryTab.clubs => _openClubFilters(),
+    HomeDiscoveryTab.tournaments => _openTournamentFilters(),
+  };
 
   Future<void> _openSearch() async {
     final tab = _selectedTab;
@@ -430,35 +653,54 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (filter != null) unawaited(controller.load(filter: filter));
   }
 
-  Widget _buildCreateButton(
-    BuildContext context,
-    AppLocalizations l10n, {
-    required String key,
-    required String label,
-    required VoidCallback onPressed,
-  }) {
-    return SizedBox(
-      height: 40,
-      child: FloatingActionButton.extended(
-        key: Key(key),
-        heroTag: key,
-        isExtended: _isFabExtended,
-        onPressed: onPressed,
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Theme.of(context).colorScheme.onPrimary,
-        elevation: 2,
-        extendedPadding: const EdgeInsets.symmetric(horizontal: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+  Future<void> _openClubFilters() async {
+    final controller = ref.read(clubsControllerProvider.notifier);
+    final current = ref.read(clubsControllerProvider);
+    final filter = await showModalBottomSheet<ClubDiscoveryFilters>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => ClubDiscoveryFilterSheet(
+        initial: ClubDiscoveryFilters(
+          district: current.district,
+          favoriteOnly: current.favoriteOnly,
         ),
-        icon: const Icon(AppIcons.add, size: 18),
-        label: Text(
-          label,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 13,
-          ),
+      ),
+    );
+    if (filter == null) return;
+    unawaited(
+      controller.load(
+        search: current.search,
+        district: filter.district,
+        clearDistrict: filter.district == null,
+        favoriteOnly: filter.favoriteOnly,
+      ),
+    );
+  }
+
+  Future<void> _openTournamentFilters() async {
+    final controller = ref.read(tournamentBrowseControllerProvider.notifier);
+    final current = ref.read(tournamentBrowseControllerProvider);
+    final filter = await showModalBottomSheet<TournamentDiscoveryFilters>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => TournamentDiscoveryFilterSheet(
+        initial: TournamentDiscoveryFilters(
+          statuses: current.statuses,
+          sportTypes: current.sportTypes,
+          favoriteOnly: current.favoriteOnly,
         ),
+      ),
+    );
+    if (filter == null) return;
+    unawaited(
+      controller.load(
+        statuses: filter.statuses,
+        sportTypes: filter.sportTypes,
+        favoriteOnly: filter.favoriteOnly,
       ),
     );
   }

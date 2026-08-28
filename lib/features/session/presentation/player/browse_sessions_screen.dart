@@ -223,13 +223,7 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
             borderRadius: BorderRadius.circular(12),
           ),
           icon: const Icon(AppIcons.add, size: 18),
-          label: Text(
-            l10n.createSessionTitle,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
-            ),
-          ),
+          label: Text(l10n.createSessionTitle),
         ),
       ),
     );
@@ -569,6 +563,7 @@ class _SessionsBody extends StatelessWidget {
           onDelete: scope == MySessionScope.hosted
               ? () => _confirmDelete(context, session)
               : null,
+          compactStatusBadge: scope == MySessionScope.hosted,
         );
         if (scope == MySessionScope.joined && _isPending(session)) {
           return Stack(

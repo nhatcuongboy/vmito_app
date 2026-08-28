@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:vmito_app/core/config/app_config.dart';
+import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
@@ -93,6 +94,9 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
             widget.initialSession!,
             isClone: widget.isClone,
             hostName: userName,
+            showNewAddress: ref
+                .read(locationPreferencesControllerProvider)
+                .showNewAddress,
           );
     _form = createSessionReactiveForm(_baseState);
     _feeOpen = _baseState.feeEnabled;
@@ -328,9 +332,26 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
                             ListTile(
                               leading: const Icon(Icons.location_on_outlined),
                               title: Text(item.name),
-                              subtitle: item.addressLabel.isEmpty
+                              subtitle:
+                                  item
+                                      .addressLabel(
+                                        showNewAddress: ref
+                                            .read(
+                                              locationPreferencesControllerProvider,
+                                            )
+                                            .showNewAddress,
+                                      )
+                                      .isEmpty
                                   ? null
-                                  : Text(item.addressLabel),
+                                  : Text(
+                                      item.addressLabel(
+                                        showNewAddress: ref
+                                            .read(
+                                              locationPreferencesControllerProvider,
+                                            )
+                                            .showNewAddress,
+                                      ),
+                                    ),
                               onTap: () => Navigator.pop(sheetContext, item),
                             ),
                           if (_venues.isEmpty)
@@ -389,7 +410,11 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
           SessionLocationKind.venue
       ..control(SessionFormControl.venueId).value = venue.id
       ..control(SessionFormControl.venueLabel).value = venue.name
-      ..control(SessionFormControl.venueSublabel).value = venue.addressLabel
+      ..control(SessionFormControl.venueSublabel).value = venue.addressLabel(
+        showNewAddress: ref
+            .read(locationPreferencesControllerProvider)
+            .showNewAddress,
+      )
       ..control(SessionFormControl.customLocationFromAi).value = false;
     setState(() {});
   }
@@ -636,8 +661,12 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
               SessionLocationKind.venue
           ..control(SessionFormControl.venueId).value = venueId
           ..control(SessionFormControl.venueLabel).value = resolved.name
-          ..control(SessionFormControl.venueSublabel).value =
-              resolved.addressLabel
+          ..control(SessionFormControl.venueSublabel).value = resolved
+              .addressLabel(
+                showNewAddress: ref
+                    .read(locationPreferencesControllerProvider)
+                    .showNewAddress,
+              )
           ..control(SessionFormControl.customLocationFromAi).value = false;
       case AiCustomLocation(
         :final name,

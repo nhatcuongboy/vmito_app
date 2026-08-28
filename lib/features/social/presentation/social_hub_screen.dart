@@ -263,8 +263,7 @@ class _ComposerCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   hint,
-                  style: TextStyle(
-                    fontSize: 16,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                     color: isDark
                         ? const Color(0xFF6B7280)
                         : const Color(0xFF9CA3AF),

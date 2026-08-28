@@ -49,6 +49,30 @@ class AppNotification {
   final DateTime createdAt;
 
   String? get sessionId => _string(data['sessionId']);
+  String? get sessionSlug =>
+      _string(data['slug']) ?? _string(data['sessionSlug']);
+  String? get clubId => _string(data['clubSlug']) ?? _string(data['clubId']);
+  String? get tournamentId =>
+      _string(data['tournamentSlug']) ?? _string(data['tournamentId']);
+  String? get postId => _string(data['postId']);
+  String? get venueId =>
+      _string(data['venueSlug']) ??
+      _string(data['venueId']) ??
+      _string(data['id']);
+  String? get rentalRequestId => _string(data['rentalRequestId']);
+  String? get action => _string(data['action']);
+  String? get actorName => _string(data['actorName']);
+  String? get actorAvatar => _string(data['actorAvatar']);
+
+  bool get hasRelatedUser =>
+      const {
+        'post_liked',
+        'post_commented',
+        'session_favorited',
+        'club_favorited',
+        'tournament_favorited',
+      }.contains(action) &&
+      actorName != null;
 
   AppNotification markRead() => AppNotification(
     id: id,

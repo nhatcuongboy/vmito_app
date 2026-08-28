@@ -4,6 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vmito_app/features/notification/application/notification_controller.dart';
 import 'package:vmito_app/features/notification/domain/app_notification.dart';
 import 'package:vmito_app/features/notification/presentation/notifications_screen.dart';
+import 'package:vmito_app/features/registration/domain/pending_join_request.dart';
+import 'package:vmito_app/features/social/domain/club.dart';
+import 'package:vmito_app/features/venue/domain/venue_approval_request.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 class _FakeNotificationController extends NotificationController {
@@ -34,6 +37,15 @@ class _FakeNotificationController extends NotificationController {
       items: state.items.map((item) => item.markRead()).toList(),
       page: 1,
       totalPages: 1,
+      hasLoaded: true,
+    );
+  }
+
+  @override
+  Future<void> delete(String id) async {
+    state = state.copyWith(
+      items: state.items.where((item) => item.id != id).toList(),
+      unreadCount: 0,
     );
   }
 }
@@ -63,6 +75,154 @@ void main() {
     expect(find.text('Mark all read'), findsOneWidget);
     await tester.tap(find.text('Mark all read'));
     await tester.pump();
-    expect(find.text('Mark all read'), findsNothing);
+    final button = tester.widget<TextButton>(
+      find.widgetWithText(TextButton, 'Mark all read'),
+    );
+    expect(button.onPressed, isNull);
+    expect(find.byKey(const Key('notification-unread-count')), findsNothing);
   });
+
+  testWidgets('requires confirmation before deleting a notification', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          notificationControllerProvider.overrideWith(
+            _FakeNotificationController.new,
+          ),
+        ],
+        child: const MaterialApp(
+          locale: Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: NotificationsScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(
+      find.byKey(const ValueKey('delete-notification-n1')),
+      findsNothing,
+    );
+    await tester.drag(find.text('Your session changed'), const Offset(-300, 0));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('swipe-delete-notification-n1')),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Delete notification?'), findsOneWidget);
+    expect(find.text('Your session changed'), findsOneWidget);
+    expect(find.textContaining('will be permanently deleted'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(FilledButton, 'Delete'));
+    await tester.pumpAndSettle();
+    expect(find.text('Your session changed'), findsNothing);
+  });
+
+  testWidgets('renders every web panel item without narrow-screen overflow', (
+    tester,
+  ) async {
+    tester.view.physicalSize = const Size(320, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          notificationControllerProvider.overrideWith(
+            _UnifiedNotificationController.new,
+          ),
+        ],
+        child: const MaterialApp(
+          locale: Locale('vi'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: NotificationsScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('1 Mới'), findsOneWidget);
+    expect(find.text('4 Chờ duyệt'), findsOneWidget);
+    expect(find.text('An'), findsOneWidget);
+    expect(find.textContaining('2 slot'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('venue-approval-v1')),
+      300,
+      scrollable: find.byType(Scrollable),
+    );
+    expect(find.text('Sân Cầu Vồng'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+}
+
+class _UnifiedNotificationController extends NotificationController {
+  @override
+  NotificationState build() => NotificationState(
+    items: [
+      AppNotification(
+        id: 'n1',
+        userId: 'u1',
+        type: AppNotificationType.post,
+        title: 'Bình luận mới',
+        message: 'Bình luận về bài viết',
+        data: const {
+          'action': 'post_commented',
+          'actorName': 'Minh',
+        },
+        isRead: false,
+        createdAt: DateTime(2026, 8, 29, 10),
+      ),
+    ],
+    sessionRequests: [
+      PendingJoinRequest(
+        id: 'p1',
+        sessionId: 's1',
+        sessionName: 'Kèo tối',
+        playerName: 'An',
+        userId: 'u2',
+        startTime: DateTime(2026, 8, 30, 18),
+      ),
+      PendingJoinRequest(
+        id: 'p2',
+        sessionId: 's1',
+        sessionName: 'Kèo tối',
+        playerName: 'An',
+        userId: 'u2',
+        startTime: DateTime(2026, 8, 30, 18),
+      ),
+    ],
+    clubRequests: [
+      ClubJoinRequest(
+        id: 'c1',
+        userId: 'u3',
+        userName: 'Bình',
+        userEmail: 'binh@example.com',
+        clubId: 'club-1',
+        createdAt: DateTime(2026, 8, 28),
+        club: const ClubJoinRequestClub(id: 'club-1', name: 'Smash'),
+      ),
+    ],
+    venueRequests: [
+      VenueApprovalRequest(
+        id: 'v1',
+        type: 'CREATE',
+        status: 'PENDING',
+        payload: const {'name': 'Sân Cầu Vồng'},
+        createdAt: DateTime(2026, 8, 27),
+      ),
+    ],
+    unreadCount: 1,
+    sessionPendingCount: 2,
+    page: 1,
+    totalPages: 1,
+    hasLoaded: true,
+  );
+
+  @override
+  Future<void> load() async {}
 }

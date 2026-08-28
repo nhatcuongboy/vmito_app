@@ -51,7 +51,7 @@ import 'package:vmito_app/features/venue/presentation/venue_detail_screen.dart';
 
 /// Keys the shell's own navigator so full-screen routes (splash, sign-in) can
 /// push *above* the bottom bar rather than inside a tab.
-final _rootNavigatorKey = GlobalKey<NavigatorState>();
+final rootNavigatorKey = GlobalKey<NavigatorState>();
 
 /// The app's [GoRouter], rebuilt whenever auth status changes.
 ///
@@ -72,7 +72,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
   };
 
   return GoRouter(
-    navigatorKey: _rootNavigatorKey,
+    navigatorKey: rootNavigatorKey,
     initialLocation: AppRoutes.splash,
     debugLogDiagnostics: true,
     redirect: (context, state) {
@@ -114,7 +114,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         redirect: (context, state) => state.uri.path == AppRoutes.venues
             ? AppRoutes.homeForDiscoveryTab(HomeDiscoveryTab.venues.name)
             : null,
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const BrowseVenuesScreen(),
         routes: [
           GoRoute(
@@ -126,7 +126,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.clubs,
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const BrowseClubsScreen(),
         routes: [
           GoRoute(
@@ -145,7 +145,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.signIn,
         name: AppRoutes.nameSignIn,
         // Above the shell: sign-in has no bottom bar.
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => SignInScreen(
           registrationCompleted: state.uri.queryParameters['registered'] == '1',
           redirect: state.uri.queryParameters['redirect'],
@@ -154,17 +154,17 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.signUp,
         name: AppRoutes.nameSignUp,
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const SignUpScreen(),
       ),
       GoRoute(
         path: AppRoutes.forgotPassword,
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const ForgotPasswordScreen(),
       ),
       GoRoute(
         path: AppRoutes.resetPassword,
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => ResetPasswordScreen(
           token: state.uri.queryParameters['token'] ?? '',
         ),
@@ -172,13 +172,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.feedback,
         name: AppRoutes.nameFeedback,
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const FeedbackScreen(),
       ),
       GoRoute(
         path: AppRoutes.terms,
         name: AppRoutes.nameTerms,
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const LegalScreen(
           document: LegalDocument.terms,
         ),
@@ -186,7 +186,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.privacy,
         name: AppRoutes.namePrivacy,
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const LegalScreen(
           document: LegalDocument.privacy,
         ),
@@ -194,14 +194,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/user/:id',
         name: AppRoutes.namePublicProfile,
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => PublicProfileScreen(
           userId: state.pathParameters['id']!,
         ),
       ),
       GoRoute(
         path: AppRoutes.createTournament,
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         redirect: (context, state) {
           final role = auth.user?.role;
           return role == UserRole.host || role == UserRole.admin
@@ -212,7 +212,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '${AppRoutes.tournaments}/:id',
-        parentNavigatorKey: _rootNavigatorKey,
+        parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => TournamentDetailScreen(
           idOrSlug: state.pathParameters['id']!,
         ),
@@ -249,7 +249,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: AppRoutes.homeSearchPath,
-                    parentNavigatorKey: _rootNavigatorKey,
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => HomeSearchScreen(
                       tab:
                           parseHomeDiscoveryTab(
@@ -299,12 +299,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   // would put the safe-area inset on the wrong one.
                   GoRoute(
                     path: 'create',
-                    parentNavigatorKey: _rootNavigatorKey,
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const CreateSessionScreen(),
                   ),
                   GoRoute(
                     path: AppRoutes.mySessionsSearchPath,
-                    parentNavigatorKey: _rootNavigatorKey,
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => MySessionsSearchScreen(
                       scope: switch (state.uri.queryParameters['scope']) {
                         'joined' => MySessionScope.joined,
@@ -322,14 +322,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     routes: [
                       GoRoute(
                         path: 'edit',
-                        parentNavigatorKey: _rootNavigatorKey,
+                        parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) => EditSessionScreen(
                           sessionId: state.pathParameters['id']!,
                         ),
                       ),
                       GoRoute(
                         path: 'clone',
-                        parentNavigatorKey: _rootNavigatorKey,
+                        parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) => EditSessionScreen(
                           sessionId: state.pathParameters['id']!,
                           isClone: true,
@@ -340,6 +340,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                         builder: (context, state) =>
                             HostSessionManagementScreen(
                               sessionId: state.pathParameters['id']!,
+                              initialTab:
+                                  state.uri.queryParameters['tab'] == 'roster'
+                                  ? 1
+                                  : 0,
                             ),
                       ),
                       GoRoute(
@@ -384,6 +388,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                         path: ':id',
                         builder: (context, state) => ClubManagementDetailScreen(
                           clubId: state.pathParameters['id']!,
+                          initialTab:
+                              state.uri.queryParameters['tab'] == 'requests'
+                              ? 1
+                              : 0,
                         ),
                         routes: [
                           GoRoute(
@@ -435,7 +443,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'edit',
                     name: AppRoutes.nameEditProfile,
-                    parentNavigatorKey: _rootNavigatorKey,
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const EditProfileScreen(),
                   ),
                 ],
@@ -448,7 +456,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'account-security',
                     name: AppRoutes.nameAccountSecurity,
-                    parentNavigatorKey: _rootNavigatorKey,
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const AccountSecurityScreen(),
                     routes: [
                       GoRoute(

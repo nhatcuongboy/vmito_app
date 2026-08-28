@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:vmito_app/core/location/address_display.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 import 'package:vmito_app/shared/models/court.dart';
@@ -41,7 +42,7 @@ abstract class SessionVenue with _$SessionVenue {
     String? name,
 
     /// Street address as entered. `newAddress` is the post-merger rewrite the
-    /// backend derives; prefer it when present — see [displayAddress].
+    /// backend derives; display it through [resolveAppAddress].
     String? address,
     String? newAddress,
     String? city,
@@ -52,6 +53,8 @@ abstract class SessionVenue with _$SessionVenue {
 
     /// Post-merger ward name. Present on newer records.
     String? newDistrict,
+    double? lat,
+    double? lng,
   }) = _SessionVenue;
 
   factory SessionVenue.fromJson(Map<String, dynamic> json) =>
@@ -59,30 +62,15 @@ abstract class SessionVenue with _$SessionVenue {
 
   const SessionVenue._();
 
-  /// Uses the current ward/commune when available, matching the web card.
-  /// Administrative prefixes are omitted so the compact card reads
-  /// `Sân ABC • Tân Phú` rather than wrapping on `Phường`/`Xã`.
-  String? get displayArea {
-    final value = (newDistrict?.trim().isNotEmpty ?? false)
-        ? newDistrict
-        : district;
-    if (value == null || value.trim().isEmpty) return null;
-    return value.trim().replaceFirst(
-      RegExp(r'^(Phường|Xã|Thị trấn)\s+', caseSensitive: false),
-      '',
+  String? displayAddress({required bool showNewAddress}) {
+    final resolved = resolveAppAddress(
+      showNewAddress: showNewAddress,
+      address: address,
+      district: district,
+      city: city,
+      newAddress: newAddress,
     );
-  }
-
-  /// The full street line for the detail screen, post-merger wording first.
-  ///
-  /// Unlike [displayArea] this prefers the *new* address: on a detail screen
-  /// the address is what someone navigates by, and the merged ward names are
-  /// what map apps now resolve.
-  String? get displayAddress {
-    final preferred = newAddress?.trim();
-    if (preferred != null && preferred.isNotEmpty) return preferred;
-    final fallback = address?.trim();
-    return fallback == null || fallback.isEmpty ? null : fallback;
+    return resolved.isEmpty ? null : resolved.text;
   }
 }
 
@@ -384,17 +372,30 @@ abstract class Session with _$Session {
   ///
   /// The web card shows venue plus district rather than the full street
   /// address, which truncates to uselessness at card width.
-  String get displayPlace {
+  String displayPlace({required bool showNewAddress}) {
     final venueName = venue?.name?.trim();
-    final area = venue?.displayArea?.trim();
+    final area = venue == null
+        ? resolveCompactAddressArea(
+            showNewAddress: showNewAddress,
+            district: customLocationDistrict,
+            city: customLocationCity,
+          )
+        : resolveCompactAddressArea(
+            showNewAddress: showNewAddress,
+            district: venue?.district,
+            city: venue?.city,
+            newDistrict: venue?.newDistrict,
+            newCity: venue?.newCity,
+          );
     if (venueName != null && venueName.isNotEmpty) {
       return area == null || area.isEmpty ? venueName : '$venueName • $area';
     }
-    final customArea = customLocationDistrict?.trim();
     final rawLocation = location?.trim() ?? '';
     if (rawLocation.isEmpty) return '';
-    return customArea == null || customArea.isEmpty
-        ? rawLocation
-        : '$rawLocation • $customArea';
+    return area == null || area.isEmpty ? rawLocation : '$rawLocation • $area';
   }
+
+  bool get hasLocation =>
+      (venue?.name?.trim().isNotEmpty ?? false) ||
+      (location?.trim().isNotEmpty ?? false);
 }

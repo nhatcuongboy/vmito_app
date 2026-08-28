@@ -409,11 +409,16 @@ class VenueCard extends StatelessWidget {
   final Venue venue;
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final avatarUrl = (venue.logo?.trim().isNotEmpty ?? false)
         ? venue.logo!.trim()
         : (venue.coverPhoto?.trim().isNotEmpty ?? false)
         ? venue.coverPhoto!.trim()
         : null;
+    final openingHours = venue.openingHours?.trim() ?? '';
+    final hasCourts = venue.numberOfCourts != null;
+    final hasOpeningHours = openingHours.isNotEmpty;
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -509,52 +514,68 @@ class VenueCard extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 venue.name,
-                                style: Theme.of(context).textTheme.titleMedium,
+                                style: theme.textTheme.titleMedium,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
-                            if (venue.isVerified)
-                              const Padding(
-                                padding: EdgeInsets.only(left: 4),
-                                child: Icon(
-                                  AppIcons.verified,
-                                  color: Colors.green,
-                                  size: 19,
-                                ),
-                              ),
                           ],
                         ),
-                        if (venue.addressLabel.isNotEmpty)
+                        if (venue.hasAddressData)
                           Padding(
                             padding: const EdgeInsets.only(top: 4),
-                            child: AppAddressText(
-                              address: venue.address,
-                              district: venue.district,
-                              city: venue.city,
-                              newAddress: venue.newAddress,
-                              newDistrict: venue.newDistrict,
-                              newCity: venue.newCity,
-                              maxLines: 2,
-                              style: Theme.of(context).textTheme.bodySmall,
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  AppIcons.location,
+                                  key: const Key('venue-address-location-icon'),
+                                  size: 16,
+                                  color: theme.colorScheme.primary,
+                                ),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  child: AppAddressText(
+                                    address: venue.address,
+                                    district: venue.district,
+                                    city: venue.city,
+                                    newAddress: venue.newAddress,
+                                    newDistrict: venue.newDistrict,
+                                    newCity: venue.newCity,
+                                    showNewAddressBadge: false,
+                                    maxLines: 2,
+                                    style: theme.textTheme.bodySmall,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        const SizedBox(height: 7),
-                        Wrap(
-                          spacing: 10,
-                          children: [
-                            if (venue.numberOfCourts != null)
-                              Text(
-                                '${venue.numberOfCourts} sân',
-                                style: Theme.of(context).textTheme.labelMedium,
-                              ),
-                            if (venue.hourlyRateFixed != null)
-                              Text(
-                                '${_money(venue.hourlyRateFixed!)}đ/giờ',
-                                style: Theme.of(context).textTheme.labelMedium,
-                              ),
-                          ],
-                        ),
+                        if (hasCourts || hasOpeningHours)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 7),
+                            child: Row(
+                              children: [
+                                if (hasOpeningHours)
+                                  Expanded(
+                                    child: _VenueMetaItem(
+                                      key: const Key('venue-hours-meta'),
+                                      icon: AppIcons.clock,
+                                      label: openingHours,
+                                    ),
+                                  ),
+                                if (hasCourts)
+                                  Expanded(
+                                    child: _VenueMetaItem(
+                                      key: const Key('venue-courts-meta'),
+                                      icon: AppIcons.grid2x2,
+                                      label: l10n.venueCourtsValue(
+                                        venue.numberOfCourts!,
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -590,6 +611,32 @@ class VenueCard extends StatelessWidget {
       ),
     ),
   );
+}
+
+class _VenueMetaItem extends StatelessWidget {
+  const _VenueMetaItem({required this.icon, required this.label, super.key});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Icon(icon, size: 16, color: theme.colorScheme.primary),
+        const SizedBox(width: 5),
+        Flexible(
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.labelMedium,
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _VenueCover extends StatelessWidget {
@@ -694,9 +741,4 @@ class _CreateVenueSheetState extends State<_CreateVenueSheet> {
       ),
     ),
   );
-}
-
-String _money(int value) {
-  final raw = value.toString();
-  return raw.replaceAllMapped(RegExp(r'(?=(\d{3})+(?!\d))'), (_) => '.');
 }

@@ -66,7 +66,11 @@ GoRouter _buildRouter() => GoRouter(
   ],
 );
 
-Widget _harness(AuthState state, GoRouter router) => ProviderScope(
+Widget _harness(
+  AuthState state,
+  GoRouter router, {
+  Locale locale = const Locale('vi'),
+}) => ProviderScope(
   overrides: [
     authControllerProvider.overrideWith(() => _TestAuthController(state)),
     newsfeedBadgeControllerProvider.overrideWith(
@@ -74,7 +78,7 @@ Widget _harness(AuthState state, GoRouter router) => ProviderScope(
     ),
   ],
   child: MaterialApp.router(
-    locale: const Locale('vi'),
+    locale: locale,
     theme: AppTheme.light,
     routerConfig: router,
     localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -176,6 +180,101 @@ void main() {
     expect(find.text('Quản lý'), findsNothing);
     expect(find.text('ADMIN'), findsNothing);
     expect(find.text('Đăng nhập'), findsOneWidget);
+  });
+
+  testWidgets('uses compact, role-based drawer typography', (tester) async {
+    final router = _buildRouter();
+    await tester.pumpWidget(
+      _harness(const AuthState(status: AuthStatus.unauthenticated), router),
+    );
+    await _openDrawer(tester);
+
+    final section = tester.widget<Text>(find.text('Khám phá'));
+    final activeItem = tester.widget<Text>(find.text('Tìm kèo'));
+    final inactiveItem = tester.widget<Text>(find.text('Tìm sân'));
+    final activeTile = find.ancestor(
+      of: find.text('Tìm kèo'),
+      matching: find.byType(ListTile),
+    );
+    final activeIcon = find.descendant(
+      of: activeTile,
+      matching: find.byIcon(AppIcons.sessions),
+    );
+    final signIn = tester.widget<OutlinedButton>(
+      find.ancestor(
+        of: find.text('Đăng nhập'),
+        matching: find.byType(OutlinedButton),
+      ),
+    );
+
+    expect(section.style?.fontSize, 12);
+    expect(section.style?.height, closeTo(16 / 12, 0.0001));
+    expect(section.style?.fontWeight, FontWeight.w700);
+    expect(activeItem.style?.fontSize, 15);
+    expect(activeItem.style?.height, closeTo(20 / 15, 0.0001));
+    expect(activeItem.style?.fontWeight, FontWeight.w600);
+    expect(activeItem.maxLines, 1);
+    expect(activeItem.overflow, TextOverflow.ellipsis);
+    expect(inactiveItem.style?.fontWeight, FontWeight.w500);
+    expect(tester.getSize(activeTile).height, 48);
+    expect(IconTheme.of(tester.element(activeIcon)).size, 22);
+    expect(
+      signIn.style?.textStyle?.resolve(<WidgetState>{})?.fontSize,
+      14,
+    );
+    expect(
+      signIn.style?.textStyle?.resolve(<WidgetState>{})?.fontWeight,
+      FontWeight.w600,
+    );
+
+    await tester.scrollUntilVisible(
+      find.text('Tiếng Việt'),
+      240,
+      scrollable: find.byType(Scrollable),
+    );
+    final trailing = tester.widget<Text>(find.text('Tiếng Việt'));
+    final footerName = tester.widget<Text>(find.text('Vmito'));
+    final footerYear = tester.widget<Text>(find.text('© 2026 Vmito.'));
+    expect(trailing.style?.fontSize, 14);
+    expect(trailing.style?.fontWeight, FontWeight.w500);
+    expect(trailing.maxLines, 1);
+    expect(trailing.overflow, TextOverflow.ellipsis);
+    expect(footerName.style?.fontSize, 14);
+    expect(footerName.style?.fontWeight, FontWeight.w700);
+    expect(footerYear.style?.fontSize, 12);
+    expect(footerYear.style?.fontWeight, FontWeight.w400);
+  });
+
+  testWidgets('drawer does not overflow across locales and text scales', (
+    tester,
+  ) async {
+    addTearDown(() {
+      tester.platformDispatcher.clearTextScaleFactorTestValue();
+      return tester.binding.setSurfaceSize(null);
+    });
+
+    for (final width in const [320.0, 360.0, 430.0]) {
+      await tester.binding.setSurfaceSize(Size(width, 800));
+      for (final scale in const [1.0, 1.3, 2.0]) {
+        tester.platformDispatcher.textScaleFactorTestValue = scale;
+        for (final locale in AppLocalizations.supportedLocales) {
+          final router = _buildRouter();
+          await tester.pumpWidget(
+            _harness(
+              const AuthState(status: AuthStatus.unauthenticated),
+              router,
+              locale: locale,
+            ),
+          );
+          await _openDrawer(tester);
+
+          expect(find.byType(SlideOutMenu), findsOneWidget);
+          expect(tester.takeException(), isNull);
+          await tester.pumpWidget(const SizedBox.shrink());
+          router.dispose();
+        }
+      }
+    }
   });
 
   testWidgets('discovery destination selects the matching home tab', (
@@ -299,8 +398,12 @@ void main() {
     expect(avatar.radius, 22);
     expect(name.maxLines, 2);
     expect(name.overflow, TextOverflow.ellipsis);
-    expect(name.style?.fontSize, lessThanOrEqualTo(18));
-    expect(role.style?.fontSize, lessThanOrEqualTo(14));
+    expect(name.style?.fontSize, 16);
+    expect(name.style?.height, closeTo(20 / 16, 0.0001));
+    expect(name.style?.fontWeight, FontWeight.w700);
+    expect(role.style?.fontSize, 12);
+    expect(role.style?.height, closeTo(16 / 12, 0.0001));
+    expect(role.style?.fontWeight, FontWeight.w500);
     expect(header.height, lessThanOrEqualTo(96));
   });
 

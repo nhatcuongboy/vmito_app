@@ -5,12 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/constants/image_constants.dart';
-import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/tab_reselection_controller.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/tournament/application/tournament_browse_controller.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
@@ -122,16 +122,19 @@ class _BrowseTournamentsContentState
   }
 }
 
-class TournamentBrowseCard extends StatelessWidget {
+class TournamentBrowseCard extends ConsumerWidget {
   const TournamentBrowseCard({required this.tournament, super.key});
 
   final TournamentSummary tournament;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final palette = theme.extension<AppPalette>()!;
     final l10n = AppLocalizations.of(context);
+    final showNewAddress = ref
+        .watch(locationPreferencesControllerProvider)
+        .showNewAddress;
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -199,7 +202,10 @@ class TournamentBrowseCard extends StatelessWidget {
                     icon: AppIcons.calendarMonth,
                     label: _dateRange(context, tournament),
                   ),
-                  if (tournament.location case final location?) ...[
+                  if (tournament.displayLocation(
+                        showNewAddress: showNewAddress,
+                      )
+                      case final location?) ...[
                     const SizedBox(height: AppSpacing.xs),
                     _MetadataLine(
                       icon: AppIcons.location,

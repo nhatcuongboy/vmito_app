@@ -165,6 +165,16 @@ void main() {
     expect(uri.queryParameters[AppRoutes.clubManagementTabQuery], 'member');
   });
 
+  test('notification approval destinations encode their initial tabs', () {
+    final session = Uri.parse(AppRoutes.manageSession('s1', tab: 'roster'));
+    final club = Uri.parse(AppRoutes.manageClub('c1', tab: 'requests'));
+
+    expect(session.path, '/sessions/s1/manage');
+    expect(session.queryParameters['tab'], 'roster');
+    expect(club.path, '/feed/manage/c1');
+    expect(club.queryParameters['tab'], 'requests');
+  });
+
   test('signInWithRedirect preserves the post-login destination', () {
     final uri = Uri.parse(
       AppRoutes.signInWithRedirect(AppRoutes.createSession),

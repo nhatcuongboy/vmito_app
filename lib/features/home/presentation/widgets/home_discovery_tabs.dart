@@ -71,12 +71,14 @@ class HomeDiscoveryTabs extends StatelessWidget {
                       children: [
                         Text(
                           tab.label(l10n),
-                          style: theme.textTheme.titleSmall?.copyWith(
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontSize: 15,
+                            height: 20 / 15,
                             color: selected == tab
                                 ? theme.colorScheme.primary
                                 : palette.mutedForeground,
                             fontWeight: selected == tab
-                                ? FontWeight.w700
+                                ? FontWeight.w600
                                 : FontWeight.w500,
                           ),
                         ),

@@ -208,6 +208,48 @@ void main() {
       expect(find.text('Sân Trường THPT Phú Nhuận'), findsOneWidget);
       expect(find.byType(ClipOval), findsOneWidget);
     });
+
+    testWidgets(
+      'VenueCard shows address, hours before courts, without badges',
+      (
+        tester,
+      ) async {
+        const venue = Venue(
+          id: 'v1',
+          name: '18E Cộng Hòa',
+          address: '18E Cộng Hòa',
+          newAddress: '18E Cộng Hòa mới',
+          district: 'Tân Sơn Nhất',
+          city: 'Hồ Chí Minh',
+          numberOfCourts: 10,
+          openingHours: '06:00 – 22:00',
+          hourlyRateFixed: 120000,
+          isVerified: true,
+        );
+
+        await tester.pumpWidget(buildApp(const VenueCard(venue: venue)));
+        await tester.pump();
+
+        expect(find.byKey(const Key('venue-verified-badge')), findsNothing);
+        expect(
+          find.byKey(const Key('venue-address-location-icon')),
+          findsOneWidget,
+        );
+        expect(find.byKey(const Key('venue-courts-meta')), findsOneWidget);
+        expect(find.byKey(const Key('venue-hours-meta')), findsOneWidget);
+        expect(find.byKey(const Key('venue-meta-divider')), findsNothing);
+        expect(find.text('10 sân'), findsOneWidget);
+        expect(find.text('06:00 – 22:00'), findsOneWidget);
+        expect(find.text('Mới'), findsNothing);
+        expect(find.text('120.000đ/giờ'), findsNothing);
+        expect(
+          tester.getCenter(find.byKey(const Key('venue-hours-meta'))).dx,
+          lessThan(
+            tester.getCenter(find.byKey(const Key('venue-courts-meta'))).dx,
+          ),
+        );
+      },
+    );
   });
 }
 

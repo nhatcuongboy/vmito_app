@@ -47,6 +47,8 @@ abstract interface class SessionRepository {
     double? longitude,
     required bool sortByDistance,
     String? venueId,
+    String? sortBy,
+    String? sortOrder,
   });
 
   /// Sessions this user hosts.
@@ -73,6 +75,11 @@ abstract interface class SessionRepository {
   });
 
   Future<int> pendingJoinRequestCount();
+
+  Future<void> updatePendingRegistrations(
+    List<String> playerIds, {
+    required bool approved,
+  });
 
   Future<Session> create(CreateSessionRequest request);
 

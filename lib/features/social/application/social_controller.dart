@@ -216,6 +216,8 @@ class ClubsState {
   final double? longitude;
 
   bool get hasMore => page > 0 && page < totalPages;
+  int get activeFilterCount =>
+      (district?.trim().isNotEmpty ?? false ? 1 : 0) + (favoriteOnly ? 1 : 0);
 }
 
 class ClubsController extends Notifier<ClubsState> {
@@ -235,9 +237,10 @@ class ClubsController extends Notifier<ClubsState> {
     double? latitude,
     double? longitude,
     bool clearCity = false,
+    bool clearDistrict = false,
   }) async {
     final nextCity = clearCity ? null : city ?? state.city;
-    final nextDistrict = district ?? state.district;
+    final nextDistrict = clearDistrict ? null : district ?? state.district;
     final nextSort = sortBy ?? state.sortBy;
     final nextFavorite = favoriteOnly ?? state.favoriteOnly;
     final nextLatitude = latitude ?? state.latitude;
@@ -267,7 +270,7 @@ class ClubsController extends Notifier<ClubsState> {
             longitude: nextLongitude,
           );
       state = ClubsState(
-        clubs: result.clubs,
+        clubs: _sortClubs(result.clubs, nextSort),
         search: search,
         page: result.page,
         totalPages: result.totalPages,
@@ -322,7 +325,7 @@ class ClubsController extends Notifier<ClubsState> {
             longitude: current.longitude,
           );
       state = ClubsState(
-        clubs: [...current.clubs, ...result.clubs],
+        clubs: _sortClubs([...current.clubs, ...result.clubs], current.sortBy),
         search: current.search,
         page: result.page,
         totalPages: result.totalPages,
@@ -348,6 +351,29 @@ class ClubsController extends Notifier<ClubsState> {
         longitude: current.longitude,
       );
     }
+  }
+
+  List<ClubSummary> _sortClubs(List<ClubSummary> clubs, String sortBy) {
+    final sorted = [...clubs];
+    switch (sortBy) {
+      case 'name':
+        sorted.sort(
+          (first, second) => first.name.toLowerCase().compareTo(
+            second.name.toLowerCase(),
+          ),
+        );
+      case 'createdAt':
+        sorted.sort(
+          (first, second) => (second.createdAt ?? DateTime(0)).compareTo(
+            first.createdAt ?? DateTime(0),
+          ),
+        );
+      default:
+        sorted.sort(
+          (first, second) => second.memberCount.compareTo(first.memberCount),
+        );
+    }
+    return sorted;
   }
 }
 

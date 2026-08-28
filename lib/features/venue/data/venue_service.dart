@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/constants/api_endpoints.dart';
 import 'package:vmito_app/core/network/api_client.dart';
 import 'package:vmito_app/features/venue/domain/venue.dart';
+import 'package:vmito_app/features/venue/domain/venue_approval_request.dart';
 
 class VenueService {
   const VenueService(this._client);
@@ -74,6 +75,18 @@ class VenueService {
       'payload': payload,
     },
   );
+
+  Future<List<VenueApprovalRequest>> pendingAdminRequests() async {
+    final response = await _client.get<dynamic>(
+      ApiEndpoints.adminVenueRequests,
+      queryParameters: const {'status': 'PENDING'},
+    );
+    final raw = _payload(response.data) as List<dynamic>? ?? const [];
+    return raw
+        .whereType<Map<String, dynamic>>()
+        .map(VenueApprovalRequest.fromJson)
+        .toList(growable: false);
+  }
 
   Future<({String url, String? publicId})> uploadImage(String path) async {
     final response = await _client.post<dynamic>(

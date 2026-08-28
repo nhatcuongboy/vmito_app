@@ -23,6 +23,7 @@ FormGroup createVenueFilterForm(VenueFilter initial) => FormGroup({
 VenueFilter venueFilterFromForm({
   required FormGroup form,
   required VenueFilter initial,
+  String? preferredCity,
   double? latitude,
   double? longitude,
 }) {
@@ -33,9 +34,11 @@ VenueFilter venueFilterFromForm({
 
   final sortBy =
       form.control(VenueFilterControl.sortBy).value as String? ?? 'relevance';
+  final city = normalizedText(VenueFilterControl.city);
   return VenueFilter(
     keyword: initial.keyword,
-    city: normalizedText(VenueFilterControl.city),
+    city: city,
+    cityIsDefault: city == preferredCity,
     district: normalizedText(VenueFilterControl.district),
     sortBy: sortBy,
     favoriteOnly:

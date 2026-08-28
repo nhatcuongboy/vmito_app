@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -46,6 +47,9 @@ class SessionRecommendations extends ConsumerWidget {
         ? l10n.sessionPopularSessions
         : l10n.sessionRecommendationsTitle;
     final theme = Theme.of(context);
+    final showNewAddress = ref
+        .watch(locationPreferencesControllerProvider)
+        .showNewAddress;
 
     return Container(
       width: double.infinity,
@@ -84,6 +88,7 @@ class SessionRecommendations extends ConsumerWidget {
                     child: _RecommendationCard(
                       recommendation: page.items[index],
                       showAIBadge: !page.isFallback,
+                      showNewAddress: showNewAddress,
                     ),
                   ),
                 ),
@@ -170,10 +175,12 @@ class _RecommendationCard extends StatelessWidget {
   const _RecommendationCard({
     required this.recommendation,
     required this.showAIBadge,
+    required this.showNewAddress,
   });
 
   final SessionRecommendation recommendation;
   final bool showAIBadge;
+  final bool showNewAddress;
 
   @override
   Widget build(BuildContext context) {
@@ -245,10 +252,12 @@ class _RecommendationCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: AppSpacing.xs),
-                      if (session.displayPlace.isNotEmpty)
+                      if (session.hasLocation)
                         _MetaLine(
                           icon: AppIcons.location,
-                          text: session.displayPlace,
+                          text: session.displayPlace(
+                            showNewAddress: showNewAddress,
+                          ),
                           color: theme.colorScheme.primary,
                         ),
                       if (sessionDetailTimeLabel(session, locale)

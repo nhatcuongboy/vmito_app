@@ -79,11 +79,11 @@ void main() {
       );
 
       expect(
-        inputTheme.hintStyle,
-        TextStyle(
-          color: theme.extension<AppPalette>()!.mutedForeground,
-        ),
+        inputTheme.hintStyle?.color,
+        theme.extension<AppPalette>()!.mutedForeground,
       );
+      expect(inputTheme.hintStyle?.fontSize, 14);
+      expect(inputTheme.hintStyle?.height, closeTo(20 / 14, 0.0001));
       expect(
         labelStyle?.color,
         theme.extension<AppPalette>()!.mutedForeground,

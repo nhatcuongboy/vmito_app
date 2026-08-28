@@ -9,6 +9,7 @@ import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/theme/app_typography.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
@@ -209,9 +210,7 @@ class _BodyState extends State<_Body> {
                 widget.session.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+                style: AppTypography.compactAppBarTitle(theme.textTheme),
               ),
             ),
             actions: [
@@ -321,7 +320,7 @@ class _BodyState extends State<_Body> {
   static Uri? _mapUrl(Session session) {
     final query = [
       session.venue?.name?.trim(),
-      session.venue?.displayAddress ?? session.location?.trim(),
+      session.venue?.address ?? session.location?.trim(),
     ].whereType<String>().where((part) => part.isNotEmpty).join(' ');
     if (query.isEmpty) return null;
     return Uri.https('www.google.com', '/maps/search/', {

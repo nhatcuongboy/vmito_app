@@ -138,6 +138,8 @@ void main() {
       longitude: 106.69,
       sortByDistance: true,
       venueId: 'venue-1',
+      sortBy: 'price',
+      sortOrder: 'desc',
     );
 
     expect(adapter.requests.single.queryParameters, {
@@ -159,6 +161,8 @@ void main() {
       'sortByDistance': true,
       'sessionType': 'facebook',
       'venueId': 'venue-1',
+      'sortBy': 'price',
+      'sortOrder': 'desc',
     });
   });
 
@@ -213,5 +217,23 @@ void main() {
     });
     expect(adapter.requests[1].path, '/players/pending-requests/count');
     expect(count, 4);
+  });
+
+  test('batch pending decision uses the web notification contract', () async {
+    final adapter = _RecordingAdapter(responseBody: '{"success":true}');
+    final repository = _repository(adapter);
+
+    await repository.updatePendingRegistrations(
+      ['p1', 'p2'],
+      approved: false,
+    );
+
+    final request = adapter.requests.single;
+    expect(request.path, '/players/pending-requests/batch');
+    expect(request.method, 'POST');
+    expect(request.data, {
+      'playerIds': ['p1', 'p2'],
+      'status': 'REJECTED',
+    });
   });
 }

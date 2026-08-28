@@ -1,8 +1,15 @@
+import 'package:vmito_app/core/location/address_display.dart';
+
 class ClubVenue {
   const ClubVenue({
     this.id,
     required this.name,
-    required this.address,
+    this.address = '',
+    this.district,
+    this.city,
+    this.newAddress,
+    this.newDistrict,
+    this.newCity,
     this.latitude,
     this.longitude,
   });
@@ -10,7 +17,12 @@ class ClubVenue {
   factory ClubVenue.fromJson(Map<String, dynamic> json) => ClubVenue(
     id: json['id'] as String?,
     name: json['name'] as String? ?? '',
-    address: (json['newAddress'] ?? json['address']) as String? ?? '',
+    address: json['address'] as String? ?? '',
+    district: json['district'] as String?,
+    city: json['city'] as String?,
+    newAddress: json['newAddress'] as String?,
+    newDistrict: json['newDistrict'] as String?,
+    newCity: json['newCity'] as String?,
     latitude: (json['lat'] as num?)?.toDouble(),
     longitude: (json['lng'] as num?)?.toDouble(),
   );
@@ -18,10 +30,32 @@ class ClubVenue {
   final String? id;
   final String name;
   final String address;
+  final String? district;
+  final String? city;
+  final String? newAddress;
+  final String? newDistrict;
+  final String? newCity;
   final double? latitude;
   final double? longitude;
 
   bool get hasCoordinates => latitude != null && longitude != null;
+
+  bool get hasAddressData => [
+    address,
+    district,
+    city,
+    newAddress,
+    newDistrict,
+    newCity,
+  ].any((value) => value?.trim().isNotEmpty ?? false);
+
+  String addressLabel({required bool showNewAddress}) => resolveAppAddress(
+    showNewAddress: showNewAddress,
+    address: address,
+    district: district,
+    city: city,
+    newAddress: newAddress,
+  ).text;
 }
 
 class ClubSchedule {
@@ -82,6 +116,7 @@ class ClubSummary {
     this.joinedAt,
     this.color,
     this.operationalStatus,
+    this.createdAt,
   });
 
   factory ClubSummary.fromJson(Map<String, dynamic> json) {
@@ -157,6 +192,7 @@ class ClubSummary {
       joinedAt: DateTime.tryParse(json['joinedAt'] as String? ?? ''),
       color: json['color'] as String?,
       operationalStatus: json['operationalStatus'] as String?,
+      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? ''),
     );
   }
 
@@ -192,6 +228,7 @@ class ClubSummary {
   final DateTime? joinedAt;
   final String? color;
   final String? operationalStatus;
+  final DateTime? createdAt;
 
   String? get hostUserId => hostId;
 

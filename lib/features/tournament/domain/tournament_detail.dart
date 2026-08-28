@@ -1,4 +1,5 @@
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
+import 'package:vmito_app/core/location/address_display.dart';
 import 'package:vmito_domain/vmito_domain.dart' as scoring;
 
 enum TournamentCategoryFormat {
@@ -288,6 +289,9 @@ class TournamentVenue {
     this.address,
     this.district,
     this.city,
+    this.newAddress,
+    this.newDistrict,
+    this.newCity,
     this.lat,
     this.lng,
     this.coverPhoto,
@@ -307,9 +311,12 @@ class TournamentVenue {
       isPrimary: json['isPrimary'] as bool? ?? false,
       acronym: value('acronym'),
       placeId: value('placeId'),
-      address: value('newAddress') ?? value('address'),
-      district: value('newDistrict') ?? value('district'),
-      city: value('newCity') ?? value('city'),
+      address: value('address'),
+      district: value('district'),
+      city: value('city'),
+      newAddress: value('newAddress'),
+      newDistrict: value('newDistrict'),
+      newCity: value('newCity'),
       lat: coordinate('lat'),
       lng: coordinate('lng'),
       coverPhoto: value('coverPhoto'),
@@ -333,17 +340,31 @@ class TournamentVenue {
   final String? address;
   final String? district;
   final String? city;
+  final String? newAddress;
+  final String? newDistrict;
+  final String? newCity;
   final double? lat;
   final double? lng;
   final String? coverPhoto;
   final List<String> images;
   final bool isVerified;
 
-  String get addressLabel => [
+  bool get hasAddressData => [
     address,
     district,
     city,
-  ].whereType<String>().where((part) => part.trim().isNotEmpty).join(', ');
+    newAddress,
+    newDistrict,
+    newCity,
+  ].any((value) => value?.trim().isNotEmpty ?? false);
+
+  String addressLabel({required bool showNewAddress}) => resolveAppAddress(
+    showNewAddress: showNewAddress,
+    address: address,
+    district: district,
+    city: city,
+    newAddress: newAddress,
+  ).text;
 }
 
 class TournamentSponsor {

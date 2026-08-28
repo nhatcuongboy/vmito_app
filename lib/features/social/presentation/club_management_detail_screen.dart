@@ -11,9 +11,14 @@ import 'package:vmito_app/features/social/presentation/widgets/club_requests_tab
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 class ClubManagementDetailScreen extends ConsumerWidget {
-  const ClubManagementDetailScreen({required this.clubId, super.key});
+  const ClubManagementDetailScreen({
+    required this.clubId,
+    this.initialTab = 0,
+    super.key,
+  });
 
   final String clubId;
+  final int initialTab;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -22,6 +27,7 @@ class ClubManagementDetailScreen extends ConsumerWidget {
     return club.when(
       data: (value) => DefaultTabController(
         length: 3,
+        initialIndex: initialTab.clamp(0, 2),
         child: Scaffold(
           appBar: AppBar(
             title: Text(value.name),

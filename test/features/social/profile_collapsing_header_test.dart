@@ -84,6 +84,9 @@ void main() {
     );
     expect(name.maxLines, 1);
     expect(name.overflow, TextOverflow.ellipsis);
+    expect(name.style?.fontSize, 20);
+    expect(name.style?.height, closeTo(28 / 20, 0.0001));
+    expect(name.style?.fontWeight, FontWeight.w700);
   });
 
   testWidgets('switches status icons after toolbar becomes compact', (

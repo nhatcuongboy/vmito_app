@@ -6,14 +6,16 @@ import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/features/notification/domain/app_notification.dart';
 import 'package:vmito_app/features/notification/domain/notification_content.dart';
+import 'package:vmito_app/features/social/presentation/widgets/post_avatar.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 class NotificationListItem extends StatelessWidget {
   const NotificationListItem({
     required this.notification,
     required this.onTap,
-    this.onMarkAsRead,
     required this.onDelete,
+    this.onMarkAsRead,
+    this.deleting = false,
     super.key,
   });
 
@@ -21,6 +23,7 @@ class NotificationListItem extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback? onMarkAsRead;
   final VoidCallback onDelete;
+  final bool deleting;
 
   @override
   Widget build(BuildContext context) {
@@ -28,28 +31,30 @@ class NotificationListItem extends StatelessWidget {
     final theme = Theme.of(context);
     final locale = Localizations.localeOf(context).languageCode;
     final isDark = theme.brightness == Brightness.dark;
-
-    // Get localized notification content
+    final isUnread = !notification.isRead;
     final content = getNotificationDisplayText(notification, l10n);
+    final accent = isDark ? AppColors.brandDark : AppColors.brand;
+    final unreadBackground = isDark
+        ? AppColors.primary.withValues(alpha: 0.15)
+        : AppColors.primary.withValues(alpha: 0.08);
 
     return Slidable(
       key: ValueKey(notification.id),
       endActionPane: ActionPane(
         motion: const ScrollMotion(),
-        extentRatio: onMarkAsRead != null ? 0.35 : 0.25,
+        extentRatio: onMarkAsRead == null ? 0.24 : 0.42,
         children: [
-          if (onMarkAsRead != null)
+          if (onMarkAsRead case final onMarkAsRead?)
             SlidableAction(
-              onPressed: (_) => onMarkAsRead!(),
-              backgroundColor: isDark
-                  ? AppColors.success.withValues(alpha: 0.3)
-                  : AppColors.success,
+              onPressed: (_) => onMarkAsRead(),
+              backgroundColor: AppColors.success,
               foregroundColor: Colors.white,
               icon: AppIcons.check,
-              padding: EdgeInsets.zero,
+              label: l10n.notificationMarkAsRead,
             ),
           SlidableAction(
-            onPressed: (_) => onDelete(),
+            key: ValueKey('swipe-delete-notification-${notification.id}'),
+            onPressed: deleting ? null : (_) => onDelete(),
             backgroundColor: isDark
                 ? AppColors.destructiveDark
                 : AppColors.destructive,
@@ -60,183 +65,110 @@ class NotificationListItem extends StatelessWidget {
         ],
       ),
       child: Material(
-        color: notification.isRead
-            ? Colors.transparent
-            : (isDark
-                  ? AppColors.primary.withValues(alpha: 0.15)
-                  : AppColors.primary.withValues(alpha: 0.08)),
+        color: isUnread ? unreadBackground : Colors.transparent,
         child: InkWell(
           onTap: onTap,
           child: Stack(
             children: [
-              // Left accent bar for unread notifications
-              if (!notification.isRead)
+              if (isUnread)
                 Positioned(
                   left: 0,
                   top: 0,
                   bottom: 0,
-                  child: Container(
-                    width: 4,
+                  child: DecoratedBox(
                     decoration: BoxDecoration(
-                      color: isDark ? AppColors.brandDark : AppColors.brand,
-                      borderRadius: const BorderRadius.only(
-                        topRight: Radius.circular(2),
-                        bottomRight: Radius.circular(2),
+                      color: accent,
+                      borderRadius: const BorderRadius.horizontal(
+                        right: Radius.circular(2),
                       ),
                     ),
+                    child: const SizedBox(width: 4),
                   ),
                 ),
-              // Main content
               Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.sm,
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.md,
+                  AppSpacing.sm,
+                  AppSpacing.sm,
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Icon with circular background
-                    Container(
-                      width: 36,
-                      height: 36,
-                      margin: const EdgeInsets.only(
-                        top: 2,
-                        right: AppSpacing.sm,
-                      ),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: notification.isRead
-                            ? (isDark
-                                  ? AppColors.primary.withValues(alpha: 0.2)
-                                  : AppColors.primary.withValues(alpha: 0.1))
-                            : (isDark
-                                  ? AppColors.primaryDark.withValues(alpha: 0.3)
-                                  : Colors.white),
-                        border: Border.all(
-                          color: notification.isRead
-                              ? (isDark
-                                    ? AppColors.primary.withValues(alpha: 0.3)
-                                    : AppColors.primary.withValues(alpha: 0.2))
-                              : (isDark
-                                    ? AppColors.primaryDark.withValues(
-                                        alpha: 0.5,
-                                      )
-                                    : AppColors.primary.withValues(alpha: 0.2)),
-                        ),
-                        boxShadow: notification.isRead
-                            ? null
-                            : [
-                                BoxShadow(
-                                  color: isDark
-                                      ? Colors.black.withValues(alpha: 0.2)
-                                      : Colors.black.withValues(alpha: 0.05),
-                                  blurRadius: 2,
-                                  offset: const Offset(0, 1),
-                                ),
-                              ],
-                      ),
-                      child: Icon(
-                        _getIcon(notification.type),
-                        size: 17,
-                        color: notification.isRead
-                            ? (isDark
-                                  ? AppColors.primary.withValues(alpha: 0.7)
-                                  : AppColors.primary)
-                            : (isDark
-                                  ? AppColors.primaryDark
-                                  : AppColors.primary),
-                      ),
+                    _NotificationLeading(
+                      notification: notification,
+                      unread: isUnread,
                     ),
-                    // Content
+                    const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // Title
-                          Text(
-                            content.displayTitle,
-                            style: theme.textTheme.bodyMedium?.copyWith(
-                              fontWeight: notification.isRead
-                                  ? FontWeight.w500
-                                  : FontWeight.w700,
-                              color: notification.isRead
-                                  ? (isDark
-                                        ? theme.colorScheme.onSurface
-                                              .withValues(alpha: 0.7)
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  content.displayTitle,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    fontWeight: isUnread
+                                        ? FontWeight.w700
+                                        : FontWeight.w500,
+                                    color: isUnread
+                                        ? (isDark
+                                              ? theme.colorScheme.onSurface
+                                              : AppColors.primary.withValues(
+                                                  alpha: 0.95,
+                                                ))
                                         : theme.colorScheme.onSurface
-                                              .withValues(alpha: 0.8))
-                                  : (isDark
-                                        ? theme.colorScheme.onSurface
-                                        : AppColors.primary.withValues(
-                                            alpha: 0.95,
-                                          )),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                                              .withValues(alpha: 0.75),
+                                  ),
+                                ),
+                              ),
+                              if (isUnread) ...[
+                                const SizedBox(width: AppSpacing.sm),
+                                Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: accent,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                           const SizedBox(height: AppSpacing.xs),
-                          // Message
                           Text(
                             content.displayMessage,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: notification.isRead
-                                  ? (isDark
-                                        ? theme.colorScheme.onSurface
-                                              .withValues(alpha: 0.5)
-                                        : theme.colorScheme.onSurface
-                                              .withValues(alpha: 0.6))
-                                  : (isDark
-                                        ? theme.colorScheme.onSurface
-                                              .withValues(alpha: 0.7)
-                                        : theme.colorScheme.onSurface
-                                              .withValues(alpha: 0.7)),
-                            ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurface.withValues(
+                                alpha: isUnread ? 0.72 : 0.58,
+                              ),
+                            ),
                           ),
-                          const SizedBox(height: AppSpacing.xs),
-                          // Time
                           Text(
-                            Dates.dayAndTime(
+                            Dates.timeAgo(
                               notification.createdAt,
                               locale: locale,
                             ),
                             style: theme.textTheme.labelSmall?.copyWith(
-                              fontWeight: notification.isRead
-                                  ? FontWeight.w500
-                                  : FontWeight.w600,
-                              color: notification.isRead
-                                  ? (isDark
-                                        ? theme.colorScheme.onSurface
-                                              .withValues(alpha: 0.4)
-                                        : theme.colorScheme.onSurface
-                                              .withValues(alpha: 0.5))
-                                  : (isDark
-                                        ? AppColors.primaryDark.withValues(
-                                            alpha: 0.8,
-                                          )
-                                        : AppColors.primary.withValues(
-                                            alpha: 0.7,
-                                          )),
+                              color: isUnread
+                                  ? accent
+                                  : theme.colorScheme.onSurface.withValues(
+                                      alpha: 0.5,
+                                    ),
+                              fontWeight: isUnread
+                                  ? FontWeight.w600
+                                  : FontWeight.w500,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    // Unread indicator dot
-                    if (!notification.isRead)
-                      Container(
-                        margin: const EdgeInsets.only(
-                          top: 10,
-                          left: AppSpacing.xs,
-                        ),
-                        width: 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: isDark ? AppColors.brandDark : AppColors.brand,
-                        ),
-                      ),
                   ],
                 ),
               ),
@@ -246,26 +178,78 @@ class NotificationListItem extends StatelessWidget {
       ),
     );
   }
+}
 
-  IconData _getIcon(AppNotificationType type) {
-    switch (type) {
-      case AppNotificationType.session:
-      case AppNotificationType.registration:
-        return AppIcons.sessions;
-      case AppNotificationType.payment:
-        return AppIcons.creditCard;
-      case AppNotificationType.club:
-        return AppIcons.clubs;
-      case AppNotificationType.tournament:
-        return AppIcons.trophy;
-      case AppNotificationType.post:
-        return AppIcons.feed;
-      case AppNotificationType.venueRental:
-      case AppNotificationType.venueRequest:
-        return AppIcons.court;
-      case AppNotificationType.system:
-      case AppNotificationType.unknown:
-        return AppIcons.notifications;
+class _NotificationLeading extends StatelessWidget {
+  const _NotificationLeading({
+    required this.notification,
+    required this.unread,
+  });
+
+  final AppNotification notification;
+  final bool unread;
+
+  @override
+  Widget build(BuildContext context) {
+    if (notification.hasRelatedUser) {
+      return PostAvatar(
+        name: notification.actorName!,
+        imageUrl: notification.actorAvatar,
+        size: 36,
+        bordered: true,
+      );
     }
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        color: unread
+            ? (isDark
+                  ? AppColors.primaryDark.withValues(alpha: 0.25)
+                  : Colors.white)
+            : AppColors.primary.withValues(alpha: isDark ? 0.18 : 0.08),
+        border: Border.all(
+          color: AppColors.primary.withValues(alpha: unread ? 0.25 : 0.15),
+        ),
+        boxShadow: unread
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.08),
+                  blurRadius: 4,
+                  offset: const Offset(0, 1),
+                ),
+              ]
+            : null,
+      ),
+      child: Icon(
+        notificationIcon(notification),
+        size: 18,
+        color: isDark ? AppColors.primaryDark : AppColors.primary,
+      ),
+    );
   }
+}
+
+IconData notificationIcon(AppNotification notification) {
+  if (notification.action?.endsWith('_favorited') ?? false) {
+    return AppIcons.favorite;
+  }
+  return switch (notification.type) {
+    AppNotificationType.session => AppIcons.notifications,
+    AppNotificationType.registration => AppIcons.mail,
+    AppNotificationType.payment => AppIcons.creditCard,
+    AppNotificationType.club => AppIcons.clubs,
+    AppNotificationType.tournament => AppIcons.favorite,
+    AppNotificationType.post =>
+      notification.action == 'post_commented'
+          ? AppIcons.chat
+          : AppIcons.favorite,
+    AppNotificationType.venueRental ||
+    AppNotificationType.venueRequest => AppIcons.mapPin,
+    AppNotificationType.system => AppIcons.shield,
+    AppNotificationType.unknown => AppIcons.notifications,
+  };
 }

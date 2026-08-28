@@ -8,6 +8,7 @@ import 'package:vmito_app/core/constants/image_constants.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/theme/app_typography.dart';
 import 'package:vmito_app/core/widgets/app_address_text.dart';
 import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
@@ -118,9 +119,7 @@ class _VenueDetailContentState extends State<VenueDetailContent> {
               venueDisplayName(widget.venue, l10n),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+              style: AppTypography.compactAppBarTitle(theme.textTheme),
             ),
           ),
           actions: [
@@ -203,15 +202,25 @@ class _HeaderButton extends StatelessWidget {
   final VoidCallback onPressed;
 
   @override
-  Widget build(BuildContext context) => IconButton(
-    tooltip: tooltip,
-    icon: Icon(icon, color: pinned ? null : Colors.white),
-    style: IconButton.styleFrom(
-      backgroundColor: pinned ? Colors.transparent : Colors.black54,
-      minimumSize: const Size.square(44),
-    ),
-    onPressed: onPressed,
-  );
+  Widget build(BuildContext context) {
+    final width = pinned ? 28.0 : 32.0;
+    return SizedBox(
+      width: width,
+      height: 32,
+      child: IconButton(
+        tooltip: tooltip,
+        icon: Icon(icon, color: pinned ? null : Colors.white),
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints.expand(),
+        style: IconButton.styleFrom(
+          backgroundColor: pinned ? Colors.transparent : Colors.black54,
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        onPressed: onPressed,
+      ),
+    );
+  }
 }
 
 class _VenueHero extends StatefulWidget {
@@ -424,7 +433,7 @@ class _InfoCard extends StatelessWidget {
                   ),
               ],
             ),
-            if (venue.addressLabel.isNotEmpty) ...[
+            if (venue.hasAddressData) ...[
               const SizedBox(height: AppSpacing.md),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -595,7 +604,6 @@ class _AboutCard extends StatelessWidget {
             l10n.venueAmenities,
             key: const Key('venue-amenities-heading'),
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -1125,7 +1133,6 @@ class _SectionCard extends StatelessWidget {
           Text(
             title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontSize: 16,
               fontWeight: FontWeight.bold,
             ),
           ),

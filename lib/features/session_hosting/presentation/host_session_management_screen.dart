@@ -9,6 +9,7 @@ import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/theme/app_typography.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/court/application/live_session_controller.dart';
 import 'package:vmito_app/features/court/application/match_history_provider.dart';
@@ -26,9 +27,14 @@ import 'package:vmito_app/features/session_hosting/presentation/widgets/host_ros
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 class HostSessionManagementScreen extends ConsumerStatefulWidget {
-  const HostSessionManagementScreen({required this.sessionId, super.key});
+  const HostSessionManagementScreen({
+    required this.sessionId,
+    this.initialTab = 0,
+    super.key,
+  });
 
   final String sessionId;
+  final int initialTab;
 
   @override
   ConsumerState<HostSessionManagementScreen> createState() =>
@@ -84,6 +90,7 @@ class _HostSessionManagementScreenState
 
     return DefaultTabController(
       length: 5,
+      initialIndex: widget.initialTab.clamp(0, 4),
       child: Scaffold(
         appBar: AppBar(
           toolbarHeight: 72,
@@ -337,19 +344,18 @@ class _SessionHeaderTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) {
+      final isWide = constraints.maxWidth >= 480;
       final title = Text(
         name,
         key: const Key('host-session-title'),
-        maxLines: 2,
+        maxLines: isWide ? 2 : 1,
         overflow: TextOverflow.ellipsis,
-        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-          height: 1.15,
+        style: AppTypography.managementAppBarTitle(
+          Theme.of(context).textTheme,
         ),
       );
 
-      if (constraints.maxWidth >= 480) {
+      if (isWide) {
         return Row(
           children: [
             Expanded(child: title),

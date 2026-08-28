@@ -132,7 +132,7 @@ class _VenueDetailState extends ConsumerState<_VenueDetail> {
     Uri.https('www.google.com', '/maps/dir/', {
       'api': '1',
       'destination': venue.lat == null
-          ? '${venue.name} ${venue.addressLabel}'
+          ? '${venue.name} ${venue.address ?? ''}'
           : '${venue.lat},${venue.lng}',
     }),
     mode: LaunchMode.externalApplication,

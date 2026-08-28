@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:vmito_app/core/constants/image_constants.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/theme/app_typography.dart';
 import 'package:vmito_app/core/widgets/notification_header_button.dart';
 import 'package:vmito_app/features/social/domain/public_profile.dart';
 import 'package:vmito_app/features/social/presentation/widgets/profile_header_geometry.dart';
@@ -98,6 +99,7 @@ class ProfileCollapsingHeader extends StatelessWidget {
                       profile.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      style: AppTypography.compactAppBarTitle(theme.textTheme),
                     ),
                   ),
                 ],

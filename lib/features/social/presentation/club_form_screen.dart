@@ -7,6 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/location/address_display.dart';
+import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
@@ -1293,7 +1295,7 @@ class _ClubVenueScheduleCard extends StatelessWidget {
   }
 }
 
-class _VenueGroupCard extends StatelessWidget {
+class _VenueGroupCard extends ConsumerWidget {
   const _VenueGroupCard({
     required this.group,
     required this.venue,
@@ -1317,8 +1319,11 @@ class _VenueGroupCard extends StatelessWidget {
   final void Function(String, Map<String, Object?>) onUpdateSchedule;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final showNewAddress = ref
+        .watch(locationPreferencesControllerProvider)
+        .showNewAddress;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
@@ -1349,11 +1354,17 @@ class _VenueGroupCard extends StatelessWidget {
             icon: const Icon(AppIcons.location),
             label: Text(venue?.name ?? l10n.clubSelectVenue),
           ),
-          if (venue?.addressLabel.isNotEmpty ?? false)
+          if (venue?.hasAddressData ?? false)
             Padding(
               padding: const EdgeInsets.only(top: AppSpacing.xs),
               child: Text(
-                venue!.addressLabel,
+                resolveAppAddress(
+                  showNewAddress: showNewAddress,
+                  address: venue!.address,
+                  district: venue!.district,
+                  city: venue!.city,
+                  newAddress: venue!.newAddress,
+                ).text,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             ),
@@ -1759,9 +1770,26 @@ class _VenuePickerSheetState extends ConsumerState<_VenuePickerSheet> {
                             return ListTile(
                               leading: const Icon(AppIcons.location),
                               title: Text(venue.name),
-                              subtitle: venue.addressLabel.isEmpty
+                              subtitle:
+                                  venue
+                                      .addressLabel(
+                                        showNewAddress: ref
+                                            .read(
+                                              locationPreferencesControllerProvider,
+                                            )
+                                            .showNewAddress,
+                                      )
+                                      .isEmpty
                                   ? null
-                                  : Text(venue.addressLabel),
+                                  : Text(
+                                      venue.addressLabel(
+                                        showNewAddress: ref
+                                            .read(
+                                              locationPreferencesControllerProvider,
+                                            )
+                                            .showNewAddress,
+                                      ),
+                                    ),
                               onTap: () => Navigator.pop(context, venue),
                             );
                           },

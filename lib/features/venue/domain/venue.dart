@@ -1,3 +1,5 @@
+import 'package:vmito_app/core/location/address_display.dart';
+
 class Venue {
   const Venue({
     required this.id,
@@ -131,11 +133,22 @@ class Venue {
     return bySport[sports.first] ?? bySport['BADMINTON'] ?? generic;
   }
 
-  String get addressLabel => [
-    newAddress ?? address,
-    newDistrict ?? district,
-    newCity ?? city,
-  ].whereType<String>().where((value) => value.trim().isNotEmpty).join(', ');
+  bool get hasAddressData => [
+    address,
+    district,
+    city,
+    newAddress,
+    newDistrict,
+    newCity,
+  ].any((value) => value?.trim().isNotEmpty ?? false);
+
+  String addressLabel({required bool showNewAddress}) => resolveAppAddress(
+    showNewAddress: showNewAddress,
+    address: address,
+    district: district,
+    city: city,
+    newAddress: newAddress,
+  ).text;
 
   List<String> get gallery => [
     if (coverPhoto?.isNotEmpty ?? false) coverPhoto!,
@@ -259,6 +272,7 @@ class VenueFilter {
   const VenueFilter({
     this.keyword = '',
     this.city,
+    this.cityIsDefault = true,
     this.district,
     this.sortBy = 'distance',
     this.favoriteOnly = false,
@@ -268,6 +282,7 @@ class VenueFilter {
   });
   final String keyword;
   final String? city;
+  final bool cityIsDefault;
   final String? district;
   final String sortBy;
   final bool favoriteOnly;
@@ -290,6 +305,7 @@ class VenueFilter {
   VenueFilter copyWith({
     String? keyword,
     String? city,
+    bool? cityIsDefault,
     String? district,
     String? sortBy,
     bool? favoriteOnly,
@@ -302,6 +318,7 @@ class VenueFilter {
   }) => VenueFilter(
     keyword: keyword ?? this.keyword,
     city: clearCity ? null : city ?? this.city,
+    cityIsDefault: cityIsDefault ?? this.cityIsDefault,
     district: clearDistrict ? null : district ?? this.district,
     sortBy: sortBy ?? this.sortBy,
     favoriteOnly: favoriteOnly ?? this.favoriteOnly,

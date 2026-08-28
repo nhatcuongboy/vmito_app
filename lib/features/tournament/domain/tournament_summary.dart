@@ -1,3 +1,5 @@
+import 'package:vmito_app/core/location/address_display.dart';
+
 enum TournamentStatus {
   preparing,
   inProgress,
@@ -9,6 +11,13 @@ enum TournamentStatus {
     'FINISHED' => TournamentStatus.finished,
     'CANCELLED' => TournamentStatus.cancelled,
     _ => TournamentStatus.preparing,
+  };
+
+  String get wireValue => switch (this) {
+    TournamentStatus.preparing => 'PREPARING',
+    TournamentStatus.inProgress => 'IN_PROGRESS',
+    TournamentStatus.finished => 'FINISHED',
+    TournamentStatus.cancelled => 'CANCELLED',
   };
 }
 
@@ -24,6 +33,13 @@ class TournamentSummary {
     this.slug,
     this.coverPhoto,
     this.location,
+    this.venueName,
+    this.venueAddress,
+    this.venueDistrict,
+    this.venueCity,
+    this.venueNewAddress,
+    this.venueNewDistrict,
+    this.venueNewCity,
   });
 
   factory TournamentSummary.fromJson(Map<String, dynamic> json) {
@@ -38,6 +54,13 @@ class TournamentSummary {
       isPublished: json['isPublished'] as bool? ?? false,
       coverPhoto: json['coverPhoto'] as String? ?? _venueCoverPhoto(venue),
       location: _venueLocation(venue),
+      venueName: venue?['name'] as String?,
+      venueAddress: venue?['address'] as String?,
+      venueDistrict: venue?['district'] as String?,
+      venueCity: venue?['city'] as String?,
+      venueNewAddress: venue?['newAddress'] as String?,
+      venueNewDistrict: venue?['newDistrict'] as String?,
+      venueNewCity: venue?['newCity'] as String?,
     );
   }
 
@@ -50,6 +73,36 @@ class TournamentSummary {
   final bool isPublished;
   final String? coverPhoto;
   final String? location;
+  final String? venueName;
+  final String? venueAddress;
+  final String? venueDistrict;
+  final String? venueCity;
+  final String? venueNewAddress;
+  final String? venueNewDistrict;
+  final String? venueNewCity;
+
+  String? displayLocation({required bool showNewAddress}) {
+    final address = resolveAppAddress(
+      showNewAddress: showNewAddress,
+      address: venueAddress,
+      district: venueDistrict,
+      city: venueCity,
+      newAddress: venueNewAddress,
+    );
+    final name = venueName?.trim();
+    if (name != null && name.isNotEmpty) {
+      final area = resolveCompactAddressArea(
+        showNewAddress: showNewAddress,
+        district: venueDistrict,
+        city: venueCity,
+        newDistrict: venueNewDistrict,
+        newCity: venueNewCity,
+      );
+      if (area != null && area.isNotEmpty) return '$name · $area';
+      return name;
+    }
+    return address.isEmpty ? location : address.text;
+  }
 
   static Map<String, dynamic>? _displayVenue(Map<String, dynamic> json) {
     if (json['venue'] case final Map<String, dynamic> venue) return venue;

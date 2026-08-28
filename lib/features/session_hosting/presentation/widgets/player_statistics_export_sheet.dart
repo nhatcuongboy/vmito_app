@@ -3,6 +3,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/features/session/domain/player_statistics.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
@@ -71,6 +72,9 @@ class _StatisticsExportSheetState
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final showNewAddress = ref
+        .watch(locationPreferencesControllerProvider)
+        .showNewAddress;
     final available = StatisticsExportColumn.values.where(
       (column) =>
           column != StatisticsExportColumn.shuttlecocks ||
@@ -124,6 +128,7 @@ class _StatisticsExportSheetState
                         columns: StatisticsExportColumn.values
                             .where(_columns.contains)
                             .toList(growable: false),
+                        showNewAddress: showNewAddress,
                       ),
                     ),
                   ),
@@ -182,10 +187,12 @@ class _StatisticsExportCard extends StatelessWidget {
     required this.session,
     required this.players,
     required this.columns,
+    required this.showNewAddress,
   });
   final Session session;
   final List<PlayerStatistics> players;
   final List<StatisticsExportColumn> columns;
+  final bool showNewAddress;
 
   @override
   Widget build(BuildContext context) {
@@ -222,7 +229,8 @@ class _StatisticsExportCard extends StatelessWidget {
                       session.plannedEndTime,
                       locale: locale,
                     ),
-                  if (session.displayPlace.isNotEmpty) session.displayPlace,
+                  if (session.hasLocation)
+                    session.displayPlace(showNewAddress: showNewAddress),
                 ].join(' · '),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,

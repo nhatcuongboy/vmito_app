@@ -132,6 +132,7 @@ class _VenueFilterSheetState extends ConsumerState<VenueFilterSheet> {
       venueFilterFromForm(
         form: _form,
         initial: widget.initial,
+        preferredCity: widget.preferredCity,
         latitude: _coordinates?.latitude,
         longitude: _coordinates?.longitude,
       ),

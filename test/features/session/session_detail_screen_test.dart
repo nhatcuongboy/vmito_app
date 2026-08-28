@@ -45,6 +45,7 @@ Session _session({
   List<SessionPlayer> players = const [],
   List<int> requiredLevels = const [9, 1, 10, 2],
   bool isCrawled = false,
+  SessionVenue? venue,
 }) => Session(
   id: 's1',
   name: 'Kèo test chuẩn',
@@ -62,11 +63,13 @@ Session _session({
   players: players,
   requiredLevels: requiredLevels,
   shuttlecock: 'Vina',
-  venue: const SessionVenue(
-    id: 'v1',
-    name: 'Sân The B Hòa Bình',
-    address: '259 Hòa Bình, Phú Thạnh',
-  ),
+  venue:
+      venue ??
+      const SessionVenue(
+        id: 'v1',
+        name: 'Sân The B Hòa Bình',
+        address: '259 Hòa Bình, Phú Thạnh',
+      ),
 );
 
 /// Keeps the screen off the network: the hero and the rail both fetch, and
@@ -224,6 +227,33 @@ void main() {
     expect(find.text('TBY'), findsOneWidget);
   });
 
+  testWidgets('shows the configured new address with its badge', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _session(
+        venue: const SessionVenue(
+          id: 'v1',
+          name: 'Sân The B Hòa Bình',
+          address: '259 Hòa Bình, Phú Thạnh',
+          district: 'Phú Thạnh',
+          city: 'Hồ Chí Minh',
+          newAddress: '259 Hòa Bình',
+          newDistrict: 'Phường Phú Thạnh',
+          newCity: 'Thành phố Hồ Chí Minh',
+        ),
+      ),
+    );
+
+    expect(find.textContaining('259 Hòa Bình'), findsOneWidget);
+    expect(find.text('New'), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(const Key('session-get-directions'))).height,
+      24,
+    );
+  });
+
   testWidgets('reveals the pinned white header after scrolling past the hero', (
     tester,
   ) async {
@@ -238,6 +268,12 @@ void main() {
     final stickyTitle = tester.widget<AnimatedOpacity>(
       find.byKey(const Key('session-sticky-title')),
     );
+    final stickyText = tester.widget<Text>(
+      find.descendant(
+        of: find.byKey(const Key('session-sticky-title')),
+        matching: find.byType(Text),
+      ),
+    );
     final favorite = tester.widget<FavoriteButton>(
       find.byKey(const Key('session-favorite-button')),
     );
@@ -246,6 +282,11 @@ void main() {
     expect(appBar.expandedHeight, 220);
     expect(scrollView.paintOrder, SliverPaintOrder.lastIsTop);
     expect(stickyTitle.opacity, 0);
+    expect(stickyText.style?.fontSize, 20);
+    expect(stickyText.style?.height, closeTo(28 / 20, 0.0001));
+    expect(stickyText.style?.fontWeight, FontWeight.w700);
+    expect(stickyText.maxLines, 1);
+    expect(stickyText.overflow, TextOverflow.ellipsis);
     expect(favorite.overlay, isTrue);
 
     // This test needs enough content below the fold for the scroll controller

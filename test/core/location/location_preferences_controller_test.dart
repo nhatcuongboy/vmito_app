@@ -4,6 +4,16 @@ import 'package:vmito_app/core/location/location_preferences_controller.dart';
 
 void main() {
   group('LocationPreferencesController', () {
+    test('starts with new-address mode enabled before restore', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final state = container.read(locationPreferencesControllerProvider);
+
+      expect(state.showNewAddress, isTrue);
+      expect(state.isRestored, isFalse);
+    });
+
     test('defaults new-address mode to on and restores an undecided user', () {
       final container = ProviderContainer(
         overrides: [
@@ -75,6 +85,25 @@ void main() {
         expect(repository.onboardingCompleted, isTrue);
       },
     );
+
+    test('migrates a stored legacy code to the canonical API name', () async {
+      final repository = _Repository(city: 'HCM');
+      final container = ProviderContainer(
+        overrides: [
+          locationPreferencesRepositoryProvider.overrideWithValue(repository),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      container.read(locationPreferencesControllerProvider.notifier).restore();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(
+        container.read(locationPreferencesControllerProvider).preferredCity,
+        'Hồ Chí Minh',
+      );
+      expect(repository.city, 'Hồ Chí Minh');
+    });
   });
 }
 

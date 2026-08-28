@@ -6,12 +6,16 @@ import 'package:vmito_app/features/notification/application/notification_control
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 class _FakeNotificationController extends NotificationController {
-  _FakeNotificationController(this.unreadCount);
+  _FakeNotificationController(this.unreadCount, {this.pendingCount = 0});
 
   final int unreadCount;
+  final int pendingCount;
 
   @override
-  NotificationState build() => NotificationState(unreadCount: unreadCount);
+  NotificationState build() => NotificationState(
+    unreadCount: unreadCount,
+    sessionPendingCount: pendingCount,
+  );
 
   @override
   Future<void> refreshUnreadCount() async {}
@@ -66,5 +70,29 @@ void main() {
     );
 
     expect(find.text('0'), findsNothing);
+  });
+
+  testWidgets('includes pending approvals in the header badge', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          notificationControllerProvider.overrideWith(
+            () => _FakeNotificationController(2, pendingCount: 4),
+          ),
+        ],
+        child: const MaterialApp(
+          locale: Locale('vi'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: NotificationHeaderButton()),
+        ),
+      ),
+    );
+
+    expect(find.text('6'), findsOneWidget);
+    expect(
+      tester.getSemantics(find.byType(NotificationHeaderButton)).label,
+      'Thông báo: 6',
+    );
   });
 }

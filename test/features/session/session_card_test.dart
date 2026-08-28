@@ -1,7 +1,9 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
@@ -18,6 +20,7 @@ Session _session({
   bool isCrawled = false,
   SessionVenue? venue,
   String? location,
+  String? hostName,
 }) => Session(
   id: 's1',
   name: 'Kèo tối thứ 6',
@@ -31,17 +34,42 @@ Session _session({
   isCrawled: isCrawled,
   venue: venue,
   location: location,
+  hostName: hostName,
 );
 
-Future<void> _pump(WidgetTester tester, Session session) async {
+Future<void> _pump(
+  WidgetTester tester,
+  Session session, {
+  bool showNewAddress = true,
+}) async {
   await tester.pumpWidget(
-    MaterialApp(
-      locale: const Locale('vi'),
-      theme: AppTheme.light,
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(body: SessionCard(session: session)),
+    ProviderScope(
+      key: ValueKey(showNewAddress),
+      overrides: [
+        locationPreferencesControllerProvider.overrideWith(
+          () => _TestLocationPreferencesController(showNewAddress),
+        ),
+      ],
+      child: MaterialApp(
+        locale: const Locale('vi'),
+        theme: AppTheme.light,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: SessionCard(session: session)),
+      ),
     ),
+  );
+}
+
+class _TestLocationPreferencesController extends LocationPreferencesController {
+  _TestLocationPreferencesController(this.value);
+
+  final bool value;
+
+  @override
+  LocationPreferences build() => LocationPreferences(
+    showNewAddress: value,
+    isRestored: true,
   );
 }
 
@@ -116,6 +144,34 @@ void main() {
   });
 
   group('time', () {
+    testWidgets('styles host and date/time values for scanability', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _session(
+          hostName: 'Nguyễn Cường',
+          startTime: DateTime.now(),
+          scheduledEndTime: DateTime.now().add(const Duration(hours: 2)),
+        ),
+      );
+
+      final host = tester.widget<Text>(
+        find.byKey(const Key('session-host-name')),
+      );
+      final date = tester.widget<Text>(
+        find.byKey(const Key('session-date-value')),
+      );
+      final time = tester.widget<Text>(
+        find.byKey(const Key('session-time-value')),
+      );
+      expect(host.style?.fontWeight, FontWeight.w500);
+      expect(date.style?.color, const Color(0xFFF97316));
+      expect(time.style?.color, const Color(0xFF3F3F46));
+      expect(date.style?.fontWeight, FontWeight.w600);
+      expect(time.style?.fontWeight, FontWeight.w600);
+    });
+
     testWidgets('uses the planned end, not the actual one', (tester) async {
       // endTime is when the session really stopped — the backend auto-ends on
       // ragged minutes, and "21:00-23:38" on a card reads as broken data.
@@ -145,6 +201,19 @@ void main() {
 
       expect(find.textContaining('18:00-19:30'), findsOneWidget);
     });
+  });
+
+  testWidgets('shows split-evenly fee when no per-player amount exists', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _session(
+        feeConfig: const SessionFeeConfig(feeType: FeeType.splitEvenly),
+      ),
+    );
+
+    expect(find.text('Chia đều'), findsOneWidget);
   });
 
   group('place', () {
@@ -187,6 +256,25 @@ void main() {
         ),
       );
 
+      expect(find.text('Sân ABC • Tân Phú'), findsOneWidget);
+    });
+
+    testWidgets('switches compact area with the address setting', (
+      tester,
+    ) async {
+      final session = _session(
+        venue: const SessionVenue(
+          id: 'v1',
+          name: 'Sân ABC',
+          district: 'Quận Cũ',
+          newDistrict: 'Phường Tân Phú',
+        ),
+      );
+
+      await _pump(tester, session, showNewAddress: false);
+      expect(find.text('Sân ABC • Quận Cũ'), findsOneWidget);
+
+      await _pump(tester, session, showNewAddress: true);
       expect(find.text('Sân ABC • Tân Phú'), findsOneWidget);
     });
   });
@@ -237,6 +325,45 @@ void main() {
       await _pump(tester, _session());
 
       expect(find.byKey(const Key('session-slots-badge')), findsNothing);
+    });
+
+    testWidgets('supports a compact status badge for hosted cards', (
+      tester,
+    ) async {
+      final session = _session().copyWith(
+        numberOfCourts: 2,
+        maxPlayersPerCourt: 4,
+        counts: const SessionCounts(players: 5),
+      );
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            locale: const Locale('vi'),
+            theme: AppTheme.light,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: Scaffold(
+              body: SessionCard(
+                session: session,
+                compactStatusBadge: true,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final badge = find.byKey(const Key('session-slots-badge'));
+      expect(tester.getSize(badge).height, lessThanOrEqualTo(18));
+      expect(
+        tester
+            .widget<Text>(
+              find.descendant(of: badge, matching: find.byType(Text)),
+            )
+            .style
+            ?.fontSize,
+        10,
+      );
     });
   });
 }

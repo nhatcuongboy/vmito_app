@@ -154,14 +154,22 @@ class TournamentService {
   Future<List<TournamentSummary>> browse({
     String search = '',
     String? city,
+    Set<TournamentStatus> statuses = const {TournamentStatus.preparing},
+    Set<String> sportTypes = const {},
+    bool favoriteOnly = false,
+    String sortBy = 'startDate',
+    String sortOrder = 'asc',
   }) async {
     final response = await _client.get<Map<String, dynamic>>(
       ApiEndpoints.tournaments,
       queryParameters: {
         'publishedOnly': true,
-        'status': 'PREPARING',
-        'sortBy': 'startDate',
-        'sortOrder': 'asc',
+        if (statuses.isNotEmpty)
+          'status': statuses.map((status) => status.wireValue).join(','),
+        if (sportTypes.isNotEmpty) 'sportType': sportTypes.join(','),
+        if (favoriteOnly) 'favoriteOnly': true,
+        'sortBy': sortBy,
+        'sortOrder': sortOrder,
         if (search.trim().isNotEmpty) 'keyword': search.trim(),
         if (city?.trim().isNotEmpty ?? false) 'city': city!.trim(),
       },

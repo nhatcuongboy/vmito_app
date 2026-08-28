@@ -9,7 +9,7 @@ import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/notification/application/notification_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
-/// Opens the notification inbox and exposes the current unread count.
+/// Opens the unified notification inbox and exposes its total attention count.
 class NotificationHeaderButton extends ConsumerStatefulWidget {
   const NotificationHeaderButton({super.key, this.color});
 
@@ -32,15 +32,15 @@ class _NotificationHeaderButtonState
 
   @override
   Widget build(BuildContext context) {
-    final unreadCount = ref.watch(
-      notificationControllerProvider.select((state) => state.unreadCount),
+    final badgeCount = ref.watch(
+      notificationControllerProvider.select((state) => state.totalBadgeCount),
     );
     final l10n = AppLocalizations.of(context);
-    final badgeLabel = unreadCount > 99 ? '99+' : '$unreadCount';
+    final badgeLabel = badgeCount > 99 ? '99+' : '$badgeCount';
 
     return Semantics(
       button: true,
-      label: unreadCount == 0
+      label: badgeCount == 0
           ? l10n.notificationsTitle
           : '${l10n.notificationsTitle}: $badgeLabel',
       child: IconButton(
@@ -51,7 +51,7 @@ class _NotificationHeaderButtonState
         ),
         onPressed: () => context.push(AppRoutes.notifications),
         icon: Badge(
-          isLabelVisible: unreadCount > 0,
+          isLabelVisible: badgeCount > 0,
           label: Text(badgeLabel),
           offset: const Offset(6, -4),
           child: Icon(AppIcons.notifications, color: widget.color),

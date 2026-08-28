@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
+import 'package:vmito_app/core/network/paginated.dart';
 import 'package:vmito_app/core/utils/logger.dart';
 import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
 import 'package:vmito_app/features/session/domain/browse_session_filters.dart';
@@ -14,6 +15,9 @@ class BrowseSessionsState {
     this.sessions = const [],
     this.isLoading = false,
     this.isLoadingMore = false,
+    this.mapSessions = const [],
+    this.isMapLoading = false,
+    this.mapError,
     this.error,
     this.page = 0,
     this.totalPages = 0,
@@ -23,6 +27,9 @@ class BrowseSessionsState {
   final List<Session> sessions;
   final bool isLoading;
   final bool isLoadingMore;
+  final List<Session> mapSessions;
+  final bool isMapLoading;
+  final ApiException? mapError;
   final ApiException? error;
   final int page;
   final int totalPages;
@@ -40,15 +47,24 @@ class BrowseSessionsState {
     List<Session>? sessions,
     bool? isLoading,
     bool? isLoadingMore,
+    List<Session>? mapSessions,
+    bool? isMapLoading,
+    ApiException? mapError,
+    ApiException? error,
     int? page,
     int? totalPages,
     BrowseSessionFilters? filters,
     bool clearError = false,
+    bool clearMap = false,
+    bool clearMapError = false,
   }) => BrowseSessionsState(
     sessions: sessions ?? this.sessions,
     isLoading: isLoading ?? this.isLoading,
     isLoadingMore: isLoadingMore ?? this.isLoadingMore,
-    error: clearError ? null : error,
+    mapSessions: clearMap ? const [] : mapSessions ?? this.mapSessions,
+    isMapLoading: isMapLoading ?? this.isMapLoading,
+    mapError: clearMap || clearMapError ? null : mapError ?? this.mapError,
+    error: clearError ? null : error ?? this.error,
     page: page ?? this.page,
     totalPages: totalPages ?? this.totalPages,
     filters: filters ?? this.filters,
@@ -63,6 +79,7 @@ class BrowseSessionsController extends Notifier<BrowseSessionsState> {
   SessionRepository get _repo => ref.read(sessionRepositoryProvider);
 
   static const _pageSize = 20;
+  static const _mapPageSize = 500;
 
   // Snapshot restoration is an action, not a property mutation API.
   // ignore: use_setters_to_change_properties
@@ -75,10 +92,13 @@ class BrowseSessionsController extends Notifier<BrowseSessionsState> {
         (search == null
             ? state.filters
             : state.filters.copyWith(search: search));
+    final filtersChanged = nextFilters != state.filters;
     state = state.copyWith(
       isLoading: true,
+      isMapLoading: !filtersChanged && state.isMapLoading,
       clearError: true,
       filters: nextFilters,
+      clearMap: filtersChanged,
     );
     await _fetch(page: 1, replace: true);
   }
@@ -93,33 +113,47 @@ class BrowseSessionsController extends Notifier<BrowseSessionsState> {
     await _fetch(page: state.page + 1, replace: false);
   }
 
+  /// Fetches the complete filtered result set used by the map. The normal
+  /// list remains paginated so opening Home stays lightweight.
+  Future<void> loadMap() async {
+    if (state.isMapLoading) return;
+    final filters = state.filters;
+    state = state.copyWith(isMapLoading: true, clearMapError: true);
+    try {
+      final result = await _browse(
+        filters: filters,
+        page: 1,
+        limit: _mapPageSize,
+      );
+      if (state.filters != filters) return;
+      state = state.copyWith(
+        mapSessions: result.items,
+        isMapLoading: false,
+        clearMapError: true,
+      );
+    } on ApiException catch (error) {
+      if (state.filters != filters) return;
+      state = state.copyWith(
+        isMapLoading: false,
+        mapError: error,
+      );
+    }
+  }
+
   Future<void> _fetch({required int page, required bool replace}) async {
     try {
-      final result = await _repo.browseAvailable(
+      final result = await _browse(
+        filters: state.filters,
         page: page,
         limit: _pageSize,
-        search: state.filters.search,
-        date: state.filters.date,
-        timeRanges: state.filters.timeRanges,
-        levels: state.filters.levels,
-        sports: state.filters.sports,
-        hasSlots: state.filters.hasSlots ? true : null,
-        sessionType: state.filters.source.name,
-        city: state.filters.city,
-        districts: state.filters.districts,
-        minFee: state.filters.hasCustomFeeRange ? state.filters.minFee : null,
-        maxFee: state.filters.hasCustomFeeRange ? state.filters.maxFee : null,
-        splitEvenly: state.filters.splitEvenly,
-        latitude: state.filters.nearMe ? state.filters.latitude : null,
-        longitude: state.filters.nearMe ? state.filters.longitude : null,
-        sortByDistance: state.filters.nearMe,
-        venueId: state.filters.venueId,
       );
-      state = BrowseSessionsState(
+      state = state.copyWith(
         sessions: replace ? result.items : [...state.sessions, ...result.items],
+        isLoading: false,
+        isLoadingMore: false,
         page: result.page,
         totalPages: result.totalPages,
-        filters: state.filters,
+        clearError: true,
       );
       AppLogger.debug(
         '[Tìm kèo] loaded page=${result.page}/${result.totalPages}, items=${result.items.length}, total=${result.total}',
@@ -127,15 +161,41 @@ class BrowseSessionsController extends Notifier<BrowseSessionsState> {
     } on ApiException catch (error) {
       AppLogger.warn('[Tìm kèo] API request failed', error: error);
       // A failed "load more" must not discard the pages already on screen.
-      state = BrowseSessionsState(
+      state = state.copyWith(
         sessions: replace ? const [] : state.sessions,
-        page: state.page,
-        totalPages: state.totalPages,
-        filters: state.filters,
+        isLoading: false,
+        isLoadingMore: false,
         error: error,
       );
     }
   }
+
+  Future<Page<Session>> _browse({
+    required BrowseSessionFilters filters,
+    required int page,
+    required int limit,
+  }) => _repo.browseAvailable(
+    page: page,
+    limit: limit,
+    search: filters.search,
+    date: filters.date,
+    timeRanges: filters.timeRanges,
+    levels: filters.levels,
+    sports: filters.sports,
+    hasSlots: filters.hasSlots ? true : null,
+    sessionType: filters.source.name,
+    city: filters.city,
+    districts: filters.districts,
+    minFee: filters.hasCustomFeeRange ? filters.minFee : null,
+    maxFee: filters.hasCustomFeeRange ? filters.maxFee : null,
+    splitEvenly: filters.splitEvenly,
+    latitude: filters.nearMe ? filters.latitude : null,
+    longitude: filters.nearMe ? filters.longitude : null,
+    sortByDistance: filters.nearMe,
+    venueId: filters.venueId,
+    sortBy: filters.sort.sortBy,
+    sortOrder: filters.sort.sortOrder,
+  );
 }
 
 final browseSessionsControllerProvider =

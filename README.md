@@ -17,6 +17,20 @@ flutter gen-l10n                # localizations from lib/l10n/*.arb
 Both generated outputs are git-ignored, so run them after a fresh clone and
 after touching any model or ARB file.
 
+### Google Maps keys
+
+Google Maps uses native SDK keys, so these two values are configured outside
+`--dart-define-from-file` and are never committed:
+
+- Android: add `MAPS_API_KEY=...` to `android/local.properties`.
+- iOS: copy `ios/Flutter/GoogleMaps.xcconfig.example` to
+  `ios/Flutter/GoogleMaps.xcconfig`, then replace the sample value.
+
+Enable **Maps SDK for Android** and **Maps SDK for iOS** in Google Cloud. Use
+separate keys restricted to Android package `com.vmito.app` (plus signing
+certificate SHA-1) and iOS bundle id `com.vmito.app`. These keys are separate
+from `GOOGLE_PLACES_API_KEY`, which remains in the environment JSON files.
+
 ## Running
 
 Configuration is compile-time via `--dart-define-from-file`. There is no `.env`.

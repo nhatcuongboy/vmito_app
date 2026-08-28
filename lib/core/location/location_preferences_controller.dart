@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vmito_app/core/location/city_names.dart';
 
 /// Browser/device scoped discovery preferences. They deliberately contain no
 /// user id, so signing out never resets a user's chosen area or address mode.
@@ -88,18 +91,27 @@ class LocationPreferencesController extends Notifier<LocationPreferences> {
       ref.read(locationPreferencesRepositoryProvider);
 
   void restore() {
+    final storedCity = _repository.readPreferredCity();
+    final normalizedCity = storedCity == null
+        ? null
+        : normalizeCityName(storedCity);
     state = LocationPreferences(
-      preferredCity: _repository.readPreferredCity(),
+      preferredCity: normalizedCity,
       onboardingCompleted: _repository.readOnboardingCompleted() ?? false,
       showNewAddress: _repository.readShowNewAddress() ?? true,
       isRestored: true,
     );
+    if (storedCity != normalizedCity) unawaited(_persist());
   }
 
   Future<void> selectCity(String? city) async {
+    final normalizedCity = city == null ? null : normalizeCityName(city);
+    if (state.onboardingCompleted && state.preferredCity == normalizedCity) {
+      return;
+    }
     state = state.copyWith(
-      preferredCity: city,
-      clearPreferredCity: city == null,
+      preferredCity: normalizedCity,
+      clearPreferredCity: normalizedCity == null,
       onboardingCompleted: true,
     );
     await _persist();

@@ -1,5 +1,18 @@
 enum SessionSource { all, regular, facebook }
 
+enum SessionBrowseSort {
+  dateAsc('date', 'asc'),
+  dateDesc('date', 'desc'),
+  newest('created', 'desc'),
+  priceAsc('price', 'asc'),
+  priceDesc('price', 'desc');
+
+  const SessionBrowseSort(this.sortBy, this.sortOrder);
+
+  final String sortBy;
+  final String sortOrder;
+}
+
 enum SessionTimeRange {
   morning('morning'),
   afternoon('afternoon'),
@@ -38,6 +51,7 @@ class BrowseSessionFilters {
     this.longitude,
     this.venueId,
     this.venueName,
+    this.sort = SessionBrowseSort.dateAsc,
   });
 
   static const defaultMinFee = 0;
@@ -61,6 +75,7 @@ class BrowseSessionFilters {
   final double? longitude;
   final String? venueId;
   final String? venueName;
+  final SessionBrowseSort sort;
 
   bool get hasCustomFeeRange =>
       minFee != defaultMinFee || maxFee != defaultMaxFee;
@@ -102,6 +117,7 @@ class BrowseSessionFilters {
     String? venueId,
     String? venueName,
     bool clearVenue = false,
+    SessionBrowseSort? sort,
   }) => BrowseSessionFilters(
     search: search ?? this.search,
     date: clearDate ? null : date ?? this.date,
@@ -121,6 +137,7 @@ class BrowseSessionFilters {
     longitude: clearCoordinates ? null : longitude ?? this.longitude,
     venueId: clearVenue ? null : venueId ?? this.venueId,
     venueName: clearVenue ? null : venueName ?? this.venueName,
+    sort: sort ?? this.sort,
   );
 
   BrowseSessionFilters reset({String? preferredCity}) => BrowseSessionFilters(
@@ -128,5 +145,6 @@ class BrowseSessionFilters {
     city: preferredCity,
     venueId: venueId,
     venueName: venueName,
+    sort: sort,
   );
 }

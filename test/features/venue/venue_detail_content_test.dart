@@ -217,6 +217,17 @@ void main() {
 
     expect(sticky().opacity, 0);
     expect(favorite().overlay, isTrue);
+    final stickyText = tester.widget<Text>(
+      find.descendant(
+        of: find.byKey(const Key('venue-sticky-title')),
+        matching: find.byType(Text),
+      ),
+    );
+    expect(stickyText.style?.fontSize, 20);
+    expect(stickyText.style?.height, closeTo(28 / 20, 0.0001));
+    expect(stickyText.style?.fontWeight, FontWeight.w700);
+    expect(stickyText.maxLines, 1);
+    expect(stickyText.overflow, TextOverflow.ellipsis);
     await tester.drag(
       find.byKey(const Key('venue-detail-scroll')),
       const Offset(0, -360),
@@ -224,6 +235,21 @@ void main() {
     await tester.pump();
     expect(sticky().opacity, 1);
     expect(favorite().overlay, isFalse);
+    expect(
+      tester.getSize(find.byKey(const Key('venue-share-button'))),
+      tester.getSize(find.byKey(const Key('venue-favorite-button'))),
+    );
+  });
+
+  testWidgets('share button matches favorite button on the cover', (
+    tester,
+  ) async {
+    await _pump(tester);
+
+    expect(
+      tester.getSize(find.byKey(const Key('venue-share-button'))),
+      tester.getSize(find.byKey(const Key('venue-favorite-button'))),
+    );
   });
 
   testWidgets('opens directions from the address row', (tester) async {
@@ -383,7 +409,7 @@ void main() {
     ) async {
       await _pump(tester);
       expect(find.text('Mới'), findsOneWidget);
-      expect(find.textContaining('Phường Bến Thành'), findsOneWidget);
+      expect(find.textContaining('12 Nguyễn Trãi'), findsOneWidget);
 
       await _pump(tester, showNewAddress: false);
       expect(find.text('Mới'), findsNothing);

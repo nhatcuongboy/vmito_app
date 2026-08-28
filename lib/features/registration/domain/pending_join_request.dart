@@ -9,6 +9,10 @@ class PendingJoinRequest {
     this.level,
     this.venueName,
     this.startTime,
+    this.userId,
+    this.createdByUserId,
+    this.userImage,
+    this.createdAt,
   });
 
   factory PendingJoinRequest.fromJson(Map<String, dynamic> json) {
@@ -19,16 +23,23 @@ class PendingJoinRequest {
         ? Map<String, dynamic>.from(session['venue'] as Map)
         : const <String, dynamic>{};
     final start = session['startTime']?.toString();
+    final user = json['user'] is Map
+        ? Map<String, dynamic>.from(json['user'] as Map)
+        : const <String, dynamic>{};
     return PendingJoinRequest(
       id: json['id']?.toString() ?? '',
       sessionId:
           json['sessionId']?.toString() ?? session['id']?.toString() ?? '',
       sessionName: session['name']?.toString() ?? '',
-      playerName: json['name']?.toString(),
+      playerName: json['name']?.toString() ?? user['name']?.toString(),
       playerNumber: (json['playerNumber'] as num?)?.toInt(),
       level: (json['level'] as num?)?.toInt(),
       venueName: venue['name']?.toString(),
       startTime: start == null ? null : DateTime.tryParse(start),
+      userId: json['userId']?.toString() ?? user['id']?.toString(),
+      createdByUserId: json['createdByUserId']?.toString(),
+      userImage: user['image']?.toString(),
+      createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? ''),
     );
   }
 
@@ -40,4 +51,13 @@ class PendingJoinRequest {
   final int? level;
   final String? venueName;
   final DateTime? startTime;
+  final String? userId;
+  final String? createdByUserId;
+  final String? userImage;
+  final DateTime? createdAt;
+
+  String get groupKey {
+    final ownerId = createdByUserId ?? userId;
+    return ownerId == null || ownerId.isEmpty ? id : '$ownerId-$sessionId';
+  }
 }

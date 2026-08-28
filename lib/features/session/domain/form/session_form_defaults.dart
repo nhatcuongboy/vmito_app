@@ -3,6 +3,7 @@ import 'package:vmito_app/features/session/domain/form/session_form_state.dart';
 import 'package:vmito_app/features/session/domain/form/session_form_utils.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
+import 'package:vmito_app/core/location/address_display.dart';
 import 'package:vmito_domain/vmito_domain.dart';
 
 /// Ports `buildSessionFormDefaults` from
@@ -27,6 +28,7 @@ abstract final class SessionFormDefaults {
     Session session, {
     required bool isClone,
     String? hostName,
+    bool showNewAddress = true,
   }) {
     final hasVenue = session.venue != null;
     final start = isClone ? null : session.displayStartTime;
@@ -44,7 +46,15 @@ abstract final class SessionFormDefaults {
           : SessionLocationKind.custom,
       selectedVenueId: session.venue?.id ?? '',
       selectedVenueLabel: session.venue?.name ?? '',
-      selectedVenueSublabel: session.venue?.displayAddress ?? '',
+      selectedVenueSublabel: session.venue == null
+          ? ''
+          : resolveAppAddress(
+              showNewAddress: showNewAddress,
+              address: session.venue!.address,
+              district: session.venue!.district,
+              city: session.venue!.city,
+              newAddress: session.venue!.newAddress,
+            ).text,
 
       // A session with a venue keeps no custom fields: leaving stale ones
       // around would resurrect an old address if the host switched to CUSTOM.

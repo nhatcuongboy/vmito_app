@@ -1,10 +1,13 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
+import 'package:vmito_app/core/location/location_preferences_controller.dart';
+import 'package:vmito_app/core/widgets/app_address_text.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/player/session_presentation.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -92,7 +95,7 @@ class SessionDetailInfo extends StatelessWidget {
         ],
         const SizedBox(height: AppSpacing.xs),
         _SportAndMatchTypeRow(session: session),
-        if (session.displayPlace.isNotEmpty) ...[
+        if (session.hasLocation) ...[
           const SizedBox(height: AppSpacing.md),
           _LocationRow(session: session, onOpenMap: onOpenMap),
         ],
@@ -234,23 +237,34 @@ class _ScheduleRow extends StatelessWidget {
   }
 }
 
-class _LocationRow extends StatelessWidget {
+class _LocationRow extends ConsumerWidget {
   const _LocationRow({required this.session, required this.onOpenMap});
 
   final Session session;
   final VoidCallback? onOpenMap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final palette = theme.extension<AppPalette>()!;
     final l10n = AppLocalizations.of(context);
+    final showNewAddress = ref
+        .watch(locationPreferencesControllerProvider)
+        .showNewAddress;
 
     final venueName = session.venue?.name?.trim();
     final title = venueName == null || venueName.isEmpty
-        ? session.displayPlace
+        ? session.displayPlace(showNewAddress: showNewAddress)
         : venueName;
-    final address = session.venue?.displayAddress;
+    final venue = session.venue;
+    final hasAddress = [
+      venue?.address,
+      venue?.district,
+      venue?.city,
+      venue?.newAddress,
+      venue?.newDistrict,
+      venue?.newCity,
+    ].any((value) => value?.trim().isNotEmpty ?? false);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -265,6 +279,7 @@ class _LocationRow extends StatelessWidget {
                 children: [
                   Expanded(
                     child: Text(
+                      key: const Key('session-detail-venue-name'),
                       title,
                       style: theme.textTheme.bodyLarge?.copyWith(
                         color: theme.colorScheme.primary,
@@ -279,17 +294,28 @@ class _LocationRow extends StatelessWidget {
                       icon: const Icon(AppIcons.navigation, size: 20),
                       color: theme.colorScheme.primary,
                       onPressed: onOpenMap,
+                      style: IconButton.styleFrom(
+                        minimumSize: const Size.square(24),
+                        padding: EdgeInsets.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
                     ),
                 ],
               ),
-              // Suppress an address that just repeats the venue name.
-              if (address != null && address != title)
+              // Keep all administrative parts together and let
+              // [AppAddressText] append the new-address badge when enabled.
+              if (hasAddress)
                 Padding(
                   padding: const EdgeInsets.only(top: 2),
-                  child: Text(
-                    address,
+                  child: AppAddressText(
+                    key: const Key('session-detail-address'),
+                    address: venue?.address,
+                    district: venue?.district,
+                    city: venue?.city,
+                    newAddress: venue?.newAddress,
+                    newDistrict: venue?.newDistrict,
+                    newCity: venue?.newCity,
                     maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: palette.mutedForeground,
                     ),

@@ -98,6 +98,7 @@ abstract final class AppIcons {
   static const IconData favoriteFilled = Icons.favorite;
   static const IconData chat = LucideIcons.message_square;
   static const IconData send = LucideIcons.send;
+  static const IconData mail = LucideIcons.mail;
   static const IconData phone = LucideIcons.phone;
   static const IconData car = LucideIcons.car_front;
   static const IconData canteen = LucideIcons.utensils_crossed;

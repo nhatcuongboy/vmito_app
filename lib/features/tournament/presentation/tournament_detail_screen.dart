@@ -11,6 +11,7 @@ import 'package:vmito_app/core/config/app_config.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/widgets/app_address_text.dart';
 import 'package:vmito_app/core/web/app_web_view.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
@@ -1051,7 +1052,15 @@ class _VenuesSectionState extends State<_VenuesSection> {
             selected.name,
             style: const TextStyle(fontWeight: FontWeight.w800),
           ),
-          if (selected.addressLabel.isNotEmpty) Text(selected.addressLabel),
+          if (selected.hasAddressData)
+            AppAddressText(
+              address: selected.address,
+              district: selected.district,
+              city: selected.city,
+              newAddress: selected.newAddress,
+              newDistrict: selected.newDistrict,
+              newCity: selected.newCity,
+            ),
           const SizedBox(height: AppSpacing.sm),
           Align(
             alignment: Alignment.centerLeft,
@@ -1431,9 +1440,8 @@ class _SectionCard extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title!,
-                    style: const TextStyle(
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w800,
-                      fontSize: 16,
                     ),
                   ),
                 ),
@@ -1512,7 +1520,7 @@ Future<void> _showSponsor(BuildContext context, TournamentSponsor sponsor) =>
 Future<void> _openDirections(BuildContext context, TournamentVenue venue) {
   final query = [
     venue.name,
-    venue.addressLabel,
+    venue.address ?? '',
   ].where((value) => value.isNotEmpty).join(' ');
   final uri = venue.placeId != null
       ? Uri.https('www.google.com', '/maps/search/', {

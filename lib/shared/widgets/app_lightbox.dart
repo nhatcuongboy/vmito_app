@@ -82,8 +82,9 @@ class _LightboxState extends State<_Lightbox> {
           ),
           Positioned(
             top: MediaQuery.paddingOf(context).top + AppSpacing.sm,
-            left: AppSpacing.sm,
+            right: AppSpacing.sm,
             child: IconButton(
+              key: const Key('lightbox-close-button'),
               tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
               icon: const Icon(AppIcons.close, color: Colors.white),
               onPressed: () => Navigator.of(context).pop(),
@@ -95,7 +96,7 @@ class _LightboxState extends State<_Lightbox> {
           if (widget.images.length > 1)
             Positioned(
               top: MediaQuery.paddingOf(context).top + AppSpacing.md,
-              right: AppSpacing.lg,
+              right: AppSpacing.xl + AppSpacing.lg,
               child: Text(
                 '${_index + 1}/${widget.images.length}',
                 style: theme.textTheme.labelLarge?.copyWith(

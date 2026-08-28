@@ -15,6 +15,8 @@ import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
+import 'package:vmito_app/features/social/presentation/club_schedule_formatter.dart';
+import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_empty_filter_sheet.dart';
 
 class BrowseClubsScreen extends ConsumerStatefulWidget {
@@ -235,93 +237,147 @@ class _ClubBrowseCard extends StatelessWidget {
   const _ClubBrowseCard({required this.club});
   final ClubSummary club;
   @override
-  Widget build(BuildContext context) => Card(
-    clipBehavior: Clip.antiAlias,
-    child: InkWell(
-      onTap: () => context.push(AppRoutes.clubDetail(club.slug ?? club.id)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            height: 145,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                if (club.heroImage != null)
-                  CachedNetworkImage(
-                    imageUrl: club.heroImage!,
-                    fit: BoxFit.cover,
-                    errorWidget: (_, _, _) => CachedNetworkImage(
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final location = club.defaultVenue?.name ?? club.location;
+    final schedule = formatClubActivitySchedule(club.schedules, l10n);
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => context.push(AppRoutes.clubDetail(club.slug ?? club.id)),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: 145,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (club.heroImage != null)
+                    CachedNetworkImage(
+                      imageUrl: club.heroImage!,
+                      fit: BoxFit.cover,
+                      errorWidget: (_, _, _) => CachedNetworkImage(
+                        imageUrl: kDefaultCoverPhoto,
+                        fit: BoxFit.cover,
+                        errorWidget: (_, _, _) => ColoredBox(
+                          color: Theme.of(context).colorScheme.primaryContainer,
+                        ),
+                      ),
+                    )
+                  else
+                    CachedNetworkImage(
                       imageUrl: kDefaultCoverPhoto,
                       fit: BoxFit.cover,
                       errorWidget: (_, _, _) => ColoredBox(
                         color: Theme.of(context).colorScheme.primaryContainer,
                       ),
                     ),
-                  )
-                else
-                  CachedNetworkImage(
-                    imageUrl: kDefaultCoverPhoto,
-                    fit: BoxFit.cover,
-                    errorWidget: (_, _, _) => ColoredBox(
-                      color: Theme.of(context).colorScheme.primaryContainer,
+                  Positioned(
+                    top: 10,
+                    right: 10,
+                    child: FavoriteButton(
+                      type: FavoriteType.club,
+                      targetId: club.id,
+                      showCount: false,
                     ),
                   ),
-                Positioned(
-                  top: 10,
-                  right: 10,
-                  child: FavoriteButton(
-                    type: FavoriteType.club,
-                    targetId: club.id,
-                    showCount: false,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundImage: club.logo == null
-                      ? null
-                      : CachedNetworkImageProvider(club.logo!),
-                  child: club.logo == null ? const Icon(AppIcons.clubs) : null,
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        club.name,
-                        style: Theme.of(context).textTheme.titleMedium,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${club.memberCount} thành viên',
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      if (club.defaultVenue?.name ?? club.location
-                          case final location?)
-                        Text(
-                          location,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                    ],
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    key: const Key('club-card-logo'),
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.white, width: 2),
+                    ),
+                    child: CircleAvatar(
+                      radius: 24,
+                      backgroundImage: club.logo == null
+                          ? null
+                          : CachedNetworkImageProvider(club.logo!),
+                      child: club.logo == null
+                          ? const Icon(AppIcons.clubs)
+                          : null,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          club.name,
+                          style: Theme.of(context).textTheme.titleMedium,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 6),
+                        _ClubMetaRow(
+                          key: const Key('club-card-schedule'),
+                          icon: AppIcons.clock,
+                          text: schedule ?? l10n.socialNoActivitySchedule,
+                        ),
+                        if (location case final value?)
+                          _ClubMetaRow(
+                            key: const Key('club-card-location'),
+                            icon: AppIcons.location,
+                            text: value,
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ClubMetaRow extends StatelessWidget {
+  const _ClubMetaRow({
+    required this.icon,
+    required this.text,
+    super.key,
+  });
+
+  final IconData icon;
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.onSurfaceVariant;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Icon(icon, size: 15, color: color),
+          ),
+          const SizedBox(width: 6),
+          Expanded(
+            child: Text(
+              text,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: color,
+              ),
             ),
           ),
         ],
       ),
-    ),
-  );
+    );
+  }
 }

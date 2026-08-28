@@ -236,6 +236,13 @@ class SlideOutMenu extends ConsumerWidget {
                         children: [
                           Expanded(
                             child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                textStyle: const TextStyle(
+                                  fontSize: 14,
+                                  height: 20 / 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                               onPressed: () {
                                 closeDrawer();
                                 unawaited(context.push(AppRoutes.signIn));
@@ -246,6 +253,13 @@ class SlideOutMenu extends ConsumerWidget {
                           const SizedBox(width: AppSpacing.sm),
                           Expanded(
                             child: FilledButton(
+                              style: FilledButton.styleFrom(
+                                textStyle: const TextStyle(
+                                  fontSize: 14,
+                                  height: 20 / 14,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                               onPressed: () {
                                 closeDrawer();
                                 unawaited(context.push(AppRoutes.signUp));
@@ -346,8 +360,9 @@ class _ProfileHeader extends StatelessWidget {
               foregroundImage: hasImage ? NetworkImage(user.image!) : null,
               child: Text(
                 initials,
-                style: theme.textTheme.titleLarge?.copyWith(
+                style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
+                  height: 20 / 16,
                 ),
               ),
             ),
@@ -363,16 +378,15 @@ class _ProfileHeader extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w700,
-                      height: 1.2,
+                      height: 20 / 16,
                     ),
                   ),
                   const SizedBox(height: 2),
                   Text(
                     roleLabel,
-                    style: theme.textTheme.bodyMedium?.copyWith(
+                    style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.extension<AppPalette>()!.mutedForeground,
-                      fontWeight: FontWeight.w600,
-                      height: 1.2,
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
                 ],
@@ -408,11 +422,11 @@ class _MenuSection extends StatelessWidget {
             ),
             child: Text(
               title!,
-              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 color: Theme.of(
                   context,
                 ).extension<AppPalette>()!.mutedForeground,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w700,
               ),
             ),
           ),
@@ -460,25 +474,35 @@ class _MenuItem extends StatelessWidget {
           : Colors.transparent,
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-        minTileHeight: 56,
+        minTileHeight: 48,
         leading: IconTheme.merge(
-          data: IconThemeData(color: color),
+          data: IconThemeData(color: color, size: 22),
           child: leading ?? Icon(icon),
         ),
         title: Text(
           label,
-          style: theme.textTheme.titleMedium?.copyWith(
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontSize: 15,
+            height: 20 / 15,
             color: color,
-            fontWeight: FontWeight.w600,
+            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
         trailing: trailing == null
             ? null
-            : Text(
-                trailing!,
-                style: theme.textTheme.bodyLarge?.copyWith(
-                  color: palette.mutedForeground,
-                  fontWeight: FontWeight.w600,
+            : ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 112),
+                child: Text(
+                  trailing!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: palette.mutedForeground,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
         onTap: onTap,

@@ -54,9 +54,16 @@ abstract final class AppTheme {
       colorScheme: scheme,
       useMaterial3: true,
     );
+    final textTheme = AppTypography.build(base.textTheme, scheme.onSurface);
+    final buttonLabel = AppTypography.buttonLabel(textTheme);
+    final tabLabel = (textTheme.labelLarge ?? const TextStyle()).copyWith(
+      height: 20 / 14,
+      fontWeight: FontWeight.w600,
+    );
+    final unselectedTabLabel = tabLabel.copyWith(fontWeight: FontWeight.w500);
 
     return base.copyWith(
-      textTheme: AppTypography.build(base.textTheme, scheme.onSurface),
+      textTheme: textTheme,
       scaffoldBackgroundColor: scaffoldBackground,
       extensions: [palette],
       appBarTheme: AppBarTheme(
@@ -65,9 +72,9 @@ abstract final class AppTheme {
         elevation: 0,
         scrolledUnderElevation: 0.5,
         centerTitle: false,
-        titleTextStyle: base.textTheme.titleLarge?.copyWith(
+        titleSpacing: 8,
+        titleTextStyle: AppTypography.appBarTitle(textTheme).copyWith(
           color: scheme.onSurface,
-          fontWeight: FontWeight.w600,
         ),
       ),
       cardTheme: CardThemeData(
@@ -86,7 +93,7 @@ abstract final class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
-          textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          textStyle: buttonLabel,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -96,7 +103,14 @@ abstract final class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.lg),
           ),
+          textStyle: buttonLabel,
         ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(textStyle: buttonLabel),
+      ),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(
+        extendedTextStyle: textTheme.labelLarge,
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -106,9 +120,23 @@ abstract final class AppTheme {
         // Keep supporting text visually secondary to entered values. Without
         // this, Material 3 falls back to `onSurfaceVariant`, which is darker
         // than the app's muted token in the light theme.
-        hintStyle: TextStyle(color: palette.mutedForeground),
-        labelStyle: _inputLabelStyle(scheme, palette),
-        floatingLabelStyle: _inputLabelStyle(scheme, palette),
+        hintStyle: textTheme.bodyMedium?.copyWith(
+          color: palette.mutedForeground,
+        ),
+        labelStyle: _inputLabelStyle(
+          scheme,
+          palette,
+          textTheme.bodyMedium ?? const TextStyle(),
+        ),
+        floatingLabelStyle: _inputLabelStyle(
+          scheme,
+          palette,
+          textTheme.bodyMedium ?? const TextStyle(),
+        ),
+        helperStyle: textTheme.bodySmall?.copyWith(
+          color: palette.mutedForeground,
+        ),
+        errorStyle: textTheme.bodySmall?.copyWith(color: scheme.error),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.md,
           vertical: AppSpacing.sm + 4,
@@ -132,9 +160,16 @@ abstract final class AppTheme {
       ),
       chipTheme: base.chipTheme.copyWith(
         side: BorderSide(color: palette.border),
+        labelStyle: textTheme.bodyMedium?.copyWith(
+          fontWeight: FontWeight.w500,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.pill),
         ),
+      ),
+      tabBarTheme: TabBarThemeData(
+        labelStyle: tabLabel,
+        unselectedLabelStyle: unselectedTabLabel,
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: scheme.surface,
@@ -156,6 +191,9 @@ abstract final class AppTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
+        contentTextStyle: textTheme.bodyMedium?.copyWith(
+          color: scheme.onInverseSurface,
+        ),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg),
         ),
@@ -182,8 +220,9 @@ abstract final class AppTheme {
               borderRadius: BorderRadius.circular(AppRadius.lg),
             ),
           ),
-          visualDensity: VisualDensity.compact,
+          visualDensity: VisualDensity.standard,
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          textStyle: WidgetStatePropertyAll(tabLabel),
           padding: const WidgetStatePropertyAll(
             EdgeInsets.symmetric(horizontal: AppSpacing.sm),
           ),
@@ -197,6 +236,12 @@ abstract final class AppTheme {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.xl),
         ),
+        titleTextStyle: (textTheme.titleLarge ?? const TextStyle()).copyWith(
+          fontSize: 20,
+          height: 28 / 20,
+          fontWeight: FontWeight.w700,
+        ),
+        contentTextStyle: textTheme.bodyMedium,
       ),
     );
   }
@@ -204,17 +249,20 @@ abstract final class AppTheme {
   static WidgetStateTextStyle _inputLabelStyle(
     ColorScheme scheme,
     AppPalette palette,
+    TextStyle baseStyle,
   ) => WidgetStateTextStyle.resolveWith((states) {
     if (states.contains(WidgetState.disabled)) {
-      return TextStyle(color: scheme.onSurface.withValues(alpha: 0.38));
+      return baseStyle.copyWith(
+        color: scheme.onSurface.withValues(alpha: 0.38),
+      );
     }
     if (states.contains(WidgetState.error)) {
-      return TextStyle(color: scheme.error);
+      return baseStyle.copyWith(color: scheme.error);
     }
     if (states.contains(WidgetState.focused)) {
-      return TextStyle(color: scheme.primary);
+      return baseStyle.copyWith(color: scheme.primary);
     }
-    return TextStyle(color: palette.mutedForeground);
+    return baseStyle.copyWith(color: palette.mutedForeground);
   });
 
   static WidgetStateProperty<IconThemeData?> _navigationIconTheme(

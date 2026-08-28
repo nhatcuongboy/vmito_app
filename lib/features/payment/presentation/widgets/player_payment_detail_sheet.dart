@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,6 +15,7 @@ import 'package:vmito_app/features/payment/application/transaction_dashboard_con
 import 'package:vmito_app/features/payment/domain/form/transaction_forms.dart';
 import 'package:vmito_app/features/payment/domain/payment.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_lightbox.dart';
 
 class PlayerPaymentDetailSheet extends ConsumerWidget {
   const PlayerPaymentDetailSheet({
@@ -538,26 +541,10 @@ class _PaymentReviewSheetState extends ConsumerState<PaymentReviewSheet> {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   GestureDetector(
-                    onTap: () => showDialog<void>(
-                      context: context,
-                      builder: (_) => Dialog.fullscreen(
-                        child: Stack(
-                          children: [
-                            Center(
-                              child: InteractiveViewer(
-                                child: CachedNetworkImage(
-                                  imageUrl: widget.payment.proofImageUrl!,
-                                ),
-                              ),
-                            ),
-                            SafeArea(
-                              child: IconButton(
-                                onPressed: () => Navigator.pop(context),
-                                icon: const Icon(AppIcons.close),
-                              ),
-                            ),
-                          ],
-                        ),
+                    onTap: () => unawaited(
+                      showAppLightbox(
+                        context,
+                        images: [widget.payment.proofImageUrl!],
                       ),
                     ),
                     child: ClipRRect(

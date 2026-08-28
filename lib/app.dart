@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/localization/locale_controller.dart';
 import 'package:vmito_app/core/router/app_router.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/core/theme/theme_mode_controller.dart';
+import 'package:vmito_app/core/widgets/app_edge_back_gesture.dart';
 import 'package:vmito_app/core/widgets/app_error_listener.dart';
 import 'package:vmito_app/core/widgets/court_call_listener.dart';
 import 'package:vmito_app/core/widgets/newsfeed_badge_lifecycle.dart';
@@ -39,12 +43,29 @@ class VmitoApp extends ConsumerWidget {
       ],
 
       // Sits above every route so unhandled API errors surface anywhere.
-      builder: (context, child) => NewsfeedBadgeLifecycle(
-        router: router,
-        child: CourtCallListener(
-          child: AppErrorListener(child: child ?? const SizedBox.shrink()),
+      builder: (context, child) => AppEdgeBackGesture(
+        onBack: () => _handleEdgeBack(router),
+        child: NewsfeedBadgeLifecycle(
+          router: router,
+          child: CourtCallListener(
+            child: AppErrorListener(child: child ?? const SizedBox.shrink()),
+          ),
         ),
       ),
     );
+  }
+
+  void _handleEdgeBack(GoRouter router) {
+    final rootNavigator = rootNavigatorKey.currentState;
+    if (rootNavigator?.canPop() ?? false) {
+      unawaited(
+        rootNavigator!.maybePop().then((didPop) {
+          if (!didPop && router.canPop()) router.pop();
+        }),
+      );
+      return;
+    }
+
+    if (router.canPop()) router.pop();
   }
 }
