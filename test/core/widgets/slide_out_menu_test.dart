@@ -139,6 +139,28 @@ void main() {
     expect(find.text('Đăng xuất'), findsNothing);
     expect(find.text('Đăng nhập'), findsOneWidget);
     expect(find.text('Đăng ký'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('menu-sign-in-button')),
+        matching: find.byIcon(AppIcons.login),
+      ),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('menu-sign-up-button')),
+        matching: find.byIcon(AppIcons.userPlus),
+      ),
+      findsOneWidget,
+    );
+    final signInRect = tester.getRect(
+      find.byKey(const Key('menu-sign-in-button')),
+    );
+    final signUpRect = tester.getRect(
+      find.byKey(const Key('menu-sign-up-button')),
+    );
+    expect(signInRect.width, signUpRect.width);
+    expect(signInRect.bottom, lessThan(signUpRect.top));
     await tester.scrollUntilVisible(
       find.text('Ngôn ngữ'),
       240,

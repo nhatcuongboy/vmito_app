@@ -27,7 +27,6 @@ import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/features/venue/presentation/browse_venues_screen.dart';
 import 'package:vmito_app/features/venue/presentation/venue_filter_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
-import 'package:vmito_app/shared/widgets/login_prompt_dialog.dart';
 
 /// The app's discovery landing page.
 ///
@@ -109,25 +108,26 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           selected: _selectedTab,
           onSelected: _selectTab,
         ),
-        HomeDiscoveryToolbar(
-          sortLabel: _sortLabel(
-            l10n,
-            sessionState,
-            venueState,
-            clubsState,
-            tournamentState,
+        if (isAuthenticated)
+          HomeDiscoveryToolbar(
+            sortLabel: _sortLabel(
+              l10n,
+              sessionState,
+              venueState,
+              clubsState,
+              tournamentState,
+            ),
+            filterCount: _filterCount(
+              sessionState,
+              venueState,
+              clubsState,
+              tournamentState,
+              preferredCity,
+            ),
+            onSort: _openActiveSort,
+            onFilter: _openActiveFilters,
+            onCityChanged: _onPreferredCityChanged,
           ),
-          filterCount: _filterCount(
-            sessionState,
-            venueState,
-            clubsState,
-            tournamentState,
-            preferredCity,
-          ),
-          onSort: _openActiveSort,
-          onFilter: _openActiveFilters,
-          onCityChanged: _onPreferredCityChanged,
-        ),
       ],
     );
 
@@ -250,78 +250,57 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       style: TextStyle(color: Theme.of(context).colorScheme.primary),
     ),
     actions: [
-      ?_buildCreateAction(
-        context,
-        l10n,
-        isAuthenticated,
-        canCreateTournament,
-      ),
-      IconButton(
-        key: const Key('home-search-button'),
-        tooltip: l10n.homeSearchTooltip,
-        icon: const Icon(AppIcons.search),
-        onPressed: _openSearch,
-      ),
-      if (isAuthenticated)
-        const NotificationHeaderButton()
-      else
+      if (isAuthenticated) ...[
+        ?_buildCreateAction(context, l10n, canCreateTournament),
         IconButton(
-          tooltip: l10n.authSignIn,
-          icon: const Icon(AppIcons.login),
-          onPressed: () => context.push(AppRoutes.signIn),
+          key: const Key('home-search-button'),
+          tooltip: l10n.homeSearchTooltip,
+          icon: const Icon(AppIcons.search),
+          onPressed: _openSearch,
         ),
+        const NotificationHeaderButton(),
+      ] else
+        Tooltip(
+          message: l10n.authSignIn,
+          child: OutlinedButton.icon(
+            key: const Key('home-sign-in-button'),
+            icon: const Icon(AppIcons.login, size: 18),
+            label: Text(l10n.authSignIn),
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(0, 44),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              visualDensity: VisualDensity.standard,
+            ),
+            onPressed: () => context.push(AppRoutes.signIn),
+          ),
+        ),
+      const SizedBox(width: 8),
     ],
   );
 
   Widget? _buildCreateAction(
     BuildContext context,
     AppLocalizations l10n,
-    bool isAuthenticated,
     bool canCreateTournament,
   ) => switch (_selectedTab) {
     HomeDiscoveryTab.sessions => IconButton(
       key: const Key('home-create-session-button'),
       tooltip: l10n.createSessionTitle,
       icon: const Icon(AppIcons.add),
-      onPressed: isAuthenticated
-          ? () => context.push(AppRoutes.createSession)
-          : () => unawaited(
-              showLoginPromptDialog(
-                context,
-                featureName: l10n.loginRequiredCreateSession,
-                targetRoute: AppRoutes.createSession,
-              ),
-            ),
+      onPressed: () => context.push(AppRoutes.createSession),
     ),
     HomeDiscoveryTab.clubs => IconButton(
       key: const Key('home-create-club-button'),
       tooltip: l10n.clubCreate,
       icon: const Icon(AppIcons.add),
-      onPressed: isAuthenticated
-          ? () => context.push(AppRoutes.createClub)
-          : () => unawaited(
-              showLoginPromptDialog(
-                context,
-                featureName: l10n.loginRequiredCreateClub,
-                targetRoute: AppRoutes.createClub,
-              ),
-            ),
+      onPressed: () => context.push(AppRoutes.createClub),
     ),
-    HomeDiscoveryTab.tournaments when isAuthenticated && !canCreateTournament =>
-      null,
+    HomeDiscoveryTab.tournaments when !canCreateTournament => null,
     HomeDiscoveryTab.tournaments => IconButton(
       key: const Key('home-create-tournament-button'),
       tooltip: l10n.tournamentCreate,
       icon: const Icon(AppIcons.add),
-      onPressed: isAuthenticated
-          ? () => context.push(AppRoutes.createTournament)
-          : () => unawaited(
-              showLoginPromptDialog(
-                context,
-                featureName: l10n.loginRequiredCreateTournament,
-                targetRoute: AppRoutes.createTournament,
-              ),
-            ),
+      onPressed: () => context.push(AppRoutes.createTournament),
     ),
     HomeDiscoveryTab.venues => null,
   };

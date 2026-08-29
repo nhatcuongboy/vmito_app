@@ -54,25 +54,21 @@ class TournamentCreateHero extends StatelessWidget {
 class TournamentCreateActionBar extends StatelessWidget {
   const TournamentCreateActionBar({
     required this.isSubmitting,
-    required this.onCancel,
     required this.onSubmit,
     super.key,
   });
 
   final bool isSubmitting;
-  final VoidCallback onCancel;
   final VoidCallback onSubmit;
 
   @override
   Widget build(BuildContext context) => SafeArea(
     top: false,
     child: Material(
-      elevation: 12,
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: TournamentCreateActionButtons(
           isSubmitting: isSubmitting,
-          onCancel: onCancel,
           onSubmit: onSubmit,
         ),
       ),
@@ -83,43 +79,33 @@ class TournamentCreateActionBar extends StatelessWidget {
 class TournamentCreateActionButtons extends StatelessWidget {
   const TournamentCreateActionButtons({
     required this.isSubmitting,
-    required this.onCancel,
     required this.onSubmit,
     super.key,
   });
 
   final bool isSubmitting;
-  final VoidCallback onCancel;
   final VoidCallback onSubmit;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        OutlinedButton(
-          key: const Key('tournament-cancel-button'),
-          onPressed: isSubmitting ? null : onCancel,
-          child: Text(l10n.tournamentCreateCancel),
+    return SizedBox(
+      width: double.infinity,
+      child: FilledButton.icon(
+        key: const Key('tournament-submit-button'),
+        onPressed: isSubmitting ? null : onSubmit,
+        icon: isSubmitting
+            ? const SizedBox.square(
+                dimension: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Icon(AppIcons.add),
+        label: Text(
+          isSubmitting
+              ? l10n.tournamentCreateSubmitting
+              : l10n.tournamentCreateSubmit,
         ),
-        const SizedBox(width: AppSpacing.sm),
-        FilledButton.icon(
-          key: const Key('tournament-submit-button'),
-          onPressed: isSubmitting ? null : onSubmit,
-          icon: isSubmitting
-              ? const SizedBox.square(
-                  dimension: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(AppIcons.arrowForward),
-          label: Text(
-            isSubmitting
-                ? l10n.tournamentCreateSubmitting
-                : l10n.tournamentCreateSubmit,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

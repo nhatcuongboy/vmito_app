@@ -46,6 +46,7 @@ Widget _app({
         NewAdminUnit(city: 'Thành phố Hồ Chí Minh', wards: []),
         NewAdminUnit(city: 'Thành phố Hà Nội', wards: []),
         NewAdminUnit(city: 'Thành phố Đà Nẵng', wards: []),
+        NewAdminUnit(city: 'Tỉnh An Giang', wards: []),
       ],
     ),
     deviceLocationServiceProvider.overrideWithValue(
@@ -65,6 +66,59 @@ Widget _app({
 );
 
 void main() {
+  testWidgets('renders a compact, actionable sheet without overflow', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(320, 640)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(_app(onChanged: (_) {}));
+    await tester.tap(find.byKey(const Key('discovery-city-selector')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('city-selector-close')), findsOneWidget);
+    expect(
+      find.byKey(const Key('city-selector-current-location')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('city-selector-search')), findsOneWidget);
+    expect(find.byIcon(AppIcons.checkCircle), findsOneWidget);
+    expect(find.text('Phổ biến'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.drag(
+      find.byKey(const Key('city-selector-results')),
+      const Offset(0, -220),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Tất cả tỉnh / thành phố'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('city-selector-close')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('city-selector-search')), findsNothing);
+  });
+
+  testWidgets('constrains sheet content on wide windows', (tester) async {
+    tester.view
+      ..physicalSize = const Size(1000, 900)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(_app(onChanged: (_) {}));
+    await tester.tap(find.byKey(const Key('discovery-city-selector')));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester
+          .getSize(find.byKey(const Key('city-selector-sheet-content')))
+          .width,
+      lessThanOrEqualTo(600),
+    );
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('searches without tones and returns the selected city', (
     tester,
   ) async {

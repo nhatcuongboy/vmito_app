@@ -28,7 +28,6 @@ import 'package:vmito_app/features/session/domain/form/session_form_validator.da
 import 'package:vmito_app/features/session/domain/form/session_reactive_form.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
-import 'package:vmito_app/features/session/presentation/widgets/level_band_picker.dart';
 import 'package:vmito_app/features/social/application/club_management_controller.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
 import 'package:vmito_app/features/venue/application/venue_controller.dart';
@@ -37,6 +36,7 @@ import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/match.dart';
 import 'package:vmito_app/shared/widgets/app_required_label.dart';
+import 'package:vmito_app/shared/widgets/level_badge_picker.dart';
 
 const _wideFormBreakpoint = 768.0;
 const _maxFormWidth = 896.0;
@@ -840,6 +840,7 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
                       ? l10n.editSessionSave
                       : l10n.createSessionSubmit,
                   busy: isSubmitting || _isUploading,
+                  isCreation: !_isEditing,
                   onSubmit: _submit,
                 ),
           body: ReactiveForm(
@@ -930,6 +931,7 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
                             ? l10n.editSessionSave
                             : l10n.createSessionSubmit,
                         busy: isSubmitting || _isUploading,
+                        isCreation: !_isEditing,
                         onSubmit: _submit,
                         inline: true,
                       ),
@@ -967,13 +969,13 @@ class _AiAppBarAction extends StatelessWidget {
         foregroundColor: Colors.deepPurple,
         backgroundColor: Colors.deepPurple.withValues(alpha: .06),
         side: BorderSide(color: Colors.deepPurple.withValues(alpha: .25)),
-        minimumSize: const Size(0, 32),
+        minimumSize: const Size(0, 44),
         padding: const EdgeInsets.symmetric(horizontal: 10),
         textStyle: Theme.of(context).textTheme.labelSmall?.copyWith(
           fontWeight: FontWeight.w600,
         ),
         tapTargetSize: MaterialTapTargetSize.padded,
-        visualDensity: VisualDensity.compact,
+        visualDensity: VisualDensity.standard,
         shape: const StadiumBorder(),
       ),
     ),
@@ -1833,17 +1835,10 @@ class _LevelSection extends StatelessWidget {
       formControlName: SessionFormControl.requiredLevels,
       builder: (context, control, _) => Column(
         children: [
-          _AllLevelsOption(
-            selected: control.value?.isEmpty ?? true,
-            label: AppLocalizations.of(context).sessionFormAllLevels,
-            onTap: () {
-              control.value = const [];
-              form.control(SessionFormControl.allLevels).value = true;
-            },
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          LevelBandPicker(
-            selected: control.value ?? const [],
+          LevelBadgePicker(
+            selectedLevels: control.value ?? const [],
+            allLevelsLabel: AppLocalizations.of(context).sessionFormAllLevels,
+            allLevelsKey: const Key('all-levels-option'),
             onChanged: (levels) {
               control.value = levels;
               form.control(SessionFormControl.allLevels).value = levels.isEmpty;
@@ -1853,70 +1848,6 @@ class _LevelSection extends StatelessWidget {
       ),
     ),
   );
-}
-
-class _AllLevelsOption extends StatelessWidget {
-  const _AllLevelsOption({
-    required this.selected,
-    required this.label,
-    required this.onTap,
-  });
-
-  final bool selected;
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.primary;
-    return Semantics(
-      button: true,
-      selected: selected,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          key: const Key('all-levels-option'),
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(AppRadius.pill),
-          child: SizedBox(
-            width: double.infinity,
-            height: AppSizes.minTapTarget,
-            child: Center(
-              child: Container(
-                height: 36,
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: selected
-                      ? color.withValues(alpha: .2)
-                      : Colors.transparent,
-                  border: Border.all(
-                    color: selected ? Colors.transparent : color,
-                  ),
-                  borderRadius: BorderRadius.circular(AppRadius.pill),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    if (selected) ...[
-                      Icon(AppIcons.check, size: 18, color: color),
-                      const SizedBox(width: AppSpacing.sm),
-                    ],
-                    Text(
-                      label,
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: color,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _FeeSection extends StatelessWidget {
@@ -3325,11 +3256,13 @@ class _SubmitBar extends StatelessWidget {
   const _SubmitBar({
     required this.label,
     required this.busy,
+    required this.isCreation,
     required this.onSubmit,
     this.inline = false,
   });
   final String label;
   final bool busy;
+  final bool isCreation;
   final VoidCallback onSubmit;
   final bool inline;
   @override
@@ -3340,15 +3273,16 @@ class _SubmitBar extends StatelessWidget {
       top: false,
       child: Padding(
         padding: EdgeInsets.all(inline ? 0 : AppSpacing.md),
-        child: FilledButton(
+        child: FilledButton.icon(
           key: const Key('create-session-submit'),
           onPressed: busy ? null : onSubmit,
-          child: busy
+          icon: busy
               ? const SizedBox.square(
                   dimension: 20,
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
-              : Text(label),
+              : Icon(isCreation ? AppIcons.add : AppIcons.save),
+          label: Text(label),
         ),
       ),
     ),

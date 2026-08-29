@@ -1,6 +1,9 @@
+import 'dart:ui' show Tristate;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/features/social/presentation/club_form_screen.dart';
@@ -29,6 +32,14 @@ void main() {
       ),
     );
     await tester.pump();
+
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('club-save-button')),
+        matching: find.byIcon(AppIcons.add),
+      ),
+      findsOneWidget,
+    );
 
     await tester.tap(find.byKey(const Key('club-save-button')));
     await tester.pump();
@@ -80,10 +91,57 @@ void main() {
     expect(find.text('Sân hoạt động'), findsOneWidget);
     expect(find.text('Mạng xã hội & Liên kết'), findsOneWidget);
 
+    final level = find.byKey(const ValueKey('club-level-9'));
+    await tester.ensureVisible(level);
+    await tester.tap(level);
+    await tester.pump();
+    expect(
+      tester.getSemantics(level).flagsCollection.isSelected,
+      Tristate.isTrue,
+    );
+
+    final allLevels = find.byKey(const Key('club-all-levels'));
+    await tester.tap(allLevels);
+    await tester.pump();
+    expect(
+      tester.getSemantics(allLevels).flagsCollection.isSelected,
+      Tristate.isTrue,
+    );
+
     await tester.ensureVisible(find.byKey(const Key('club-add-venue')));
     await tester.tap(find.byKey(const Key('club-add-venue')));
     await tester.pump();
     expect(find.text('Sân 1'), findsOneWidget);
     expect(find.text('Chọn sân'), findsOneWidget);
+  });
+
+  testWidgets('uses one title style for every create-form section header', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: MaterialApp(
+          locale: Locale('vi'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: ClubFormScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    final expectedStyle = Theme.of(
+      tester.element(find.byType(Scaffold)),
+    ).textTheme.titleMedium;
+    for (final title in [
+      'Thông tin nhóm',
+      'Trình độ yêu cầu',
+      'Mô tả',
+      'Hình ảnh nhóm',
+      'Sân hoạt động',
+      'Mạng xã hội & Liên kết',
+    ]) {
+      expect(tester.widget<Text>(find.text(title)).style, expectedStyle);
+    }
   });
 }

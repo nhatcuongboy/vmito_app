@@ -6,9 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/location/address_display.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
+import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
@@ -22,7 +22,7 @@ import 'package:vmito_app/features/social/domain/form/club_form.dart';
 import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_required_label.dart';
-import 'package:vmito_domain/vmito_domain.dart';
+import 'package:vmito_app/shared/widgets/level_badge_picker.dart';
 
 class ClubFormScreen extends ConsumerWidget {
   const ClubFormScreen({this.clubId, super.key});
@@ -133,43 +133,41 @@ class _ClubFormState extends ConsumerState<_ClubForm> {
     final saving = ref.watch(clubManagementControllerProvider).isLoading;
     return Scaffold(
       appBar: AppBar(title: Text(_editing ? l10n.clubEdit : l10n.clubCreate)),
-      body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) => ReactiveForm(
-            formGroup: _form,
-            child: Stack(
-              children: [
-                ListView(
-                  padding: EdgeInsets.fromLTRB(
-                    AppSpacing.screenPadding,
-                    AppSpacing.md,
-                    AppSpacing.screenPadding,
-                    constraints.maxWidth < 720 ? 112 : AppSpacing.md,
-                  ),
-                  children: [
-                    Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 720),
-                        child: _buildForm(
-                          context,
-                          constraints.maxWidth,
-                          saving: saving,
-                        ),
+      body: LayoutBuilder(
+        builder: (context, constraints) => ReactiveForm(
+          formGroup: _form,
+          child: Stack(
+            children: [
+              ListView(
+                padding: EdgeInsets.fromLTRB(
+                  AppSpacing.screenPadding,
+                  AppSpacing.md,
+                  AppSpacing.screenPadding,
+                  constraints.maxWidth < 720 ? 112 : AppSpacing.md,
+                ),
+                children: [
+                  Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 720),
+                      child: _buildForm(
+                        context,
+                        constraints.maxWidth,
+                        saving: saving,
                       ),
                     ),
-                  ],
-                ),
-                if (constraints.maxWidth < 720)
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: _SubmitBar(
-                      saving: saving,
-                      editing: _editing,
-                      onPressed: saving ? null : _save,
-                    ),
                   ),
-              ],
-            ),
+                ],
+              ),
+              if (constraints.maxWidth < 720)
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: _SubmitBar(
+                    saving: saving,
+                    editing: _editing,
+                    onPressed: saving ? null : _save,
+                  ),
+                ),
+            ],
           ),
         ),
       ),
@@ -709,7 +707,7 @@ class _SubmitBar extends StatelessWidget {
                         dimension: 18,
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
-                    : const Icon(AppIcons.save),
+                    : Icon(editing ? AppIcons.save : AppIcons.add),
                 label: Text(editing ? l10n.commonSave : l10n.clubCreate),
               ),
             ),
@@ -744,7 +742,7 @@ class _InlineSubmitButton extends StatelessWidget {
                 dimension: 18,
                 child: CircularProgressIndicator(strokeWidth: 2),
               )
-            : const Icon(AppIcons.save),
+            : Icon(editing ? AppIcons.save : AppIcons.add),
         label: Text(editing ? l10n.commonSave : l10n.clubCreate),
       ),
     );
@@ -764,7 +762,7 @@ class _FormCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text(title, style: Theme.of(context).textTheme.titleMedium),
+          _SectionHeader(title: title),
           const SizedBox(height: AppSpacing.md),
           ...children,
         ],
@@ -813,77 +811,30 @@ class _LevelRequirementsCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    l10n.clubRequiredLevels,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                IconButton(
-                  tooltip: l10n.levelDescriptionsTitle,
-                  onPressed: () => showLevelDescriptions(context),
-                  icon: const Icon(AppIcons.info),
-                ),
-              ],
+            _SectionHeader(
+              title: l10n.clubRequiredLevels,
+              trailing: IconButton(
+                tooltip: l10n.levelDescriptionsTitle,
+                onPressed: () => showLevelDescriptions(context),
+                icon: const Icon(AppIcons.info),
+              ),
             ),
+            const SizedBox(height: AppSpacing.md),
             ReactiveValueListenableBuilder<List<int>>(
               formControlName: ClubFormControl.requiredLevels,
               builder: (context, value, _) {
                 final selected = value.value ?? const <int>[];
-                final allSelected = selected.isEmpty;
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    OutlinedButton.icon(
-                      key: const Key('club-all-levels'),
-                      onPressed: () =>
+                    LevelBadgePicker(
+                      selectedLevels: selected,
+                      allLevelsLabel: l10n.clubAllLevels,
+                      allLevelsKey: const Key('club-all-levels'),
+                      levelKeyPrefix: 'club-level',
+                      onChanged: (levels) =>
                           form.control(ClubFormControl.requiredLevels).value =
-                              <int>[],
-                      icon: Icon(allSelected ? AppIcons.check : AppIcons.grid),
-                      label: Text(l10n.clubAllLevels),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: levelDefinitions.length,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 4,
-                            crossAxisSpacing: AppSpacing.xs,
-                            mainAxisSpacing: AppSpacing.xs,
-                            mainAxisExtent: 44,
-                          ),
-                      itemBuilder: (context, index) {
-                        final definition = levelDefinitions[index];
-                        final isSelected = selected.contains(definition.id);
-                        return OutlinedButton(
-                          key: ValueKey('club-level-${definition.id}'),
-                          onPressed: () {
-                            final next = [...selected];
-                            if (!next.remove(definition.id)) {
-                              next.add(definition.id);
-                            }
-                            form.control(ClubFormControl.requiredLevels).value =
-                                sortByRank(next);
-                          },
-                          style: OutlinedButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            side: BorderSide(
-                              color: isSelected
-                                  ? Theme.of(context).colorScheme.primary
-                                  : Theme.of(context).dividerColor,
-                              width: isSelected ? 2 : 1,
-                            ),
-                          ),
-                          child: Text(
-                            definition.shortLabel,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        );
-                      },
+                              levels,
                     ),
                   ],
                 );
@@ -932,14 +883,9 @@ class _ClubMediaCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              l10n.clubMediaTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              l10n.clubMediaDescription,
-              style: Theme.of(context).textTheme.bodySmall,
+            _SectionHeader(
+              title: l10n.clubMediaTitle,
+              description: l10n.clubMediaDescription,
             ),
             const SizedBox(height: AppSpacing.md),
             ReactiveValueListenableBuilder<List<String>>(
@@ -1246,14 +1192,9 @@ class _ClubVenueScheduleCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              l10n.clubVenueTitle,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              l10n.clubVenueDescription,
-              style: Theme.of(context).textTheme.bodySmall,
+            _SectionHeader(
+              title: l10n.clubVenueTitle,
+              description: l10n.clubVenueDescription,
             ),
             const SizedBox(height: AppSpacing.md),
             if (groups.isEmpty)
@@ -1561,11 +1502,18 @@ class _SocialLinksCard extends StatelessWidget {
     return Card(
       child: Column(
         children: [
-          ListTile(
-            title: Text(l10n.clubSocialLinksTitle),
-            subtitle: Text(l10n.clubSocialLinksDescription),
-            trailing: Icon(open ? AppIcons.chevronUp : AppIcons.chevronDown),
+          InkWell(
             onTap: () => onChanged(!open),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: _SectionHeader(
+                title: l10n.clubSocialLinksTitle,
+                description: l10n.clubSocialLinksDescription,
+                trailing: Icon(
+                  open ? AppIcons.chevronUp : AppIcons.chevronDown,
+                ),
+              ),
+            ),
           ),
           if (open)
             Padding(
@@ -1587,6 +1535,48 @@ class _SocialLinksCard extends StatelessWidget {
             ),
         ],
       ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({
+    required this.title,
+    this.description,
+    this.trailing,
+  });
+
+  final String title;
+  final String? description;
+  final Widget? trailing;
+
+  @override
+  Widget build(BuildContext context) {
+    final titleWidget = Text(
+      title,
+      style: Theme.of(context).textTheme.titleMedium,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (trailing == null)
+          titleWidget
+        else
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: titleWidget),
+              trailing!,
+            ],
+          ),
+        if (description != null) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            description!,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
+      ],
     );
   }
 }

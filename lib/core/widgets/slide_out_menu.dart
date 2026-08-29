@@ -232,40 +232,41 @@ class SlideOutMenu extends ConsumerWidget {
                         AppSpacing.md,
                         AppSpacing.sm,
                       ),
-                      child: Row(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Expanded(
-                            child: OutlinedButton(
-                              style: OutlinedButton.styleFrom(
-                                textStyle: const TextStyle(
-                                  fontSize: 14,
-                                  height: 20 / 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                          OutlinedButton.icon(
+                            key: const Key('menu-sign-in-button'),
+                            style: OutlinedButton.styleFrom(
+                              textStyle: const TextStyle(
+                                fontSize: 14,
+                                height: 20 / 14,
+                                fontWeight: FontWeight.w600,
                               ),
-                              onPressed: () {
-                                closeDrawer();
-                                unawaited(context.push(AppRoutes.signIn));
-                              },
-                              child: Text(l10n.authSignIn),
                             ),
+                            onPressed: () {
+                              closeDrawer();
+                              unawaited(context.push(AppRoutes.signIn));
+                            },
+                            icon: const Icon(AppIcons.login, size: 18),
+                            label: Text(l10n.authSignIn),
                           ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: FilledButton(
-                              style: FilledButton.styleFrom(
-                                textStyle: const TextStyle(
-                                  fontSize: 14,
-                                  height: 20 / 14,
-                                  fontWeight: FontWeight.w600,
-                                ),
+                          const SizedBox(height: AppSpacing.sm),
+                          FilledButton.icon(
+                            key: const Key('menu-sign-up-button'),
+                            style: FilledButton.styleFrom(
+                              textStyle: const TextStyle(
+                                fontSize: 14,
+                                height: 20 / 14,
+                                fontWeight: FontWeight.w600,
                               ),
-                              onPressed: () {
-                                closeDrawer();
-                                unawaited(context.push(AppRoutes.signUp));
-                              },
-                              child: Text(l10n.authSignUp),
                             ),
+                            onPressed: () {
+                              closeDrawer();
+                              unawaited(context.push(AppRoutes.signUp));
+                            },
+                            icon: const Icon(AppIcons.userPlus, size: 18),
+                            label: Text(l10n.authSignUp),
                           ),
                         ],
                       ),

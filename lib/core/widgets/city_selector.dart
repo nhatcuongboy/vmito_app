@@ -11,10 +11,16 @@ export 'package:vmito_app/core/widgets/city_onboarding_dialog.dart';
 
 /// Compact entry point for the device-wide discovery city preference.
 class CitySelector extends ConsumerWidget {
-  const CitySelector({this.onChanged, this.showLabel = false, super.key});
+  const CitySelector({
+    this.onChanged,
+    this.showLabel = false,
+    this.labelMaxWidth = 180,
+    super.key,
+  });
 
   final ValueChanged<String?>? onChanged;
   final bool showLabel;
+  final double labelMaxWidth;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -39,7 +45,7 @@ class CitySelector extends ConsumerWidget {
       ),
       icon: const Icon(AppIcons.location, size: 18),
       label: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 120),
+        constraints: BoxConstraints(maxWidth: labelMaxWidth),
         child: Text(
           city?.trim().isNotEmpty ?? false ? city! : l10n.citySelectorAll,
           maxLines: 1,

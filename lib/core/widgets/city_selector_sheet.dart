@@ -25,6 +25,7 @@ Future<CitySelection?> showCitySelectorSheet(BuildContext context) =>
       useRootNavigator: true,
       isScrollControlled: true,
       showDragHandle: true,
+      useSafeArea: true,
       builder: (_) => const CitySelectorSheet(),
     );
 
@@ -70,99 +71,213 @@ class _CitySelectorSheetState extends ConsumerState<CitySelectorSheet> {
           : legacyCities(),
     );
 
+    final colorScheme = Theme.of(context).colorScheme;
     return ReactiveForm(
       formGroup: _form,
-      child: SafeArea(
-        top: false,
-        child: FractionallySizedBox(
-          heightFactor: .82,
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 640),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.md,
-                      0,
-                      AppSpacing.md,
-                      AppSpacing.sm,
-                    ),
-                    child: Text(
-                      l10n.citySelectorTitle,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  ),
-                  ListTile(
-                    key: const Key('city-selector-current-location'),
-                    leading: _isLocating
-                        ? const SizedBox.square(
-                            dimension: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(AppIcons.myLocation),
-                    title: Text(
-                      _isLocating
-                          ? l10n.citySelectorLocating
-                          : l10n.citySelectorUseCurrentLocation,
-                    ),
-                    textColor: Theme.of(context).colorScheme.primary,
-                    iconColor: Theme.of(context).colorScheme.primary,
-                    onTap: _isLocating
-                        ? null
-                        : () => unawaited(_useCurrentLocation(cities)),
-                  ),
-                  if (_hasLocationError)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                      ),
-                      child: Text(
-                        l10n.citySelectorLocationError,
-                        key: const Key('city-selector-location-error'),
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
-                    ),
-                  Padding(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    child: ReactiveTextField<String>(
-                      key: const Key('city-selector-search'),
-                      formControlName: _searchControl,
-                      textInputAction: TextInputAction.search,
-                      decoration: InputDecoration(
-                        hintText: l10n.citySelectorSearchHint,
-                        prefixIcon: const Icon(AppIcons.search),
-                      ),
-                    ),
-                  ),
-                  if (preference.showNewAddress && units.isLoading)
-                    const LinearProgressIndicator(),
-                  if (preference.showNewAddress && units.hasError)
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isWide = constraints.maxWidth >= 600;
+          return FractionallySizedBox(
+            heightFactor: isWide ? .68 : .82,
+            alignment: Alignment.bottomCenter,
+            child: Center(
+              child: ConstrainedBox(
+                key: const Key('city-selector-sheet-content'),
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
                     Padding(
                       padding: const EdgeInsets.fromLTRB(
                         AppSpacing.md,
                         0,
+                        AppSpacing.sm,
+                        AppSpacing.xs,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              l10n.citySelectorTitle,
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                          ),
+                          IconButton(
+                            key: const Key('city-selector-close'),
+                            tooltip: l10n.commonClose,
+                            onPressed: () => Navigator.of(context).pop(),
+                            icon: const Icon(AppIcons.close),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.md,
+                      ),
+                      child: Material(
+                        color: colorScheme.primary.withValues(alpha: .08),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(AppRadius.lg),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: InkWell(
+                          key: const Key('city-selector-current-location'),
+                          onTap: _isLocating
+                              ? null
+                              : () => unawaited(_useCurrentLocation(cities)),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(minHeight: 48),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.sm,
+                              ),
+                              child: Row(
+                                children: [
+                                  if (_isLocating)
+                                    const SizedBox.square(
+                                      dimension: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                  else
+                                    Icon(
+                                      AppIcons.myLocation,
+                                      color: colorScheme.primary,
+                                      size: 20,
+                                    ),
+                                  const SizedBox(width: AppSpacing.sm),
+                                  Expanded(
+                                    child: Text(
+                                      _isLocating
+                                          ? l10n.citySelectorLocating
+                                          : l10n.citySelectorUseCurrentLocation,
+                                      style: TextStyle(
+                                        color: colorScheme.primary,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                  ),
+                                  if (!_isLocating)
+                                    Icon(
+                                      AppIcons.chevronRight,
+                                      color: colorScheme.primary,
+                                      size: 18,
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (_hasLocationError)
+                      Container(
+                        key: const Key('city-selector-location-error'),
+                        margin: const EdgeInsets.fromLTRB(
+                          AppSpacing.md,
+                          AppSpacing.sm,
+                          AppSpacing.md,
+                          0,
+                        ),
+                        padding: const EdgeInsets.all(AppSpacing.sm),
+                        decoration: BoxDecoration(
+                          color: colorScheme.errorContainer,
+                          borderRadius: BorderRadius.circular(AppRadius.lg),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              AppIcons.warning,
+                              color: colorScheme.onErrorContainer,
+                              size: 18,
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: Text(
+                                l10n.citySelectorLocationError,
+                                style: TextStyle(
+                                  color: colorScheme.onErrorContainer,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
                         AppSpacing.md,
                         AppSpacing.sm,
+                        AppSpacing.md,
+                        AppSpacing.xs,
                       ),
-                      child: Text(l10n.citySelectorUsingFallback),
+                      child: ReactiveTextField<String>(
+                        key: const Key('city-selector-search'),
+                        formControlName: _searchControl,
+                        textInputAction: TextInputAction.search,
+                        decoration: InputDecoration(
+                          hintText: l10n.citySelectorSearchHint,
+                          prefixIcon: const Icon(AppIcons.search, size: 20),
+                          prefixIconConstraints: const BoxConstraints(
+                            minWidth: 44,
+                            minHeight: 44,
+                          ),
+                          isDense: true,
+                          contentPadding: const EdgeInsets.symmetric(
+                            vertical: 12,
+                          ),
+                          filled: true,
+                          fillColor: colorScheme.surfaceContainerHighest
+                              .withValues(alpha: .55),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.lg),
+                            borderSide: BorderSide.none,
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.lg),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                      ),
                     ),
-                  Expanded(
-                    child: CitySelectorResults(
-                      searchControlName: _searchControl,
-                      cities: cities,
-                      selectedCity: preference.preferredCity,
-                      onSelected: _select,
+                    if (preference.showNewAddress && units.isLoading)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                        ),
+                        child: LinearProgressIndicator(minHeight: 2),
+                      ),
+                    if (preference.showNewAddress && units.hasError)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.md,
+                          0,
+                          AppSpacing.md,
+                          AppSpacing.sm,
+                        ),
+                        child: Text(
+                          l10n.citySelectorUsingFallback,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: colorScheme.onSurfaceVariant),
+                        ),
+                      ),
+                    Expanded(
+                      child: CitySelectorResults(
+                        searchControlName: _searchControl,
+                        cities: cities,
+                        selectedCity: preference.preferredCity,
+                        onSelected: _select,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }

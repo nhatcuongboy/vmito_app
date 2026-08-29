@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:vmito_app/core/network/paginated.dart' as pagination;
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
@@ -109,6 +110,10 @@ void main() {
     );
     expect(find.byKey(const Key('create-session-ai')), findsOneWidget);
     expect(
+      tester.getSize(find.byKey(const Key('create-session-ai'))).height,
+      48,
+    );
+    expect(
       find.ancestor(
         of: find.byKey(const Key('create-session-ai')),
         matching: find.byType(AppBar),
@@ -116,6 +121,13 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(const Key('create-session-submit')), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('create-session-submit')),
+        matching: find.byIcon(AppIcons.add),
+      ),
+      findsOneWidget,
+    );
     await tester.tap(find.byKey(const Key('create-session-submit')));
     await tester.pump();
     expect(find.text('Vui lòng nhập tên kèo'), findsOneWidget);

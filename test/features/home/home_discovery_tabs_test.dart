@@ -114,11 +114,19 @@ void main() {
     await tester.pump();
 
     expect(_FakeSessionsController.loads, 1);
+    expect(find.byKey(const Key('home-sign-in-button')), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(const Key('home-sign-in-button'))).height,
+      48,
+    );
     expect(find.byIcon(AppIcons.login), findsOneWidget);
-    expect(find.byKey(const Key('home-search-button')), findsOneWidget);
+    expect(find.byKey(const Key('home-search-button')), findsNothing);
     expect(find.byType(SearchBar), findsNothing);
     expect(find.byType(FloatingActionButton), findsNothing);
-    expect(find.byKey(const Key('home-create-session-button')), findsOneWidget);
+    expect(find.byKey(const Key('home-create-session-button')), findsNothing);
+    expect(find.byKey(const Key('discovery-city-selector')), findsNothing);
+    expect(find.byKey(const Key('home-discovery-sort')), findsNothing);
+    expect(find.byKey(const Key('home-discovery-filter')), findsNothing);
 
     await tester.tap(find.byKey(const Key('home-discovery-tab-venues')));
     await tester.pump();
@@ -157,6 +165,10 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          authControllerProvider.overrideWith(_HostAuthController.new),
+          notificationControllerProvider.overrideWith(
+            _FakeNotificationController.new,
+          ),
           locationPreferencesControllerProvider.overrideWith(
             _HomeLocationPreferencesController.new,
           ),
@@ -507,6 +519,10 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          authControllerProvider.overrideWith(_HostAuthController.new),
+          notificationControllerProvider.overrideWith(
+            _FakeNotificationController.new,
+          ),
           browseSessionsControllerProvider.overrideWith(
             _FakeSessionsController.new,
           ),
@@ -572,6 +588,10 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          authControllerProvider.overrideWith(_HostAuthController.new),
+          notificationControllerProvider.overrideWith(
+            _FakeNotificationController.new,
+          ),
           venueBrowseControllerProvider.overrideWith(() => venueController),
         ],
         child: MaterialApp.router(

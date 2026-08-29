@@ -382,6 +382,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     routes: [
                       GoRoute(
                         path: 'create',
+                        // Keep the form outside AppShell, matching session
+                        // creation so its submit controls are not stacked
+                        // above the shell bottom navigation.
+                        parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) => const ClubFormScreen(),
                       ),
                       GoRoute(

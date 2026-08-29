@@ -219,7 +219,6 @@ class _CreateTournamentScreenState
               constraints.maxWidth < _wideTournamentFormBreakpoint
               ? TournamentCreateActionBar(
                   isSubmitting: isSubmitting,
-                  onCancel: _leave,
                   onSubmit: _submit,
                 )
               : const SizedBox.shrink(),
@@ -257,13 +256,9 @@ class _CreateTournamentScreenState
                                 if (isWide) ...[
                                   const SizedBox(height: AppSpacing.lg),
                                   const Divider(),
-                                  Align(
-                                    alignment: Alignment.centerRight,
-                                    child: TournamentCreateActionButtons(
-                                      isSubmitting: isSubmitting,
-                                      onCancel: _leave,
-                                      onSubmit: _submit,
-                                    ),
+                                  TournamentCreateActionButtons(
+                                    isSubmitting: isSubmitting,
+                                    onSubmit: _submit,
                                   ),
                                 ],
                               ],

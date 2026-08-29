@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/session/data/session_form_service.dart';
 import 'package:vmito_app/features/tournament/data/tournament_service.dart';
@@ -97,6 +98,18 @@ void main() {
 
     expect(find.text('Tạo giải mới'), findsOneWidget);
     expect(find.byKey(const Key('tournament-submit-button')), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('tournament-submit-button')),
+        matching: find.byIcon(AppIcons.add),
+      ),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('tournament-cancel-button')), findsNothing);
+    expect(
+      tester.getSize(find.byKey(const Key('tournament-submit-button'))).width,
+      closeTo(358, 0.01),
+    );
     await tester.tap(find.byKey(const Key('tournament-submit-button')));
     await tester.pump();
 
@@ -112,6 +125,7 @@ void main() {
     await tester.pump();
 
     expect(find.byKey(const Key('tournament-submit-button')), findsOneWidget);
+    expect(find.byKey(const Key('tournament-cancel-button')), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

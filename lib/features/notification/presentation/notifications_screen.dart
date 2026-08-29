@@ -18,6 +18,8 @@ import 'package:vmito_app/features/notification/presentation/widgets/notificatio
 import 'package:vmito_app/features/notification/presentation/widgets/notification_skeleton.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
+enum _NotificationPanelTab { all, pending, information }
+
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
@@ -29,6 +31,7 @@ class NotificationsScreen extends ConsumerStatefulWidget {
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   static const _maxContentWidth = 720.0;
   final _scrollController = ScrollController();
+  _NotificationPanelTab _selectedTab = _NotificationPanelTab.all;
 
   @override
   void initState() {
@@ -40,6 +43,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   }
 
   void _onScroll() {
+    if (_selectedTab == _NotificationPanelTab.pending) return;
     if (_scrollController.position.extentAfter < 500) {
       unawaited(ref.read(notificationControllerProvider.notifier).loadMore());
     }
@@ -56,7 +60,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     final state = ref.watch(notificationControllerProvider);
     final controller = ref.read(notificationControllerProvider.notifier);
     final l10n = AppLocalizations.of(context);
-    final panelItems = state.panelItems;
+    final panelItems = _panelItemsForTab(state);
 
     ref.listen(notificationControllerProvider, (previous, next) {
       if (next.error != null &&
@@ -69,130 +73,161 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       }
     });
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-          icon: const BackButtonIcon(),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go(AppRoutes.home);
-            }
-          },
-        ),
-        title: Text(l10n.notificationsTitle),
-        actions: [
-          TextButton.icon(
-            key: const Key('notification-mark-all-read'),
-            onPressed: state.unreadCount == 0 || state.isMarkingAll
-                ? null
-                : () => unawaited(controller.markAllRead()),
-            icon: state.isMarkingAll
-                ? const SizedBox.square(
-                    dimension: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(AppIcons.checkAll, size: 18),
-            label: Text(l10n.notificationsMarkAllRead),
+    return DefaultTabController(
+      length: _NotificationPanelTab.values.length,
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+            icon: const BackButtonIcon(),
+            onPressed: () {
+              if (context.canPop()) {
+                context.pop();
+              } else {
+                context.go(AppRoutes.home);
+              }
+            },
           ),
-          const SizedBox(width: AppSpacing.xs),
-        ],
-      ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final horizontalInset = constraints.maxWidth > _maxContentWidth
-              ? (constraints.maxWidth - _maxContentWidth) / 2
-              : 0.0;
-          if (state.isLoading && !state.hasLoaded && panelItems.isEmpty) {
-            return ListView.builder(
-              padding: EdgeInsets.symmetric(horizontal: horizontalInset),
-              itemCount: 5,
-              itemBuilder: (_, _) => const NotificationSkeleton(),
-            );
-          }
-          if (state.error != null &&
-              panelItems.isEmpty &&
-              state.hasLoaded &&
-              !state.hasSuccessfulLoad) {
+          title: Text(l10n.notificationsTitle),
+          actions: [
+            TextButton.icon(
+              key: const Key('notification-mark-all-read'),
+              onPressed: state.unreadCount == 0 || state.isMarkingAll
+                  ? null
+                  : () => unawaited(controller.markAllRead()),
+              icon: state.isMarkingAll
+                  ? const SizedBox.square(
+                      dimension: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(AppIcons.checkAll, size: 18),
+              label: Text(l10n.notificationsMarkAllRead),
+            ),
+            const SizedBox(width: AppSpacing.xs),
+          ],
+          bottom: TabBar(
+            onTap: (index) => setState(
+              () => _selectedTab = _NotificationPanelTab.values[index],
+            ),
+            tabs: [
+              Tab(
+                key: const Key('notification-tab-all'),
+                text: l10n.notificationsTabAll,
+              ),
+              Tab(
+                key: const Key('notification-tab-pending'),
+                text:
+                    '${l10n.notificationPending} (${state.pendingApprovalCount})',
+              ),
+              Tab(
+                key: const Key('notification-tab-information'),
+                text: l10n.notificationsTabInformation,
+              ),
+            ],
+          ),
+        ),
+        body: LayoutBuilder(
+          builder: (context, constraints) {
+            final horizontalInset = constraints.maxWidth > _maxContentWidth
+                ? (constraints.maxWidth - _maxContentWidth) / 2
+                : 0.0;
+            if (state.isLoading && !state.hasLoaded && panelItems.isEmpty) {
+              return ListView.builder(
+                padding: EdgeInsets.symmetric(horizontal: horizontalInset),
+                itemCount: 5,
+                itemBuilder: (_, _) => const NotificationSkeleton(),
+              );
+            }
+            if (state.error != null &&
+                panelItems.isEmpty &&
+                state.hasLoaded &&
+                !state.hasSuccessfulLoad) {
+              return RefreshIndicator(
+                onRefresh: controller.load,
+                child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.symmetric(horizontal: horizontalInset),
+                  children: [
+                    SizedBox(height: constraints.maxHeight * 0.2),
+                    Icon(
+                      AppIcons.error,
+                      size: 48,
+                      color: Theme.of(context).colorScheme.error,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      l10n.notificationLoadFailed,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    Center(
+                      child: OutlinedButton.icon(
+                        onPressed: controller.load,
+                        icon: const Icon(AppIcons.refresh),
+                        label: Text(l10n.commonRetry),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            final extraLoadingItems = state.isLoadingMore ? 3 : 0;
             return RefreshIndicator(
               onRefresh: controller.load,
-              child: ListView(
+              child: ListView.builder(
+                key: const Key('notification-panel-list'),
+                controller: _scrollController,
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.symmetric(horizontal: horizontalInset),
-                children: [
-                  SizedBox(height: constraints.maxHeight * 0.2),
-                  Icon(
-                    AppIcons.error,
-                    size: 48,
-                    color: Theme.of(context).colorScheme.error,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  Text(
-                    l10n.notificationLoadFailed,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  Center(
-                    child: OutlinedButton.icon(
-                      onPressed: controller.load,
-                      icon: const Icon(AppIcons.refresh),
-                      label: Text(l10n.commonRetry),
-                    ),
-                  ),
-                ],
+                padding: EdgeInsets.fromLTRB(
+                  horizontalInset,
+                  0,
+                  horizontalInset,
+                  AppSpacing.lg,
+                ),
+                itemCount:
+                    (panelItems.isEmpty ? 1 : panelItems.length) +
+                    extraLoadingItems,
+                itemBuilder: (context, index) {
+                  if (panelItems.isEmpty) {
+                    return _EmptyNotifications(
+                      minHeight: constraints.maxHeight * 0.58,
+                      message: _selectedTab == _NotificationPanelTab.pending
+                          ? l10n.notificationApprovalsEmpty
+                          : l10n.notificationsEmpty,
+                    );
+                  }
+                  if (index >= panelItems.length) {
+                    return const NotificationSkeleton();
+                  }
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildPanelItem(panelItems[index], state, controller),
+                      const Divider(height: 1),
+                    ],
+                  );
+                },
               ),
             );
-          }
-
-          final extraLoadingItems = state.isLoadingMore ? 3 : 0;
-          return RefreshIndicator(
-            onRefresh: controller.load,
-            child: ListView.builder(
-              key: const Key('notification-panel-list'),
-              controller: _scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.fromLTRB(
-                horizontalInset,
-                0,
-                horizontalInset,
-                AppSpacing.lg,
-              ),
-              itemCount:
-                  1 +
-                  (panelItems.isEmpty ? 1 : panelItems.length) +
-                  extraLoadingItems,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return _NotificationCounters(
-                    unreadCount: state.unreadCount,
-                    pendingCount: state.pendingApprovalCount,
-                  );
-                }
-                if (panelItems.isEmpty) {
-                  return _EmptyNotifications(
-                    minHeight: constraints.maxHeight * 0.58,
-                  );
-                }
-                final itemIndex = index - 1;
-                if (itemIndex >= panelItems.length) {
-                  return const NotificationSkeleton();
-                }
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildPanelItem(panelItems[itemIndex], state, controller),
-                    const Divider(height: 1),
-                  ],
-                );
-              },
-            ),
-          );
-        },
+          },
+        ),
       ),
     );
   }
+
+  List<NotificationPanelItem> _panelItemsForTab(NotificationState state) =>
+      switch (_selectedTab) {
+        _NotificationPanelTab.all => state.panelItems,
+        _NotificationPanelTab.pending =>
+          state.panelItems
+              .where((item) => item is! RegularNotificationItem)
+              .toList(growable: false),
+        _NotificationPanelTab.information =>
+          state.panelItems.whereType<RegularNotificationItem>().toList(
+            growable: false,
+          ),
+      };
 
   Widget _buildPanelItem(
     NotificationPanelItem item,
@@ -338,92 +373,11 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   }
 }
 
-class _NotificationCounters extends StatelessWidget {
-  const _NotificationCounters({
-    required this.unreadCount,
-    required this.pendingCount,
-  });
-
-  final int unreadCount;
-  final int pendingCount;
-
-  @override
-  Widget build(BuildContext context) {
-    if (unreadCount == 0 && pendingCount == 0) {
-      return const SizedBox(height: AppSpacing.sm);
-    }
-    final l10n = AppLocalizations.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.md,
-        AppSpacing.sm,
-        AppSpacing.md,
-        AppSpacing.md,
-      ),
-      child: Wrap(
-        spacing: AppSpacing.sm,
-        runSpacing: AppSpacing.xs,
-        children: [
-          if (unreadCount > 0)
-            _CounterPill(
-              key: const Key('notification-unread-count'),
-              count: unreadCount,
-              label: l10n.notificationNew,
-              background: Colors.green.shade100,
-              foreground: Colors.green.shade800,
-            ),
-          if (pendingCount > 0)
-            _CounterPill(
-              key: const Key('notification-pending-count'),
-              count: pendingCount,
-              label: l10n.notificationPending,
-              background: Colors.orange.shade100,
-              foreground: Colors.orange.shade900,
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _CounterPill extends StatelessWidget {
-  const _CounterPill({
-    required this.count,
-    required this.label,
-    required this.background,
-    required this.foreground,
-    super.key,
-  });
-
-  final int count;
-  final String label;
-  final Color background;
-  final Color foreground;
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-    label: '$count $label',
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-      decoration: BoxDecoration(
-        color: background,
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        '$count $label',
-        style: Theme.of(context).textTheme.labelMedium?.copyWith(
-          color: foreground,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    ),
-  );
-}
-
 class _EmptyNotifications extends StatelessWidget {
-  const _EmptyNotifications({required this.minHeight});
+  const _EmptyNotifications({required this.minHeight, required this.message});
 
   final double minHeight;
+  final String message;
 
   @override
   Widget build(BuildContext context) => SizedBox(
@@ -439,7 +393,7 @@ class _EmptyNotifications extends StatelessWidget {
           ).colorScheme.onSurface.withValues(alpha: 0.35),
         ),
         const SizedBox(height: AppSpacing.md),
-        Text(AppLocalizations.of(context).notificationsEmpty),
+        Text(message),
       ],
     ),
   );

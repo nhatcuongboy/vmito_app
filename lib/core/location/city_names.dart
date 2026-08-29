@@ -15,6 +15,9 @@ const _legacyCityCodes = <String, String>{
 
 const _popularCities = ['Hồ Chí Minh', 'Hà Nội', 'Đà Nẵng', 'Huế'];
 
+bool isPopularCity(String value) =>
+    _popularCities.contains(normalizeCityName(value));
+
 /// The API accepts province names without Vietnamese administrative prefixes.
 String normalizeCityName(String value) {
   final trimmed = value.trim();
@@ -58,15 +61,16 @@ List<String> sortCitiesWithPopularFirst(Iterable<String> values) {
       unique.putIfAbsent(citySearchKey(normalized), () => normalized);
     }
   }
-  final result = unique.values.toList(growable: false)..sort((left, right) {
-    final leftIndex = _popularCities.indexOf(normalizeCityName(left));
-    final rightIndex = _popularCities.indexOf(normalizeCityName(right));
-    if (leftIndex >= 0 || rightIndex >= 0) {
-      if (leftIndex < 0) return 1;
-      if (rightIndex < 0) return -1;
-      return leftIndex.compareTo(rightIndex);
-    }
-    return left.compareTo(right);
+  final result = unique.values.toList(growable: false)
+    ..sort((left, right) {
+      final leftIndex = _popularCities.indexOf(normalizeCityName(left));
+      final rightIndex = _popularCities.indexOf(normalizeCityName(right));
+      if (leftIndex >= 0 || rightIndex >= 0) {
+        if (leftIndex < 0) return 1;
+        if (rightIndex < 0) return -1;
+        return leftIndex.compareTo(rightIndex);
+      }
+      return left.compareTo(right);
     });
   return result;
 }
