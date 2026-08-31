@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:vmito_app/features/session/data/session_form_service.dart';
+import 'package:vmito_app/core/location/google_places_service.dart';
 import 'package:vmito_app/features/tournament/application/tournament_browse_controller.dart';
 import 'package:vmito_app/features/tournament/data/tournament_service.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_create_request.dart';
@@ -60,8 +60,8 @@ class TournamentCreateController
     required String language,
   }) async {
     final values = await ref
-        .read(sessionFormServiceProvider)
-        .autocompletePlaces(input: input, language: language);
+        .read(googlePlacesServiceProvider)
+        .autocomplete(input: input, language: language);
     return [
       for (final value in values)
         TournamentPlaceSuggestion(
@@ -77,8 +77,8 @@ class TournamentCreateController
     required String language,
   }) async {
     final value = await ref
-        .read(sessionFormServiceProvider)
-        .placeDetails(placeId: placeId, language: language);
+        .read(googlePlacesServiceProvider)
+        .details(placeId: placeId, language: language);
     return TournamentPlaceDetails(
       placeId: value.placeId,
       address: value.address,

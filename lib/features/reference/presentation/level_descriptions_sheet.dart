@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
-import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/reference/data/level_description_repository.dart';
@@ -91,7 +90,6 @@ class _LevelList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final palette = theme.extension<AppPalette>()!;
     final l10n = AppLocalizations.of(context);
 
     // Driven by the static table, not by the response: every level gets a row
@@ -105,49 +103,43 @@ class _LevelList extends StatelessWidget {
         AppSpacing.lg,
       ),
       itemCount: validLevels.length,
-      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
+      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
       itemBuilder: (context, index) {
         final level = validLevels[index];
         final text = descriptions[level]?.trim() ?? '';
+        final displayText = text.isEmpty ? l10n.levelDescriptionMissing : text;
 
-        return Container(
-          padding: const EdgeInsets.all(AppSpacing.sm + 4),
-          decoration: BoxDecoration(
-            border: Border.all(color: palette.border),
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-          ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm + 2,
-                  vertical: 3,
-                ),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  borderRadius: BorderRadius.circular(AppRadius.pill),
-                ),
-                child: Text(
-                  l10n.levelName(level),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.xs + 2,
+              ),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE53935),
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+              ),
+              child: Text(
+                l10n.levelName(level),
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  height: 1.1,
                 ),
               ),
-              const SizedBox(width: AppSpacing.sm + 4),
-              Expanded(
-                child: Text(
-                  text.isEmpty ? l10n.levelDescriptionMissing : text,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: text.isEmpty ? palette.mutedForeground : null,
-                    fontStyle: text.isEmpty ? FontStyle.italic : null,
-                  ),
-                ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              displayText,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                height: 1.5,
+                fontSize: 19,
               ),
-            ],
-          ),
+            ),
+          ],
         );
       },
     );

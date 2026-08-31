@@ -154,7 +154,7 @@ class _MySessionsSearchScreenState
               ValidationMessage.required: (_) => l10n.homeSearchRequired,
             },
             decoration: InputDecoration(
-              hintText: l10n.mySessionsSearchHint,
+              hintText: 'Tìm kiếm kèo',
               prefixIcon: const Icon(AppIcons.search),
               suffixIcon: _queryControl.value?.isNotEmpty ?? false
                   ? IconButton(

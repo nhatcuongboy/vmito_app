@@ -191,32 +191,209 @@ class HostPaymentSettings {
   final bool isDefault;
 }
 
-class PaymentReminder {
-  const PaymentReminder({
+enum PaymentReminderType {
+  singlePayment,
+  aggregate,
+  custom;
+
+  factory PaymentReminderType.fromJson(String? value) => switch (value) {
+    'AGGREGATE' => aggregate,
+    'CUSTOM' => custom,
+    _ => singlePayment,
+  };
+
+  String toJson() => switch (this) {
+    aggregate => 'AGGREGATE',
+    custom => 'CUSTOM',
+    singlePayment => 'SINGLE_PAYMENT',
+  };
+}
+
+enum PaymentReminderStatus {
+  pending,
+  awaitingConfirmation,
+  resolved;
+
+  factory PaymentReminderStatus.fromJson(String? value) => switch (value) {
+    'AWAITING_CONFIRMATION' => awaitingConfirmation,
+    'RESOLVED' => resolved,
+    _ => pending,
+  };
+
+  String toJson() => switch (this) {
+    awaitingConfirmation => 'AWAITING_CONFIRMATION',
+    resolved => 'RESOLVED',
+    pending => 'PENDING',
+  };
+}
+
+class PaymentReminderUser {
+  const PaymentReminderUser({
     required this.id,
-    required this.reminderCount,
-    required this.paymentIds,
-    this.lastRemindedAt,
+    required this.name,
+    this.email,
+    this.image,
+    this.gender,
   });
 
-  factory PaymentReminder.fromJson(Map<String, dynamic> json) =>
-      PaymentReminder(
+  factory PaymentReminderUser.fromJson(Map<String, dynamic> json) =>
+      PaymentReminderUser(
         id: json['id'] as String? ?? '',
-        reminderCount: (json['reminderCount'] as num?)?.toInt() ?? 0,
-        lastRemindedAt: _dateTime(json['lastRemindedAt']),
-        paymentIds: (json['payments'] as List<dynamic>? ?? const [])
-            .whereType<Map<Object?, Object?>>()
-            .map((item) => item['payment'])
-            .whereType<Map<Object?, Object?>>()
-            .map((payment) => payment['id'] as String?)
-            .whereType<String>()
-            .toList(growable: false),
+        name: json['name'] as String? ?? '',
+        email: json['email'] as String?,
+        image: json['image'] as String?,
+        gender: json['gender'] as String?,
       );
 
   final String id;
+  final String name;
+  final String? email;
+  final String? image;
+  final String? gender;
+}
+
+class PaymentReminderSession {
+  const PaymentReminderSession({
+    required this.id,
+    required this.name,
+  });
+
+  factory PaymentReminderSession.fromJson(Map<String, dynamic> json) =>
+      PaymentReminderSession(
+        id: json['id'] as String? ?? '',
+        name: json['name'] as String? ?? '',
+      );
+
+  final String id;
+  final String name;
+}
+
+class PaymentReminderLinkedPayment {
+  const PaymentReminderLinkedPayment({
+    required this.id,
+    required this.status,
+    required this.amount,
+    this.proofImageUrl,
+    this.proofNotes,
+    this.hostNotes,
+    this.sessionId,
+  });
+
+  factory PaymentReminderLinkedPayment.fromJson(Map<String, dynamic> json) =>
+      PaymentReminderLinkedPayment(
+        id: json['id'] as String? ?? '',
+        status: PaymentStatus.fromJson(json['status'] as String? ?? 'PENDING'),
+        amount: (json['amount'] as num?)?.toInt() ?? 0,
+        proofImageUrl: json['proofImageUrl'] as String?,
+        proofNotes: json['proofNotes'] as String?,
+        hostNotes: json['hostNotes'] as String?,
+        sessionId: json['sessionId'] as String?,
+      );
+
+  final String id;
+  final PaymentStatus status;
+  final int amount;
+  final String? proofImageUrl;
+  final String? proofNotes;
+  final String? hostNotes;
+  final String? sessionId;
+}
+
+class PaymentReminder {
+  const PaymentReminder({
+    required this.id,
+    this.type = PaymentReminderType.singlePayment,
+    this.creatorId = '',
+    this.recipientId = '',
+    this.sessionId,
+    this.amount = 0,
+    this.note,
+    this.status = PaymentReminderStatus.pending,
+    required this.reminderCount,
+    this.lastRemindedAt,
+    this.resolvedAt,
+    this.proofImageUrl,
+    this.proofNotes,
+    this.createdAt,
+    this.updatedAt,
+    this.creator,
+    this.recipient,
+    this.session,
+    this.linkedPayments = const [],
+    List<String>? paymentIds,
+  }) : _explicitPaymentIds = paymentIds;
+
+  factory PaymentReminder.fromJson(Map<String, dynamic> json) {
+    final rawPayments = (json['payments'] as List<dynamic>? ?? const [])
+        .whereType<Map<Object?, Object?>>()
+        .map((item) => item['payment'])
+        .whereType<Map<Object?, Object?>>()
+        .map(
+          (p) => PaymentReminderLinkedPayment.fromJson(
+            Map<String, dynamic>.from(p),
+          ),
+        )
+        .toList(growable: false);
+
+    return PaymentReminder(
+      id: json['id'] as String? ?? '',
+      type: PaymentReminderType.fromJson(json['type'] as String?),
+      creatorId: json['creatorId'] as String? ?? '',
+      recipientId: json['recipientId'] as String? ?? '',
+      sessionId: json['sessionId'] as String?,
+      amount: (json['amount'] as num?)?.toInt() ?? 0,
+      note: json['note'] as String?,
+      status: PaymentReminderStatus.fromJson(json['status'] as String?),
+      reminderCount: (json['reminderCount'] as num?)?.toInt() ?? 0,
+      lastRemindedAt: _dateTime(json['lastRemindedAt']),
+      resolvedAt: _dateTime(json['resolvedAt']),
+      proofImageUrl: json['proofImageUrl'] as String?,
+      proofNotes: json['proofNotes'] as String?,
+      createdAt: _dateTime(json['createdAt']),
+      updatedAt: _dateTime(json['updatedAt']),
+      creator: json['creator'] is Map
+          ? PaymentReminderUser.fromJson(
+              Map<String, dynamic>.from(json['creator'] as Map),
+            )
+          : null,
+      recipient: json['recipient'] is Map
+          ? PaymentReminderUser.fromJson(
+              Map<String, dynamic>.from(json['recipient'] as Map),
+            )
+          : null,
+      session: json['session'] is Map
+          ? PaymentReminderSession.fromJson(
+              Map<String, dynamic>.from(json['session'] as Map),
+            )
+          : null,
+      linkedPayments: rawPayments,
+    );
+  }
+
+  final String id;
+  final PaymentReminderType type;
+  final String creatorId;
+  final String recipientId;
+  final String? sessionId;
+  final int amount;
+  final String? note;
+  final PaymentReminderStatus status;
   final int reminderCount;
   final DateTime? lastRemindedAt;
-  final List<String> paymentIds;
+  final DateTime? resolvedAt;
+  final String? proofImageUrl;
+  final String? proofNotes;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  final PaymentReminderUser? creator;
+  final PaymentReminderUser? recipient;
+  final PaymentReminderSession? session;
+  final List<PaymentReminderLinkedPayment> linkedPayments;
+  final List<String>? _explicitPaymentIds;
+
+  List<String> get paymentIds =>
+      _explicitPaymentIds ??
+      linkedPayments.map((p) => p.id).where((id) => id.isNotEmpty).toList();
 }
 
 class VietnamBank {

@@ -55,6 +55,10 @@ GoRouter _buildRouter() => GoRouter(
       builder: (_, _) => _screen('Transactions'),
     ),
     GoRoute(
+      path: AppRoutes.reminders,
+      builder: (_, _) => _screen('Reminders'),
+    ),
+    GoRoute(
       path: AppRoutes.favorites,
       builder: (_, _) => _screen('Favorites'),
     ),
@@ -335,6 +339,7 @@ void main() {
     expect(find.text('Kèo'), findsOneWidget);
     expect(find.text('Nhóm'), findsOneWidget);
     expect(find.text('Giao dịch'), findsOneWidget);
+    expect(find.text('Nhắc thanh toán'), findsOneWidget);
     expect(find.text('ADMIN'), findsNothing);
     expect(find.text('Yêu thích'), findsOneWidget);
     await tester.scrollUntilVisible(

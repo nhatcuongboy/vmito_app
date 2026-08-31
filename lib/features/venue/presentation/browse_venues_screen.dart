@@ -209,7 +209,7 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
                 Expanded(
                   child: SearchBar(
                     controller: _search,
-                    hintText: 'Tìm sân, địa chỉ',
+                    hintText: 'Tìm kiếm sân',
                     leading: const Icon(AppIcons.search),
                     onChanged: (value) {
                       _debounce?.cancel();

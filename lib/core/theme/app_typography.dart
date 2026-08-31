@@ -110,8 +110,8 @@ abstract final class AppTypography {
   /// Page title for a regular [AppBar], kept compact beside navigation icons.
   static TextStyle appBarTitle(TextTheme textTheme) =>
       (textTheme.headlineSmall ?? const TextStyle()).copyWith(
-        fontSize: 22,
-        height: 28 / 22,
+        fontSize: 20,
+        height: 28 / 20,
         fontWeight: FontWeight.w700,
         letterSpacing: 0,
       );

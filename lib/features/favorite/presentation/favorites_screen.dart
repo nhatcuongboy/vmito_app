@@ -74,6 +74,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
               icon: const Icon(AppIcons.login),
               onPressed: () => context.push(AppRoutes.signIn),
             ),
+          const SizedBox(width: 8),
         ],
       ),
       body: Column(

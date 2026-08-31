@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show ScrollDirection;
+import 'package:flutter/services.dart' show SystemSound, SystemSoundType;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
@@ -73,7 +74,8 @@ class _AppShellState extends ConsumerState<AppShell> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final palette = Theme.of(context).extension<AppPalette>()!;
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
     final isSignedIn = ref.watch(isSignedInProvider);
     final location = GoRouterState.of(context).uri.path;
     final shouldKeepBottomBarVisible = location == AppRoutes.notifications;
@@ -103,43 +105,61 @@ class _AppShellState extends ConsumerState<AppShell> {
                   heightFactor: shouldKeepBottomBarVisible || _navBarVisible
                       ? 1
                       : 0,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      border: Border(top: BorderSide(color: palette.border)),
-                    ),
-                    child: NavigationBar(
-                      maintainBottomViewPadding: true,
-                      selectedIndex: widget.navigationShell.currentIndex,
-                      onDestinationSelected: _onDestinationSelected,
-                      destinations: [
-                        NavigationDestination(
-                          icon: const Icon(AppIcons.home),
-                          label: l10n.navHome,
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: DecoratedBox(
+                      key: const Key('app-bottom-navigation-surface'),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.surface,
+                        border: Border(
+                          top: BorderSide(color: palette.border),
                         ),
-                        NavigationDestination(
-                          icon: const Icon(AppIcons.sessions),
-                          label: l10n.navSessions,
-                        ),
-                        NavigationDestination(
-                          icon: NewsfeedBadgeIcon(
-                            icon: AppIcons.feed,
-                            semanticLabel: l10n.navFeed,
+                        boxShadow: [
+                          BoxShadow(
+                            color: theme.colorScheme.shadow.withValues(
+                              alpha: theme.brightness == Brightness.light
+                                  ? 0.08
+                                  : 0.24,
+                            ),
+                            blurRadius: 8,
+                            offset: const Offset(0, -2),
                           ),
-                          selectedIcon: NewsfeedBadgeIcon(
-                            icon: AppIcons.feed,
-                            semanticLabel: l10n.navFeed,
+                        ],
+                      ),
+                      child: NavigationBar(
+                        maintainBottomViewPadding: true,
+                        selectedIndex: widget.navigationShell.currentIndex,
+                        onDestinationSelected: _onDestinationSelected,
+                        destinations: [
+                          NavigationDestination(
+                            icon: const Icon(AppIcons.home),
+                            label: l10n.navHome,
                           ),
-                          label: l10n.navFeed,
-                        ),
-                        NavigationDestination(
-                          icon: const Icon(AppIcons.favorite),
-                          label: l10n.navFavorites,
-                        ),
-                        NavigationDestination(
-                          icon: const Icon(AppIcons.profile),
-                          label: l10n.navProfile,
-                        ),
-                      ],
+                          NavigationDestination(
+                            icon: const Icon(AppIcons.sessions),
+                            label: l10n.navSessions,
+                          ),
+                          NavigationDestination(
+                            icon: NewsfeedBadgeIcon(
+                              icon: AppIcons.feed,
+                              semanticLabel: l10n.navFeed,
+                            ),
+                            selectedIcon: NewsfeedBadgeIcon(
+                              icon: AppIcons.feed,
+                              semanticLabel: l10n.navFeed,
+                            ),
+                            label: l10n.navFeed,
+                          ),
+                          NavigationDestination(
+                            icon: const Icon(AppIcons.favorite),
+                            label: l10n.navFavorites,
+                          ),
+                          NavigationDestination(
+                            icon: const Icon(AppIcons.profile),
+                            label: l10n.navProfile,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -150,6 +170,8 @@ class _AppShellState extends ConsumerState<AppShell> {
   }
 
   void _onDestinationSelected(int index) {
+    unawaited(SystemSound.play(SystemSoundType.click));
+
     final isCurrentTab = index == widget.navigationShell.currentIndex;
     final isAtTabRoot =
         GoRouterState.of(context).uri.path ==

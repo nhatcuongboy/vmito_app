@@ -102,7 +102,7 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
                 Expanded(
                   child: SearchBar(
                     controller: _search,
-                    hintText: 'Tìm câu lạc bộ',
+                    hintText: 'Tìm kiếm nhóm',
                     leading: const Icon(AppIcons.search),
                     onChanged: (value) {
                       _timer?.cancel();
@@ -321,17 +321,17 @@ class _ClubBrowseCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 6),
-                        _ClubMetaRow(
-                          key: const Key('club-card-schedule'),
-                          icon: AppIcons.clock,
-                          text: schedule ?? l10n.socialNoActivitySchedule,
-                        ),
                         if (location case final value?)
                           _ClubMetaRow(
                             key: const Key('club-card-location'),
                             icon: AppIcons.location,
                             text: value,
                           ),
+                        _ClubMetaRow(
+                          key: const Key('club-card-schedule'),
+                          icon: AppIcons.clock,
+                          text: schedule ?? l10n.socialNoActivitySchedule,
+                        ),
                       ],
                     ),
                   ),

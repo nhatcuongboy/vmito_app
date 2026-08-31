@@ -299,6 +299,7 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
           icon: const Icon(AppIcons.login),
           onPressed: () => context.push(AppRoutes.signIn),
         ),
+      const SizedBox(width: 8),
     ],
   );
 

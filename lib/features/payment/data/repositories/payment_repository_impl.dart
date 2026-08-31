@@ -335,6 +335,185 @@ class PaymentRepositoryImpl implements PaymentRepository {
       options: apiOptions(skipGlobalError: true),
     );
   }
+
+  @override
+  Future<List<PaymentReminder>> getReminders({
+    required String role,
+    PaymentReminderStatus? status,
+  }) async {
+    final response = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.paymentReminders,
+      queryParameters: {
+        'role': role,
+        if (status != null) 'status': status.toJson(),
+      },
+    );
+    return unwrapList(response.data, PaymentReminder.fromJson);
+  }
+
+  @override
+  Future<PaymentReminder> createSingleReminder({
+    required String paymentId,
+    String? note,
+  }) async {
+    final response = await _client.post<Map<String, dynamic>>(
+      ApiEndpoints.paymentReminders,
+      data: {
+        'paymentId': paymentId,
+        if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+      },
+      options: apiOptions(skipGlobalError: true),
+    );
+    return unwrap(
+      response.data,
+      (json) => PaymentReminder.fromJson(Map<String, dynamic>.from(json)),
+    );
+  }
+
+  @override
+  Future<PaymentReminder> createAggregateReminder({
+    required String recipientUserId,
+  }) async {
+    final response = await _client.post<Map<String, dynamic>>(
+      ApiEndpoints.aggregatePaymentReminder,
+      data: {'recipientUserId': recipientUserId},
+      options: apiOptions(skipGlobalError: true),
+    );
+    return unwrap(
+      response.data,
+      (json) => PaymentReminder.fromJson(Map<String, dynamic>.from(json)),
+    );
+  }
+
+  @override
+  Future<PaymentReminder> createCustomReminder({
+    required String recipientUserId,
+    required int amount,
+    required String note,
+  }) async {
+    final response = await _client.post<Map<String, dynamic>>(
+      ApiEndpoints.paymentReminderCustom,
+      data: {
+        'recipientUserId': recipientUserId,
+        'amount': amount,
+        'note': note.trim(),
+      },
+      options: apiOptions(skipGlobalError: true),
+    );
+    return unwrap(
+      response.data,
+      (json) => PaymentReminder.fromJson(Map<String, dynamic>.from(json)),
+    );
+  }
+
+  @override
+  Future<PaymentReminder> remindAgain(String reminderId) async {
+    final response = await _client.post<Map<String, dynamic>>(
+      ApiEndpoints.paymentReminderRemind(reminderId),
+      options: apiOptions(skipGlobalError: true),
+    );
+    return unwrap(
+      response.data,
+      (json) => PaymentReminder.fromJson(Map<String, dynamic>.from(json)),
+    );
+  }
+
+  @override
+  Future<PaymentReminder> markReminderCollected(String reminderId) async {
+    final response = await _client.post<Map<String, dynamic>>(
+      ApiEndpoints.paymentReminderMarkCollected(reminderId),
+      options: apiOptions(skipGlobalError: true),
+    );
+    return unwrap(
+      response.data,
+      (json) => PaymentReminder.fromJson(Map<String, dynamic>.from(json)),
+    );
+  }
+
+  @override
+  Future<PaymentReminder> markReminderPaid(
+    String reminderId, {
+    required PaymentMethod paymentMethod,
+    String? proofImageUrl,
+    String? proofImagePublicId,
+    String? proofNotes,
+  }) async {
+    final response = await _client.post<Map<String, dynamic>>(
+      ApiEndpoints.paymentReminderMarkPaid(reminderId),
+      data: {
+        'paymentMethod': paymentMethod == PaymentMethod.bankTransfer
+            ? 'BANK_TRANSFER'
+            : 'CASH',
+        if (proofImageUrl != null) 'proofImageUrl': proofImageUrl,
+        if (proofImagePublicId != null)
+          'proofImagePublicId': proofImagePublicId,
+        if (proofNotes != null && proofNotes.trim().isNotEmpty)
+          'proofNotes': proofNotes.trim(),
+      },
+      options: apiOptions(skipGlobalError: true),
+    );
+    return unwrap(
+      response.data,
+      (json) => PaymentReminder.fromJson(Map<String, dynamic>.from(json)),
+    );
+  }
+
+  @override
+  Future<PaymentReminder> rejectReminder(
+    String reminderId, {
+    String? hostNotes,
+  }) async {
+    final response = await _client.post<Map<String, dynamic>>(
+      ApiEndpoints.paymentReminderReject(reminderId),
+      data: {
+        if (hostNotes != null && hostNotes.trim().isNotEmpty)
+          'hostNotes': hostNotes.trim(),
+      },
+      options: apiOptions(skipGlobalError: true),
+    );
+    return unwrap(
+      response.data,
+      (json) => PaymentReminder.fromJson(Map<String, dynamic>.from(json)),
+    );
+  }
+
+  @override
+  Future<({String url, String publicId})> uploadPaymentProof(
+    Uint8List bytes,
+    String filename,
+  ) async {
+    final compressed = await FlutterImageCompress.compressWithList(
+      bytes,
+      minWidth: 1200,
+      minHeight: 1200,
+      quality: 82,
+    );
+    final response = await _client.post<Map<String, dynamic>>(
+      ApiEndpoints.uploadPaymentProof,
+      data: FormData.fromMap({
+        'proof': MultipartFile.fromBytes(compressed, filename: filename),
+      }),
+      options: apiOptions(skipGlobalError: true),
+    );
+    return unwrap(
+      response.data,
+      (json) => (
+        url: json['url'] as String? ?? '',
+        publicId: json['publicId'] as String? ?? '',
+      ),
+    );
+  }
+
+  @override
+  Future<List<PaymentReminderUser>> searchUsers(String query) async {
+    final response = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.users,
+      queryParameters: {
+        if (query.trim().isNotEmpty) 'search': query.trim(),
+      },
+    );
+    return unwrapList(response.data, PaymentReminderUser.fromJson);
+  }
 }
 
 final paymentRepositoryProvider = Provider<PaymentRepository>(

@@ -15,6 +15,7 @@ abstract final class AppIcons {
   static const IconData venue = LucideIcons.map_pin;
   static const IconData clubs = LucideIcons.users;
   static const IconData billing = LucideIcons.receipt;
+  static const IconData reminders = LucideIcons.bell_ring;
   static const IconData menu = LucideIcons.menu;
   static const IconData moreVert = LucideIcons.ellipsis_vertical;
 

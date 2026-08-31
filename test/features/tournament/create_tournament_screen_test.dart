@@ -4,10 +4,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/core/location/google_places_service.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
-import 'package:vmito_app/features/session/data/session_form_service.dart';
 import 'package:vmito_app/features/tournament/data/tournament_service.dart';
 import 'package:vmito_app/features/tournament/domain/form/tournament_create_form.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_create_request.dart';
@@ -17,7 +17,7 @@ import 'package:vmito_app/l10n/app_localizations.dart';
 
 class _TournamentService extends Mock implements TournamentService {}
 
-class _SessionFormService extends Mock implements SessionFormService {}
+class _GooglePlacesService extends Mock implements GooglePlacesService {}
 
 void _setSize(WidgetTester tester, Size size) {
   tester.view.physicalSize = size;
@@ -28,7 +28,7 @@ void _setSize(WidgetTester tester, Size size) {
 
 Widget _app({
   TournamentService? service,
-  SessionFormService? sessionFormService,
+  GooglePlacesService? googlePlacesService,
   bool router = false,
 }) {
   final child = router
@@ -63,8 +63,8 @@ Widget _app({
   return ProviderScope(
     overrides: [
       if (service != null) tournamentServiceProvider.overrideWithValue(service),
-      if (sessionFormService != null)
-        sessionFormServiceProvider.overrideWithValue(sessionFormService),
+      if (googlePlacesService != null)
+        googlePlacesServiceProvider.overrideWithValue(googlePlacesService),
     ],
     child: child,
   );
@@ -131,9 +131,9 @@ void main() {
 
   testWidgets('selects and clears a Google Places location', (tester) async {
     _setSize(tester, const Size(390, 844));
-    final places = _SessionFormService();
+    final places = _GooglePlacesService();
     when(
-      () => places.autocompletePlaces(
+      () => places.autocomplete(
         input: any(named: 'input'),
         language: any(named: 'language'),
       ),
@@ -147,7 +147,7 @@ void main() {
       ],
     );
     when(
-      () => places.placeDetails(
+      () => places.details(
         placeId: any(named: 'placeId'),
         language: any(named: 'language'),
       ),
@@ -161,7 +161,7 @@ void main() {
         city: 'Hồ Chí Minh',
       ),
     );
-    await tester.pumpWidget(_app(sessionFormService: places));
+    await tester.pumpWidget(_app(googlePlacesService: places));
     await tester.pump();
 
     final location = find.byKey(const Key('tournament-location-field'));

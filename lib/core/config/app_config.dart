@@ -68,8 +68,8 @@ abstract final class AppConfig {
     defaultValue: 'https://vmito.com',
   );
 
-  /// Google Places API (New) key, used only by the address autocomplete on the
-  /// create-session form.
+  /// Google Places API (New) key, used by the shared address autocomplete in
+  /// session and social-post composers.
   ///
   /// This ships inside the binary, so it must be a **mobile-only** key with
   /// application restrictions (Android package + SHA-1, iOS bundle id) and an

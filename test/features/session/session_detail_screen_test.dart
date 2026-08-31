@@ -214,6 +214,26 @@ void main() {
     expect(find.text('259 Hòa Bình, Phú Thạnh'), findsOneWidget);
     expect(find.text('Admin'), findsOneWidget);
     expect(find.text('Linh'), findsOneWidget);
+
+    final title = find.byKey(const Key('session-detail-title'));
+    final schedule = find.textContaining('20:00 - 22:00');
+    final content = find.byKey(const Key('session-detail-content'));
+    expect(tester.getTopLeft(title).dy - tester.getTopLeft(content).dy, 16);
+    expect(tester.widget<Text>(title).style?.fontSize, 19);
+    expect(
+      tester.getTopLeft(schedule).dy - tester.getBottomRight(title).dy,
+      12,
+    );
+
+    final scheduleText = tester.widget<Text>(schedule);
+    final sportText = tester.widget<Text>(
+      find.text('Badminton  ·  Doubles'),
+    );
+    final sportSpan = sportText.textSpan! as TextSpan;
+    final sportLabel = sportSpan.children!.first as TextSpan;
+    expect(sportText.style?.fontSize, scheduleText.style?.fontSize);
+    expect(sportText.style?.color, scheduleText.style?.color);
+    expect(sportLabel.style?.fontWeight, FontWeight.w600);
     expect(find.text('TB'), findsOneWidget);
 
     // Court numbers ride along with the count as a muted suffix.
@@ -280,14 +300,58 @@ void main() {
 
     expect(appBar.pinned, isTrue);
     expect(appBar.expandedHeight, 220);
+    expect(appBar.leadingWidth, 64);
+    expect(
+      appBar.actionsPadding,
+      const EdgeInsets.symmetric(horizontal: AppSpacing.sm + 4),
+    );
     expect(scrollView.paintOrder, SliverPaintOrder.lastIsTop);
     expect(stickyTitle.opacity, 0);
-    expect(stickyText.style?.fontSize, 20);
-    expect(stickyText.style?.height, closeTo(28 / 20, 0.0001));
+    expect(stickyText.style?.fontSize, 16);
+    expect(stickyText.style?.height, closeTo(20 / 16, 0.0001));
     expect(stickyText.style?.fontWeight, FontWeight.w700);
     expect(stickyText.maxLines, 1);
     expect(stickyText.overflow, TextOverflow.ellipsis);
     expect(favorite.overlay, isTrue);
+    expect(favorite.overlayColor, const Color(0xB8000000));
+    final backVisual = tester.widget<DecoratedBox>(
+      find.byKey(const Key('session-back-button-visual')),
+    );
+    expect(
+      (backVisual.decoration as BoxDecoration).color,
+      const Color(0xB8000000),
+    );
+    expect(
+      tester.getSize(find.byKey(const Key('session-back-button'))),
+      const Size.square(AppSizes.minTapTarget),
+    );
+    expect(
+      tester.getSize(find.byKey(const Key('session-back-button-visual'))),
+      const Size.square(40),
+    );
+    expect(
+      tester
+          .widget<Icon>(
+            find.descendant(
+              of: find.byKey(const Key('session-back-button')),
+              matching: find.byIcon(AppIcons.chevronLeft),
+            ),
+          )
+          .size,
+      24,
+    );
+    expect(
+      tester.getSize(find.byKey(const Key('session-share-button'))).height,
+      FavoriteButton.detailControlSize,
+    );
+    expect(
+      tester.getSize(find.byKey(const Key('session-share-button'))),
+      const Size.square(FavoriteButton.detailControlSize),
+    );
+    expect(
+      tester.getSize(find.byKey(const Key('session-favorite-button'))),
+      const Size.square(FavoriteButton.detailControlSize),
+    );
 
     // This test needs enough content below the fold for the scroll controller
     // to move; the shared fixture intentionally uses a very tall viewport for
@@ -435,9 +499,10 @@ void main() {
         ),
       );
 
-      // Initial letter fallback
-      expect(find.text('A'), findsWidgets); // Avatar initial and/or name
-      expect(find.text('B'), findsWidgets);
+      // The shared avatar follows the web convention: up to two initials for
+      // a one-word name.
+      expect(find.text('AN'), findsOneWidget);
+      expect(find.text('BI'), findsOneWidget);
       // Empty slots limited to 2 rows (10 total items: 2 players + 8 empty slots)
       expect(find.text('Empty'), findsNWidgets(8));
       // View all button when total slots = 16 > 10
@@ -805,7 +870,7 @@ void main() {
       ),
     );
 
-    expect(find.text('Managed club'), findsOneWidget);
+    expect(find.text('Managed club'), findsNothing);
     expect(find.text('Badminton Center'), findsOneWidget);
   });
 

@@ -6,6 +6,7 @@ import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
+import 'package:vmito_app/core/widgets/user_avatar.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/widgets/level_range_chips.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -487,17 +488,12 @@ class _HostLine extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: AppSpacing.xs),
       child: Row(
         children: [
-          CircleAvatar(
-            radius: 9,
-            backgroundColor: palette.muted,
-            foregroundImage: image == null || image.isEmpty
-                ? null
-                : CachedNetworkImageProvider(image),
-            child: Icon(
-              AppIcons.profile,
-              size: 11,
-              color: palette.mutedForeground,
-            ),
+          UserAvatar(
+            name: session.displayHostName,
+            imageUrl: image,
+            size: 18,
+            borderWidth: 0,
+            boxShadow: const [],
           ),
           const SizedBox(width: AppSpacing.xs + 2),
           Expanded(
@@ -563,13 +559,17 @@ class _TimeLine extends StatelessWidget {
           Expanded(
             child: Row(
               children: [
-                Text(
-                  '$date,',
-                  key: const Key('session-date-value'),
-                  style: textStyle?.copyWith(color: dateColor),
+                Flexible(
+                  child: Text(
+                    '$date,',
+                    key: const Key('session-date-value'),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: textStyle?.copyWith(color: dateColor),
+                  ),
                 ),
                 const SizedBox(width: 4),
-                Expanded(
+                Flexible(
                   child: Text(
                     time,
                     key: const Key('session-time-value'),

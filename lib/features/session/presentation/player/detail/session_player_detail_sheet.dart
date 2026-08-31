@@ -7,6 +7,7 @@ import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/widgets/user_avatar.dart';
 import 'package:vmito_app/features/session/domain/player_detail.dart';
 import 'package:vmito_app/features/session_hosting/application/player_statistics_providers.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
@@ -229,17 +230,12 @@ class _Header extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Row(
       children: [
-        CircleAvatar(
-          radius: 30,
-          backgroundImage: image?.trim().isEmpty ?? true
-              ? null
-              : NetworkImage(image!),
-          child: image?.trim().isEmpty ?? true
-              ? Text(
-                  name.isEmpty ? '?' : name.characters.first.toUpperCase(),
-                  style: theme.textTheme.titleLarge,
-                )
-              : null,
+        UserAvatar(
+          name: name,
+          gender: player.gender?.name,
+          status: player.status.name,
+          imageUrl: image,
+          size: 60,
         ),
         const SizedBox(width: AppSpacing.md),
         Expanded(

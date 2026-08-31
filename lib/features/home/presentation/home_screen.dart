@@ -7,6 +7,7 @@ import 'package:vmito_app/core/location/device_location_service.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/app_shell_scaffold_key.dart';
+import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/widgets/city_onboarding_dialog.dart';
 import 'package:vmito_app/core/widgets/notification_header_button.dart';
@@ -101,14 +102,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         .watch(locationPreferencesControllerProvider)
         .preferredCity;
     final activeQuery = _activeQuery;
-    final discoveryHeader = Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        HomeDiscoveryTabs(
-          selected: _selectedTab,
-          onSelected: _selectTab,
-        ),
-        if (isAuthenticated)
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
+    final discoveryHeader = DecoratedBox(
+      key: const Key('home-discovery-header'),
+      decoration: BoxDecoration(
+        color: palette.brandSurface,
+        border: Border(bottom: BorderSide(color: palette.border)),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.shadow.withValues(
+              alpha: theme.brightness == Brightness.light ? 0.06 : 0.20,
+            ),
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          HomeDiscoveryTabs(
+            selected: _selectedTab,
+            onSelected: _selectTab,
+          ),
           HomeDiscoveryToolbar(
             sortLabel: _sortLabel(
               l10n,
@@ -128,7 +145,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             onFilter: _openActiveFilters,
             onCityChanged: _onPreferredCityChanged,
           ),
-      ],
+        ],
+      ),
     );
 
     return Scaffold(
@@ -239,6 +257,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     bool isAuthenticated,
     bool canCreateTournament,
   ) => AppBar(
+    backgroundColor: Theme.of(context).extension<AppPalette>()!.brandSurface,
+    surfaceTintColor: Colors.transparent,
+    elevation: 0,
+    scrolledUnderElevation: 0,
     leading: IconButton(
       tooltip: l10n.menuOpenTooltip,
       icon: const Icon(AppIcons.menu),
@@ -310,6 +332,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     AppLocalizations l10n,
     String query,
   ) => AppBar(
+    backgroundColor: Theme.of(context).extension<AppPalette>()!.brandSurface,
+    surfaceTintColor: Colors.transparent,
+    elevation: 0,
+    scrolledUnderElevation: 0,
     leading: IconButton(
       key: const Key('home-search-exit-results'),
       tooltip: l10n.homeSearchExitResults,

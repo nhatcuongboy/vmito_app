@@ -1,11 +1,11 @@
 import 'dart:async';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/utils/avatar_url.dart';
+import 'package:vmito_app/core/widgets/user_avatar.dart';
 import 'package:vmito_app/features/session/application/player/host_detail_controller.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_host_detail_sections.dart';
@@ -141,19 +141,12 @@ class _Hero extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 3),
               ),
-              child: CircleAvatar(
-                radius: 45,
-                backgroundColor: const Color(0xFF86EFAC),
-                foregroundImage: url == null
-                    ? null
-                    : CachedNetworkImageProvider(url),
-                child: Text(
-                  name.isEmpty ? 'H' : name.characters.first.toUpperCase(),
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+              child: UserAvatar(
+                name: name.isEmpty ? 'Host' : name,
+                imageUrl: url,
+                size: 90,
+                borderWidth: 0,
+                boxShadow: const [],
               ),
             ),
           ),

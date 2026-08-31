@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/location/new_admin_units.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
@@ -29,6 +30,85 @@ import 'package:vmito_app/features/venue/presentation/venue_filter_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 void main() {
+  for (final entry in <String, ThemeData>{
+    'light': AppTheme.light,
+    'dark': AppTheme.dark,
+  }.entries) {
+    testWidgets('Home uses one brand header surface in ${entry.key} mode', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authControllerProvider.overrideWith(_HostAuthController.new),
+            notificationControllerProvider.overrideWith(
+              _FakeNotificationController.new,
+            ),
+            locationPreferencesControllerProvider.overrideWith(
+              _HomeLocationPreferencesController.new,
+            ),
+            browseSessionsControllerProvider.overrideWith(
+              _FakeSessionsController.new,
+            ),
+            venueBrowseControllerProvider.overrideWith(
+              _FakeVenuesController.new,
+            ),
+            clubsControllerProvider.overrideWith(_FakeClubsController.new),
+            tournamentBrowseControllerProvider.overrideWith(
+              _FakeTournamentsController.new,
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('vi'),
+            theme: entry.value,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const HomeScreen(),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      final palette = entry.value.extension<AppPalette>()!;
+      final appBar = tester.widget<AppBar>(find.byType(AppBar));
+      final header = tester.widget<DecoratedBox>(
+        find.byKey(const Key('home-discovery-header')),
+      );
+      final tabsSurface = tester.widget<DecoratedBox>(
+        find
+            .descendant(
+              of: find.byType(HomeDiscoveryTabs),
+              matching: find.byType(DecoratedBox),
+            )
+            .first,
+      );
+      final toolbarSurface = tester.widget<DecoratedBox>(
+        find
+            .descendant(
+              of: find.byType(HomeDiscoveryToolbar),
+              matching: find.byType(DecoratedBox),
+            )
+            .first,
+      );
+
+      expect(appBar.backgroundColor, palette.brandSurface);
+      expect(appBar.surfaceTintColor, Colors.transparent);
+      expect(appBar.scrolledUnderElevation, 0);
+      expect(
+        (header.decoration as BoxDecoration).color,
+        palette.brandSurface,
+      );
+      final tabsDecoration = tabsSurface.decoration as BoxDecoration;
+      expect(tabsDecoration.color, palette.brandSurface);
+      expect((tabsDecoration.border! as Border).bottom.color, palette.border);
+      expect(
+        (toolbarSurface.decoration as BoxDecoration).color,
+        entry.value.colorScheme.surface,
+      );
+      expect(tester.takeException(), isNull);
+    });
+  }
+
   testWidgets('shows all discovery tabs and updates the selected segment', (
     tester,
   ) async {
@@ -124,9 +204,9 @@ void main() {
     expect(find.byType(SearchBar), findsNothing);
     expect(find.byType(FloatingActionButton), findsNothing);
     expect(find.byKey(const Key('home-create-session-button')), findsNothing);
-    expect(find.byKey(const Key('discovery-city-selector')), findsNothing);
-    expect(find.byKey(const Key('home-discovery-sort')), findsNothing);
-    expect(find.byKey(const Key('home-discovery-filter')), findsNothing);
+    expect(find.byKey(const Key('discovery-city-selector')), findsOneWidget);
+    expect(find.byKey(const Key('home-discovery-sort')), findsOneWidget);
+    expect(find.byKey(const Key('home-discovery-filter')), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('home-discovery-tab-venues')));
     await tester.pump();

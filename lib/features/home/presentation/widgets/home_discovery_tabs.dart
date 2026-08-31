@@ -33,7 +33,7 @@ class HomeDiscoveryTabs extends StatelessWidget {
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+        color: palette.brandSurface,
         border: Border(bottom: BorderSide(color: palette.border)),
       ),
       child: SingleChildScrollView(

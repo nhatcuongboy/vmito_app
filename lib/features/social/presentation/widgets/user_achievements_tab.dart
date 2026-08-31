@@ -10,6 +10,7 @@ import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
+import 'package:vmito_app/core/widgets/emoji_safe_text.dart';
 import 'package:vmito_app/features/leaderboard/presentation/widgets/points_rules_sheet.dart';
 import 'package:vmito_app/features/leaderboard/presentation/widgets/tier_badge.dart';
 import 'package:vmito_app/features/social/application/achievement_share_service.dart';
@@ -265,7 +266,7 @@ class _AchievementHero extends StatelessWidget {
           children: [
             _AchievementAvatar(profile: profile, radius: 43),
             const SizedBox(height: AppSpacing.sm),
-            Text(
+            EmojiSafeText(
               profile.name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -756,7 +757,7 @@ class _AchievementShareCard extends StatelessWidget {
                     const SizedBox(height: AppSpacing.md),
                     _AchievementAvatar(profile: profile, radius: 44),
                     const SizedBox(height: AppSpacing.sm),
-                    Text(
+                    EmojiSafeText(
                       profile.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

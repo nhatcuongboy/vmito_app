@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
-import 'package:vmito_app/features/favorite/application/favorite_controller.dart';
+import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/favorite/data/favorite_repository.dart';
 import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
@@ -32,11 +32,13 @@ Widget _app({
   String targetId = 'v1',
   bool overlay = true,
   bool showCount = true,
+  bool signedIn = true,
 }) {
   final repository = _FakeFavoriteRepository(summaryResult: summary);
   return ProviderScope(
     overrides: [
       favoriteRepositoryProvider.overrideWithValue(repository),
+      isSignedInProvider.overrideWithValue(signedIn),
     ],
     child: MaterialApp(
       locale: const Locale('en'),
@@ -85,7 +87,6 @@ void main() {
     await tester.pumpWidget(
       _app(
         summary: const FavoriteSummary(
-          isFavorite: false,
           favoriteCount: 3,
         ),
       ),
@@ -121,11 +122,7 @@ void main() {
   testWidgets('hides count when favoriteCount is 0', (tester) async {
     await tester.pumpWidget(
       _app(
-        summary: const FavoriteSummary(
-          isFavorite: false,
-          favoriteCount: 0,
-        ),
-        showCount: true,
+        summary: const FavoriteSummary(),
       ),
     );
     await tester.pumpAndSettle();
@@ -133,5 +130,33 @@ void main() {
     final iconFinder = find.byType(Icon);
     expect(iconFinder, findsOneWidget);
     expect(find.text('0'), findsNothing);
+  });
+
+  testWidgets('shows a success toast after adding a favorite', (tester) async {
+    await tester.pumpWidget(
+      _app(summary: const FavoriteSummary()),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(InkWell));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Saved to Favorites'), findsOneWidget);
+  });
+
+  testWidgets('shows a success toast after removing a favorite', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _app(
+        summary: const FavoriteSummary(isFavorite: true, favoriteCount: 1),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(InkWell));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Removed from Favorites'), findsOneWidget);
   });
 }

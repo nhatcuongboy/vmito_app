@@ -182,7 +182,9 @@ abstract final class AppTheme {
         elevation: 0,
         backgroundColor: scheme.surface,
         surfaceTintColor: Colors.transparent,
-        indicatorColor: scheme.primary.withValues(alpha: 0.12),
+        indicatorColor: scheme.primary.withValues(
+          alpha: brightness == Brightness.light ? 0.16 : 0.20,
+        ),
         indicatorShape: const StadiumBorder(),
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         labelPadding: const EdgeInsets.only(top: AppSpacing.xxs),

@@ -55,6 +55,33 @@ void main() {
     expect(sponsors.map((sponsor) => sponsor.id), ['s1', 's2']);
   });
 
+  test(
+    'recalculates one category group using the standings endpoint',
+    () async {
+      final client = _ApiClient();
+      when(
+        () => client.post<dynamic>(
+          '/categories/c1/groups/g1/calculate-standings',
+        ),
+      ).thenAnswer(
+        (_) async => Response<dynamic>(
+          requestOptions: RequestOptions(
+            path: '/categories/c1/groups/g1/calculate-standings',
+          ),
+          data: const {'success': true, 'data': null},
+        ),
+      );
+
+      await TournamentService(client).calculateStandings('c1', 'g1');
+
+      verify(
+        () => client.post<dynamic>(
+          '/categories/c1/groups/g1/calculate-standings',
+        ),
+      ).called(1);
+    },
+  );
+
   test('browse sends the active discovery filters and sort', () async {
     final client = _ApiClient();
     const query = {

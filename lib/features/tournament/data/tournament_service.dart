@@ -151,6 +151,12 @@ class TournamentService {
     return unwrapList(response.data, TournamentStandingGroup.fromJson);
   }
 
+  Future<void> calculateStandings(String categoryId, String groupId) async {
+    await _client.post<dynamic>(
+      ApiEndpoints.calculateTournamentStandings(categoryId, groupId),
+    );
+  }
+
   Future<List<TournamentSummary>> browse({
     String search = '',
     String? city,

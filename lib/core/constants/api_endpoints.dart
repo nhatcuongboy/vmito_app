@@ -195,8 +195,19 @@ abstract final class ApiEndpoints {
   static const hostFinanceReport = '/payments/host/report';
   static String hostPaymentsForUser(String userId) =>
       '/payments/host/user/$userId';
-  static const paymentReminders = '/payment-reminders';
+   static const paymentReminders = '/payment-reminders';
   static const aggregatePaymentReminder = '/payment-reminders/aggregate';
+  static const paymentReminderCustom = '/payment-reminders/custom';
+  static String paymentReminder(String id) => '/payment-reminders/$id';
+  static String paymentReminderRemind(String id) =>
+      '/payment-reminders/$id/remind';
+  static String paymentReminderMarkCollected(String id) =>
+      '/payment-reminders/$id/mark-collected';
+  static String paymentReminderMarkPaid(String id) =>
+      '/payment-reminders/$id/mark-paid';
+  static String paymentReminderReject(String id) =>
+      '/payment-reminders/$id/reject';
+  static const uploadPaymentProof = '/upload/payment-proof';
   static String sessionPaymentSplit(String id) =>
       '/sessions/$id/payments/split';
   static String sessionFeeConfig(String id) => '/sessions/$id/fee-config';
@@ -256,6 +267,10 @@ abstract final class ApiEndpoints {
       '/categories/$categoryId/groups';
   static String tournamentStandings(String categoryId) =>
       '/categories/$categoryId/standings';
+  static String calculateTournamentStandings(
+    String categoryId,
+    String groupId,
+  ) => '/categories/$categoryId/groups/$groupId/calculate-standings';
   static String categoryMatch(String id) => '/category-matches/$id';
   static String categoryMatchResult(String id) => '/category-matches/$id/end';
   static String categoryMatchReset(String id) =>

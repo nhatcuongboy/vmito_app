@@ -133,3 +133,8 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/fonts/
+
+  fonts:
+    - family: AppEmoji
+      fonts:
+        - asset: assets/fonts/NotoEmoji.ttf

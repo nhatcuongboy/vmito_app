@@ -9,7 +9,6 @@ import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
-import 'package:vmito_app/core/theme/app_typography.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
@@ -25,6 +24,7 @@ import 'package:vmito_app/features/session/presentation/player/detail/session_re
 import 'package:vmito_app/features/session/presentation/player/detail/session_reference_video.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_loading_view.dart';
+import 'package:vmito_app/shared/widgets/detail_hero_header.dart';
 
 /// Public session detail, ported from the web app's `/sessions/[id]`.
 ///
@@ -88,32 +88,6 @@ class SessionDetailScreen extends ConsumerWidget {
       ),
     );
   }
-}
-
-class _HeaderButton extends StatelessWidget {
-  const _HeaderButton({
-    required this.icon,
-    required this.tooltip,
-    required this.pinned,
-    required this.onPressed,
-    super.key,
-  });
-
-  final IconData icon;
-  final String tooltip;
-  final bool pinned;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) => IconButton(
-    tooltip: tooltip,
-    icon: Icon(icon, color: pinned ? null : Colors.white),
-    style: IconButton.styleFrom(
-      backgroundColor: pinned ? Colors.transparent : Colors.black54,
-      minimumSize: const Size.square(44),
-    ),
-    onPressed: onPressed,
-  );
 }
 
 class _Body extends StatefulWidget {
@@ -192,13 +166,18 @@ class _BodyState extends State<_Body> {
             surfaceTintColor: theme.colorScheme.surface,
             shadowColor: Colors.black26,
             elevation: _isPinned ? 2 : 0,
+            leadingWidth: DetailHeroHeader.leadingWidth,
             leading: Padding(
-              padding: const EdgeInsets.all(6),
-              child: _HeaderButton(
+              padding: DetailHeroHeader.leadingPadding,
+              child: DetailHeroHeaderButton(
                 key: const Key('session-back-button'),
                 icon: AppIcons.chevronLeft,
                 tooltip: MaterialLocalizations.of(context).backButtonTooltip,
                 pinned: _isPinned,
+                size: DetailHeroHeader.backButtonSize,
+                hitTargetSize: AppSizes.minTapTarget,
+                visualKey: const Key('session-back-button-visual'),
+                iconSize: DetailHeroHeader.backIconSize,
                 onPressed: () => Navigator.of(context).maybePop(),
               ),
             ),
@@ -210,19 +189,22 @@ class _BodyState extends State<_Body> {
                 widget.session.name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: AppTypography.compactAppBarTitle(theme.textTheme),
+                style: DetailHeroHeader.titleStyle(theme.textTheme),
               ),
             ),
+            actionsPadding: DetailHeroHeader.actionsPadding,
             actions: [
               FavoriteButton(
                 key: const Key('session-favorite-button'),
                 type: FavoriteType.session,
                 targetId: widget.session.id,
                 overlay: !_isPinned,
+                overlayColor: DetailHeroHeader.coverActionBackground,
+                size: FavoriteButton.detailControlSize,
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(4, 6, 8, 6),
-                child: _HeaderButton(
+                padding: const EdgeInsets.only(left: AppSpacing.xs),
+                child: DetailHeroHeaderButton(
                   key: const Key('session-share-button'),
                   icon: AppIcons.share,
                   tooltip: l10n.sessionShareAction,
@@ -245,10 +227,11 @@ class _BodyState extends State<_Body> {
                   top: Radius.circular(AppRadius.xl + 4),
                 ),
                 child: Container(
+                  key: const Key('session-detail-content'),
                   color: theme.colorScheme.surface,
                   padding: const EdgeInsets.fromLTRB(
                     AppSpacing.lg,
-                    AppSpacing.xl,
+                    AppSpacing.md,
                     AppSpacing.lg,
                     AppSpacing.md,
                   ),

@@ -6,7 +6,9 @@ import 'package:vmito_app/core/constants/image_constants.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/app_typography.dart';
+import 'package:vmito_app/core/widgets/emoji_safe_text.dart';
 import 'package:vmito_app/core/widgets/notification_header_button.dart';
+import 'package:vmito_app/core/widgets/user_avatar.dart';
 import 'package:vmito_app/features/social/domain/public_profile.dart';
 import 'package:vmito_app/features/social/presentation/widgets/profile_header_geometry.dart';
 
@@ -95,7 +97,7 @@ class ProfileCollapsingHeader extends StatelessWidget {
                   ProfileAvatar(profile: profile, radius: 12, iconSize: 16),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
-                    child: Text(
+                    child: EmojiSafeText(
                       profile.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -109,10 +111,11 @@ class ProfileCollapsingHeader extends StatelessWidget {
         },
       ),
       actions: [
-        _ToolbarColor(
-          scrollOffset: scrollOffset,
-          builder: (color) => NotificationHeaderButton(color: color),
-        ),
+        if (isRootProfile)
+          _ToolbarColor(
+            scrollOffset: scrollOffset,
+            builder: (color) => NotificationHeaderButton(color: color),
+          ),
         _ToolbarColor(
           scrollOffset: scrollOffset,
           builder: (color) => IconButton(
@@ -138,6 +141,7 @@ class ProfileCollapsingHeader extends StatelessWidget {
               icon: Icon(AppIcons.settings, color: color),
             ),
           ),
+        const SizedBox(width: 8),
       ],
       flexibleSpace: _CoverSpace(
         profile: profile,
@@ -380,14 +384,14 @@ class ProfileAvatar extends StatelessWidget {
   final double iconSize;
 
   @override
-  Widget build(BuildContext context) => CircleAvatar(
+  Widget build(BuildContext context) => UserAvatar(
     key: ValueKey('profile-avatar-$radius'),
-    radius: radius,
-    backgroundImage: profile.image == null
-        ? null
-        : CachedNetworkImageProvider(profile.image!),
-    child: profile.image == null
-        ? Icon(AppIcons.profile, size: iconSize)
-        : null,
+    name: profile.name,
+    gender: profile.gender,
+    imageUrl: profile.image,
+    size: radius * 2,
+    fontSize: iconSize,
+    borderWidth: 0,
+    boxShadow: const [],
   );
 }

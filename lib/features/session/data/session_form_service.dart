@@ -3,7 +3,6 @@ import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:vmito_app/core/config/app_config.dart';
 import 'package:vmito_app/core/constants/api_endpoints.dart';
 import 'package:vmito_app/core/network/api_client.dart';
 import 'package:vmito_app/core/network/paginated.dart';
@@ -80,36 +79,6 @@ class ExtractedSessionData {
   final Map<String, dynamic>? feeConfig;
 }
 
-class PlaceSuggestion {
-  const PlaceSuggestion({
-    required this.placeId,
-    required this.primaryText,
-    required this.secondaryText,
-  });
-
-  final String placeId;
-  final String primaryText;
-  final String secondaryText;
-}
-
-class PlaceDetails {
-  const PlaceDetails({
-    required this.placeId,
-    required this.address,
-    this.latitude,
-    this.longitude,
-    this.district,
-    this.city,
-  });
-
-  final String placeId;
-  final String address;
-  final double? latitude;
-  final double? longitude;
-  final String? district;
-  final String? city;
-}
-
 class UserImageAsset {
   const UserImageAsset({
     required this.id,
@@ -157,10 +126,8 @@ class SessionFormService {
   }) async {
     final compressed = await FlutterImageCompress.compressWithList(
       bytes,
-      minWidth: 1920,
       minHeight: 1920,
       quality: 82,
-      format: CompressFormat.jpeg,
     );
     final response = await _client.post<dynamic>(
       ApiEndpoints.userImages,
@@ -217,85 +184,6 @@ class SessionFormService {
     final json =
         (_payload(response.data) as Map?)?.cast<String, dynamic>() ?? {};
     return {for (final entry in json.entries) entry.key: entry.value == true};
-  }
-
-  Future<List<PlaceSuggestion>> autocompletePlaces({
-    required String input,
-    required String language,
-  }) async {
-    if (!AppConfig.hasGooglePlaces || input.trim().length < 2) return const [];
-    final response = await Dio().post<Map<String, dynamic>>(
-      'https://places.googleapis.com/v1/places:autocomplete',
-      data: {
-        'input': input.trim(),
-        'languageCode': language,
-        'includedRegionCodes': ['vn'],
-      },
-      options: Options(
-        headers: {
-          'X-Goog-Api-Key': AppConfig.googlePlacesApiKey,
-          'X-Goog-FieldMask': 'suggestions.placePrediction',
-        },
-      ),
-    );
-    final suggestions =
-        response.data?['suggestions'] as List<dynamic>? ?? const [];
-    return [
-      for (final item in suggestions.whereType<Map<String, dynamic>>())
-        if (item['placePrediction'] case final Map<String, dynamic> prediction)
-          PlaceSuggestion(
-            placeId: prediction['placeId'] as String? ?? '',
-            primaryText:
-                ((prediction['structuredFormat'] as Map?)?['mainText']
-                        as Map?)?['text']
-                    as String? ??
-                ((prediction['text'] as Map?)?['text'] as String? ?? ''),
-            secondaryText:
-                ((prediction['structuredFormat'] as Map?)?['secondaryText']
-                        as Map?)?['text']
-                    as String? ??
-                '',
-          ),
-    ].where((item) => item.placeId.isNotEmpty).toList(growable: false);
-  }
-
-  Future<PlaceDetails> placeDetails({
-    required String placeId,
-    required String language,
-  }) async {
-    final response = await Dio().get<Map<String, dynamic>>(
-      'https://places.googleapis.com/v1/places/$placeId',
-      queryParameters: {'languageCode': language},
-      options: Options(
-        headers: {
-          'X-Goog-Api-Key': AppConfig.googlePlacesApiKey,
-          'X-Goog-FieldMask': 'id,formattedAddress,location,addressComponents',
-        },
-      ),
-    );
-    final json = response.data ?? const {};
-    final components = json['addressComponents'] as List<dynamic>? ?? const [];
-    String? component(Set<String> types) {
-      for (final item in components.whereType<Map<String, dynamic>>()) {
-        final itemTypes = (item['types'] as List<dynamic>? ?? const [])
-            .whereType<String>()
-            .toSet();
-        if (itemTypes.intersection(types).isNotEmpty) {
-          return item['longText'] as String?;
-        }
-      }
-      return null;
-    }
-
-    final location = json['location'] as Map<String, dynamic>?;
-    return PlaceDetails(
-      placeId: json['id'] as String? ?? placeId,
-      address: json['formattedAddress'] as String? ?? '',
-      latitude: (location?['latitude'] as num?)?.toDouble(),
-      longitude: (location?['longitude'] as num?)?.toDouble(),
-      district: component({'administrative_area_level_2', 'sublocality'}),
-      city: component({'administrative_area_level_1'}),
-    );
   }
 }
 

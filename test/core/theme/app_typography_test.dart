@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/core/theme/app_typography.dart';
@@ -38,7 +39,7 @@ void main() {
 
         _expectStyle(
           theme.appBarTheme.titleTextStyle,
-          22,
+          20,
           28,
           FontWeight.w700,
         );
@@ -86,6 +87,53 @@ void main() {
       );
       _expectStyle(theme.dialogTheme.titleTextStyle, 20, 28, FontWeight.w700);
     });
+
+    test(
+      'app chrome uses theme-aware brand surfaces and navigation states',
+      () {
+        for (final (theme, brandSurface, indicatorAlpha) in [
+          (AppTheme.light, const Color(0xFFF2FAF5), 0.16),
+          (AppTheme.dark, const Color(0xFF102016), 0.20),
+        ]) {
+          final palette = theme.extension<AppPalette>()!;
+          final navigation = theme.navigationBarTheme;
+
+          expect(palette.brandSurface, brandSurface);
+          expect(navigation.backgroundColor, theme.colorScheme.surface);
+          expect(
+            navigation.indicatorColor,
+            theme.colorScheme.primary.withValues(alpha: indicatorAlpha),
+          );
+          expect(
+            navigation.iconTheme?.resolve({WidgetState.selected})?.color,
+            theme.colorScheme.primary,
+          );
+          expect(
+            navigation.iconTheme?.resolve({})?.color,
+            palette.mutedForeground,
+          );
+          expect(
+            navigation.labelTextStyle?.resolve({
+              WidgetState.selected,
+            })?.fontWeight,
+            FontWeight.w600,
+          );
+          expect(
+            navigation.labelTextStyle?.resolve({})?.fontWeight,
+            FontWeight.w400,
+          );
+        }
+
+        expect(
+          AppTheme.light.appBarTheme.backgroundColor,
+          AppColors.background,
+        );
+        expect(
+          AppTheme.dark.appBarTheme.backgroundColor,
+          AppColors.backgroundDark,
+        );
+      },
+    );
   });
 
   testWidgets(
@@ -136,7 +184,7 @@ void main() {
               tester.element(find.text(title)),
             );
             final effectiveStyle = defaultTextStyle.style;
-            expect(effectiveStyle.fontSize, 22);
+            expect(effectiveStyle.fontSize, 20);
             expect(effectiveStyle.fontWeight, FontWeight.w700);
             expect(defaultTextStyle.softWrap, isFalse);
             expect(defaultTextStyle.overflow, TextOverflow.ellipsis);

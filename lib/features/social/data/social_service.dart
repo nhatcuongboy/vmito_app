@@ -6,8 +6,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/constants/api_endpoints.dart';
 import 'package:vmito_app/core/network/api_client.dart';
 import 'package:vmito_app/core/network/api_options.dart';
+import 'package:vmito_app/core/network/paginated.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
 import 'package:vmito_app/features/social/domain/club_user_option.dart';
+import 'package:vmito_app/features/social/domain/post_composer_draft.dart';
 import 'package:vmito_app/features/social/domain/public_profile.dart';
 import 'package:vmito_app/features/social/domain/social_post.dart';
 
@@ -31,38 +33,51 @@ class SocialService {
     return SocialPost.fromJson(_mapPayload(response.data));
   }
 
-  Future<SocialPost> createPost(
-    String content, {
-    List<String> imagePaths = const [],
-  }) async {
+  Future<SocialPost> createPost(PostComposerDraft draft) async {
     final response = await _client.post<Map<String, dynamic>>(
       ApiEndpoints.posts,
-      data: {'content': content},
+      data: draft.toJson(),
       options: apiOptions(skipGlobalError: true),
     );
-    final post = SocialPost.fromJson(_mapPayload(response.data));
-    if (imagePaths.isEmpty) return post;
+    return SocialPost.fromJson(_mapPayload(response.data));
+  }
 
-    final files = <MultipartFile>[];
-    for (var index = 0; index < imagePaths.length; index++) {
-      final bytes = await FlutterImageCompress.compressWithFile(
-        imagePaths[index],
-        quality: 82,
-      );
-      if (bytes != null) {
-        files.add(
-          MultipartFile.fromBytes(bytes, filename: 'post-$index.jpg'),
-        );
-      }
+  Future<PostImageDraft> uploadPostImage({
+    required Uint8List bytes,
+    required String filename,
+  }) async {
+    final compressed = await FlutterImageCompress.compressWithList(
+      bytes,
+      minHeight: 1920,
+      quality: 82,
+    );
+    final response = await _client.post<dynamic>(
+      ApiEndpoints.userImages,
+      queryParameters: const {'category': 'OTHER'},
+      data: FormData.fromMap({
+        'file': MultipartFile.fromBytes(compressed, filename: filename),
+      }),
+      options: apiOptions(skipGlobalError: true),
+    );
+    final image = PostImageDraft.fromJson(
+      (_payload(response.data) as Map).cast<String, dynamic>(),
+    );
+    if (image.url.isEmpty || image.publicId.isEmpty) {
+      throw StateError('Image upload returned no asset identifier');
     }
-    if (files.isNotEmpty) {
-      await _client.post<Map<String, dynamic>>(
-        '${ApiEndpoints.post(post.id)}/images',
-        data: FormData.fromMap({'images': files}),
-        options: apiOptions(skipGlobalError: true),
-      );
-    }
-    return postById(post.id);
+    return image;
+  }
+
+  Future<Page<PostImageDraft>> postImages({
+    int page = 1,
+    int limit = 30,
+  }) async {
+    final response = await _client.get<dynamic>(
+      ApiEndpoints.userImages,
+      queryParameters: {'category': 'OTHER', 'page': page, 'limit': limit},
+      dedup: false,
+    );
+    return unwrapPage<PostImageDraft>(response.data, PostImageDraft.fromJson);
   }
 
   Future<({bool liked, int count})> toggleLike(String postId) async {

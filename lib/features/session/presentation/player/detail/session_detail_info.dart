@@ -1,13 +1,13 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/widget_previews.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
-import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/widgets/app_address_text.dart';
+import 'package:vmito_app/core/widgets/user_avatar.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/player/session_presentation.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -83,14 +83,16 @@ class SessionDetailInfo extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
+          key: const Key('session-detail-title'),
           session.name,
           style: theme.textTheme.headlineSmall?.copyWith(
+            fontSize: 19,
             fontWeight: FontWeight.bold,
             height: 1.15,
           ),
         ),
         if (time != null || date != null) ...[
-          const SizedBox(height: AppSpacing.sm + AppSpacing.xxs),
+          const SizedBox(height: AppSpacing.md - AppSpacing.xs),
           _ScheduleRow(time: time, date: date),
         ],
         const SizedBox(height: AppSpacing.xs),
@@ -168,15 +170,15 @@ class _SportAndMatchTypeRow extends StatelessWidget {
                 children: [
                   TextSpan(
                     text: sport.label,
-                    style: style?.copyWith(fontWeight: FontWeight.w500),
+                    style: style?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   TextSpan(
                     text: '  ·  ',
-                    style: style?.copyWith(fontWeight: FontWeight.bold),
+                    style: style?.copyWith(fontWeight: FontWeight.w600),
                   ),
                   TextSpan(
                     text: matchType,
-                    style: style?.copyWith(fontWeight: FontWeight.w500),
+                    style: style,
                   ),
                 ],
               ),
@@ -366,18 +368,11 @@ class _HostRow extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppRadius.lg),
               child: Row(
                 children: [
-                  CircleAvatar(
-                    radius: 22,
-                    backgroundColor: palette.muted,
-                    foregroundImage: image == null || image.trim().isEmpty
-                        ? null
-                        : CachedNetworkImageProvider(image),
-                    child: Text(
-                      name.isEmpty ? '?' : name.characters.first.toUpperCase(),
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                  UserAvatar(
+                    name: name,
+                    imageUrl: image,
+                    size: 44,
+                    borderColor: palette.muted,
                   ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(

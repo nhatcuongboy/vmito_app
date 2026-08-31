@@ -8,13 +8,13 @@ import 'package:vmito_app/core/constants/image_constants.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
-import 'package:vmito_app/core/theme/app_typography.dart';
 import 'package:vmito_app/core/widgets/app_address_text.dart';
 import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_lightbox.dart';
+import 'package:vmito_app/shared/widgets/detail_hero_header.dart';
 
 String venueDisplayName(Venue venue, AppLocalizations l10n) =>
     venue.displayName(
@@ -101,13 +101,17 @@ class _VenueDetailContentState extends State<VenueDetailContent> {
           surfaceTintColor: theme.colorScheme.surface,
           shadowColor: Colors.black26,
           elevation: _isPinned ? 2 : 0,
+          leadingWidth: DetailHeroHeader.leadingWidth,
           leading: Padding(
-            padding: const EdgeInsets.all(6),
-            child: _HeaderButton(
+            padding: DetailHeroHeader.leadingPadding,
+            child: DetailHeroHeaderButton(
               key: const Key('venue-back-button'),
               icon: AppIcons.chevronLeft,
               tooltip: MaterialLocalizations.of(context).backButtonTooltip,
               pinned: _isPinned,
+              size: DetailHeroHeader.backButtonSize,
+              hitTargetSize: AppSizes.minTapTarget,
+              iconSize: DetailHeroHeader.backIconSize,
               onPressed: widget.onBack,
             ),
           ),
@@ -119,19 +123,22 @@ class _VenueDetailContentState extends State<VenueDetailContent> {
               venueDisplayName(widget.venue, l10n),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: AppTypography.compactAppBarTitle(theme.textTheme),
+              style: DetailHeroHeader.titleStyle(theme.textTheme),
             ),
           ),
+          actionsPadding: DetailHeroHeader.actionsPadding,
           actions: [
             FavoriteButton(
               key: const Key('venue-favorite-button'),
               type: FavoriteType.venue,
               targetId: widget.venue.id,
               overlay: !_isPinned,
+              overlayColor: DetailHeroHeader.coverActionBackground,
+              size: FavoriteButton.detailControlSize,
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(4, 6, 8, 6),
-              child: _HeaderButton(
+              padding: const EdgeInsets.only(left: AppSpacing.xs),
+              child: DetailHeroHeaderButton(
                 key: const Key('venue-share-button'),
                 icon: AppIcons.share,
                 tooltip: l10n.commonShare,
@@ -183,42 +190,6 @@ class _VenueDetailContentState extends State<VenueDetailContent> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class _HeaderButton extends StatelessWidget {
-  const _HeaderButton({
-    required this.icon,
-    required this.tooltip,
-    required this.pinned,
-    required this.onPressed,
-    super.key,
-  });
-
-  final IconData icon;
-  final String tooltip;
-  final bool pinned;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final width = pinned ? 28.0 : 32.0;
-    return SizedBox(
-      width: width,
-      height: 32,
-      child: IconButton(
-        tooltip: tooltip,
-        icon: Icon(icon, color: pinned ? null : Colors.white),
-        padding: EdgeInsets.zero,
-        constraints: const BoxConstraints.expand(),
-        style: IconButton.styleFrom(
-          backgroundColor: pinned ? Colors.transparent : Colors.black54,
-          minimumSize: Size.zero,
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        ),
-        onPressed: onPressed,
-      ),
     );
   }
 }

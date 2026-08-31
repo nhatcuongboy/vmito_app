@@ -209,6 +209,10 @@ void main() {
       tester.getSize(find.byKey(const Key('club-share-button'))),
       tester.getSize(find.byKey(const Key('club-favorite-button'))),
     );
+    expect(
+      tester.getSize(find.byKey(const Key('club-share-button'))),
+      const Size.square(FavoriteButton.detailControlSize),
+    );
   });
 
   testWidgets('share button matches favorite button on the cover', (
@@ -219,6 +223,10 @@ void main() {
     expect(
       tester.getSize(find.byKey(const Key('club-share-button'))),
       tester.getSize(find.byKey(const Key('club-favorite-button'))),
+    );
+    expect(
+      tester.getSize(find.byKey(const Key('club-share-button'))),
+      const Size.square(FavoriteButton.detailControlSize),
     );
   });
 
@@ -239,8 +247,8 @@ void main() {
     expect(identityName.overflow, TextOverflow.ellipsis);
     expect(stickyName.maxLines, 1);
     expect(stickyName.overflow, TextOverflow.ellipsis);
-    expect(stickyName.style?.fontSize, 20);
-    expect(stickyName.style?.height, closeTo(28 / 20, 0.0001));
+    expect(stickyName.style?.fontSize, 16);
+    expect(stickyName.style?.height, closeTo(20 / 16, 0.0001));
     expect(stickyName.style?.fontWeight, FontWeight.w700);
     expect(tester.takeException(), isNull);
   });

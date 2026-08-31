@@ -5,6 +5,7 @@ import 'package:vmito_app/core/config/app_config.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/widgets/user_avatar.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/features/social/presentation/public_profile_screen.dart';
@@ -65,14 +66,11 @@ class _DevelopmentProfilePreview extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              CircleAvatar(
-                radius: 48,
-                backgroundImage: user.image == null
-                    ? null
-                    : NetworkImage(user.image!),
-                child: user.image == null
-                    ? const Icon(AppIcons.profile, size: 48)
-                    : null,
+              UserAvatar(
+                name: user.displayName,
+                gender: user.gender,
+                imageUrl: user.image,
+                size: 96,
               ),
               const SizedBox(height: AppSpacing.md),
               Text(

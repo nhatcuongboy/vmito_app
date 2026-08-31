@@ -68,6 +68,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     required this.success,
     required this.warning,
     required this.info,
+    required this.brandSurface,
     required this.muted,
     required this.mutedForeground,
     required this.border,
@@ -77,6 +78,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     success: AppColors.success,
     warning: AppColors.warning,
     info: AppColors.info,
+    brandSurface: Color(0xFFF2FAF5),
     muted: AppColors.muted,
     mutedForeground: AppColors.mutedForeground,
     border: AppColors.border,
@@ -86,6 +88,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     success: AppColors.success,
     warning: AppColors.warning,
     info: AppColors.info,
+    brandSurface: Color(0xFF102016),
     muted: AppColors.mutedDark,
     mutedForeground: AppColors.mutedForegroundDark,
     border: AppColors.borderDark,
@@ -94,6 +97,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
   final Color success;
   final Color warning;
   final Color info;
+  final Color brandSurface;
   final Color muted;
   final Color mutedForeground;
   final Color border;
@@ -103,6 +107,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     Color? success,
     Color? warning,
     Color? info,
+    Color? brandSurface,
     Color? muted,
     Color? mutedForeground,
     Color? border,
@@ -111,6 +116,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
       success: success ?? this.success,
       warning: warning ?? this.warning,
       info: info ?? this.info,
+      brandSurface: brandSurface ?? this.brandSurface,
       muted: muted ?? this.muted,
       mutedForeground: mutedForeground ?? this.mutedForeground,
       border: border ?? this.border,
@@ -124,6 +130,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
       success: Color.lerp(success, other.success, t)!,
       warning: Color.lerp(warning, other.warning, t)!,
       info: Color.lerp(info, other.info, t)!,
+      brandSurface: Color.lerp(brandSurface, other.brandSurface, t)!,
       muted: Color.lerp(muted, other.muted, t)!,
       mutedForeground: Color.lerp(mutedForeground, other.mutedForeground, t)!,
       border: Color.lerp(border, other.border, t)!,

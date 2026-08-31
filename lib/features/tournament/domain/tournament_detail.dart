@@ -1,5 +1,5 @@
-import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
 import 'package:vmito_app/core/location/address_display.dart';
+import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
 import 'package:vmito_domain/vmito_domain.dart' as scoring;
 
 enum TournamentCategoryFormat {
@@ -179,6 +179,7 @@ class TournamentCategory {
     this.matchFormat,
     this.eliminationMatchFormat,
     this.thirdPlaceMatch,
+    this.groupCount = 0,
     this.teamSize = 1,
     this.pointsToWin,
     this.winByTwo,
@@ -208,6 +209,10 @@ class TournamentCategory {
       matchFormat: _nullableString(json['matchFormat']),
       eliminationMatchFormat: _nullableString(json['eliminationMatchFormat']),
       thirdPlaceMatch: json['thirdPlaceMatch'] as bool?,
+      groupCount:
+          _nullableInteger(json['groupCount']) ??
+          _nullableInteger(counts?['groups']) ??
+          0,
       teamSize: _nullableInteger(json['teamSize']) ?? 1,
       pointsToWin: _nullableInteger(json['pointsToWin']),
       winByTwo: json['winByTwo'] as bool?,
@@ -232,6 +237,7 @@ class TournamentCategory {
   final String? matchFormat;
   final String? eliminationMatchFormat;
   final bool? thirdPlaceMatch;
+  final int groupCount;
   final int teamSize;
   final int? pointsToWin;
   final bool? winByTwo;
@@ -818,16 +824,18 @@ class TournamentPlayer {
 }
 
 class TournamentStandingGroup {
-  const TournamentStandingGroup({required this.rows});
+  const TournamentStandingGroup({required this.rows, this.group});
 
   factory TournamentStandingGroup.fromJson(Map<String, dynamic> json) =>
       TournamentStandingGroup(
+        group: _tournamentCategoryGroup(json['group']),
         rows: _maps(
           json['standings'],
         ).map(TournamentStanding.fromJson).toList(growable: false),
       );
 
   final List<TournamentStanding> rows;
+  final TournamentCategoryGroup? group;
 }
 
 class TournamentStanding {
@@ -842,10 +850,19 @@ class TournamentStanding {
     required this.points,
     required this.pointsFor,
     required this.pointDifference,
+    this.categoryRegistrationId = '',
+    this.pointsAgainst = 0,
+    this.gamesWon = 0,
+    this.gamesLost = 0,
+    this.gameDifference = 0,
+    this.recentForm = const [],
+    this.rank = 0,
   });
 
   factory TournamentStanding.fromJson(Map<String, dynamic> json) =>
       TournamentStanding(
+        categoryRegistrationId:
+            _nullableString(json['categoryRegistrationId']) ?? '',
         registration: TournamentRegistration.fromJson(
           _map(json['registration']) ?? const {},
         ),
@@ -857,9 +874,20 @@ class TournamentStanding {
         matchesCancelled: _integer(json['matchesCancelled']),
         points: _integer(json['points']),
         pointsFor: _integer(json['pointsFor']),
+        pointsAgainst: _integer(json['pointsAgainst']),
         pointDifference: _integer(json['pointDifference']),
+        gamesWon: _integer(json['gamesWon']),
+        gamesLost: _integer(json['gamesLost']),
+        gameDifference: _integer(json['gameDifference']),
+        recentForm: _strings(json['recentForm'])
+            .map(TournamentStandingResult.fromWire)
+            .whereType<TournamentStandingResult>()
+            .take(5)
+            .toList(growable: false),
+        rank: _integer(json['rank']),
       );
 
+  final String categoryRegistrationId;
   final TournamentRegistration registration;
   final int matchesPlayed;
   final int matchesWon;
@@ -869,7 +897,13 @@ class TournamentStanding {
   final int matchesCancelled;
   final int points;
   final int pointsFor;
+  final int pointsAgainst;
   final int pointDifference;
+  final int gamesWon;
+  final int gamesLost;
+  final int gameDifference;
+  final List<TournamentStandingResult> recentForm;
+  final int rank;
 
   bool get hasResult =>
       matchesPlayed > 0 ||
@@ -880,7 +914,29 @@ class TournamentStanding {
       matchesCancelled > 0 ||
       points != 0 ||
       pointsFor != 0 ||
-      pointDifference != 0;
+      pointsAgainst != 0 ||
+      pointDifference != 0 ||
+      gamesWon != 0 ||
+      gamesLost != 0 ||
+      gameDifference != 0;
+}
+
+enum TournamentStandingResult {
+  win,
+  loss,
+  draw;
+
+  static TournamentStandingResult? fromWire(String value) => switch (value) {
+    'W' => TournamentStandingResult.win,
+    'L' => TournamentStandingResult.loss,
+    'D' => TournamentStandingResult.draw,
+    _ => null,
+  };
+}
+
+TournamentCategoryGroup? _tournamentCategoryGroup(dynamic value) {
+  final group = _map(value);
+  return group == null ? null : TournamentCategoryGroup.fromJson(group);
 }
 
 Map<String, dynamic>? _map(dynamic value) =>

@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/app_shell_scaffold_key.dart';
 import 'package:vmito_app/core/shell/tab_reselection_controller.dart';
@@ -15,6 +13,7 @@ import 'package:vmito_app/core/widgets/notification_header_button.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/presentation/widgets/post_avatar.dart';
+import 'package:vmito_app/features/social/presentation/widgets/post_composer_sheet.dart';
 import 'package:vmito_app/features/social/presentation/widgets/social_post_card.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
@@ -57,6 +56,7 @@ class _SocialHubScreenState extends State<SocialHubScreen> {
                     );
             },
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: const _FeedTab(),
@@ -143,7 +143,6 @@ class _FeedTabState extends ConsumerState<_FeedTab> {
                     ? l10n.socialComposerNameHint(user!.name ?? '')
                     : l10n.socialComposerHint,
                 onTap: _showComposer,
-                onImageTap: _showComposer,
               ),
             ),
           ),
@@ -183,30 +182,21 @@ class _FeedTabState extends ConsumerState<_FeedTab> {
 
   Future<void> _showComposer() async {
     final messenger = ScaffoldMessenger.of(context);
-    final draft = await showDialog<_PostDraft>(
+    final l10n = AppLocalizations.of(context);
+    final posted = await showModalBottomSheet<bool>(
       context: context,
-      builder: (_) => const _PostComposerDialog(),
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => PostComposerSheet(
+        userName: ref.read(currentUserProvider)?.name ?? '',
+        userImage: ref.read(currentUserProvider)?.image,
+        onSubmit: ref.read(feedControllerProvider.notifier).createPost,
+      ),
     );
-    if (draft == null || !mounted) return;
-    try {
-      await ref
-          .read(feedControllerProvider.notifier)
-          .createPost(draft.content, imagePaths: draft.imagePaths);
-    } on Object catch (error) {
-      if (mounted) {
-        messenger.showSnackBar(
-          SnackBar(content: Text(error.toString())),
-        );
-      }
+    if (posted == true && mounted) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.socialPostCreated)));
     }
   }
-}
-
-class _PostDraft {
-  const _PostDraft({required this.content, required this.imagePaths});
-
-  final String content;
-  final List<String> imagePaths;
 }
 
 /// Composer prompt card — matches the web newsfeed composer card.
@@ -215,7 +205,6 @@ class _ComposerCard extends StatelessWidget {
     required this.userName,
     required this.hint,
     required this.onTap,
-    required this.onImageTap,
     this.userImage,
   });
 
@@ -223,7 +212,6 @@ class _ComposerCard extends StatelessWidget {
   final String? userImage;
   final String hint;
   final VoidCallback onTap;
-  final VoidCallback onImageTap;
 
   @override
   Widget build(BuildContext context) {
@@ -272,144 +260,10 @@ class _ComposerCard extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(width: 8),
-              // Image button
-              GestureDetector(
-                onTap: onImageTap,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.06)
-                        : const Color(0xFFF0FDF4),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    AppIcons.imagePlus,
-                    size: 20,
-                    color: Color(0xFF16A34A),
-                  ),
-                ),
-              ),
             ],
           ),
         ),
       ),
     );
-  }
-}
-
-class _PostComposerDialog extends StatefulWidget {
-  const _PostComposerDialog();
-
-  @override
-  State<_PostComposerDialog> createState() => _PostComposerDialogState();
-}
-
-class _PostComposerDialogState extends State<_PostComposerDialog> {
-  final _controller = TextEditingController();
-  final _picker = ImagePicker();
-  final _images = <XFile>[];
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return AlertDialog(
-      title: Text(l10n.socialCreatePost),
-      content: SizedBox(
-        width: 520,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                key: const Key('post-content-field'),
-                controller: _controller,
-                autofocus: true,
-                maxLength: 2000,
-                minLines: 4,
-                maxLines: 8,
-                decoration: InputDecoration(hintText: l10n.socialComposerHint),
-                onChanged: (_) => setState(() {}),
-              ),
-              if (_images.isNotEmpty)
-                SizedBox(
-                  height: 96,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _images.length,
-                    separatorBuilder: (_, _) =>
-                        const SizedBox(width: AppSpacing.sm),
-                    itemBuilder: (context, index) => Stack(
-                      children: [
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(AppRadius.lg),
-                          child: Image.file(
-                            File(_images[index].path),
-                            width: 96,
-                            height: 96,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        Positioned(
-                          right: 0,
-                          child: IconButton.filledTonal(
-                            visualDensity: VisualDensity.compact,
-                            onPressed: () =>
-                                setState(() => _images.removeAt(index)),
-                            icon: const Icon(AppIcons.close, size: 18),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  onPressed: _images.length >= 10 ? null : _pickImages,
-                  icon: const Icon(AppIcons.imagePlus),
-                  label: Text(l10n.socialAddPhotos),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text(l10n.commonCancel),
-        ),
-        FilledButton(
-          onPressed: _controller.text.trim().isEmpty && _images.isEmpty
-              ? null
-              : () => Navigator.pop(
-                  context,
-                  _PostDraft(
-                    content: _controller.text.trim(),
-                    imagePaths: _images.map((image) => image.path).toList(),
-                  ),
-                ),
-          child: Text(l10n.socialPublish),
-        ),
-      ],
-    );
-  }
-
-  Future<void> _pickImages() async {
-    final selected = await _picker.pickMultiImage(
-      maxWidth: 1920,
-      maxHeight: 1920,
-      limit: 10 - _images.length,
-    );
-    if (!mounted || selected.isEmpty) return;
-    setState(() => _images.addAll(selected));
   }
 }

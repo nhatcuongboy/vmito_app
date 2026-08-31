@@ -44,6 +44,13 @@ class _HomeSearchScreenState extends ConsumerState<HomeSearchScreen> {
 
   String get _query => normalizeSearchQuery(_queryControl.value ?? '');
 
+  String get _searchHint => switch (widget.tab) {
+    HomeDiscoveryTab.sessions => 'Tìm kiếm kèo',
+    HomeDiscoveryTab.venues => 'Tìm kiếm sân',
+    HomeDiscoveryTab.clubs => 'Tìm kiếm nhóm',
+    HomeDiscoveryTab.tournaments => 'Tìm kiếm giải',
+  };
+
   @override
   void initState() {
     super.initState();
@@ -171,7 +178,7 @@ class _HomeSearchScreenState extends ConsumerState<HomeSearchScreen> {
               ValidationMessage.required: (_) => l10n.homeSearchRequired,
             },
             decoration: InputDecoration(
-              hintText: l10n.homeSearchHint,
+              hintText: _searchHint,
               prefixIcon: const Icon(AppIcons.search),
               suffixIcon: _queryControl.value?.isNotEmpty ?? false
                   ? IconButton(

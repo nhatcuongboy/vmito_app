@@ -38,10 +38,10 @@ String? formatClubActivitySchedule(
   return sortedGroups
       .map(
         (group) =>
-            '${_formatDays(group.days, l10n)} · '
+            '${_formatDays(group.days)} · '
             '${group.start}–${group.end}',
       )
-      .join('  •  ');
+      .join('\n');
 }
 
 String _formatTime(String value) {
@@ -55,37 +55,46 @@ String _formatTime(String value) {
   return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
 }
 
-String _formatDays(Set<int> values, AppLocalizations l10n) {
-  final days = values.toList()..sort();
-  final names = [
-    l10n.socialSunday,
-    l10n.socialMonday,
-    l10n.socialTuesday,
-    l10n.socialWednesday,
-    l10n.socialThursday,
-    l10n.socialFriday,
-    l10n.socialSaturday,
-  ];
+String _formatDays(Set<int> values) {
+  final days = values.toList()
+    ..sort((a, b) => _vietnameseDayIndex(a).compareTo(_vietnameseDayIndex(b)));
   final ranges = <String>[];
   var index = 0;
 
   while (index < days.length) {
     var end = index;
-    while (end + 1 < days.length && days[end + 1] == days[end] + 1) {
+    while (end + 1 < days.length &&
+        _vietnameseDayIndex(days[end + 1]) ==
+            _vietnameseDayIndex(days[end]) + 1) {
       end++;
     }
 
     final length = end - index + 1;
     ranges.add(
       length >= 3
-          ? '${names[days[index]]} – ${names[days[end]]}'
-          : [for (var i = index; i <= end; i++) names[days[i]]].join(', '),
+          ? '${_formatDay(days[index])} – ${_formatDay(days[end])}'
+          : [
+              for (var i = index; i <= end; i++) _formatDay(days[i]),
+            ].join(', '),
     );
     index = end + 1;
   }
 
   return ranges.join(', ');
 }
+
+String _formatDay(int day) => switch (day) {
+  0 => 'Chủ nhật',
+  1 => 'Thứ 2',
+  2 => 'Thứ 3',
+  3 => 'Thứ 4',
+  4 => 'Thứ 5',
+  5 => 'Thứ 6',
+  6 => 'Thứ 7',
+  _ => '—',
+};
+
+int _vietnameseDayIndex(int day) => (day + 6) % 7;
 
 class _ScheduleGroup {
   _ScheduleGroup({required this.start, required this.end});
@@ -94,5 +103,6 @@ class _ScheduleGroup {
   final String end;
   final days = <int>{};
 
-  int get firstDay => days.reduce((a, b) => a < b ? a : b);
+  int get firstDay =>
+      days.map(_vietnameseDayIndex).reduce((a, b) => a < b ? a : b);
 }

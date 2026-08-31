@@ -18,7 +18,7 @@ void main() {
       l10n,
     );
 
-    expect(result, 'Thứ Hai – Thứ Sáu · 19:00–21:00');
+    expect(result, 'Thứ 2 – Thứ 6 · 19:00–21:00');
   });
 
   test('keeps different time ranges visible', () {
@@ -36,6 +36,22 @@ void main() {
       l10n,
     );
 
-    expect(result, 'Thứ Hai · 19:00–21:00  •  Thứ Tư · 07:30–09:00');
+    expect(result, 'Thứ 2 · 19:00–21:00\nThứ 4 · 07:30–09:00');
+  });
+
+  test('orders days from Monday and puts each time range on its own line', () {
+    final result = formatClubActivitySchedule(
+      const [
+        ClubSchedule(dayOfWeek: 0, startTime: '15:00', endTime: '18:00'),
+        ClubSchedule(dayOfWeek: 6, startTime: '15:00', endTime: '18:00'),
+        ClubSchedule(dayOfWeek: 1, startTime: '20:00', endTime: '22:00'),
+      ],
+      l10n,
+    );
+
+    expect(
+      result,
+      'Thứ 2 · 20:00–22:00\nThứ 7, Chủ nhật · 15:00–18:00',
+    );
   });
 }

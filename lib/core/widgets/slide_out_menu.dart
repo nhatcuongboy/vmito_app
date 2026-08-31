@@ -149,6 +149,12 @@ class SlideOutMenu extends ConsumerWidget {
                             onTap: () => pushTo(AppRoutes.transactions),
                           ),
                         _MenuItem(
+                          icon: AppIcons.reminders,
+                          label: l10n.reminderTitle,
+                          isActive: isActive(AppRoutes.reminders),
+                          onTap: () => pushTo(AppRoutes.reminders),
+                        ),
+                        _MenuItem(
                           icon: AppIcons.favorite,
                           label: l10n.navFavorites,
                           isActive: isActive(AppRoutes.favorites),

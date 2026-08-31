@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:vmito_app/core/network/paginated.dart' as pagination;
 import 'package:vmito_app/core/theme/app_icons.dart';
+import 'package:vmito_app/core/widgets/user_avatar.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/features/leaderboard/domain/leaderboard.dart';
@@ -48,7 +49,7 @@ void main() {
 
     await _pumpHeader(tester, offset: offset);
 
-    expect(find.byType(CircleAvatar), findsOneWidget);
+    expect(find.byType(UserAvatar), findsOneWidget);
     expect(_opacity(tester, 'profile-compact-identity'), 0);
     expect(find.byType(AnimatedPositioned), findsNothing);
 
@@ -268,7 +269,7 @@ void main() {
     final avatarFrame = tester.widget<Container>(
       find.byKey(const ValueKey('profile-avatar-frame')),
     );
-    final avatarDecoration = avatarFrame.decoration as BoxDecoration;
+    final avatarDecoration = avatarFrame.decoration! as BoxDecoration;
     expect(avatarDecoration.color, Colors.white);
     expect(avatarFrame.padding, const EdgeInsets.all(3));
     expect(avatarDecoration.boxShadow, isNotEmpty);
@@ -393,6 +394,18 @@ void main() {
     final sharePos = tester.getTopLeft(shareFinder);
 
     expect(notifPos.dx, lessThan(sharePos.dx));
+  });
+
+  testWidgets("hides the notification icon on another user's profile", (
+    tester,
+  ) async {
+    final offset = ValueNotifier<double>(0);
+    addTearDown(offset.dispose);
+
+    await _pumpHeader(tester, offset: offset, isRootProfile: false);
+
+    expect(find.byIcon(AppIcons.notifications), findsNothing);
+    expect(find.byIcon(AppIcons.share), findsOneWidget);
   });
 }
 

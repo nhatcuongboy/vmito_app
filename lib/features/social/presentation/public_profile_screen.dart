@@ -19,6 +19,7 @@ import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/avatar_url.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/core/widgets/emoji_safe_text.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/profile/application/profile_controller.dart';
 import 'package:vmito_app/features/profile/data/profile_image_picker.dart';
@@ -508,7 +509,7 @@ class _ProfileHeader extends StatelessWidget {
                 offset,
                 screenWidth,
               ),
-              child: Text(
+              child: EmojiSafeText(
                 profile.name,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,

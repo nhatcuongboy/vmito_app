@@ -223,8 +223,8 @@ void main() {
         matching: find.byType(Text),
       ),
     );
-    expect(stickyText.style?.fontSize, 20);
-    expect(stickyText.style?.height, closeTo(28 / 20, 0.0001));
+    expect(stickyText.style?.fontSize, 16);
+    expect(stickyText.style?.height, closeTo(20 / 16, 0.0001));
     expect(stickyText.style?.fontWeight, FontWeight.w700);
     expect(stickyText.maxLines, 1);
     expect(stickyText.overflow, TextOverflow.ellipsis);
@@ -239,6 +239,10 @@ void main() {
       tester.getSize(find.byKey(const Key('venue-share-button'))),
       tester.getSize(find.byKey(const Key('venue-favorite-button'))),
     );
+    expect(
+      tester.getSize(find.byKey(const Key('venue-share-button'))),
+      const Size.square(FavoriteButton.detailControlSize),
+    );
   });
 
   testWidgets('share button matches favorite button on the cover', (
@@ -249,6 +253,10 @@ void main() {
     expect(
       tester.getSize(find.byKey(const Key('venue-share-button'))),
       tester.getSize(find.byKey(const Key('venue-favorite-button'))),
+    );
+    expect(
+      tester.getSize(find.byKey(const Key('venue-share-button'))),
+      const Size.square(FavoriteButton.detailControlSize),
     );
   });
 

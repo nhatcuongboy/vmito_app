@@ -21,14 +21,21 @@ class FavoriteButton extends ConsumerWidget {
     required this.type,
     required this.targetId,
     this.overlay = true,
+    this.overlayColor,
     this.showCount = true,
+    this.size = controlHeight,
     super.key,
   });
+
+  static const controlHeight = 32.0;
+  static const detailControlSize = 36.0;
 
   final FavoriteType type;
   final String targetId;
   final bool overlay;
+  final Color? overlayColor;
   final bool showCount;
+  final double size;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -48,20 +55,25 @@ class FavoriteButton extends ConsumerWidget {
     final displayCount = showCount && summary.favoriteCount > 0;
 
     return Material(
-      color: overlay ? Colors.black.withValues(alpha: 0.6) : Colors.transparent,
+      color: overlay
+          ? overlayColor ?? Colors.black.withValues(alpha: 0.6)
+          : Colors.transparent,
       borderRadius: BorderRadius.circular(AppRadius.pill),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => _toggle(context, ref, target),
         child: SizedBox(
-          height: 32,
+          height: size,
           child: Row(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               SizedBox(
-                width: displayCount ? 34 : (overlay ? 32 : 28),
-                height: 32,
+                width: displayCount
+                    ? size + 2
+                    : size == controlHeight && !overlay
+                    ? size - 4
+                    : size,
+                height: size,
                 child: Center(
                   child: Icon(
                     summary.isFavorite
@@ -80,7 +92,7 @@ class FavoriteButton extends ConsumerWidget {
               if (displayCount) ...[
                 Container(
                   width: 1,
-                  height: 32,
+                  height: size,
                   color: dividerColor,
                 ),
                 Padding(
@@ -109,6 +121,10 @@ class FavoriteButton extends ConsumerWidget {
   ) async {
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    final wasFavorite = ref
+        .read(favoriteControllerProvider(target))
+        .value
+        ?.isFavorite;
     try {
       final signedIn = await ref
           .read(favoriteControllerProvider(target).notifier)
@@ -118,6 +134,14 @@ class FavoriteButton extends ConsumerWidget {
           showLoginPromptDialog(
             context,
             featureName: l10n.loginRequiredFavorite,
+          ),
+        );
+      } else if (wasFavorite != null && context.mounted) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              wasFavorite ? l10n.favoriteRemoved : l10n.favoriteSaved,
+            ),
           ),
         );
       }

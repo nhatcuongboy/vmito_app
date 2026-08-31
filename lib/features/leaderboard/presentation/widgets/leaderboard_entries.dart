@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
+import 'package:vmito_app/core/widgets/emoji_safe_text.dart';
 import 'package:vmito_app/features/leaderboard/domain/leaderboard.dart';
 import 'package:vmito_app/features/leaderboard/presentation/widgets/leaderboard_avatar.dart';
 import 'package:vmito_app/features/leaderboard/presentation/widgets/tier_badge.dart';
@@ -164,7 +165,7 @@ class _PodiumCard extends StatelessWidget {
                 SizedBox(
                   height: 42,
                   child: Center(
-                    child: Text(
+                    child: EmojiSafeText(
                       name,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -302,7 +303,7 @@ class LeaderboardRankRow extends StatelessWidget {
                           spacing: AppSpacing.sm,
                           runSpacing: 2,
                           children: [
-                            Text(
+                            EmojiSafeText(
                               name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,

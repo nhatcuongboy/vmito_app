@@ -201,6 +201,31 @@ void main() {
 
       expect(find.textContaining('18:00-19:30'), findsOneWidget);
     });
+
+    testWidgets('does not overflow at narrow width and large text scale', (
+      tester,
+    ) async {
+      tester.view
+        ..physicalSize = const Size(280, 700)
+        ..devicePixelRatio = 1;
+      tester.platformDispatcher.textScaleFactorTestValue = 2;
+      addTearDown(tester.view.reset);
+      addTearDown(
+        tester.platformDispatcher.clearTextScaleFactorTestValue,
+      );
+
+      await _pump(
+        tester,
+        _session(
+          hostName: 'Người tổ chức có tên rất dài',
+          startTime: DateTime(2026, 7, 10, 18),
+          scheduledEndTime: DateTime(2026, 7, 10, 22, 30),
+          location: 'Một địa điểm có tên rất dài',
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+    });
   });
 
   testWidgets('shows split-evenly fee when no per-player amount exists', (

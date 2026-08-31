@@ -20,6 +20,7 @@ import 'package:vmito_app/features/leaderboard/domain/leaderboard_periods.dart';
 import 'package:vmito_app/features/leaderboard/presentation/leaderboard_screen.dart';
 import 'package:vmito_app/features/legal/presentation/legal_screen.dart';
 import 'package:vmito_app/features/notification/presentation/notifications_screen.dart';
+import 'package:vmito_app/features/payment/presentation/reminders_screen.dart';
 import 'package:vmito_app/features/payment/presentation/transaction_dashboard_screen.dart';
 import 'package:vmito_app/features/profile/presentation/account_security_screen.dart';
 import 'package:vmito_app/features/profile/presentation/change_password_screen.dart';
@@ -476,6 +477,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.transactions,
                 builder: (context, state) => const TransactionDashboardScreen(),
+              ),
+              GoRoute(
+                path: AppRoutes.reminders,
+                name: AppRoutes.nameReminders,
+                builder: (context, state) => const RemindersScreen(),
               ),
             ],
           ),

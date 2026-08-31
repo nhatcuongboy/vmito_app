@@ -63,6 +63,7 @@ abstract final class AppRoutes {
   static const notifications = '$home/notifications';
   static const favorites = '/favorites';
   static const transactions = '/transactions';
+  static const reminders = '/reminders';
   static const profile = '/profile';
   static const editProfile = '/profile/edit';
   static const settings = '/settings';
@@ -149,6 +150,7 @@ abstract final class AppRoutes {
   static const nameSessionDetail = 'sessionDetail';
   static const nameLiveSession = 'liveSession';
   static const namePublicProfile = 'publicProfile';
+  static const nameReminders = 'reminders';
 
   /// Routes reachable without an account.
   ///
@@ -180,6 +182,8 @@ abstract final class AppRoutes {
     notifications,
     manageClubs,
     createTournament,
+    transactions,
+    reminders,
   ];
 
   /// A prefix match only counts on a segment boundary, so `/sessions` does not

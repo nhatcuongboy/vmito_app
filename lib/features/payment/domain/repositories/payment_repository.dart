@@ -73,4 +73,48 @@ abstract interface class PaymentRepository {
   Future<List<PaymentReminder>> remindersForCreator();
 
   Future<void> remindUser(String userId);
+
+  Future<List<PaymentReminder>> getReminders({
+    required String role,
+    PaymentReminderStatus? status,
+  });
+
+  Future<PaymentReminder> createSingleReminder({
+    required String paymentId,
+    String? note,
+  });
+
+  Future<PaymentReminder> createAggregateReminder({
+    required String recipientUserId,
+  });
+
+  Future<PaymentReminder> createCustomReminder({
+    required String recipientUserId,
+    required int amount,
+    required String note,
+  });
+
+  Future<PaymentReminder> remindAgain(String reminderId);
+
+  Future<PaymentReminder> markReminderCollected(String reminderId);
+
+  Future<PaymentReminder> markReminderPaid(
+    String reminderId, {
+    required PaymentMethod paymentMethod,
+    String? proofImageUrl,
+    String? proofImagePublicId,
+    String? proofNotes,
+  });
+
+  Future<PaymentReminder> rejectReminder(
+    String reminderId, {
+    String? hostNotes,
+  });
+
+  Future<({String url, String publicId})> uploadPaymentProof(
+    Uint8List bytes,
+    String filename,
+  );
+
+  Future<List<PaymentReminderUser>> searchUsers(String query);
 }

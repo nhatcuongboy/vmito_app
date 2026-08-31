@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:vmito_app/core/config/app_config.dart';
+import 'package:vmito_app/core/location/google_places_service.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
@@ -497,8 +498,8 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
                         setSheetState(() => loading = true);
                         try {
                           suggestions = await ref
-                              .read(sessionFormServiceProvider)
-                              .autocompletePlaces(
+                              .read(googlePlacesServiceProvider)
+                              .autocomplete(
                                 input: query,
                                 language: Localizations.localeOf(
                                   context,
@@ -539,8 +540,8 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
     debounce?.cancel();
     if (selected == null || !mounted) return;
     final details = await ref
-        .read(sessionFormServiceProvider)
-        .placeDetails(
+        .read(googlePlacesServiceProvider)
+        .details(
           placeId: selected.placeId,
           language: Localizations.localeOf(context).languageCode,
         );

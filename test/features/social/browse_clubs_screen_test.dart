@@ -92,7 +92,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('thành viên'), findsNothing);
-    expect(find.text('Thứ Hai – Thứ Sáu · 19:00–21:00'), findsOneWidget);
+    expect(find.text('Thứ 2 – Thứ 6 · 19:00–21:00'), findsOneWidget);
     expect(find.text('Sân Trung tâm'), findsOneWidget);
     expect(find.byIcon(AppIcons.clock), findsOneWidget);
     expect(find.byIcon(AppIcons.location), findsOneWidget);

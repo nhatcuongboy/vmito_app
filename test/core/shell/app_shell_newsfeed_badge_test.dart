@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/app_shell.dart';
+import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/core/widgets/newsfeed_badge_icon.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
@@ -85,6 +86,17 @@ void main() {
       tester.getSemantics(find.byType(NewsfeedBadgeIcon).first).label,
       contains('Bảng tin: 6'),
     );
+
+    final surface = tester.widget<DecoratedBox>(
+      find.byKey(const Key('app-bottom-navigation-surface')),
+    );
+    final decoration = surface.decoration as BoxDecoration;
+    final palette = AppTheme.light.extension<AppPalette>()!;
+    expect(decoration.color, AppTheme.light.colorScheme.surface);
+    expect((decoration.border! as Border).top.color, palette.border);
+    expect(decoration.boxShadow, isNotEmpty);
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(tester.getSize(find.byType(NavigationBar)).height, 64);
   });
 
   testWidgets('bottom navigation hides a zero badge', (tester) async {

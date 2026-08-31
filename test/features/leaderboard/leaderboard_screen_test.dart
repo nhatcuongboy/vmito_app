@@ -45,6 +45,7 @@ void main() {
       'leaderboard-podium-1',
       'leaderboard-podium-3',
     ]);
+    expect(find.text('Khải 🦈', findRichText: true), findsOneWidget);
     expect(find.text('You'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
@@ -77,10 +78,16 @@ void main() {
     final historical = find.byKey(
       const ValueKey('leaderboard-period-option-2026-08-03'),
     );
+    await tester.drag(
+      find.byType(Scrollable).last,
+      const Offset(0, -100),
+    );
+    await tester.pumpAndSettle();
     if (historical.evaluate().isNotEmpty) {
       await tester.tap(historical);
     } else {
-      await tester.tap(find.byType(ListTile).at(1));
+      final fallbackOption = find.byType(ListTile).at(1);
+      await tester.tap(fallbackOption);
     }
     await tester.pumpAndSettle();
 
@@ -191,7 +198,7 @@ class _LoadedController extends LeaderboardController {
       periodKey: periodKey,
       entries: [
         _entry('u1', 1),
-        _entry('u2', 2),
+        _entry('u2', 2, name: 'Khải 🦈'),
         _entry('u3', 3),
         _entry('u4', 4),
       ],
@@ -242,12 +249,13 @@ class _ErrorController extends LeaderboardController {
   }
 }
 
-LeaderboardEntry _entry(String id, int rank) => LeaderboardEntry(
-  rank: rank,
-  points: 100 - rank,
-  user: LeaderboardUser(id: id, name: 'Player $rank'),
-  tier: RankingTier.values[(rank - 1) % RankingTier.values.length],
-  totalPoints: 1200,
-  matchesWon: 4,
-  matchesPlayed: 6,
-);
+LeaderboardEntry _entry(String id, int rank, {String? name}) =>
+    LeaderboardEntry(
+      rank: rank,
+      points: 100 - rank,
+      user: LeaderboardUser(id: id, name: name ?? 'Player $rank'),
+      tier: RankingTier.values[(rank - 1) % RankingTier.values.length],
+      totalPoints: 1200,
+      matchesWon: 4,
+      matchesPlayed: 6,
+    );

@@ -6,6 +6,7 @@ import 'package:vmito_app/features/social/application/newsfeed_badge_controller.
 import 'package:vmito_app/features/social/data/profile_tabs_service.dart';
 import 'package:vmito_app/features/social/data/social_service.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
+import 'package:vmito_app/features/social/domain/post_composer_draft.dart';
 import 'package:vmito_app/features/social/domain/public_profile.dart';
 import 'package:vmito_app/features/social/domain/social_post.dart';
 
@@ -103,11 +104,8 @@ class FeedController extends Notifier<FeedState> {
     }
   }
 
-  Future<void> createPost(
-    String content, {
-    List<String> imagePaths = const [],
-  }) async {
-    final post = await _service.createPost(content, imagePaths: imagePaths);
+  Future<void> createPost(PostComposerDraft draft) async {
+    final post = await _service.createPost(draft);
     state = state.copyWith(posts: [post, ...state.posts]);
   }
 

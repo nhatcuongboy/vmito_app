@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -9,12 +8,14 @@ import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/widgets/user_avatar.dart';
 import 'package:vmito_app/features/reference/presentation/level_descriptions_sheet.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_player_detail_sheet.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
+import 'package:vmito_app/shared/widgets/skill_level_badge.dart';
 import 'package:vmito_domain/vmito_domain.dart';
 
 /// Roster, capacity facts and the accepted skill band.
@@ -162,8 +163,6 @@ class _PlayerAvatarTile extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final name = l10n.playerName(player);
     final level = player.level;
-    final hasImage = player.userImage?.trim().isNotEmpty ?? false;
-    final initial = name.trim().isEmpty ? '?' : name.trim()[0].toUpperCase();
 
     return Semantics(
       button: true,
@@ -190,21 +189,14 @@ class _PlayerAvatarTile extends StatelessWidget {
                         width: 2,
                       ),
                     ),
-                    child: CircleAvatar(
-                      radius: 20,
-                      backgroundColor: theme.colorScheme.primary,
-                      foregroundImage: hasImage
-                          ? CachedNetworkImageProvider(player.userImage!)
-                          : null,
-                      child: hasImage
-                          ? null
-                          : Text(
-                              initial,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                color: theme.colorScheme.onPrimary,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                    child: UserAvatar(
+                      name: name,
+                      gender: player.gender?.name,
+                      status: player.status.name,
+                      imageUrl: player.userImage,
+                      size: 40,
+                      borderWidth: 0,
+                      boxShadow: const [],
                     ),
                   ),
                   if (level != null)
@@ -366,6 +358,7 @@ class _Fact extends StatelessWidget {
     this.suffix,
     this.detail,
     this.onTap,
+    this.hideLabel = false,
   });
 
   final IconData icon;
@@ -373,6 +366,7 @@ class _Fact extends StatelessWidget {
   final String? suffix;
   final Widget? detail;
   final VoidCallback? onTap;
+  final bool hideLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -387,22 +381,23 @@ class _Fact extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text.rich(
-                TextSpan(
-                  text: label,
-                  children: [
-                    if (suffix != null)
-                      TextSpan(
-                        text: ' $suffix',
-                        style: TextStyle(color: palette.mutedForeground),
-                      ),
-                  ],
+              if (!hideLabel)
+                Text.rich(
+                  TextSpan(
+                    text: label,
+                    children: [
+                      if (suffix != null)
+                        TextSpan(
+                          text: ' $suffix',
+                          style: TextStyle(color: palette.mutedForeground),
+                        ),
+                    ],
+                  ),
+                  style: theme.textTheme.bodyMedium,
                 ),
-                style: theme.textTheme.bodyMedium,
-              ),
               if (detail case final detail?)
                 Padding(
-                  padding: const EdgeInsets.only(top: 2),
+                  padding: EdgeInsets.only(top: hideLabel ? 0 : 2),
                   child: detail,
                 ),
             ],
@@ -486,31 +481,29 @@ class _ManagedClubFact extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final club = ref.watch(clubDetailProvider(clubId));
     return club.when(
       loading: () => _Fact(
         icon: AppIcons.building,
-        label: l10n.sessionManagingClub,
+        label: '',
         detail: Text('...', style: theme.textTheme.bodySmall),
+        hideLabel: true,
       ),
-      error: (_, _) => _Fact(
-        icon: AppIcons.building,
-        label: l10n.sessionManagingClub,
-      ),
+      error: (_, _) => const SizedBox.shrink(),
       data: (club) => _Fact(
         icon: AppIcons.building,
-        label: l10n.sessionManagingClub,
+        label: '',
         detail: Text(
           club.name,
-          maxLines: 1,
+          maxLines: 2,
           overflow: TextOverflow.ellipsis,
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.primary,
             fontWeight: FontWeight.w600,
           ),
         ),
+        hideLabel: true,
         onTap: () => context.push(AppRoutes.clubDetail(club.slug ?? club.id)),
       ),
     );
@@ -546,18 +539,12 @@ class _LevelRow extends StatelessWidget {
             runSpacing: AppSpacing.xs,
             children: levels.isEmpty
                 ? [
-                    _LevelBadge(
-                      label: l10n.sessionAllLevels,
-                      color: palette.mutedForeground,
-                    ),
+                    AllSkillLevelsBadge(label: l10n.sessionAllLevels),
                   ]
                 : [
                     for (final level in levels)
                       if (levelShortLabel(level) != null)
-                        _LevelBadge(
-                          label: l10n.levelName(level),
-                          color: _levelBadgeColor(level),
-                        ),
+                        SkillLevelBadge(level: level),
                   ],
           ),
         ),
@@ -571,40 +558,6 @@ class _LevelRow extends StatelessWidget {
       ],
     );
   }
-}
-
-Color _levelBadgeColor(int level) {
-  final rank = levelRank(level);
-  if (rank == null) return const Color(0xFF6B7280);
-  if (rank <= 3) return const Color(0xFF15803D);
-  if (rank <= 6) return const Color(0xFFCA8A04);
-  return const Color(0xFFDC2626);
-}
-
-class _LevelBadge extends StatelessWidget {
-  const _LevelBadge({required this.label, required this.color});
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(
-      horizontal: AppSpacing.sm + 2,
-      vertical: 4,
-    ),
-    decoration: BoxDecoration(
-      color: color,
-      borderRadius: BorderRadius.circular(AppRadius.pill),
-    ),
-    child: Text(
-      label,
-      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-        color: Colors.white,
-        fontWeight: FontWeight.bold,
-      ),
-    ),
-  );
 }
 
 class _DashedCirclePainter extends CustomPainter {
