@@ -14,6 +14,21 @@ import 'package:vmito_app/features/social/domain/club.dart';
 import 'package:vmito_app/features/social/presentation/club_detail_screen.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
+class _TestClubManagementController extends ClubManagementController {
+  static String? addedUserId;
+  static String? removedUserId;
+
+  @override
+  Future<void> addMember(String clubId, String userId) async {
+    addedUserId = userId;
+  }
+
+  @override
+  Future<void> removeMember(String clubId, String userId) async {
+    removedUserId = userId;
+  }
+}
+
 const _club = ClubSummary(
   id: 'club-1',
   name: 'Nhóm Cầu Lông Vmito',
@@ -41,6 +56,13 @@ const _memberUser = User(
   name: 'Thành viên',
 );
 
+const _adminUser = User(
+  id: 'admin-1',
+  email: 'admin@example.com',
+  role: UserRole.admin,
+  name: 'Quản trị viên',
+);
+
 const _memberClub = ClubSummary(
   id: 'member-club',
   name: 'Nhóm của thành viên',
@@ -56,6 +78,30 @@ const _memberClub = ClubSummary(
       level: 3,
     ),
   ],
+);
+
+ClubSummary _membersClub(int count) => ClubSummary(
+  id: 'many-members-club',
+  name: 'Nhóm đông thành viên',
+  memberCount: count,
+  joinPolicy: 'OPEN',
+  members: List.generate(
+    count,
+    (index) => ClubMember(
+      id: 'membership-$index',
+      userId: 'user-$index',
+      name: 'Người chơi $index',
+      email: 'player$index@example.com',
+      role: switch (index) {
+        0 => 'ADMIN',
+        1 => 'MODERATOR',
+        _ => 'MEMBER',
+      },
+      level: index == 0 ? 3 : null,
+      gender: index.isEven ? 'MALE' : 'FEMALE',
+      createdAt: DateTime.utc(2026, 8, index + 1),
+    ),
+  ),
 );
 
 const _invitationClub = ClubSummary(
@@ -110,6 +156,8 @@ Future<void> _pump(
   double textScale = 1,
   User? currentUser,
 }) async {
+  _TestClubManagementController.addedUserId = null;
+  _TestClubManagementController.removedUserId = null;
   tester.view
     ..physicalSize = Size(width * 3, 844 * 3)
     ..devicePixelRatio = 3;
@@ -123,6 +171,20 @@ Future<void> _pump(
       overrides: [
         clubDetailProvider.overrideWith((ref, id) async => club),
         clubAnnouncementsProvider.overrideWith((ref, id) async => const []),
+        clubUserSearchProvider.overrideWith(
+          (ref, search) async => search.query == 'Lan'
+              ? const [
+                  ClubUserSearchResult(
+                    id: 'new-user',
+                    name: 'Lan',
+                    email: 'lan@example.com',
+                  ),
+                ]
+              : const [],
+        ),
+        clubManagementControllerProvider.overrideWith(
+          _TestClubManagementController.new,
+        ),
         currentUserProvider.overrideWithValue(currentUser),
         isSignedInProvider.overrideWithValue(currentUser != null),
       ],
@@ -275,7 +337,7 @@ void main() {
     await _pump(tester, club: _memberClub, currentUser: _memberUser);
     await tester.tap(find.byType(Tab).at(1));
     await tester.pumpAndSettle();
-    expect(find.text('MEMBER · TB-'), findsOneWidget);
+    expect(find.text('TB-'), findsOneWidget);
 
     final status = tester.widget<OutlinedButton>(
       find.byKey(const Key('club-membership-status-button')),
@@ -289,6 +351,122 @@ void main() {
     expect(find.byKey(const Key('club-leave-group-button')), findsOneWidget);
     expect(find.byIcon(AppIcons.userMinus), findsOneWidget);
     expect(find.text('Rời nhóm'), findsOneWidget);
+  });
+
+  testWidgets('ports member header, badges and incremental view more', (
+    tester,
+  ) async {
+    await _pump(tester, club: _membersClub(10));
+    await tester.tap(find.byType(Tab).at(1));
+    await tester.pumpAndSettle();
+
+    expect(find.text('10 thành viên'), findsOneWidget);
+    expect(find.text('Quản trị viên'), findsOneWidget);
+    expect(find.text('Điều hành viên'), findsOneWidget);
+    expect(find.text('TB-'), findsOneWidget);
+    expect(find.byKey(const ValueKey('club-member-user-7')), findsOneWidget);
+    expect(find.byKey(const ValueKey('club-member-user-8')), findsNothing);
+
+    await tester.drag(
+      find.byKey(const Key('public-club-members-scroll')),
+      const Offset(0, -700),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('club-members-view-more')));
+    await tester.pump();
+
+    expect(find.byKey(const ValueKey('club-member-user-8')), findsOneWidget);
+    expect(find.byKey(const ValueKey('club-member-user-9')), findsOneWidget);
+    expect(find.byKey(const Key('club-members-view-more')), findsNothing);
+  });
+
+  testWidgets('shows the mobile member details sheet', (tester) async {
+    await _pump(tester, club: _memberClub, currentUser: _memberUser);
+    await tester.tap(find.byType(Tab).at(1));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('club-member-member-1')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Thông tin thành viên'), findsOneWidget);
+    expect(find.text('Giới tính'), findsOneWidget);
+    expect(find.text('Trình độ'), findsOneWidget);
+    expect(find.text('Ngày tham gia'), findsOneWidget);
+    expect(find.text('Chưa cập nhật'), findsNWidgets(2));
+    expect(find.byKey(const Key('club-member-view-profile')), findsOneWidget);
+    expect(find.byKey(const Key('club-member-details-remove')), findsNothing);
+  });
+
+  testWidgets('shows admin empty actions and reactive member search', (
+    tester,
+  ) async {
+    await _pump(tester, currentUser: _adminUser);
+    await tester.tap(find.byType(Tab).at(1));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('club-members-empty')), findsOneWidget);
+    expect(find.byKey(const Key('club-members-add')), findsOneWidget);
+    expect(find.byKey(const Key('club-members-add-first')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('club-members-add')));
+    await tester.pumpAndSettle();
+    await tester.enterText(
+      find.byKey(const Key('public-club-member-search')),
+      'Lan',
+    );
+    await tester.pump(const Duration(milliseconds: 450));
+    await tester.pumpAndSettle();
+
+    expect(find.text('lan@example.com'), findsOneWidget);
+    await tester.tap(
+      find.byKey(const ValueKey('club-member-add-new-user')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(_TestClubManagementController.addedUserId, 'new-user');
+    expect(find.text('Đã thêm thành viên vào nhóm'), findsOneWidget);
+  });
+
+  testWidgets('admin can remove a member after confirmation', (tester) async {
+    await _pump(
+      tester,
+      club: _membersClub(1),
+      currentUser: _adminUser,
+    );
+    await tester.tap(find.byType(Tab).at(1));
+    await tester.pumpAndSettle();
+    await tester.tap(
+      find.byKey(const ValueKey('club-member-remove-user-0')),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Gỡ Người chơi 0 khỏi nhóm?'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('club-member-confirm-remove')));
+    await tester.pumpAndSettle();
+
+    expect(_TestClubManagementController.removedUserId, 'user-0');
+    expect(find.text('Đã xóa thành viên khỏi nhóm'), findsOneWidget);
+  });
+
+  testWidgets('member grid adapts between phone and tablet widths', (
+    tester,
+  ) async {
+    await _pump(tester, club: _membersClub(2), width: 320, textScale: 2);
+    await tester.drag(find.byType(TabBar), const Offset(-300, 0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Thành viên'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('club-members-grid-1')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await _pump(tester, club: _membersClub(2), width: 700);
+    await tester.tap(find.byType(Tab).at(1));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('club-members-grid-2')), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('shows invitation policy without a duplicate CTA', (

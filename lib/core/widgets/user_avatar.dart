@@ -35,13 +35,19 @@ class UserAvatar extends StatelessWidget {
   final Color? statusColor;
 
   String get _initials {
-    final parts = name?.trim().split(RegExp(r'\s+')) ?? const <String>[];
-    if (parts.isEmpty || parts.first.isEmpty) return '?';
-    if (parts.length == 1) {
-      return parts.first.characters.take(2).join().toUpperCase();
-    }
-    return '${parts.first.characters.first}${parts.last.characters.first}'
+    final parts = name
+            ?.trim()
+            .split(RegExp(r'\s+'))
+            .where((part) => part.isNotEmpty)
+            .toList() ??
+        const <String>[];
+    if (parts.isEmpty) return '?';
+    final initials = parts
+        .map((part) => part.characters.firstOrNull ?? '')
+        .where((initial) => initial.isNotEmpty)
+        .join()
         .toUpperCase();
+    return initials.isEmpty ? '?' : initials;
   }
 
   bool get _hasImage => imageUrl?.trim().isNotEmpty ?? false;

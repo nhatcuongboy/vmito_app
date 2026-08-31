@@ -318,6 +318,7 @@ class ClubMember {
     this.level,
     this.status = 'ACTIVE',
     this.gender,
+    this.createdAt,
   });
 
   factory ClubMember.fromJson(Map<String, dynamic> json) {
@@ -332,6 +333,7 @@ class ClubMember {
       level: (user['level'] as num?)?.toInt(),
       status: json['status'] as String? ?? 'ACTIVE',
       gender: user['gender'] as String?,
+      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? ''),
     );
   }
 
@@ -344,6 +346,7 @@ class ClubMember {
   final int? level;
   final String status;
   final String? gender;
+  final DateTime? createdAt;
 }
 
 class ClubJoinRequestClub {

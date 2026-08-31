@@ -17,6 +17,8 @@ void main() {
           'venue': {
             'name': 'Sân Vmito',
             'newCity': 'Hồ Chí Minh',
+            'lat': 10.7769,
+            'lng': 106.7009,
             'coverPhoto': 'https://example.com/venue.jpg',
           },
         },
@@ -27,5 +29,8 @@ void main() {
     expect(tournament.status, TournamentStatus.inProgress);
     expect(tournament.location, 'Sân Vmito · Hồ Chí Minh');
     expect(tournament.coverPhoto, 'https://example.com/venue.jpg');
+    expect(tournament.venueLatitude, 10.7769);
+    expect(tournament.venueLongitude, 106.7009);
+    expect(tournament.hasVenueCoordinates, isTrue);
   });
 }

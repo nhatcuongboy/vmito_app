@@ -10,7 +10,6 @@ import 'package:html/parser.dart' as html_parser;
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vmito_app/core/constants/image_constants.dart';
-import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
@@ -24,6 +23,7 @@ import 'package:vmito_app/features/social/application/club_management_controller
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/data/social_service.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
+import 'package:vmito_app/features/social/presentation/widgets/public_club_members_tab.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_lightbox.dart';
 import 'package:vmito_app/shared/widgets/detail_hero_header.dart';
@@ -119,6 +119,13 @@ class _ClubDetailState extends ConsumerState<_ClubDetail>
     ];
     final user = ref.watch(currentUserProvider);
     final isMember = club.members.any((member) => member.userId == user?.id);
+    final isUserAdmin =
+        user != null &&
+        (user.isAdmin ||
+            club.hostUserId == user.id ||
+            club.members.any(
+              (member) => member.userId == user.id && member.role == 'ADMIN',
+            ));
     final canShowMembershipAction = isMember || !club.isInvitationOnly;
     return Scaffold(
       bottomNavigationBar: canShowMembershipAction
@@ -214,7 +221,7 @@ class _ClubDetailState extends ConsumerState<_ClubDetail>
           controller: _tabs,
           children: [
             _about(club),
-            _members(club),
+            PublicClubMembersTab(club: club, isAdmin: isUserAdmin),
             _schedule(club),
             _announcements(club),
             if (club.images.isNotEmpty) _photos(club),
@@ -417,35 +424,6 @@ class _ClubDetailState extends ConsumerState<_ClubDetail>
           ),
         ),
       ],
-    );
-  }
-
-  Widget _members(ClubSummary club) {
-    final l10n = AppLocalizations.of(context);
-    return ListView.separated(
-      padding: const EdgeInsets.all(AppSpacing.screenPadding),
-      itemCount: club.members.length,
-      separatorBuilder: (_, _) => const Divider(),
-      itemBuilder: (_, index) {
-        final member = club.members[index];
-        return ListTile(
-          leading: CircleAvatar(
-            backgroundImage: member.image == null
-                ? null
-                : CachedNetworkImageProvider(member.image!),
-            child: member.image == null ? const Icon(AppIcons.profile) : null,
-          ),
-          title: Text(member.name),
-          subtitle: Text(
-            member.level == null
-                ? member.role
-                : '${member.role} · ${l10n.levelName(member.level!)}',
-          ),
-          onTap: member.userId.isEmpty
-              ? null
-              : () => context.push(AppRoutes.publicProfile(member.userId)),
-        );
-      },
     );
   }
 

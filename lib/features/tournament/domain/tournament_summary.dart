@@ -40,6 +40,8 @@ class TournamentSummary {
     this.venueNewAddress,
     this.venueNewDistrict,
     this.venueNewCity,
+    this.venueLatitude,
+    this.venueLongitude,
   });
 
   factory TournamentSummary.fromJson(Map<String, dynamic> json) {
@@ -61,6 +63,8 @@ class TournamentSummary {
       venueNewAddress: venue?['newAddress'] as String?,
       venueNewDistrict: venue?['newDistrict'] as String?,
       venueNewCity: venue?['newCity'] as String?,
+      venueLatitude: (venue?['lat'] as num?)?.toDouble(),
+      venueLongitude: (venue?['lng'] as num?)?.toDouble(),
     );
   }
 
@@ -80,6 +84,11 @@ class TournamentSummary {
   final String? venueNewAddress;
   final String? venueNewDistrict;
   final String? venueNewCity;
+  final double? venueLatitude;
+  final double? venueLongitude;
+
+  bool get hasVenueCoordinates =>
+      venueLatitude != null && venueLongitude != null;
 
   String? displayLocation({required bool showNewAddress}) {
     final address = resolveAppAddress(

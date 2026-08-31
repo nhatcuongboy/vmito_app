@@ -214,12 +214,22 @@ class ClubManagementController extends Notifier<AsyncValue<void>> {
 
   Future<void> addMember(String clubId, String userId) => _mutate(
     () => _service.addClubMember(clubId, userId),
-    invalidate: () => ref.invalidate(clubMembersProvider(clubId)),
+    invalidate: () {
+      ref
+        ..invalidate(clubMembersProvider(clubId))
+        ..invalidate(clubDetailProvider(clubId))
+        ..invalidate(managedClubProvider(clubId));
+    },
   );
 
   Future<void> removeMember(String clubId, String userId) => _mutate(
     () => _service.removeClubMember(clubId, userId),
-    invalidate: () => ref.invalidate(clubMembersProvider(clubId)),
+    invalidate: () {
+      ref
+        ..invalidate(clubMembersProvider(clubId))
+        ..invalidate(clubDetailProvider(clubId))
+        ..invalidate(managedClubProvider(clubId));
+    },
   );
 
   Future<void> updateMemberRole(

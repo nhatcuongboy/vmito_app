@@ -13,6 +13,7 @@ import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/features/home/presentation/home_screen.dart';
 import 'package:vmito_app/features/home/presentation/widgets/home_discovery_tabs.dart';
 import 'package:vmito_app/features/home/presentation/widgets/home_discovery_toolbar.dart';
+import 'package:vmito_app/features/home/presentation/widgets/home_header_backdrop.dart';
 import 'package:vmito_app/features/notification/application/notification_controller.dart';
 import 'package:vmito_app/features/session/application/player/browse_sessions_controller.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
@@ -91,19 +92,23 @@ void main() {
             .first,
       );
 
-      expect(appBar.backgroundColor, palette.brandSurface);
+      expect(appBar.backgroundColor, Colors.transparent);
+      expect(appBar.flexibleSpace, isA<HomeHeaderBackdrop>());
       expect(appBar.surfaceTintColor, Colors.transparent);
       expect(appBar.scrolledUnderElevation, 0);
-      expect(
-        (header.decoration as BoxDecoration).color,
-        palette.brandSurface,
-      );
+      final headerGradient =
+          (header.decoration as BoxDecoration).gradient! as LinearGradient;
+      expect(headerGradient.colors, contains(palette.brandSurface));
+      expect(headerGradient.colors.last, entry.value.colorScheme.surface);
       final tabsDecoration = tabsSurface.decoration as BoxDecoration;
-      expect(tabsDecoration.color, palette.brandSurface);
-      expect((tabsDecoration.border! as Border).bottom.color, palette.border);
+      expect(tabsDecoration.color, Colors.transparent);
+      expect(
+        (tabsDecoration.border! as Border).bottom.color,
+        palette.border.withValues(alpha: 0.6),
+      );
       expect(
         (toolbarSurface.decoration as BoxDecoration).color,
-        entry.value.colorScheme.surface,
+        Colors.transparent,
       );
       expect(tester.takeException(), isNull);
     });
@@ -427,6 +432,65 @@ void main() {
     expect(find.byKey(const Key('home-create-session-button')), findsOneWidget);
   });
 
+  testWidgets('all authenticated discovery tabs expose a right-side map mode', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          authControllerProvider.overrideWith(_HostAuthController.new),
+          notificationControllerProvider.overrideWith(
+            _FakeNotificationController.new,
+          ),
+          browseSessionsControllerProvider.overrideWith(
+            _FakeSessionsController.new,
+          ),
+          venueBrowseControllerProvider.overrideWith(_FakeVenuesController.new),
+          clubsControllerProvider.overrideWith(_FakeClubsController.new),
+          tournamentBrowseControllerProvider.overrideWith(
+            _FakeTournamentsController.new,
+          ),
+        ],
+        child: MaterialApp(
+          locale: const Locale('vi'),
+          theme: AppTheme.light,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const HomeScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    for (final tab in const [
+      ('venues', 'venue-map-view-toggle'),
+      ('clubs', 'club-map-view-toggle'),
+      ('tournaments', 'tournament-map-view-toggle'),
+    ]) {
+      await tester.tap(find.byKey(Key('home-discovery-tab-${tab.$1}')));
+      await tester.pump();
+      await tester.pump();
+
+      final toggle = find.byKey(Key(tab.$2));
+      expect(toggle, findsOneWidget);
+      expect(tester.getSize(toggle).height, 44);
+      expect(
+        tester.getCenter(toggle).dx,
+        greaterThan(tester.getCenter(find.byType(Scaffold)).dx),
+      );
+
+      await tester.tap(toggle);
+      await tester.pump();
+      expect(find.text('Danh sách'), findsOneWidget);
+      expect(
+        find.text(
+          'Không có kết quả nào hiện tại có tọa độ để hiển thị trên bản đồ.',
+        ),
+        findsOneWidget,
+      );
+    }
+  });
+
   testWidgets('changing the default city keeps map mode and reloads markers', (
     tester,
   ) async {
@@ -532,7 +596,7 @@ void main() {
       expect(find.text('Danh sách'), findsNothing);
       expect(
         tester.getSize(find.byKey(const Key('session-map-view-toggle'))).height,
-        48,
+        44,
       );
       expect(
         find.byKey(const Key('discovery-city-selector')),

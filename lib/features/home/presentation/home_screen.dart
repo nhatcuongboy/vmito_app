@@ -16,6 +16,7 @@ import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/features/home/presentation/widgets/home_discovery_filter_sheets.dart';
 import 'package:vmito_app/features/home/presentation/widgets/home_discovery_tabs.dart';
 import 'package:vmito_app/features/home/presentation/widgets/home_discovery_toolbar.dart';
+import 'package:vmito_app/features/home/presentation/widgets/home_header_backdrop.dart';
 import 'package:vmito_app/features/session/application/player/browse_sessions_controller.dart';
 import 'package:vmito_app/features/session/presentation/player/public_sessions_content.dart';
 import 'package:vmito_app/features/session/presentation/player/session_filter_sheet.dart';
@@ -107,7 +108,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final discoveryHeader = DecoratedBox(
       key: const Key('home-discovery-header'),
       decoration: BoxDecoration(
-        color: palette.brandSurface,
+        gradient: HomeHeaderTint.of(context).headerGradient,
         border: Border(bottom: BorderSide(color: palette.border)),
         boxShadow: [
           BoxShadow(
@@ -177,15 +178,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             discoveryHeader: discoveryHeader,
             initialFilter: activeQuery == null ? null : venueState.filter,
             showFilterSummary: activeQuery != null,
+            showMapToggle: isAuthenticated,
           ),
           HomeDiscoveryTab.clubs => BrowseClubsScreen(
             embedded: true,
             discoveryHeader: discoveryHeader,
             initialSearch: activeQuery ?? clubsState.search,
+            showMapToggle: isAuthenticated,
           ),
           HomeDiscoveryTab.tournaments => BrowseTournamentsContent(
             discoveryHeader: discoveryHeader,
             initialSearch: activeQuery ?? tournamentState.search,
+            showMapToggle: isAuthenticated,
           ),
         },
       ),
@@ -257,8 +261,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     bool isAuthenticated,
     bool canCreateTournament,
   ) => AppBar(
-    backgroundColor: Theme.of(context).extension<AppPalette>()!.brandSurface,
+    backgroundColor: Colors.transparent,
     surfaceTintColor: Colors.transparent,
+    flexibleSpace: const HomeHeaderBackdrop(),
     elevation: 0,
     scrolledUnderElevation: 0,
     leading: IconButton(
@@ -332,8 +337,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     AppLocalizations l10n,
     String query,
   ) => AppBar(
-    backgroundColor: Theme.of(context).extension<AppPalette>()!.brandSurface,
+    backgroundColor: Colors.transparent,
     surfaceTintColor: Colors.transparent,
+    flexibleSpace: const HomeHeaderBackdrop(),
     elevation: 0,
     scrolledUnderElevation: 0,
     leading: IconButton(

@@ -17,6 +17,7 @@ import 'package:vmito_app/features/session/presentation/player/session_map_view.
 import 'package:vmito_app/features/session/presentation/widgets/session_card.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_loading_view.dart';
+import 'package:vmito_app/shared/widgets/discovery_map_toggle.dart';
 
 /// Public-session browser embedded in Home discovery.
 class BrowseSessionsContent extends ConsumerStatefulWidget {
@@ -175,14 +176,12 @@ class _BrowseSessionsContentState extends ConsumerState<BrowseSessionsContent> {
               ),
               if (widget.showMapToggle)
                 Positioned(
-                  left: 0,
-                  right: 0,
+                  right: AppSpacing.md,
                   bottom: AppSpacing.md,
-                  child: Center(
-                    child: _MapViewSwitcher(
-                      showMap: _showMap,
-                      onPressed: _toggleMap,
-                    ),
+                  child: DiscoveryMapToggle(
+                    key: const Key('session-map-view-toggle'),
+                    showMap: _showMap,
+                    onPressed: _toggleMap,
                   ),
                 ),
             ],
@@ -203,37 +202,6 @@ class _BrowseSessionsContentState extends ConsumerState<BrowseSessionsContent> {
   }
 }
 
-/// Shows the destination view, so exactly one primary action is visible.
-class _MapViewSwitcher extends StatelessWidget {
-  const _MapViewSwitcher({required this.showMap, required this.onPressed});
-
-  final bool showMap;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final l10n = AppLocalizations.of(context);
-    final label = showMap ? l10n.sessionMapShowList : l10n.sessionMapShow;
-    final icon = showMap ? AppIcons.list : AppIcons.mapPin;
-
-    return FilledButton.tonalIcon(
-      key: const Key('session-map-view-toggle'),
-      onPressed: onPressed,
-      style: FilledButton.styleFrom(
-        minimumSize: const Size(112, AppSizes.minTapTarget),
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        backgroundColor: theme.colorScheme.surfaceContainerHighest,
-        foregroundColor: theme.colorScheme.onSurfaceVariant,
-        elevation: 3,
-        shape: const StadiumBorder(),
-      ),
-      icon: Icon(icon, size: 18),
-      label: Text(label),
-    );
-  }
-}
-
 @Preview(
   name: 'Map action',
   group: 'Session discovery',
@@ -246,7 +214,7 @@ Widget sessionMapViewSwitcherPreview() => MaterialApp(
   supportedLocales: AppLocalizations.supportedLocales,
   home: const Scaffold(
     body: Center(
-      child: _MapViewSwitcher(
+      child: DiscoveryMapToggle(
         showMap: true,
         onPressed: _ignorePreviewMapModeChange,
       ),

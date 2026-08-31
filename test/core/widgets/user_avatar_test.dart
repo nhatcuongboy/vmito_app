@@ -6,10 +6,18 @@ void main() {
   Future<void> pumpAvatar(WidgetTester tester, UserAvatar avatar) =>
       tester.pumpWidget(MaterialApp(home: Scaffold(body: avatar)));
 
-  testWidgets('uses first and last initials when no image is available', (
+  testWidgets('shows only the first letter for a single-word name', (
     tester,
   ) async {
-    await pumpAvatar(tester, const UserAvatar(name: 'Nguyễn Văn An'));
+    await pumpAvatar(tester, const UserAvatar(name: 'Minh'));
+
+    expect(find.text('M'), findsOneWidget);
+  });
+
+  testWidgets('shows the first letter of each word for multi-word names', (
+    tester,
+  ) async {
+    await pumpAvatar(tester, const UserAvatar(name: 'Ngọc Anh'));
 
     expect(find.text('NA'), findsOneWidget);
   });

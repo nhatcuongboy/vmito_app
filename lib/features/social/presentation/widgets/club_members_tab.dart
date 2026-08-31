@@ -107,7 +107,7 @@ class _MemberTile extends ConsumerWidget {
 
   String _roleLabel(AppLocalizations l10n, String role) => switch (role) {
     'ADMIN' => l10n.clubRoleAdmin,
-    'MODERATOR' => l10n.clubRoleModerator,
+    'MODERATOR' => 'Mod',
     _ => l10n.clubRoleMember,
   };
 

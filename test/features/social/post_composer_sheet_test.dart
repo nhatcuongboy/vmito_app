@@ -47,6 +47,19 @@ void main() {
     expect(submitted, isTrue);
   });
 
+  testWidgets('keeps publish action next to composer content', (tester) async {
+    await tester.pumpWidget(buildSubject((_) async {}));
+
+    final optionsBottom = tester
+        .getBottomLeft(find.byKey(const Key('post-composer-add-options')))
+        .dy;
+    final submitTop = tester
+        .getTopLeft(find.byKey(const Key('post-composer-submit')))
+        .dy;
+
+    expect(submitTop - optionsBottom, lessThanOrEqualTo(24));
+  });
+
   testWidgets('asks before discarding a populated draft', (tester) async {
     await tester.pumpWidget(buildSubject((_) async {}));
     await tester.enterText(find.byKey(const Key('post-content-field')), 'Nháp');

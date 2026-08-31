@@ -18,6 +18,7 @@ void main() {
           'id': 'm1',
           'userId': 'u1',
           'role': 'ADMIN',
+          'createdAt': '2026-08-20T10:00:00.000Z',
           'user': {'name': 'Host'},
         },
       ],
@@ -29,8 +30,26 @@ void main() {
     expect(club.gallery, ['cover.jpg', 'gallery.jpg']);
     expect(club.hostId, 'u1');
     expect(club.members.single.name, 'Host');
+    expect(club.members.single.createdAt, DateTime.utc(2026, 8, 20, 10));
     expect(club.scheduleVenues.single.id, 'v1');
     expect(club.socialLinks['facebook'], contains('facebook.com'));
+  });
+
+  test('ClubMember tolerates missing or invalid joined dates', () {
+    final missing = ClubMember.fromJson({
+      'id': 'm1',
+      'userId': 'u1',
+      'user': {'name': 'Member'},
+    });
+    final invalid = ClubMember.fromJson({
+      'id': 'm2',
+      'userId': 'u2',
+      'createdAt': 'not-a-date',
+      'user': {'name': 'Member 2'},
+    });
+
+    expect(missing.createdAt, isNull);
+    expect(invalid.createdAt, isNull);
   });
 
   test('ClubSummary parses membership and operational fields', () {

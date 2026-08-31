@@ -29,11 +29,10 @@ class HomeDiscoveryToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
+      decoration: const BoxDecoration(
+        color: Colors.transparent,
       ),
       child: SafeArea(
         top: false,

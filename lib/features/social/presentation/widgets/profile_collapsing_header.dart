@@ -7,7 +7,6 @@ import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/app_typography.dart';
 import 'package:vmito_app/core/widgets/emoji_safe_text.dart';
-import 'package:vmito_app/core/widgets/notification_header_button.dart';
 import 'package:vmito_app/core/widgets/user_avatar.dart';
 import 'package:vmito_app/features/social/domain/public_profile.dart';
 import 'package:vmito_app/features/social/presentation/widgets/profile_header_geometry.dart';
@@ -111,11 +110,6 @@ class ProfileCollapsingHeader extends StatelessWidget {
         },
       ),
       actions: [
-        if (isRootProfile)
-          _ToolbarColor(
-            scrollOffset: scrollOffset,
-            builder: (color) => NotificationHeaderButton(color: color),
-          ),
         _ToolbarColor(
           scrollOffset: scrollOffset,
           builder: (color) => IconButton(
@@ -230,23 +224,19 @@ class _CoverSpace extends StatelessWidget {
             ),
           ),
           Positioned(
-            key: const ValueKey('profile-cover-divider'),
             left: 0,
             right: 0,
             bottom: 0,
-            height: 12,
+            height: 18,
             child: IgnorePointer(
               child: Opacity(
                 opacity: 1 - compactOpacity,
-                child: const DecoratedBox(
+                child: DecoratedBox(
+                  key: const ValueKey('profile-cover-curved-sheet'),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [Colors.transparent, Color(0x18000000)],
-                    ),
-                    border: Border(
-                      bottom: BorderSide(color: Color(0x14000000)),
+                    color: Theme.of(context).scaffoldBackgroundColor,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(AppRadius.xl + 4),
                     ),
                   ),
                 ),
@@ -279,7 +269,9 @@ class _CoverSpace extends StatelessWidget {
           if (isOwner && progress == null && compactOpacity < .5)
             Positioned(
               right: AppSpacing.xs,
-              bottom: AppSpacing.xs,
+              // Keep the 34px visual above the 18px curved content sheet.
+              // IconButton adds 7px of padding around that visual.
+              bottom: AppSpacing.sm + AppSpacing.xs,
               child: IconButton(
                 key: const ValueKey('profile-change-cover-button'),
                 tooltip: changeTooltip,

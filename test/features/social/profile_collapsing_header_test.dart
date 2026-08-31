@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:vmito_app/core/network/paginated.dart' as pagination;
 import 'package:vmito_app/core/theme/app_icons.dart';
+import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/user_avatar.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
@@ -173,6 +174,13 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const ValueKey('profile-edit-button')), findsNothing);
+    expect(
+      find.byKey(const ValueKey('profile-inline-stats')),
+      findsOneWidget,
+    );
+    expect(find.text('34 kèo đã host'), findsOneWidget);
+    expect(find.text('12 kèo tham gia'), findsOneWidget);
+    expect(find.text('4.8 đánh giá'), findsOneWidget);
 
     final posts = find.byKey(const PageStorageKey('profile-posts-user-1'));
     await tester.drag(posts, const Offset(0, -900));
@@ -215,7 +223,7 @@ void main() {
           publicProfileProvider('user-1').overrideWith(
             (ref) async => const PublicProfileBundle(
               profile: _profile,
-              stats: RatingStats(average: 4.8, total: 20),
+              stats: RatingStats(average: 0, total: 0),
               ratings: [],
               hostedSessionsCount: 34,
             ),
@@ -262,10 +270,41 @@ void main() {
       ),
       const Size.square(30),
     );
-    expect(
-      find.byKey(const ValueKey('profile-cover-divider')),
-      findsOneWidget,
+    final curvedSheet = tester.widget<DecoratedBox>(
+      find.byKey(const ValueKey('profile-cover-curved-sheet')),
     );
+    final curvedDecoration = curvedSheet.decoration as BoxDecoration;
+    expect(
+      curvedDecoration.borderRadius,
+      const BorderRadius.vertical(top: Radius.circular(AppRadius.xl + 4)),
+    );
+    final avatarVisual = tester.widget<Material>(
+      find.byKey(const ValueKey('profile-change-avatar-visual')),
+    );
+    expect(
+      avatarVisual.color,
+      Theme.of(
+        tester.element(
+          find.byKey(const ValueKey('profile-change-avatar-visual')),
+        ),
+      ).colorScheme.primary,
+    );
+    expect(avatarVisual.elevation, 2);
+    final coverVisual = find.byKey(
+      const ValueKey('profile-change-cover-visual'),
+    );
+    expect(
+      tester.getBottomLeft(coverVisual).dy,
+      lessThan(
+        tester
+            .getTopLeft(
+              find.byKey(const ValueKey('profile-cover-curved-sheet')),
+            )
+            .dy,
+      ),
+    );
+    expect(find.text('0 đánh giá'), findsOneWidget);
+    expect(find.text('0.0 đánh giá'), findsNothing);
     final avatarFrame = tester.widget<Container>(
       find.byKey(const ValueKey('profile-avatar-frame')),
     );
@@ -376,7 +415,7 @@ void main() {
     expect(find.text('Đang hoạt động'), findsNothing);
   });
 
-  testWidgets('renders notification icon to the left of share button', (
+  testWidgets('hides the notification icon on the root profile header', (
     tester,
   ) async {
     final offset = ValueNotifier<double>(0);
@@ -384,16 +423,8 @@ void main() {
 
     await _pumpHeader(tester, offset: offset);
 
-    final notifFinder = find.byIcon(AppIcons.notifications);
-    final shareFinder = find.byIcon(AppIcons.share);
-
-    expect(notifFinder, findsOneWidget);
-    expect(shareFinder, findsOneWidget);
-
-    final notifPos = tester.getTopLeft(notifFinder);
-    final sharePos = tester.getTopLeft(shareFinder);
-
-    expect(notifPos.dx, lessThan(sharePos.dx));
+    expect(find.byIcon(AppIcons.notifications), findsNothing);
+    expect(find.byIcon(AppIcons.share), findsOneWidget);
   });
 
   testWidgets("hides the notification icon on another user's profile", (

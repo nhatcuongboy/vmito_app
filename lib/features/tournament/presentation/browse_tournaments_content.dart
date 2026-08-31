@@ -5,26 +5,30 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/constants/image_constants.dart';
+import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/tab_reselection_controller.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
-import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/tournament/application/tournament_browse_controller.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/discovery_entity_map_view.dart';
+import 'package:vmito_app/shared/widgets/discovery_map_toggle.dart';
 
 class BrowseTournamentsContent extends ConsumerStatefulWidget {
   const BrowseTournamentsContent({
     this.discoveryHeader,
     this.initialSearch = '',
+    this.showMapToggle = false,
     super.key,
   });
 
   final Widget? discoveryHeader;
   final String initialSearch;
+  final bool showMapToggle;
 
   @override
   ConsumerState<BrowseTournamentsContent> createState() =>
@@ -35,6 +39,7 @@ class _BrowseTournamentsContentState
     extends ConsumerState<BrowseTournamentsContent> {
   final _scrollController = ScrollController();
   late final VoidCallback _removeReselectHandler;
+  var _showMap = false;
 
   @override
   void initState() {
@@ -76,50 +81,97 @@ class _BrowseTournamentsContentState
       children: [
         ?widget.discoveryHeader,
         Expanded(
-          child: RefreshIndicator(
-            onRefresh: controller.load,
-            child: switch (state) {
-              _ when state.isLoading && state.tournaments.isEmpty =>
-                const Center(child: CircularProgressIndicator()),
-              _ when state.error != null && state.tournaments.isEmpty =>
-                AppErrorView(error: state.error!, onRetry: controller.load),
-              _ when state.tournaments.isEmpty => ListView(
-                controller: _scrollController,
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: [
-                  SizedBox(height: MediaQuery.sizeOf(context).height * 0.25),
-                  Icon(
-                    AppIcons.trophy,
-                    size: 48,
-                    color: Theme.of(
-                      context,
-                    ).extension<AppPalette>()!.mutedForeground,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  Text(
-                    l10n.tournamentEmpty,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                ],
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: _showMap
+                    ? DiscoveryEntityMapView(
+                        items: _mapItems(state.tournaments),
+                        emptyMessage: l10n.discoveryMapNoLocations,
+                      )
+                    : RefreshIndicator(
+                        onRefresh: controller.load,
+                        child: switch (state) {
+                          _ when state.isLoading && state.tournaments.isEmpty =>
+                            const Center(child: CircularProgressIndicator()),
+                          _
+                              when state.error != null &&
+                                  state.tournaments.isEmpty =>
+                            AppErrorView(
+                              error: state.error!,
+                              onRetry: controller.load,
+                            ),
+                          _ when state.tournaments.isEmpty => ListView(
+                            controller: _scrollController,
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              SizedBox(
+                                height:
+                                    MediaQuery.sizeOf(context).height * 0.25,
+                              ),
+                              Icon(
+                                AppIcons.trophy,
+                                size: 48,
+                                color: Theme.of(
+                                  context,
+                                ).extension<AppPalette>()!.mutedForeground,
+                              ),
+                              const SizedBox(height: AppSpacing.md),
+                              Text(
+                                l10n.tournamentEmpty,
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodyLarge,
+                              ),
+                            ],
+                          ),
+                          _ => ListView.separated(
+                            controller: _scrollController,
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.all(AppSpacing.md),
+                            itemCount: state.tournaments.length,
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(height: AppSpacing.md),
+                            itemBuilder: (context, index) =>
+                                TournamentBrowseCard(
+                                  tournament: state.tournaments[index],
+                                ),
+                          ),
+                        },
+                      ),
               ),
-              _ => ListView.separated(
-                controller: _scrollController,
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(AppSpacing.md),
-                itemCount: state.tournaments.length,
-                separatorBuilder: (_, _) =>
-                    const SizedBox(height: AppSpacing.md),
-                itemBuilder: (context, index) => TournamentBrowseCard(
-                  tournament: state.tournaments[index],
+              if (widget.showMapToggle)
+                Positioned(
+                  right: AppSpacing.md,
+                  bottom: AppSpacing.md,
+                  child: DiscoveryMapToggle(
+                    key: const Key('tournament-map-view-toggle'),
+                    showMap: _showMap,
+                    onPressed: () => setState(() => _showMap = !_showMap),
+                  ),
                 ),
-              ),
-            },
+            ],
           ),
         ),
       ],
     );
   }
+
+  List<DiscoveryMapItem> _mapItems(List<TournamentSummary> tournaments) =>
+      tournaments
+          .where((tournament) => tournament.hasVenueCoordinates)
+          .map(
+            (tournament) => DiscoveryMapItem(
+              id: tournament.id,
+              title: tournament.name,
+              subtitle: tournament.venueName ?? tournament.location,
+              latitude: tournament.venueLatitude!,
+              longitude: tournament.venueLongitude!,
+              onOpenDetail: () => context.push(
+                AppRoutes.tournamentDetail(tournament.slug ?? tournament.id),
+              ),
+            ),
+          )
+          .toList(growable: false);
 }
 
 class TournamentBrowseCard extends ConsumerWidget {

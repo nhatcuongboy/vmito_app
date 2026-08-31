@@ -18,12 +18,15 @@ import 'package:vmito_app/features/social/domain/club.dart';
 import 'package:vmito_app/features/social/presentation/club_schedule_formatter.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_empty_filter_sheet.dart';
+import 'package:vmito_app/shared/widgets/discovery_entity_map_view.dart';
+import 'package:vmito_app/shared/widgets/discovery_map_toggle.dart';
 
 class BrowseClubsScreen extends ConsumerStatefulWidget {
   const BrowseClubsScreen({
     this.embedded = false,
     this.discoveryHeader,
     this.initialSearch = '',
+    this.showMapToggle = false,
     super.key,
   });
 
@@ -32,6 +35,7 @@ class BrowseClubsScreen extends ConsumerStatefulWidget {
   final bool embedded;
   final Widget? discoveryHeader;
   final String initialSearch;
+  final bool showMapToggle;
 
   @override
   ConsumerState<BrowseClubsScreen> createState() => _BrowseClubsScreenState();
@@ -42,6 +46,7 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
   final _scroll = ScrollController();
   Timer? _timer;
   VoidCallback? _removeReselectHandler;
+  var _showMap = false;
   @override
   void initState() {
     super.initState();
@@ -130,52 +135,87 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
             onRefresh: () => ref
                 .read(clubsControllerProvider.notifier)
                 .load(search: state.search),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 720),
-                child: ListView.separated(
-                  controller: _scroll,
-                  padding: const EdgeInsets.all(AppSpacing.screenPadding),
-                  itemCount: state.clubs.length + 1,
-                  separatorBuilder: (_, _) =>
-                      const SizedBox(height: AppSpacing.md),
-                  itemBuilder: (context, index) {
-                    if (index == state.clubs.length) {
-                      if (state.isLoading && state.clubs.isEmpty) {
-                        return const Padding(
-                          padding: EdgeInsets.all(32),
-                          child: Center(child: CircularProgressIndicator()),
-                        );
-                      }
-                      if (state.error != null && state.clubs.isEmpty) {
-                        return AppErrorView(
-                          error: state.error!,
-                          onRetry: () => ref
-                              .read(clubsControllerProvider.notifier)
-                              .load(search: state.search),
-                        );
-                      }
-                      if (state.clubs.isEmpty) {
-                        return const Padding(
-                          padding: EdgeInsets.all(32),
-                          child: Center(
-                            child: Text('Không tìm thấy câu lạc bộ.'),
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: _showMap
+                      ? DiscoveryEntityMapView(
+                          items: _mapItems(state.clubs),
+                          emptyMessage: AppLocalizations.of(
+                            context,
+                          ).discoveryMapNoLocations,
+                        )
+                      : Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 720),
+                            child: ListView.separated(
+                              controller: _scroll,
+                              padding: const EdgeInsets.all(
+                                AppSpacing.screenPadding,
+                              ),
+                              itemCount: state.clubs.length + 1,
+                              separatorBuilder: (_, _) =>
+                                  const SizedBox(height: AppSpacing.md),
+                              itemBuilder: (context, index) {
+                                if (index == state.clubs.length) {
+                                  if (state.isLoading && state.clubs.isEmpty) {
+                                    return const Padding(
+                                      padding: EdgeInsets.all(32),
+                                      child: Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    );
+                                  }
+                                  if (state.error != null &&
+                                      state.clubs.isEmpty) {
+                                    return AppErrorView(
+                                      error: state.error!,
+                                      onRetry: () => ref
+                                          .read(
+                                            clubsControllerProvider.notifier,
+                                          )
+                                          .load(search: state.search),
+                                    );
+                                  }
+                                  if (state.clubs.isEmpty) {
+                                    return const Padding(
+                                      padding: EdgeInsets.all(32),
+                                      child: Center(
+                                        child: Text(
+                                          'Không tìm thấy câu lạc bộ.',
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  return state.isLoading &&
+                                          state.clubs.isNotEmpty
+                                      ? const Padding(
+                                          padding: EdgeInsets.all(16),
+                                          child: Center(
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                        )
+                                      : const SizedBox.shrink();
+                                }
+                                return _ClubBrowseCard(
+                                  club: state.clubs[index],
+                                );
+                              },
+                            ),
                           ),
-                        );
-                      }
-                      return state.isLoading && state.clubs.isNotEmpty
-                          ? const Padding(
-                              padding: EdgeInsets.all(16),
-                              child: Center(child: CircularProgressIndicator()),
-                            )
-                          : const SizedBox.shrink();
-                    }
-                    return _ClubBrowseCard(
-                      club: state.clubs[index],
-                    );
-                  },
+                        ),
                 ),
-              ),
+                if (widget.embedded && widget.showMapToggle)
+                  Positioned(
+                    right: AppSpacing.md,
+                    bottom: AppSpacing.md,
+                    child: DiscoveryMapToggle(
+                      key: const Key('club-map-view-toggle'),
+                      showMap: _showMap,
+                      onPressed: () => setState(() => _showMap = !_showMap),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),
@@ -231,6 +271,24 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
       ),
     ),
   );
+
+  List<DiscoveryMapItem> _mapItems(List<ClubSummary> clubs) => clubs
+      .where((club) => club.defaultVenue?.hasCoordinates ?? false)
+      .map(
+        (club) {
+          final venue = club.defaultVenue!;
+          return DiscoveryMapItem(
+            id: club.id,
+            title: club.name,
+            subtitle: venue.name,
+            latitude: venue.latitude!,
+            longitude: venue.longitude!,
+            onOpenDetail: () =>
+                context.push(AppRoutes.clubDetail(club.slug ?? club.id)),
+          );
+        },
+      )
+      .toList(growable: false);
 }
 
 class _ClubBrowseCard extends StatelessWidget {

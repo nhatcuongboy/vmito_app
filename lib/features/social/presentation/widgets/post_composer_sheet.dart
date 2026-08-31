@@ -92,62 +92,78 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
       },
       child: SafeArea(
         top: false,
-        child: SizedBox(
-          height: MediaQuery.sizeOf(context).height * .94,
-          child: Scaffold(
-            appBar: AppBar(
-              automaticallyImplyLeading: false,
-              title: _showingLocationPanel
-                  ? Row(
-                      children: [
-                        IconButton(
-                          tooltip: l10n.socialCreatePost,
-                          onPressed: _isSubmitting ? null : _closeLocationPanel,
-                          icon: const Icon(AppIcons.arrowBack),
-                        ),
-                        Text(l10n.socialAddLocation),
-                      ],
-                    )
-                  : Text(l10n.socialCreatePost),
-              centerTitle: !_showingLocationPanel,
-              actions: [
-                IconButton(
-                  key: const Key('post-composer-close'),
-                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-                  onPressed: _isSubmitting ? null : _requestClose,
-                  icon: const Icon(AppIcons.close),
-                ),
-              ],
-            ),
-            body: _showingLocationPanel
-                ? _buildLocationPanel(context)
-                : ReactiveForm(
-                    formGroup: _form,
-                    child: _buildComposer(context),
+        child: Material(
+          color: Theme.of(context).colorScheme.surface,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AppBar(
+                automaticallyImplyLeading: false,
+                title: _showingLocationPanel
+                    ? Row(
+                        children: [
+                          IconButton(
+                            tooltip: l10n.socialCreatePost,
+                            onPressed: _isSubmitting
+                                ? null
+                                : _closeLocationPanel,
+                            icon: const Icon(AppIcons.arrowBack),
+                          ),
+                          Text(l10n.socialAddLocation),
+                        ],
+                      )
+                    : Text(l10n.socialCreatePost),
+                centerTitle: !_showingLocationPanel,
+                actions: [
+                  IconButton(
+                    key: const Key('post-composer-close'),
+                    tooltip: MaterialLocalizations.of(
+                      context,
+                    ).closeButtonTooltip,
+                    onPressed: _isSubmitting ? null : _requestClose,
+                    icon: const Icon(AppIcons.close),
                   ),
-            bottomNavigationBar: SafeArea(
-              top: false,
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.md,
-                  AppSpacing.sm,
-                  AppSpacing.md,
-                  AppSpacing.md,
-                ),
-                child: FilledButton(
-                  key: const Key('post-composer-submit'),
-                  onPressed: _isSubmitting || _isUploading || _form.invalid
-                      ? null
-                      : _submit,
-                  child: _isSubmitting
-                      ? const SizedBox.square(
-                          dimension: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : Text(l10n.socialPublish),
-                ),
+                ],
               ),
-            ),
+              Flexible(
+                child: _showingLocationPanel
+                    ? _buildLocationPanel(context)
+                    : ReactiveForm(
+                        formGroup: _form,
+                        child: _buildComposer(context),
+                      ),
+              ),
+              if (!_showingLocationPanel)
+                SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.md,
+                      AppSpacing.sm,
+                      AppSpacing.md,
+                      AppSpacing.md,
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: FilledButton(
+                        key: const Key('post-composer-submit'),
+                        onPressed:
+                            _isSubmitting || _isUploading || _form.invalid
+                            ? null
+                            : _submit,
+                        child: _isSubmitting
+                            ? const SizedBox.square(
+                                dimension: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(l10n.socialPublish),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ),
@@ -206,6 +222,7 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
           ],
           const SizedBox(height: AppSpacing.md),
           Container(
+            key: const Key('post-composer-add-options'),
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.sm,
               vertical: AppSpacing.xs,

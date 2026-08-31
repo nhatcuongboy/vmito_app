@@ -539,30 +539,38 @@ class _ProfileHeader extends StatelessWidget {
             Chip(label: Text(profile.levelDescription!)),
           ],
           const SizedBox(height: AppSpacing.sm + 4),
-          Row(
-            children: [
-              Expanded(
-                child: _Stat(
-                  value: '${bundle.hostedSessionsCount}',
-                  label: 'Kèo đã host',
-                  onTap: () => onSelectTab(2),
+          LayoutBuilder(
+            builder: (context, constraints) => SizedBox(
+              width: constraints.maxWidth,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Row(
+                  key: const ValueKey('profile-inline-stats'),
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _InlineStat(
+                      value: _compactCount(bundle.hostedSessionsCount),
+                      label: 'kèo đã host',
+                      onTap: () => onSelectTab(2),
+                    ),
+                    const _StatSeparator(),
+                    _InlineStat(
+                      value: _compactCount(profile.joinedSessionsCount),
+                      label: 'kèo tham gia',
+                      onTap: () => onSelectTab(2),
+                    ),
+                    const _StatSeparator(),
+                    _InlineStat(
+                      value: bundle.stats.total == 0
+                          ? '0'
+                          : bundle.stats.average.toStringAsFixed(1),
+                      label: 'đánh giá',
+                      onTap: () => onSelectTab(4),
+                    ),
+                  ],
                 ),
               ),
-              Expanded(
-                child: _Stat(
-                  value: '${profile.joinedSessionsCount}',
-                  label: 'Kèo tham gia',
-                  onTap: () => onSelectTab(2),
-                ),
-              ),
-              Expanded(
-                child: _Stat(
-                  value: bundle.stats.average.toStringAsFixed(1),
-                  label: 'Đánh giá',
-                  onTap: () => onSelectTab(4),
-                ),
-              ),
-            ],
+            ),
           ),
         ],
       ),
@@ -570,8 +578,22 @@ class _ProfileHeader extends StatelessWidget {
   }
 }
 
-class _Stat extends StatelessWidget {
-  const _Stat({required this.value, required this.label, required this.onTap});
+String _compactCount(int value) {
+  if (value < 1000) return '$value';
+
+  final divisor = value < 1000000 ? 1000 : 1000000;
+  final suffix = value < 1000000 ? 'K' : 'M';
+  final compact = value / divisor;
+  final digits = compact >= 10 || compact == compact.roundToDouble() ? 0 : 1;
+  return '${compact.toStringAsFixed(digits)}$suffix';
+}
+
+class _InlineStat extends StatelessWidget {
+  const _InlineStat({
+    required this.value,
+    required this.label,
+    required this.onTap,
+  });
 
   final String value;
   final String label;
@@ -580,34 +602,49 @@ class _Stat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final mutedForeground =
-        theme.extension<AppPalette>()?.mutedForeground ??
-        theme.colorScheme.onSurfaceVariant;
+    final foreground = theme.colorScheme.onSurface.withValues(alpha: .78);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppRadius.md),
-      child: SizedBox(
-        height: AppSizes.minTapTarget + AppSpacing.md,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              value,
-              style: theme.textTheme.titleLarge?.copyWith(
-                color: mutedForeground,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minHeight: AppSizes.minTapTarget),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+          child: Center(
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: '$value ',
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                  TextSpan(text: label),
+                ],
+              ),
+              maxLines: 1,
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: foreground,
+                fontWeight: FontWeight.w600,
               ),
             ),
-            Text(
-              label,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: mutedForeground,
-              ),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
+}
+
+class _StatSeparator extends StatelessWidget {
+  const _StatSeparator();
+
+  @override
+  Widget build(BuildContext context) => Text(
+    '•',
+    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: .78),
+      fontWeight: FontWeight.w700,
+    ),
+  );
 }
 
 class _ProfileTabBarDelegate extends SliverPersistentHeaderDelegate {
