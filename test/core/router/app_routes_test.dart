@@ -12,6 +12,10 @@ void main() {
         AppRoutes.stripLocale('/vi/tournament/vmito-open'),
         '/tournaments/vmito-open',
       );
+      expect(
+        AppRoutes.stripLocale('/vi/tournament/vmito-open/manage'),
+        '/tournaments/vmito-open/manage',
+      );
     });
 
     test('maps a bare locale root to /', () {
@@ -82,6 +86,10 @@ void main() {
       expect(AppRoutes.isPublic(AppRoutes.cloneSession('abc')), isFalse);
       expect(AppRoutes.isPublic(AppRoutes.rateSession('abc')), isFalse);
       expect(AppRoutes.isPublic(AppRoutes.transactions), isFalse);
+      expect(
+        AppRoutes.isPublic(AppRoutes.manageTournament('vmito-open')),
+        isFalse,
+      );
       expect(AppRoutes.isPublic(AppRoutes.feedback), isFalse);
       expect(
         AppRoutes.isPublic(AppRoutes.mySessionsSearchFor('hosted')),
@@ -121,6 +129,10 @@ void main() {
     );
   });
 
+  test('favoritesFor selects the requested API type', () {
+    expect(AppRoutes.favoritesFor('CLUB'), '/favorites?type=CLUB');
+  });
+
   test('full-screen workspaces hide the shell bottom navigation', () {
     expect(AppRoutes.hidesBottomNavigation(AppRoutes.homeSearch), isTrue);
     expect(
@@ -129,6 +141,10 @@ void main() {
     );
     expect(
       AppRoutes.hidesBottomNavigation(AppRoutes.sessionDetail('s1')),
+      isTrue,
+    );
+    expect(
+      AppRoutes.hidesBottomNavigation(AppRoutes.manageTournament('t1')),
       isTrue,
     );
     expect(AppRoutes.hidesBottomNavigation(AppRoutes.createSession), isFalse);
@@ -182,5 +198,45 @@ void main() {
 
     expect(uri.path, AppRoutes.signIn);
     expect(uri.queryParameters['redirect'], AppRoutes.createSession);
+  });
+
+  test('manageTournament and web normalization retain compatible query', () {
+    final route = Uri.parse(
+      AppRoutes.manageTournament(
+        'vmito open',
+        option: 'registration',
+        categoryId: 'cat 1',
+      ),
+    );
+    final normalized = Uri.parse(
+      AppRoutes.normalizeWebLocation(
+        Uri.parse(
+          '/vi/tournament/vmito-open/manage?option=location&categoryId=c1',
+        ),
+      ),
+    );
+
+    expect(route.path, '/tournaments/vmito%20open/manage');
+    expect(route.queryParameters['option'], 'registration');
+    expect(route.queryParameters['categoryId'], 'cat 1');
+    expect(normalized.path, '/tournaments/vmito-open/manage');
+    expect(normalized.queryParameters, {
+      'option': 'location',
+      'categoryId': 'c1',
+    });
+    expect(
+      AppRoutes.normalizeWebLocation(
+        Uri.parse('/tournaments/vmito%20open/manage?option=contact'),
+      ),
+      '/tournaments/vmito%20open/manage?option=contact',
+    );
+    expect(
+      AppRoutes.normalizeWebLocation(
+        Uri.parse(
+          'https://vmito.com/en/tournament/open/manage?option=results',
+        ),
+      ),
+      '/tournaments/open/manage?option=results',
+    );
   });
 }

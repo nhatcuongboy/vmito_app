@@ -32,7 +32,11 @@ class _FakeFavoriteRepository implements FavoriteRepository {
   }
 }
 
-const FavoriteTarget _target = (type: FavoriteType.session, id: 's1');
+const FavoriteTarget _target = (
+  type: FavoriteType.session,
+  id: 's1',
+  initialIsFavorite: false,
+);
 
 ProviderContainer _container(
   _FakeFavoriteRepository repository, {
@@ -107,6 +111,24 @@ void main() {
     expect(state.isFavorite, isFalse);
     expect(state.favoriteCount, 0);
     expect(repository.calls, ['remove']);
+  });
+
+  test('setFavorite is idempotent and supports undo', () async {
+    final repository = _FakeFavoriteRepository();
+    final container = _container(repository);
+    await container.read(favoriteControllerProvider(_target).future);
+    final controller = container.read(
+      favoriteControllerProvider(_target).notifier,
+    );
+
+    await controller.setFavorite(isFavorite: true);
+    await controller.setFavorite(isFavorite: true);
+
+    expect(repository.calls, ['add']);
+    expect(
+      container.read(favoriteControllerProvider(_target)).value!.isFavorite,
+      isTrue,
+    );
   });
 
   test('a failed write rethrows and re-reads from the server', () async {

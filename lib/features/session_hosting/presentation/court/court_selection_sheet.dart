@@ -206,6 +206,41 @@ class _Footer extends StatelessWidget {
     final palette = theme.extension<AppPalette>()!;
     final l10n = AppLocalizations.of(context);
     final remaining = state.requiredCount - state.selectedIds.length;
+    final content = Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Say what is missing rather than leaving a dead button.
+        if (state.mode == CourtSelectionMode.manual && remaining > 0)
+          Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: Text(
+              l10n.courtSelectRequiredPlayers(state.requiredCount),
+              style: theme.textTheme.labelSmall?.copyWith(
+                color: palette.mutedForeground,
+              ),
+            ),
+          ),
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: onCancel,
+                child: Text(l10n.courtCancelSelection),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: FilledButton(
+                key: const ValueKey('confirm-player-selection'),
+                onPressed: state.isComplete ? onConfirm : null,
+                child: Text(l10n.courtConfirmMatch),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+    final keyboardIsOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
 
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -213,43 +248,7 @@ class _Footer extends StatelessWidget {
         color: theme.colorScheme.surface,
         border: Border(top: BorderSide(color: palette.border)),
       ),
-      child: SafeArea(
-        top: false,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Say what is missing rather than leaving a dead button.
-            if (state.mode == CourtSelectionMode.manual && remaining > 0)
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: Text(
-                  l10n.courtSelectRequiredPlayers(state.requiredCount),
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: palette.mutedForeground,
-                  ),
-                ),
-              ),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: onCancel,
-                    child: Text(l10n.courtCancelSelection),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: FilledButton(
-                    key: const ValueKey('confirm-player-selection'),
-                    onPressed: state.isComplete ? onConfirm : null,
-                    child: Text(l10n.courtConfirmMatch),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+      child: keyboardIsOpen ? content : SafeArea(top: false, child: content),
     );
   }
 }

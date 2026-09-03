@@ -30,6 +30,7 @@ class TournamentSummary {
     required this.endDate,
     required this.status,
     required this.isPublished,
+    this.isFavorite = false,
     this.slug,
     this.coverPhoto,
     this.location,
@@ -54,6 +55,7 @@ class TournamentSummary {
       endDate: DateTime.parse(json['endDate'] as String),
       status: TournamentStatus.fromWire(json['status'] as String?),
       isPublished: json['isPublished'] as bool? ?? false,
+      isFavorite: json['isFavorite'] as bool? ?? false,
       coverPhoto: json['coverPhoto'] as String? ?? _venueCoverPhoto(venue),
       location: _venueLocation(venue),
       venueName: venue?['name'] as String?,
@@ -75,6 +77,7 @@ class TournamentSummary {
   final DateTime endDate;
   final TournamentStatus status;
   final bool isPublished;
+  final bool isFavorite;
   final String? coverPhoto;
   final String? location;
   final String? venueName;

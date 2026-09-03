@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/location/city_names.dart';
 import 'package:vmito_app/core/location/device_geocoding_service.dart';
 import 'package:vmito_app/core/location/device_location_service.dart';
@@ -72,7 +73,7 @@ class _CitySelectorSheetState extends ConsumerState<CitySelectorSheet> {
     );
 
     final colorScheme = Theme.of(context).colorScheme;
-    return ReactiveForm(
+    return AppReactiveForm(
       formGroup: _form,
       child: LayoutBuilder(
         builder: (context, constraints) {

@@ -3,6 +3,8 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
+import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
+import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/venue/application/venue_controller.dart';
 import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/features/venue/presentation/browse_venues_screen.dart';
@@ -207,6 +209,13 @@ void main() {
 
       expect(find.text('Sân Trường THPT Phú Nhuận'), findsOneWidget);
       expect(find.byType(ClipOval), findsOneWidget);
+      final favorite = tester.widget<FavoriteButton>(
+        find.byType(FavoriteButton),
+      );
+      expect(favorite.type, FavoriteType.venue);
+      expect(favorite.targetId, 'v1');
+      expect(favorite.variant, FavoriteButtonVariant.card);
+      expect(favorite.showCount, isFalse);
     });
 
     testWidgets(

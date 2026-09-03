@@ -10,6 +10,7 @@ import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
+import 'package:vmito_app/features/home/presentation/widgets/home_header_backdrop.dart';
 import 'package:vmito_app/core/theme/theme_mode_controller.dart';
 import 'package:vmito_app/core/web/admin_web_destination.dart';
 import 'package:vmito_app/core/widgets/language_selector.dart';
@@ -54,19 +55,21 @@ class SlideOutMenu extends ConsumerWidget {
       unawaited(context.push(route));
     }
 
+    final isSignedIn = isAuthenticated && user != null;
     final canViewHostFinance =
         (user?.isHost ?? false) || (user?.isAdmin ?? false);
 
     return Drawer(
       width: 320,
       child: SafeArea(
+        top: !isSignedIn,
         child: Column(
           children: [
             Expanded(
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
-                  if (isAuthenticated && user != null)
+                  if (isSignedIn)
                     _ProfileHeader(
                       user: user,
                       roleLabel: _roleLabel(l10n, user.role),
@@ -124,7 +127,7 @@ class SlideOutMenu extends ConsumerWidget {
                       ),
                     ],
                   ),
-                  if (isAuthenticated && user != null) ...[
+                  if (isSignedIn) ...[
                     const _MenuDivider(),
                     _MenuSection(
                       title: l10n.menuManage,
@@ -220,15 +223,33 @@ class SlideOutMenu extends ConsumerWidget {
                           isActive: isActive(AppRoutes.feedback),
                           onTap: () => pushTo(AppRoutes.feedback),
                         ),
-                        _MenuItem(
-                          icon: AppIcons.logout,
-                          label: l10n.authSignOut,
-                          destructive: true,
-                          onTap: () => unawaited(
-                            showSignOutConfirmation(context, ref),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.md,
+                        AppSpacing.sm,
+                        AppSpacing.md,
+                        AppSpacing.md,
+                      ),
+                      child: OutlinedButton.icon(
+                        key: const Key('menu-sign-out-button'),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: Theme.of(context).colorScheme.error,
+                          side: BorderSide(
+                            color: Theme.of(context).colorScheme.error,
+                          ),
+                          textStyle: const TextStyle(
+                            fontSize: 14,
+                            height: 20 / 14,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
-                      ],
+                        onPressed: () =>
+                            unawaited(showSignOutConfirmation(context, ref)),
+                        icon: const Icon(AppIcons.logout, size: 18),
+                        label: Text(l10n.authSignOut),
+                      ),
                     ),
                   ] else ...[
                     Padding(
@@ -347,60 +368,65 @@ class _ProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final tint = HomeHeaderTint.of(context);
+    final topInset = MediaQuery.of(context).padding.top;
     final initials = user.displayName.trim()[0].toUpperCase();
     final hasImage = user.image?.trim().isNotEmpty ?? false;
 
-    return InkWell(
-      onTap: onTap,
-      child: Padding(
-        key: const Key('menu-profile-header'),
-        padding: const EdgeInsets.fromLTRB(
-          AppSpacing.lg,
-          AppSpacing.md,
-          AppSpacing.lg,
-          AppSpacing.md,
-        ),
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 22,
-              foregroundImage: hasImage ? NetworkImage(user.image!) : null,
-              child: Text(
-                initials,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  height: 20 / 16,
+    return DecoratedBox(
+      decoration: BoxDecoration(gradient: tint.drawerHeaderGradient),
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          key: const Key('menu-profile-header'),
+          padding: EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            topInset + AppSpacing.md,
+            AppSpacing.lg,
+            AppSpacing.md,
+          ),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 22,
+                foregroundImage: hasImage ? NetworkImage(user.image!) : null,
+                child: Text(
+                  initials,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    height: 20 / 16,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    user.displayName,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      height: 20 / 16,
+              const SizedBox(width: AppSpacing.md),
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user.displayName,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        height: 20 / 16,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    roleLabel,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.extension<AppPalette>()!.mutedForeground,
-                      fontWeight: FontWeight.w500,
+                    const SizedBox(height: 2),
+                    Text(
+                      roleLabel,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.extension<AppPalette>()!.mutedForeground,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const Icon(AppIcons.chevronRight),
-          ],
+              const Icon(AppIcons.chevronRight),
+            ],
+          ),
         ),
       ),
     );
@@ -450,7 +476,6 @@ class _MenuItem extends StatelessWidget {
     this.leading,
     this.isActive = false,
     this.trailing,
-    this.destructive = false,
     this.onTap,
   }) : assert(
          icon != null || leading != null,
@@ -462,16 +487,13 @@ class _MenuItem extends StatelessWidget {
   final String label;
   final bool isActive;
   final String? trailing;
-  final bool destructive;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = theme.extension<AppPalette>()!;
-    final color = destructive
-        ? theme.colorScheme.error
-        : isActive
+    final color = isActive
         ? theme.colorScheme.primary
         : theme.colorScheme.onSurface;
 

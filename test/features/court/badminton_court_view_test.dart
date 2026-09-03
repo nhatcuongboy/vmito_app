@@ -361,4 +361,115 @@ void main() {
       expect(tapped, [0]);
     });
   });
+
+  group('player preview tooltip', () {
+    testWidgets('tapping player shows preview tooltip with stats and pair badge', (
+      tester,
+    ) async {
+      const court = Court(
+        id: 'c1',
+        courtNumber: 1,
+        status: CourtStatus.ready,
+        currentPlayers: [
+          SessionPlayer(
+            id: 'p6',
+            name: 'Nam',
+            playerNumber: 6,
+            position: 0,
+            gender: Gender.male,
+            level: 3, // TB-
+            matchesPlayed: 0,
+            currentWaitTime: 0,
+          ),
+          SessionPlayer(
+            id: 'p1',
+            name: 'Bình',
+            playerNumber: 1,
+            position: 1,
+            gender: Gender.male,
+            level: 3,
+            matchesPlayed: 1,
+            currentWaitTime: 15,
+          ),
+        ],
+      );
+
+      await pumpCourt(
+        tester,
+        const BadmintonCourtView(
+          court: court,
+          mode: CourtViewMode.manage,
+        ),
+      );
+
+      // Tooltip is initially not visible
+      expect(
+        find.byKey(const Key('court-player-tooltip-card')),
+        findsNothing,
+      );
+
+      // Tap player #6 (Nam)
+      await tester.tap(find.text('Nam'));
+      await tester.pumpAndSettle();
+
+      // Tooltip is now visible
+      expect(
+        find.byKey(const Key('court-player-tooltip-card')),
+        findsOneWidget,
+      );
+      expect(find.text('#6'), findsOneWidget);
+      expect(find.text('Cặp 1'), findsOneWidget);
+      expect(find.text('GIỚI TÍNH'), findsOneWidget);
+      expect(find.text('TRÌNH ĐỘ'), findsOneWidget);
+      expect(find.text('TRẬN ĐÃ CHƠI'), findsOneWidget);
+      expect(find.text('THỜI GIAN CHỜ'), findsOneWidget);
+      expect(find.text('TB-'), findsOneWidget);
+      expect(find.text('0p'), findsOneWidget);
+
+      // Tapping outside dismisses the tooltip
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byKey(const Key('court-player-tooltip-card')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('tapping same player toggles tooltip off', (tester) async {
+      const court = Court(
+        id: 'c1',
+        courtNumber: 1,
+        status: CourtStatus.inUse,
+        currentPlayers: [
+          SessionPlayer(
+            id: 'p6',
+            name: 'Nam',
+            playerNumber: 6,
+            position: 0,
+          ),
+        ],
+      );
+
+      await pumpCourt(
+        tester,
+        const BadmintonCourtView(court: court),
+      );
+
+      await tester.tap(find.text('Nam'));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('court-player-tooltip-card')),
+        findsOneWidget,
+      );
+
+      // Tap again to toggle off
+      await tester.tap(find.text('Nam'));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('court-player-tooltip-card')),
+        findsNothing,
+      );
+    });
+  });
 }

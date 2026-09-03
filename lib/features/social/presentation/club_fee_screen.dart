@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
@@ -142,7 +143,7 @@ class _ClubFeeScreenState extends ConsumerState<ClubFeeScreen> {
                       Card(
                         child: Padding(
                           padding: const EdgeInsets.all(AppSpacing.lg),
-                          child: ReactiveForm(
+                          child: AppReactiveForm(
                             formGroup: _feeForm,
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -257,7 +258,7 @@ class _ClubFeeScreenState extends ConsumerState<ClubFeeScreen> {
                                 ],
                               ),
                               const SizedBox(height: AppSpacing.md),
-                              ReactiveForm(
+                              AppReactiveForm(
                                 formGroup: _memberForm,
                                 child: wide
                                     ? Row(

@@ -35,7 +35,7 @@ multi-step flow must persist while its screen is not mounted.
 ## Required shape
 
 Create the `FormGroup` in the owning `StatefulWidget`, dispose it in
-`dispose`, and render it with `ReactiveForm`. Use typed controls and stable
+`dispose`, and render it with `AppReactiveForm`. Use typed controls and stable
 control-name constants rather than string literals scattered through widgets.
 
 ```dart
@@ -50,7 +50,7 @@ final _form = FormGroup({
 });
 
 @override
-Widget build(BuildContext context) => ReactiveForm(
+Widget build(BuildContext context) => AppReactiveForm(
   formGroup: _form,
   child: ReactiveTextField<String>(
     formControlName: ClubFormControl.name,
@@ -70,6 +70,22 @@ void dispose() {
 On submit, call `markAllAsTouched()`. If `form.invalid` or `form.pending`,
 return before mapping control values to a draft and calling the Riverpod
 controller. Disable the submit button while the controller is loading.
+
+## Validation timing (Reward Early, Punish Late)
+
+Every form follows the **Reward Early, Punish Late** UX principle:
+
+- **Punish Late**: Validation errors are suppressed when a user is first filling
+  out the form or when moving focus between fields (blur). Errors only become
+  visible after the user attempts to submit the form.
+- **Reward Early**: Once submitted and errors are revealed, validation runs in
+  real time on every keystroke. Correcting an invalid input immediately clears
+  the error text. If the user breaks the rule again, the error reappears immediately.
+- Calling `_form.markAllAsTouched()` transitions the form into the submitted state.
+  Calling `_form.reset()` restores the initial unsubmitted state.
+
+Wrapping the form in `AppReactiveForm` (`shared/widgets/app_reactive_form.dart`)
+enforces this behavior automatically across all controls without per-screen boilerplate.
 
 ## Validation rules
 

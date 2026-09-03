@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
@@ -655,7 +656,7 @@ class _ResultsFilterSheetState extends State<_ResultsFilterSheet> {
         AppSpacing.md,
         AppSpacing.md,
       ),
-      child: ReactiveForm(
+      child: AppReactiveForm(
         formGroup: _form,
         child: Column(
           mainAxisSize: MainAxisSize.min,

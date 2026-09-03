@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/features/tournament/application/tournament_schedule_controller.dart';
 import 'package:vmito_app/features/tournament/domain/form/tournament_schedule_forms.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_detail.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_schedule.dart';
 import 'package:vmito_app/features/tournament/presentation/widgets/tournament_schedule_sheets.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_dialog.dart';
 
 typedef TournamentRefereeOpener =
     void Function(String tournamentId, String matchId);
@@ -281,6 +283,7 @@ class _TournamentScheduleScreenState
           title: l10n.tournamentScheduleResetTitle,
           body: l10n.tournamentScheduleResetBody,
           action: l10n.tournamentScheduleResetAction,
+          type: AppConfirmDialogType.destructive,
         )) {
           await _runMutation(
             () => controller.resetResult(match.id),
@@ -293,6 +296,7 @@ class _TournamentScheduleScreenState
           title: l10n.tournamentScheduleDeleteTitle,
           body: l10n.tournamentScheduleDeleteBody,
           action: l10n.commonDelete,
+          type: AppConfirmDialogType.destructive,
         )) {
           await _runMutation(
             () => controller.deleteMatch(match.id),
@@ -325,6 +329,7 @@ class _TournamentScheduleScreenState
       title: l10n.tournamentScheduleFinalizeTitle,
       body: l10n.tournamentScheduleFinalizeBody,
       action: l10n.tournamentScheduleFinalize,
+      type: AppConfirmDialogType.submit,
     )) {
       return;
     }
@@ -339,23 +344,14 @@ class _TournamentScheduleScreenState
     required String title,
     required String body,
     required String action,
+    AppConfirmDialogType type = AppConfirmDialogType.submit,
   }) async =>
-      await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(title),
-          content: Text(body),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(AppLocalizations.of(context).commonCancel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(action),
-            ),
-          ],
-        ),
+      await showAppConfirmDialog(
+        context,
+        type: type,
+        title: title,
+        content: body,
+        confirmLabel: action,
       ) ??
       false;
 
@@ -400,7 +396,7 @@ class _ScheduleToolbar extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
         child: Column(
           children: [
-            ReactiveForm(
+            AppReactiveForm(
               formGroup: form,
               child: ReactiveTextField<String>(
                 formControlName: TournamentScheduleFilterControl.query,

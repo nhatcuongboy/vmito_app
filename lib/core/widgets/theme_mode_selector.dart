@@ -4,6 +4,29 @@ import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/theme_mode_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
+/// An [IconButton] that reflects the active [ThemeMode] and opens the
+/// theme-mode selector sheet on tap.
+class ThemeModeButton extends ConsumerWidget {
+  const ThemeModeButton({super.key});
+
+  static IconData _iconFor(ThemeMode mode) => switch (mode) {
+    ThemeMode.light => AppIcons.light,
+    ThemeMode.dark => AppIcons.dark,
+    ThemeMode.system => AppIcons.themeSystem,
+  };
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mode = ref.watch(themeModeControllerProvider);
+    final l10n = AppLocalizations.of(context);
+    return IconButton(
+      icon: Icon(_iconFor(mode)),
+      tooltip: l10n.themeTitle,
+      onPressed: () => showThemeModeSelector(context),
+    );
+  }
+}
+
 Future<void> showThemeModeSelector(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,

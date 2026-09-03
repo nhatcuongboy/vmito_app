@@ -104,7 +104,8 @@ void main() {
     );
     expect(find.byIcon(AppIcons.moreVert), findsOneWidget);
     final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
-    expect(scaffold.bottomNavigationBar, isNull);
+    expect(scaffold.bottomNavigationBar, isNotNull);
+    expect(find.byKey(const Key('host-session-bottom-nav')), findsOneWidget);
     const labels = ['Tổng quan', 'Người chơi', 'Sân', 'Kết quả', 'Thanh toán'];
     for (var index = 0; index < labels.length; index++) {
       expect(

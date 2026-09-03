@@ -60,4 +60,55 @@ extension LocalizedValues on AppLocalizations {
     10 => level10,
     _ => '$level',
   };
+
+  String courtPair(int pairNumber) => switch (pairNumber) {
+    1 => courtPair1,
+    2 => courtPair2,
+    _ => switch (localeName) {
+      'vi' => 'Cặp $pairNumber',
+      'zh' => '第$pairNumber组',
+      _ => 'Pair $pairNumber',
+    },
+  };
+
+  String get courtTooltipGender => switch (localeName) {
+    'vi' => 'Giới tính',
+    'zh' => '性别',
+    _ => 'Gender',
+  };
+
+  String get courtTooltipLevel => switch (localeName) {
+    'vi' => 'Trình độ',
+    'zh' => '水平',
+    _ => 'Level',
+  };
+
+  String get courtTooltipMatchesPlayed => switch (localeName) {
+    'vi' => 'Trận đã chơi',
+    'zh' => '已比赛',
+    _ => 'Matches played',
+  };
+
+  String get courtTooltipWaitTime => switch (localeName) {
+    'vi' => 'Thời gian chờ',
+    'zh' => '等待时间',
+    _ => 'Wait time',
+  };
+
+  String formatWaitTime(int minutes) {
+    final hours = minutes ~/ 60;
+    final mins = minutes % 60;
+    return switch (localeName) {
+      'vi' => hours > 0 ? '${hours}g${mins}p' : '${mins}p',
+      'zh' => hours > 0 ? '$hours时$mins分' : '$mins分',
+      _ => hours > 0 ? '${hours}h${mins}m' : '${mins}m',
+    };
+  }
+
+  String playerGender(Gender? gender) => switch (gender) {
+    Gender.male => genderMale,
+    Gender.female => genderFemale,
+    Gender.other => genderOther,
+    null => 'N/A',
+  };
 }

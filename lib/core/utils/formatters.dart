@@ -38,7 +38,7 @@ abstract final class Money {
     if (value >= 1000 && value % 1000 == 0) {
       return '${value ~/ 1000}${locale == 'vi' ? 'k' : 'K'}';
     }
-    return vndPlain(value, locale: locale);
+    return '${vndPlain(value, locale: locale)}đ';
   }
 
   static String? compactRange(

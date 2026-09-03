@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/widgets/app_logo.dart';
 
 /// Shown while `AuthController.restoreSession` resolves.
 ///
@@ -10,22 +11,14 @@ class SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Scaffold(
+    return const Scaffold(
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              'Vmito',
-              style: theme.textTheme.displaySmall?.copyWith(
-                color: theme.colorScheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            const SizedBox(
+            AppLogo(height: 84),
+            SizedBox(height: AppSpacing.xl),
+            SizedBox(
               width: 24,
               height: 24,
               child: CircularProgressIndicator(strokeWidth: 2.5),

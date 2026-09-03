@@ -1,12 +1,13 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/core/widgets/user_avatar.dart';
 import 'package:vmito_app/features/social/application/club_management_controller.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_dialog.dart';
 
 class ClubMembersTab extends ConsumerWidget {
   const ClubMembersTab({required this.clubId, super.key});
@@ -72,11 +73,11 @@ class _MemberTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     return ListTile(
-      leading: CircleAvatar(
-        backgroundImage: member.image == null
-            ? null
-            : CachedNetworkImageProvider(member.image!),
-        child: member.image == null ? const Icon(AppIcons.profile) : null,
+      leading: UserAvatar(
+        name: member.name,
+        imageUrl: member.image,
+        gender: member.gender,
+        size: 40,
       ),
       title: Text(member.name),
       subtitle: Text('${member.email}\n${_roleLabel(l10n, member.role)}'),
@@ -113,25 +114,12 @@ class _MemberTile extends ConsumerWidget {
 
   Future<void> _remove(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.clubRemoveMember),
-        content: ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 320),
-          child: Text(l10n.clubRemoveMemberConfirm(member.name)),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(l10n.commonRemove),
-          ),
-        ],
-      ),
+    final confirmed = await showAppConfirmDialog(
+      context,
+      type: AppConfirmDialogType.destructive,
+      title: l10n.clubRemoveMember,
+      content: l10n.clubRemoveMemberConfirm(member.name),
+      confirmLabel: l10n.commonRemove,
     );
     if (confirmed == true) {
       await ref

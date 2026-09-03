@@ -8,6 +8,7 @@ import 'package:vmito_app/core/shell/app_shell_scaffold_key.dart';
 import 'package:vmito_app/core/shell/tab_reselection_controller.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/core/widgets/notification_header_button.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
@@ -216,27 +217,11 @@ class _ComposerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1F2937) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.12)
-                : const Color(0xFFE5E7EB),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
-              blurRadius: 6,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
+    final palette = theme.extension<AppPalette>()!;
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           child: Row(
@@ -251,10 +236,8 @@ class _ComposerCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   hint,
-                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: isDark
-                        ? const Color(0xFF6B7280)
-                        : const Color(0xFF9CA3AF),
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    color: palette.mutedForeground,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,

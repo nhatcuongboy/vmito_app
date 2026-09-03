@@ -41,7 +41,11 @@ void main() {
 
     test('falls back to grouped digits when k would lose precision', () {
       // 50.500 is not a whole number of thousands, so "50k" would be a lie.
-      expect(Money.compactVnd(50500), '50.500');
+      expect(Money.compactVnd(50500), '50.500đ');
+    });
+
+    test('keeps the currency suffix for amounts below one thousand', () {
+      expect(Money.compactVnd(50), '50đ');
     });
   });
 
@@ -59,6 +63,10 @@ void main() {
       expect(Money.compactRange(50000, null), '50k');
       expect(Money.compactRange(null, 60000), '60k');
       expect(Money.compactRange(null, null), isNull);
+    });
+
+    test('keeps the currency suffix on small range endpoints', () {
+      expect(Money.compactRange(65, 50), '50đ-65đ');
     });
   });
 

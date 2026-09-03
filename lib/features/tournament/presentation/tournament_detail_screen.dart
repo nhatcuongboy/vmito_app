@@ -3,22 +3,25 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vmito_app/core/config/app_config.dart';
+import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
-import 'package:vmito_app/core/widgets/app_address_text.dart';
 import 'package:vmito_app/core/web/app_web_view.dart';
+import 'package:vmito_app/core/widgets/app_address_text.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/session/domain/reference_video.dart';
 import 'package:vmito_app/features/tournament/application/tournament_detail_controller.dart';
+import 'package:vmito_app/features/tournament/application/tournament_management_controller.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_detail.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_podium.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_pulse.dart';
@@ -39,12 +42,42 @@ class TournamentDetailScreen extends ConsumerWidget {
     final language = Localizations.localeOf(context).languageCode;
     final locale = language == 'zh' ? 'cn' : language;
     final path = '/${Uri(pathSegments: [locale, 'tournament', idOrSlug])}';
+    final canManage =
+        ref.watch(tournamentManageAccessProvider(idOrSlug)).value?.canManage ??
+        false;
     return AppWebViewPage(
       page: AppWebPage(
         path: path,
         title: title,
         embedded: true,
       ),
+      actions: [
+        if (canManage)
+          IconButton(
+            tooltip: AppLocalizations.of(context).tournamentManageOpen,
+            onPressed: () => unawaited(
+              context.push(AppRoutes.manageTournament(idOrSlug)),
+            ),
+            icon: const Icon(AppIcons.settings),
+          ),
+      ],
+      onTrustedNavigation: (uri) {
+        final normalized = AppRoutes.stripLocale(uri.path);
+        final match = RegExp(
+          r'^/tournaments/([^/]+)/manage$',
+        ).firstMatch(normalized);
+        if (match == null || !canManage) return false;
+        unawaited(
+          context.push(
+            AppRoutes.manageTournament(
+              match.group(1)!,
+              option: uri.queryParameters['option'],
+              categoryId: uri.queryParameters['categoryId'],
+            ),
+          ),
+        );
+        return true;
+      },
     );
   }
 }

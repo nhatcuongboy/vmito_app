@@ -5,6 +5,7 @@ import 'package:flutter_lucide/flutter_lucide.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/widgets/app_logo.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 /// Displays the "About Vmito" modal with contact details, author information,
@@ -57,22 +58,9 @@ class _AboutVmitoDialog extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               // App Logo & Header
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: Image.asset(
-                  'assets/icons/app-logo.png',
-                  width: 64,
-                  height: 64,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm + 4),
-              Text(
-                'Vmito',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -0.5,
-                ),
+              AppLogo(
+                height: 56,
+                semanticLabel: l10n.appName,
               ),
               const SizedBox(height: 2),
               Text(

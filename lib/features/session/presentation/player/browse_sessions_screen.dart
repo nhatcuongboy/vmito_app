@@ -23,6 +23,7 @@ import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/player/pending_requests_screen.dart';
 import 'package:vmito_app/features/session/presentation/widgets/session_card.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_dialog.dart';
 import 'package:vmito_app/shared/widgets/app_loading_view.dart';
 
 /// Authenticated hub for sessions the current user hosts or has joined.
@@ -156,6 +157,10 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
                 width: double.infinity,
                 child: SegmentedButton<MySessionScope>(
                   key: const Key('my-sessions-scope'),
+                  style: const ButtonStyle(
+                    minimumSize: WidgetStatePropertyAll(Size(0, 44)),
+                    visualDensity: VisualDensity.standard,
+                  ),
                   segments: [
                     ButtonSegment(
                       value: MySessionScope.hosted,
@@ -209,7 +214,7 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
         ),
       ),
       floatingActionButton: SizedBox(
-        height: 40,
+        height: 48,
         child: FloatingActionButton.extended(
           key: const Key('my-sessions-create-fab'),
           heroTag: 'my-sessions-create-session-fab',
@@ -218,12 +223,15 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
           backgroundColor: Theme.of(context).colorScheme.primary,
           foregroundColor: Theme.of(context).colorScheme.onPrimary,
           elevation: 2,
-          extendedPadding: const EdgeInsets.symmetric(horizontal: 12),
+          extendedPadding: const EdgeInsets.symmetric(horizontal: 16),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(14),
           ),
-          icon: const Icon(AppIcons.add, size: 18),
-          label: Text(l10n.createSessionTitle),
+          icon: const Icon(AppIcons.add, size: 20),
+          label: Text(
+            l10n.createSessionTitle,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
         ),
       ),
     );
@@ -516,7 +524,7 @@ class _SessionsBody extends StatelessWidget {
     if (state.error != null && isEmpty) {
       return AppErrorView(error: state.error!, onRetry: onRetry);
     }
-    if (isEmpty) return const _EmptyMySessionsView();
+    if (isEmpty) return _EmptyMySessionsView(scope: scope);
     if (isPending) {
       return ListView.separated(
         controller: scrollController,
@@ -592,28 +600,12 @@ class _SessionsBody extends StatelessWidget {
 
   Future<void> _confirmDelete(BuildContext context, Session session) async {
     final l10n = AppLocalizations.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.mySessionsDeleteConfirmTitle),
-        content: ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 320),
-          child: Text(l10n.mySessionsDeleteConfirmMessage),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.mySessionsDelete),
-          ),
-        ],
-      ),
+    final confirmed = await showAppConfirmDialog(
+      context,
+      type: AppConfirmDialogType.destructive,
+      title: l10n.mySessionsDeleteConfirmTitle,
+      content: l10n.mySessionsDeleteConfirmMessage,
+      confirmLabel: l10n.mySessionsDelete,
     );
 
     if (confirmed == true && context.mounted) {
@@ -693,6 +685,9 @@ class _PendingRequestCard extends StatelessWidget {
                 Expanded(
                   child: OutlinedButton(
                     key: ValueKey('reject-request-${request.id}'),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(0, 40),
+                    ),
                     onPressed: busy ? null : () => onDecision(false),
                     child: Text(l10n.hostManageReject),
                   ),
@@ -701,6 +696,9 @@ class _PendingRequestCard extends StatelessWidget {
                 Expanded(
                   child: FilledButton(
                     key: ValueKey('approve-request-${request.id}'),
+                    style: FilledButton.styleFrom(
+                      minimumSize: const Size(0, 40),
+                    ),
                     onPressed: busy ? null : () => onDecision(true),
                     child: busy
                         ? const SizedBox.square(
@@ -720,7 +718,9 @@ class _PendingRequestCard extends StatelessWidget {
 }
 
 class _EmptyMySessionsView extends StatelessWidget {
-  const _EmptyMySessionsView();
+  const _EmptyMySessionsView({required this.scope});
+
+  final MySessionScope scope;
 
   @override
   Widget build(BuildContext context) {
@@ -736,7 +736,12 @@ class _EmptyMySessionsView extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         Text(
-          AppLocalizations.of(context).mySessionsEmpty,
+          switch (scope) {
+            MySessionScope.hosted =>
+              AppLocalizations.of(context).mySessionsHostedEmpty,
+            MySessionScope.joined =>
+              AppLocalizations.of(context).mySessionsJoinedEmpty,
+          },
           textAlign: TextAlign.center,
         ),
       ],

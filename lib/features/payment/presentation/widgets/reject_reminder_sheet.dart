@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/payment/application/payment_reminders_controller.dart';
 import 'package:vmito_app/features/payment/domain/form/reminder_forms.dart';
@@ -72,7 +73,7 @@ class _RejectReminderSheetState extends ConsumerState<RejectReminderSheet> {
         AppSpacing.md,
         MediaQuery.viewInsetsOf(context).bottom + AppSpacing.md,
       ),
-      child: ReactiveForm(
+      child: AppReactiveForm(
         formGroup: _form,
         child: SingleChildScrollView(
           child: Column(

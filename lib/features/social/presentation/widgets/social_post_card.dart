@@ -38,23 +38,7 @@ class SocialPostCard extends ConsumerWidget {
 
     return RepaintBoundary(
       key: _shareCardKey,
-      child: Container(
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1F2937) : Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.12)
-                : const Color(0xFFE5E7EB),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.06),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
+      child: Card(
         clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -99,13 +83,7 @@ class SocialPostCard extends ConsumerWidget {
               _EngagementRow(post: post, isDark: isDark, l10n: l10n),
 
             // ── Divider ─────────────────────────────────────────────────────
-            Divider(
-              height: 1,
-              thickness: 1,
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.08)
-                  : const Color(0xFFE5E7EB),
-            ),
+            const Divider(height: 1),
 
             // ── Action bar ──────────────────────────────────────────────────
             _ActionBar(

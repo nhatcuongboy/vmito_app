@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
@@ -13,6 +14,7 @@ import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session_hosting/application/host_add_players_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
+import 'package:vmito_app/shared/widgets/app_dialog.dart';
 import 'package:vmito_app/shared/widgets/app_required_label.dart';
 import 'package:vmito_domain/vmito_domain.dart';
 
@@ -46,29 +48,17 @@ Future<bool> _confirmPlayerLimit(
   required int currentCount,
 }) async {
   final l10n = AppLocalizations.of(context);
-  return await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          icon: const Icon(Icons.warning_amber_rounded),
-          title: Text(l10n.hostAddPlayerLimitTitle),
-          content: Text(
-            l10n.hostAddPlayerLimitDescription(
-              currentCount,
-              session.numberOfCourts,
-              session.maxPlayersPerCourt,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(l10n.commonCancel),
-            ),
-            FilledButton.tonal(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(l10n.hostAddPlayerAddAnyway),
-            ),
-          ],
+  return await showAppConfirmDialog(
+        context,
+        type: AppConfirmDialogType.submit,
+        icon: const Icon(Icons.warning_amber_rounded),
+        title: l10n.hostAddPlayerLimitTitle,
+        content: l10n.hostAddPlayerLimitDescription(
+          currentCount,
+          session.numberOfCourts,
+          session.maxPlayersPerCourt,
         ),
+        confirmLabel: l10n.hostAddPlayerAddAnyway,
       ) ??
       false;
 }
@@ -191,7 +181,7 @@ class _HostAddPlayersSheetState extends ConsumerState<_HostAddPlayersSheet> {
     final state = ref.watch(
       hostAddPlayersControllerProvider(widget.session.id),
     );
-    return ReactiveForm(
+    return AppReactiveForm(
       formGroup: _form,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -245,7 +235,7 @@ class _HostAddPlayersSheetState extends ConsumerState<_HostAddPlayersSheet> {
                       label: Text(l10n.hostAddPlayerAddAnother),
                     );
                   }
-                  return ReactiveForm(
+                  return AppReactiveForm(
                     formGroup: array.controls[index] as FormGroup,
                     child: _PlayerFormCard(
                       key: ValueKey(array.controls[index]),

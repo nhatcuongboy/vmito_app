@@ -20,6 +20,7 @@ import 'package:vmito_app/features/session_hosting/application/player_statistics
 import 'package:vmito_app/features/session_hosting/presentation/widgets/player_statistics_section.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
+import 'package:vmito_app/shared/widgets/app_dialog.dart';
 import 'package:vmito_app/shared/widgets/app_lightbox.dart';
 import 'package:vmito_domain/vmito_domain.dart';
 
@@ -194,28 +195,13 @@ class _StartSessionButton extends ConsumerWidget {
 
   Future<void> _handlePress(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.startSessionConfirmTitle),
-        content: ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 320),
-          child: Text(l10n.startSessionConfirm),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(
-              MaterialLocalizations.of(context).cancelButtonLabel,
-            ),
-          ),
-          FilledButton(
-            key: const ValueKey('confirm-start-session'),
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.startSessionAction),
-          ),
-        ],
-      ),
+    final confirmed = await showAppConfirmDialog(
+      context,
+      type: AppConfirmDialogType.submit,
+      title: l10n.startSessionConfirmTitle,
+      content: l10n.startSessionConfirm,
+      confirmLabel: l10n.startSessionAction,
+      confirmKey: const ValueKey('confirm-start-session'),
     );
     if (confirmed == true && context.mounted) {
       await ref
@@ -255,32 +241,13 @@ class _EndSessionButton extends ConsumerWidget {
   Future<void> _handlePress(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.endSessionConfirmTitle),
-        content: ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 320),
-          child: Text(l10n.endSessionConfirm),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(
-              MaterialLocalizations.of(context).cancelButtonLabel,
-            ),
-          ),
-          FilledButton(
-            key: const ValueKey('confirm-end-session'),
-            style: FilledButton.styleFrom(
-              backgroundColor: theme.colorScheme.error,
-              foregroundColor: theme.colorScheme.onError,
-            ),
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(l10n.endSessionAction),
-          ),
-        ],
-      ),
+    final confirmed = await showAppConfirmDialog(
+      context,
+      type: AppConfirmDialogType.destructive,
+      title: l10n.endSessionConfirmTitle,
+      content: l10n.endSessionConfirm,
+      confirmLabel: l10n.endSessionAction,
+      confirmKey: const ValueKey('confirm-end-session'),
     );
     if (confirmed == true && context.mounted) {
       await ref

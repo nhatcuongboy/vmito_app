@@ -63,6 +63,12 @@ const _adminUser = User(
   name: 'Quản trị viên',
 );
 
+const _guestUser = User(
+  id: 'guest-player-1',
+  email: '',
+  role: UserRole.guest,
+);
+
 const _memberClub = ClubSummary(
   id: 'member-club',
   name: 'Nhóm của thành viên',
@@ -240,6 +246,40 @@ void main() {
     );
     expect(appBar.expandedHeight, 220);
     expect(find.byType(TabBar), findsOneWidget);
+  });
+
+  testWidgets('uses the available dialog width and does not submit on cancel', (
+    tester,
+  ) async {
+    await _pump(tester, currentUser: _memberUser);
+
+    await tester.tap(find.byKey(const Key('club-join-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('club-join-dialog')), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(const Key('club-join-message-field'))).width,
+      greaterThan(300),
+    );
+
+    await tester.tap(find.text('Hủy'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('club-join-dialog')), findsNothing);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('prompts a guest to sign in before joining a club', (
+    tester,
+  ) async {
+    await _pump(tester, currentUser: _guestUser);
+
+    await tester.tap(find.byKey(const Key('club-join-button')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Yêu cầu đăng nhập'), findsOneWidget);
+    expect(find.byKey(const Key('club-join-dialog')), findsNothing);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('reveals the compact title below an iPhone safe area', (

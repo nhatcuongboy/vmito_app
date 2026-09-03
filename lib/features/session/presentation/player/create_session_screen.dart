@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/config/app_config.dart';
 import 'package:vmito_app/core/location/google_places_service.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
@@ -844,7 +845,7 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
                   isCreation: !_isEditing,
                   onSubmit: _submit,
                 ),
-          body: ReactiveForm(
+          body: AppReactiveForm(
             formGroup: _form,
             child: Center(
               child: ConstrainedBox(
@@ -1019,6 +1020,28 @@ class _FormCard extends StatelessWidget {
   );
 }
 
+class _DisabledLockBadge extends StatelessWidget {
+  const _DisabledLockBadge({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = Theme.of(context).extension<AppPalette>()!;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: palette.muted.withValues(alpha: 0.8),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        border: Border.all(color: palette.border.withValues(alpha: 0.7)),
+      ),
+      child: Icon(
+        AppIcons.lock,
+        size: 13,
+        color: palette.mutedForeground,
+      ),
+    );
+  }
+}
+
 class _BasicSection extends StatelessWidget {
   const _BasicSection({
     required this.form,
@@ -1141,9 +1164,14 @@ class _BasicSection extends StatelessWidget {
                       Text(
                         l10n.sessionFormCustomLocationToggle,
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).extension<AppPalette>()!.mutedForeground,
+                          color: canEditVenue
+                              ? Theme.of(
+                                  context,
+                                ).extension<AppPalette>()!.mutedForeground
+                              : Theme.of(context)
+                                  .extension<AppPalette>()!
+                                  .mutedForeground
+                                  .withValues(alpha: 0.5),
                         ),
                       ),
                       const SizedBox(width: AppSpacing.xs),
@@ -1165,22 +1193,41 @@ class _BasicSection extends StatelessWidget {
                       formControlName: SessionFormControl.venueLabel,
                       builder: (context, labelControl, _) => InkWell(
                         key: const Key('venue-picker'),
+                        mouseCursor: canEditVenue
+                            ? SystemMouseCursors.click
+                            : SystemMouseCursors.basic,
                         onTap: canEditVenue ? onVenue : null,
                         borderRadius: BorderRadius.circular(AppRadius.lg),
                         child: InputDecorator(
                           decoration: InputDecoration(
+                            enabled: canEditVenue,
                             errorText:
                                 form
                                     .control(SessionFormControl.venueId)
                                     .hasError('domain')
                                 ? l10n.sessionFormValidationLocation
                                 : null,
-                            suffixIcon: const Icon(AppIcons.chevronDown),
+                            suffixIcon: Icon(
+                              AppIcons.chevronDown,
+                              color: canEditVenue
+                                  ? null
+                                  : Theme.of(context)
+                                      .extension<AppPalette>()!
+                                      .mutedForeground
+                                      .withValues(alpha: 0.6),
+                            ),
                           ),
                           child: Text(
                             (labelControl.value?.isNotEmpty ?? false)
                                 ? labelControl.value!
                                 : l10n.sessionFormSelectVenue,
+                            style: TextStyle(
+                              color: canEditVenue
+                                  ? Theme.of(context).colorScheme.onSurface
+                                  : Theme.of(context)
+                                      .extension<AppPalette>()!
+                                      .mutedForeground,
+                            ),
                           ),
                         ),
                       ),
@@ -1190,13 +1237,23 @@ class _BasicSection extends StatelessWidget {
                       key: const Key('custom-location-fields'),
                       padding: const EdgeInsets.all(AppSpacing.md),
                       decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).colorScheme.primary.withValues(alpha: .07),
+                        color: canEditVenue
+                            ? Theme.of(
+                                context,
+                              ).colorScheme.primary.withValues(alpha: .07)
+                            : Theme.of(context)
+                                .extension<AppPalette>()!
+                                .muted
+                                .withValues(alpha: .5),
                         border: Border.all(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.primary.withValues(alpha: .25),
+                          color: canEditVenue
+                              ? Theme.of(
+                                  context,
+                                ).colorScheme.primary.withValues(alpha: .25)
+                              : Theme.of(context)
+                                  .extension<AppPalette>()!
+                                  .border
+                                  .withValues(alpha: .6),
                         ),
                         borderRadius: BorderRadius.circular(AppRadius.lg),
                       ),
@@ -1207,7 +1264,11 @@ class _BasicSection extends StatelessWidget {
                             l10n.sessionFormTemporaryLocation,
                             style: Theme.of(context).textTheme.labelMedium
                                 ?.copyWith(
-                                  color: Theme.of(context).colorScheme.primary,
+                                  color: canEditVenue
+                                      ? Theme.of(context).colorScheme.primary
+                                      : Theme.of(context)
+                                          .extension<AppPalette>()!
+                                          .mutedForeground,
                                   fontWeight: FontWeight.w600,
                                 ),
                           ),
@@ -1235,7 +1296,16 @@ class _BasicSection extends StatelessWidget {
                           ReactiveTextField<String>(
                             formControlName:
                                 SessionFormControl.customLocationName,
+                            readOnly: !canEditVenue,
+                            style: TextStyle(
+                              color: canEditVenue
+                                  ? null
+                                  : Theme.of(context)
+                                      .extension<AppPalette>()!
+                                      .mutedForeground,
+                            ),
                             decoration: InputDecoration(
+                              enabled: canEditVenue,
                               label: AppRequiredLabel(
                                 l10n.sessionFormCustomLocationName,
                               ),
@@ -1249,14 +1319,30 @@ class _BasicSection extends StatelessWidget {
                           ReactiveTextField<String>(
                             formControlName:
                                 SessionFormControl.customLocationAddress,
-                            readOnly: onCustomAddress != null,
-                            onTap: onCustomAddress == null
+                            readOnly: !canEditVenue || onCustomAddress != null,
+                            onTap: !canEditVenue || onCustomAddress == null
                                 ? null
                                 : (_) => onCustomAddress!(),
+                            style: TextStyle(
+                              color: canEditVenue
+                                  ? null
+                                  : Theme.of(context)
+                                      .extension<AppPalette>()!
+                                      .mutedForeground,
+                            ),
                             decoration: InputDecoration(
+                              enabled: canEditVenue,
                               labelText:
                                   '${l10n.sessionFormCustomLocationAddress} (${l10n.sessionFormRecommended})',
-                              prefixIcon: const Icon(AppIcons.location),
+                              prefixIcon: Icon(
+                                AppIcons.location,
+                                color: canEditVenue
+                                    ? null
+                                    : Theme.of(context)
+                                        .extension<AppPalette>()!
+                                        .mutedForeground
+                                        .withValues(alpha: 0.6),
+                              ),
                             ),
                             onChanged: (_) {
                               form
@@ -1308,22 +1394,54 @@ class _SportOption extends StatelessWidget {
         ? Theme.of(context).colorScheme.primary
         : Colors.deepPurple;
 
+    final Color backgroundColor;
+    final BorderSide borderSide;
+    final Color? textColor;
+
+    if (!enabled) {
+      if (selected) {
+        backgroundColor = selectedColor.withValues(alpha: 0.14);
+        borderSide = BorderSide(
+          color: selectedColor.withValues(alpha: 0.35),
+          width: 1.5,
+        );
+        textColor = selectedColor.withValues(alpha: 0.75);
+      } else {
+        backgroundColor = palette.muted.withValues(alpha: 0.45);
+        borderSide = BorderSide(
+          color: palette.border.withValues(alpha: 0.4),
+          width: 1,
+        );
+        textColor = palette.mutedForeground.withValues(alpha: 0.6);
+      }
+    } else {
+      if (selected) {
+        backgroundColor = selectedColor;
+        borderSide = BorderSide(color: selectedColor, width: 1);
+        textColor = Colors.white;
+      } else {
+        backgroundColor = Colors.transparent;
+        borderSide = BorderSide(color: palette.border, width: 2);
+        textColor = null;
+      }
+    }
+
     return Semantics(
       button: true,
       selected: selected,
       enabled: enabled,
       child: Material(
-        color: selected ? selectedColor : Colors.transparent,
+        color: backgroundColor,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg),
-          side: BorderSide(
-            color: selected ? selectedColor : palette.border,
-            width: selected ? 1 : 2,
-          ),
+          side: borderSide,
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
           key: ValueKey('sport-${type.name}'),
+          mouseCursor: enabled
+              ? SystemMouseCursors.click
+              : SystemMouseCursors.basic,
           onTap: enabled ? onSelected : null,
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: AppSizes.minTapTarget),
@@ -1332,7 +1450,10 @@ class _SportOption extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  icon,
+                  Opacity(
+                    opacity: enabled ? 1.0 : (selected ? 0.7 : 0.4),
+                    child: icon,
+                  ),
                   const SizedBox(width: AppSpacing.xs),
                   Flexible(
                     child: Text(
@@ -1340,7 +1461,7 @@ class _SportOption extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: selected ? Colors.white : null,
+                        color: textColor,
                       ),
                     ),
                   ),
@@ -1493,28 +1614,42 @@ class _TimeSection extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return _FormCard(
       title: l10n.sessionFormTime,
-      action: ReactiveValueListenableBuilder<bool>(
-        formControlName: SessionFormControl.isMultiDay,
-        builder: (context, control, _) => Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              l10n.sessionFormMultiDay,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<AppPalette>()!.mutedForeground,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.xs),
-            Switch.adaptive(
-              key: const Key('multi-day-switch'),
-              value: control.value ?? false,
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-              onChanged: enabled ? (value) => control.value = value : null,
-            ),
+      action: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!enabled) ...[
+            const _DisabledLockBadge(),
+            const SizedBox(width: AppSpacing.sm),
           ],
-        ),
+          ReactiveValueListenableBuilder<bool>(
+            formControlName: SessionFormControl.isMultiDay,
+            builder: (context, control, _) => Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  l10n.sessionFormMultiDay,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: enabled
+                        ? Theme.of(
+                            context,
+                          ).extension<AppPalette>()!.mutedForeground
+                        : Theme.of(context)
+                            .extension<AppPalette>()!
+                            .mutedForeground
+                            .withValues(alpha: 0.5),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Switch.adaptive(
+                  key: const Key('multi-day-switch'),
+                  value: control.value ?? false,
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  onChanged: enabled ? (value) => control.value = value : null,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
       child: ReactiveValueListenableBuilder<bool>(
         formControlName: SessionFormControl.isMultiDay,
@@ -1649,29 +1784,47 @@ class _ValuePicker<T> extends StatelessWidget {
   final bool enabled;
   final Future<T?> Function(T?) onPick;
   @override
-  Widget build(BuildContext context) => _LabeledField(
-    label: AppRequiredLabel(label),
-    child: ReactiveValueListenableBuilder<T>(
-      formControl: control,
-      builder: (context, field, _) => InkWell(
-        onTap: enabled
-            ? () async {
-                final value = await onPick(field.value);
-                if (value != null) field.value = value;
-              }
-            : null,
-        borderRadius: BorderRadius.circular(AppRadius.lg),
-        child: InputDecorator(
-          decoration: InputDecoration(
-            enabled: enabled,
-            suffixIcon: Icon(icon),
-            errorText: field.hasError('domain') ? domainErrorText : null,
+  Widget build(BuildContext context) {
+    final palette = Theme.of(context).extension<AppPalette>()!;
+    return _LabeledField(
+      label: AppRequiredLabel(label),
+      child: ReactiveValueListenableBuilder<T>(
+        formControl: control,
+        builder: (context, field, _) => InkWell(
+          mouseCursor: enabled
+              ? SystemMouseCursors.click
+              : SystemMouseCursors.basic,
+          onTap: enabled
+              ? () async {
+                  final value = await onPick(field.value);
+                  if (value != null) field.value = value;
+                }
+              : null,
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          child: InputDecorator(
+            decoration: InputDecoration(
+              enabled: enabled,
+              suffixIcon: Icon(
+                icon,
+                color: enabled
+                    ? null
+                    : palette.mutedForeground.withValues(alpha: 0.6),
+              ),
+              errorText: field.hasError('domain') ? domainErrorText : null,
+            ),
+            child: Text(
+              formatter(field.value),
+              style: TextStyle(
+                color: enabled
+                    ? Theme.of(context).colorScheme.onSurface
+                    : palette.mutedForeground,
+              ),
+            ),
           ),
-          child: Text(formatter(field.value)),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class _AdaptiveFields extends StatelessWidget {
@@ -1706,15 +1859,17 @@ class _CourtsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final palette = Theme.of(context).extension<AppPalette>()!;
     return _FormCard(
       title: l10n.sessionFormCourts,
+      action: !enabled ? const _DisabledLockBadge() : null,
       child: ReactiveFormArray<Map<String, Object?>>(
         formArrayName: SessionFormControl.courts,
         builder: (context, array, _) => Column(
           children: [
             for (var index = 0; index < array.controls.length; index++) ...[
               if (index > 0) const Divider(height: AppSpacing.lg * 2),
-              ReactiveForm(
+              AppReactiveForm(
                 formGroup: array.controls[index] as FormGroup,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1727,7 +1882,11 @@ class _CourtsSection extends StatelessWidget {
                         valueAccessor: IntValueAccessor(),
                         keyboardType: TextInputType.number,
                         readOnly: !enabled,
+                        style: TextStyle(
+                          color: enabled ? null : palette.mutedForeground,
+                        ),
                         decoration: InputDecoration(
+                          enabled: enabled,
                           label: AppRequiredLabel(l10n.sessionFormCourtNumber),
                         ),
                       ),
@@ -1737,7 +1896,11 @@ class _CourtsSection extends StatelessWidget {
                       child: ReactiveTextField<String>(
                         formControlName: SessionFormControl.courtName,
                         readOnly: !enabled,
+                        style: TextStyle(
+                          color: enabled ? null : palette.mutedForeground,
+                        ),
                         decoration: InputDecoration(
+                          enabled: enabled,
                           labelText: l10n.sessionFormCourtName,
                           hintText: l10n.sessionFormCourtNamePlaceholder,
                         ),
@@ -1781,6 +1944,15 @@ class _CourtsSection extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size.fromHeight(48),
                 foregroundColor: Theme.of(context).colorScheme.primary,
+                disabledForegroundColor:
+                    palette.mutedForeground.withValues(alpha: 0.7),
+                disabledBackgroundColor:
+                    palette.muted.withValues(alpha: 0.4),
+                side: BorderSide(
+                  color: enabled
+                      ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)
+                      : palette.border.withValues(alpha: 0.4),
+                ),
               ),
             ),
           ],
@@ -2928,6 +3100,7 @@ class _ImageActionButtons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final palette = Theme.of(context).extension<AppPalette>()!;
     return Wrap(
       alignment: WrapAlignment.center,
       spacing: AppSpacing.sm,
@@ -2943,10 +3116,19 @@ class _ImageActionButtons extends StatelessWidget {
                 )
               : const Icon(AppIcons.upload, size: 18),
           label: Text(l10n.sessionFormUploadNew),
+          style: FilledButton.styleFrom(
+            disabledBackgroundColor: palette.muted.withValues(alpha: 0.6),
+            disabledForegroundColor: palette.mutedForeground,
+          ),
         ),
         OutlinedButton(
           key: const Key('open-account-image-library'),
           onPressed: uploading ? null : onOpenLibrary,
+          style: OutlinedButton.styleFrom(
+            disabledForegroundColor: palette.mutedForeground,
+            disabledBackgroundColor: palette.muted.withValues(alpha: 0.3),
+            side: BorderSide(color: palette.border.withValues(alpha: 0.4)),
+          ),
           child: Text(l10n.sessionFormSelectFromGallery),
         ),
       ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
@@ -37,6 +38,7 @@ class SessionApprovalListItem extends StatelessWidget {
             ? l10n.notificationUnknownSession
             : request.sessionName,
       ),
+      timestamp: request.createdAt ?? item.timestamp,
       suffix: item.slots.length > 1
           ? l10n.notificationSlotCount(item.slots.length)
           : null,
@@ -79,6 +81,7 @@ class ClubApprovalListItem extends StatelessWidget {
             ? request.club!.name
             : l10n.notificationUnknownClub,
       ),
+      timestamp: request.createdAt,
       busy: busy,
       onTap: onTap,
       onDecision: onDecision,
@@ -156,7 +159,9 @@ class VenueApprovalListItem extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                    color: theme.colorScheme.onSurface.withValues(
+                      alpha: theme.brightness == Brightness.dark ? 0.76 : 0.65,
+                    ),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.xs),
@@ -186,6 +191,7 @@ class _ApprovalTile extends StatelessWidget {
     required this.busy,
     required this.onTap,
     required this.onDecision,
+    this.timestamp,
     this.imageUrl,
     this.suffix,
     super.key,
@@ -197,6 +203,7 @@ class _ApprovalTile extends StatelessWidget {
   final String? imageUrl;
   final String badge;
   final String message;
+  final DateTime? timestamp;
   final String? suffix;
   final bool busy;
   final VoidCallback onTap;
@@ -206,6 +213,8 @@ class _ApprovalTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final locale = Localizations.localeOf(context).languageCode;
+    final isDark = theme.brightness == Brightness.dark;
     return _TintedTile(
       accent: accent,
       onTap: onTap,
@@ -245,9 +254,23 @@ class _ApprovalTile extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                    color: theme.colorScheme.onSurface.withValues(
+                      alpha: isDark ? 0.76 : 0.65,
+                    ),
                   ),
                 ),
+                if (timestamp != null) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    Dates.timeAgo(timestamp!, locale: locale),
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(
+                        alpha: isDark ? 0.70 : 0.55,
+                      ),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: AppSpacing.sm),
                 Wrap(
                   spacing: AppSpacing.sm,
@@ -260,8 +283,12 @@ class _ApprovalTile extends StatelessWidget {
                         minimumSize: const Size(76, 40),
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         visualDensity: VisualDensity.compact,
-                        foregroundColor: Colors.red.shade700,
-                        backgroundColor: Colors.red.withValues(alpha: 0.08),
+                        foregroundColor: isDark
+                            ? const Color(0xFFF87171)
+                            : Colors.red.shade700,
+                        backgroundColor: isDark
+                            ? const Color(0xFFEF4444).withValues(alpha: 0.16)
+                            : Colors.red.withValues(alpha: 0.08),
                         side: BorderSide.none,
                       ),
                       child: Text(
@@ -277,14 +304,21 @@ class _ApprovalTile extends StatelessWidget {
                         minimumSize: const Size(76, 40),
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                         visualDensity: VisualDensity.compact,
-                        backgroundColor: Colors.green.shade700,
+                        backgroundColor: isDark
+                            ? AppColors.brandDark
+                            : Colors.green.shade700,
+                        foregroundColor: isDark
+                            ? AppColors.primaryForegroundDark
+                            : Colors.white,
                       ),
                       child: busy
-                          ? const SizedBox.square(
+                          ? SizedBox.square(
                               dimension: 16,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                color: Colors.white,
+                                color: isDark
+                                    ? AppColors.primaryForegroundDark
+                                    : Colors.white,
                               ),
                             )
                           : Text(

@@ -87,6 +87,15 @@ class _LevelList extends StatelessWidget {
   /// an admin has written.
   final Map<int, String> descriptions;
 
+  /// Colour-codes the badge by rank band: green ≤3, amber ≤6, red >6.
+  Color _badgeColorFor(int level) {
+    final rank = levelRank(level);
+    if (rank == null) return const Color(0xFF6B7280); // unknown – grey
+    if (rank <= 3) return const Color(0xFF15803D); // beginner – green
+    if (rank <= 6) return const Color(0xFFCA8A04); // intermediate – amber
+    return const Color(0xFFDC2626); // advanced – red
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -103,7 +112,8 @@ class _LevelList extends StatelessWidget {
         AppSpacing.lg,
       ),
       itemCount: validLevels.length,
-      separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+      separatorBuilder:
+          (_, _) => const Divider(height: AppSpacing.xxl, thickness: 0.5),
       itemBuilder: (context, index) {
         final level = validLevels[index];
         final text = descriptions[level]?.trim() ?? '';
@@ -115,28 +125,27 @@ class _LevelList extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.md,
-                vertical: AppSpacing.xs + 2,
+                vertical: AppSpacing.xs,
               ),
               decoration: BoxDecoration(
-                color: const Color(0xFFE53935),
+                color: _badgeColorFor(level),
                 borderRadius: BorderRadius.circular(AppRadius.pill),
               ),
               child: Text(
                 l10n.levelName(level),
-                style: theme.textTheme.headlineSmall?.copyWith(
+                style: theme.textTheme.labelLarge?.copyWith(
                   color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  height: 1.1,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.2,
                 ),
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               displayText,
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
-                height: 1.5,
-                fontSize: 19,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.75),
+                height: 1.55,
               ),
             ),
           ],

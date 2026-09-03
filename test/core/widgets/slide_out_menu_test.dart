@@ -74,6 +74,7 @@ Widget _harness(
   AuthState state,
   GoRouter router, {
   Locale locale = const Locale('vi'),
+  double safeAreaTop = 0,
 }) => ProviderScope(
   overrides: [
     authControllerProvider.overrideWith(() => _TestAuthController(state)),
@@ -87,6 +88,18 @@ Widget _harness(
     routerConfig: router,
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
+    builder: (context, child) {
+      if (safeAreaTop <= 0) return child!;
+      final mediaQuery = MediaQuery.of(context);
+      final padding = mediaQuery.padding.copyWith(top: safeAreaTop);
+      return MediaQuery(
+        data: mediaQuery.copyWith(
+          padding: padding,
+          viewPadding: padding,
+        ),
+        child: child!,
+      );
+    },
   ),
 );
 
@@ -503,5 +516,53 @@ void main() {
     await _tapMenuItem(tester, 'Trợ giúp & phản hồi');
     expect(find.byType(SlideOutMenu), findsNothing);
     expect(find.text('Feedback body'), findsOneWidget);
+  });
+
+  testWidgets('signed out menu respects top safe area for notch inset', (
+    tester,
+  ) async {
+    final router = _buildRouter();
+    await tester.pumpWidget(
+      _harness(
+        const AuthState(status: AuthStatus.unauthenticated),
+        router,
+        safeAreaTop: 47,
+      ),
+    );
+    await _openDrawer(tester);
+
+    final sectionRect = tester.getRect(find.text('Khám phá'));
+    expect(sectionRect.top, greaterThanOrEqualTo(47));
+  });
+
+  testWidgets('signed in menu allows profile header to extend into notch', (
+    tester,
+  ) async {
+    final router = _buildRouter();
+    await tester.pumpWidget(
+      _harness(
+        const AuthState(status: AuthStatus.authenticated, user: host),
+        router,
+        safeAreaTop: 47,
+      ),
+    );
+    await _openDrawer(tester);
+
+    final headerRect = tester.getRect(
+      find.byKey(const Key('menu-profile-header')),
+    );
+    expect(headerRect.top, 0);
+
+    final decoratedBox = tester.widget<DecoratedBox>(
+      find.ancestor(
+        of: find.byKey(const Key('menu-profile-header')),
+        matching: find.byType(DecoratedBox),
+      ),
+    );
+    final gradient =
+        (decoratedBox.decoration as BoxDecoration).gradient! as LinearGradient;
+    expect(gradient.begin, Alignment.topCenter);
+    expect(gradient.end, Alignment.bottomCenter);
+    expect(gradient.colors.last, AppTheme.light.colorScheme.surface);
   });
 }

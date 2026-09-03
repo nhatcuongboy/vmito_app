@@ -7,6 +7,7 @@ import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/social/application/club_management_controller.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_dialog.dart';
 
 class ClubAnnouncementsTab extends ConsumerWidget {
   const ClubAnnouncementsTab({required this.clubId, super.key});
@@ -135,25 +136,12 @@ class _AnnouncementCard extends ConsumerWidget {
 
   Future<void> _delete(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.clubAnnouncementDelete),
-        content: ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 320),
-          child: Text(l10n.clubAnnouncementDeleteConfirm),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(l10n.commonDelete),
-          ),
-        ],
-      ),
+    final confirmed = await showAppConfirmDialog(
+      context,
+      type: AppConfirmDialogType.destructive,
+      title: l10n.clubAnnouncementDelete,
+      content: l10n.clubAnnouncementDeleteConfirm,
+      confirmLabel: l10n.commonDelete,
     );
     if (confirmed == true) {
       await ref

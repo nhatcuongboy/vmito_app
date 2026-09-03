@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -25,6 +24,7 @@ import 'package:vmito_app/features/session_hosting/presentation/widgets/host_pay
 import 'package:vmito_app/features/session_hosting/presentation/widgets/host_results_tab.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/host_roster_tab.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_dialog.dart';
 
 class HostSessionManagementScreen extends ConsumerStatefulWidget {
   const HostSessionManagementScreen({
@@ -106,6 +106,7 @@ class _HostSessionManagementScreenState
               data: (value) => PopupMenuButton<_SessionAction>(
                 key: const Key('host-session-more-menu'),
                 icon: const Icon(AppIcons.moreVert),
+                offset: const Offset(0, 48),
                 tooltip: MaterialLocalizations.of(context).moreButtonTooltip,
                 onSelected: (action) => _handleAction(value, action),
                 itemBuilder: (context) => [
@@ -167,15 +168,30 @@ class _HostSessionManagementScreenState
               orElse: SizedBox.shrink,
             ),
           ],
-          bottom: _HostManagementTabBar(
-            labels: [
-              l10n.hostManageOverview,
-              l10n.hostManageRoster,
-              l10n.hostManageCourts,
-              l10n.hostManageResults,
-              l10n.hostManagePayments,
-            ],
-          ),
+        ),
+        bottomNavigationBar: _HostSessionBottomNavBar(
+          tabs: [
+            _HostNavTab(
+              label: l10n.hostManageOverview,
+              icon: AppIcons.info,
+            ),
+            _HostNavTab(
+              label: l10n.hostManageRoster,
+              icon: AppIcons.users,
+            ),
+            _HostNavTab(
+              label: l10n.hostManageCourts,
+              icon: AppIcons.square,
+            ),
+            _HostNavTab(
+              label: l10n.hostManageResults,
+              icon: AppIcons.trophy,
+            ),
+            _HostNavTab(
+              label: l10n.hostManagePayments,
+              icon: AppIcons.dollarSign,
+            ),
+          ],
         ),
         body: session.when(
           loading: () => const Center(child: CircularProgressIndicator()),
@@ -220,28 +236,13 @@ class _HostSessionManagementScreenState
     switch (action) {
       case _SessionAction.startSession:
         final l10n = AppLocalizations.of(context);
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(l10n.startSessionConfirmTitle),
-            content: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 320),
-              child: Text(l10n.startSessionConfirm),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(
-                  MaterialLocalizations.of(context).cancelButtonLabel,
-                ),
-              ),
-              FilledButton(
-                key: const ValueKey('confirm-start-session'),
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(l10n.startSessionAction),
-              ),
-            ],
-          ),
+        final confirmed = await showAppConfirmDialog(
+          context,
+          type: AppConfirmDialogType.submit,
+          title: l10n.startSessionConfirmTitle,
+          content: l10n.startSessionConfirm,
+          confirmLabel: l10n.startSessionAction,
+          confirmKey: const ValueKey('confirm-start-session'),
         );
         if (confirmed != true || !mounted) return;
         await ref
@@ -250,32 +251,13 @@ class _HostSessionManagementScreenState
         return;
       case _SessionAction.endSession:
         final l10n = AppLocalizations.of(context);
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(l10n.endSessionConfirmTitle),
-            content: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 320),
-              child: Text(l10n.endSessionConfirm),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(
-                  MaterialLocalizations.of(context).cancelButtonLabel,
-                ),
-              ),
-              FilledButton(
-                key: const ValueKey('confirm-end-session'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.error,
-                  foregroundColor: Theme.of(context).colorScheme.onError,
-                ),
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(l10n.endSessionAction),
-              ),
-            ],
-          ),
+        final confirmed = await showAppConfirmDialog(
+          context,
+          type: AppConfirmDialogType.destructive,
+          title: l10n.endSessionConfirmTitle,
+          content: l10n.endSessionConfirm,
+          confirmLabel: l10n.endSessionAction,
+          confirmKey: const ValueKey('confirm-end-session'),
         );
         if (confirmed != true || !mounted) return;
         await ref
@@ -290,27 +272,12 @@ class _HostSessionManagementScreenState
         return;
       case _SessionAction.cancel:
         final l10n = AppLocalizations.of(context);
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(l10n.cancelSessionTitle),
-            content: ConstrainedBox(
-              constraints: const BoxConstraints(minWidth: 320),
-              child: Text(l10n.cancelSessionConfirm),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(
-                  MaterialLocalizations.of(context).cancelButtonLabel,
-                ),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(l10n.cancelSessionAction),
-              ),
-            ],
-          ),
+        final confirmed = await showAppConfirmDialog(
+          context,
+          type: AppConfirmDialogType.destructive,
+          title: l10n.cancelSessionTitle,
+          content: l10n.cancelSessionConfirm,
+          confirmLabel: l10n.cancelSessionAction,
         );
         if (confirmed != true || !mounted) return;
         final cancelled = await ref
@@ -427,48 +394,162 @@ class _SessionStatusBadge extends StatelessWidget {
   }
 }
 
-class _HostManagementTabBar extends StatelessWidget
-    implements PreferredSizeWidget {
-  const _HostManagementTabBar({required this.labels});
+class _HostNavTab {
+  const _HostNavTab({
+    required this.label,
+    required this.icon,
+  });
 
-  final List<String> labels;
+  final String label;
+  final IconData icon;
+}
+
+class _HostSessionBottomNavBar extends StatelessWidget {
+  const _HostSessionBottomNavBar({required this.tabs});
+
+  final List<_HostNavTab> tabs;
 
   @override
-  Size get preferredSize => const Size.fromHeight(49);
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
+    final tabController = DefaultTabController.of(context);
 
-  @override
-  Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, constraints) {
-      final textScale = MediaQuery.textScalerOf(context).scale(1).clamp(1, 1.4);
-      final contentWidth = math
-          .max(
-            constraints.maxWidth,
-            340 * textScale,
-          )
-          .toDouble();
-      return SingleChildScrollView(
-        key: const Key('host-session-tabs-scroll'),
-        scrollDirection: Axis.horizontal,
-        child: SizedBox(
-          width: contentWidth,
-          child: TabBar(
-            key: const Key('host-session-tabs'),
-            labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-            tabs: [
-              for (var index = 0; index < labels.length; index++)
-                Tab(
-                  key: ValueKey('host-session-tab-$index'),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(labels[index], maxLines: 1),
-                  ),
+    return AnimatedBuilder(
+      animation: tabController.animation ?? tabController,
+      builder: (context, _) {
+        final activeIndex = tabController.indexIsChanging
+            ? tabController.index
+            : (tabController.animation?.value ?? tabController.index.toDouble())
+                .round();
+
+        return DecoratedBox(
+          key: const Key('host-session-bottom-nav'),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            border: Border(
+              top: BorderSide(
+                color: palette.border,
+              ),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: theme.colorScheme.shadow.withValues(
+                  alpha: theme.brightness == Brightness.light ? 0.05 : 0.25,
                 ),
+                blurRadius: 8,
+                offset: const Offset(0, -2),
+              ),
             ],
           ),
+          child: SafeArea(
+            top: false,
+            child: SizedBox(
+              height: AppSizes.bottomNavHeight,
+              child: Row(
+                children: [
+                  for (var i = 0; i < tabs.length; i++)
+                    Expanded(
+                      child: _HostNavTabItem(
+                        key: ValueKey('host-session-tab-$i'),
+                        tab: tabs[i],
+                        isActive: activeIndex == i,
+                        onTap: () => tabController.animateTo(i),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _HostNavTabItem extends StatelessWidget {
+  const _HostNavTabItem({
+    required this.tab,
+    required this.isActive,
+    required this.onTap,
+    super.key,
+  });
+
+  final _HostNavTab tab;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
+    final activeColor = theme.colorScheme.primary;
+    final inactiveColor = palette.mutedForeground;
+
+    return Stack(
+      children: [
+        if (isActive)
+          Positioned(
+            top: 0,
+            left: AppSpacing.sm,
+            right: AppSpacing.sm,
+            height: 3,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: activeColor,
+                borderRadius: BorderRadius.circular(AppRadius.pill),
+              ),
+            ),
+          ),
+        Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            splashColor: activeColor.withValues(alpha: 0.1),
+            highlightColor: activeColor.withValues(alpha: 0.05),
+            child: SizedBox(
+              width: double.infinity,
+              height: double.infinity,
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  top: AppSpacing.sm,
+                  bottom: AppSpacing.xs,
+                  left: AppSpacing.xxs,
+                  right: AppSpacing.xxs,
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      tab.icon,
+                      size: 20,
+                      color: isActive ? activeColor : inactiveColor,
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        tab.label,
+                        maxLines: 1,
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontSize: 11,
+                          height: 1.2,
+                          fontWeight:
+                              isActive ? FontWeight.w600 : FontWeight.w500,
+                          color: isActive ? activeColor : inactiveColor,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
-      );
-    },
-  );
+      ],
+    );
+  }
 }
 
 enum _SessionAction { startSession, endSession, edit, clone, cancel }

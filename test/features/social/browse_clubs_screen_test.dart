@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
+import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
+import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
 import 'package:vmito_app/features/social/presentation/browse_clubs_screen.dart';
@@ -104,5 +106,14 @@ void main() {
     expect(decoration.shape, BoxShape.circle);
     expect(decoration.border, isNotNull);
     expect(decoration.border!.top.color, Colors.white);
+
+    final favorite = tester.widget<FavoriteButton>(
+      find.byType(FavoriteButton),
+    );
+    expect(favorite.type, FavoriteType.club);
+    expect(favorite.targetId, 'club-1');
+    expect(favorite.variant, FavoriteButtonVariant.card);
+    expect(favorite.showCount, isFalse);
+    expect(find.byIcon(AppIcons.favorite), findsNothing);
   });
 }

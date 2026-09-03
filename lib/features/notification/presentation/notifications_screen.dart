@@ -17,6 +17,7 @@ import 'package:vmito_app/features/notification/presentation/widgets/notificatio
 import 'package:vmito_app/features/notification/presentation/widgets/notification_list_item.dart';
 import 'package:vmito_app/features/notification/presentation/widgets/notification_skeleton.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_dialog.dart';
 
 enum _NotificationPanelTab { all, pending, information }
 
@@ -106,6 +107,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             const SizedBox(width: AppSpacing.xs),
           ],
           bottom: TabBar(
+            indicatorColor: Theme.of(context).colorScheme.primary.withValues(
+              alpha: 0.45,
+            ),
             onTap: (index) => setState(
               () => _selectedTab = _NotificationPanelTab.values[index],
             ),
@@ -319,27 +323,12 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   ) async {
     final l10n = AppLocalizations.of(context);
     final content = getNotificationDisplayText(notification, l10n);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.notificationDeleteConfirmTitle),
-        content: Text(
-          l10n.notificationDeleteConfirmDescription(content.displayTitle),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: Text(l10n.notificationDelete),
-          ),
-        ],
-      ),
+    final confirmed = await showAppConfirmDialog(
+      context,
+      type: AppConfirmDialogType.destructive,
+      title: l10n.notificationDeleteConfirmTitle,
+      content: l10n.notificationDeleteConfirmDescription(content.displayTitle),
+      confirmLabel: l10n.notificationDelete,
     );
     if (confirmed == true) await controller.delete(notification.id);
   }

@@ -497,6 +497,8 @@ class VenueCard extends StatelessWidget {
                     child: FavoriteButton(
                       type: FavoriteType.venue,
                       targetId: venue.id,
+                      initialIsFavorite: venue.isFavorite,
+                      variant: FavoriteButtonVariant.card,
                       showCount: false,
                     ),
                   ),

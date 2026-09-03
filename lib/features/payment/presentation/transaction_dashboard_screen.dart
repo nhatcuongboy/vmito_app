@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
@@ -120,7 +121,7 @@ class _TransactionDashboardScreenState
                 ),
                 Padding(
                   padding: const EdgeInsets.all(AppSpacing.screenPadding),
-                  child: ReactiveForm(
+                  child: AppReactiveForm(
                     formGroup: _filterForm,
                     child: _FinanceFilterCard(
                       form: _filterForm,
@@ -207,7 +208,7 @@ class _TransactionDashboardScreenState
           AppSpacing.md,
           MediaQuery.viewInsetsOf(context).bottom + AppSpacing.md,
         ),
-        child: ReactiveForm(
+        child: AppReactiveForm(
           formGroup: _filterForm,
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -709,7 +710,7 @@ class _BySessionTabState extends State<_BySessionTab> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return ReactiveForm(
+    return AppReactiveForm(
       formGroup: _form,
       child: ReactiveValueListenableBuilder<SessionFinanceSort>(
         formControlName: 'sort',
@@ -859,7 +860,7 @@ class _ByPlayerTabState extends ConsumerState<_ByPlayerTab> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return ReactiveForm(
+    return AppReactiveForm(
       formGroup: _form,
       child: ReactiveFormConsumer(
         builder: (context, form, _) {

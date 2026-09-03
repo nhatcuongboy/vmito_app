@@ -55,11 +55,13 @@ class TournamentDetail {
     required this.pairCount,
     this.description,
     this.coverPhoto,
+    this.coverPhotoPublicId,
     this.youtubeVideoUrls = const [],
     this.contactName,
     this.contactEmail,
     this.contactPhone,
     this.host,
+    this.scheduleType,
     this.sportType = scoring.SportType.badminton,
   });
 
@@ -90,11 +92,13 @@ class TournamentDetail {
       status: TournamentStatus.fromWire(json['status'] as String?),
       isPublished: json['isPublished'] as bool? ?? false,
       coverPhoto: _nullableString(json['coverPhoto']),
+      coverPhotoPublicId: _nullableString(json['coverPhotoPublicId']),
       youtubeVideoUrls: _strings(json['youtubeVideoUrls']),
       contactName: _nullableString(json['contactName']),
       contactEmail: _nullableString(json['contactEmail']),
       contactPhone: _nullableString(json['contactPhone']),
       host: host == null ? null : TournamentHost.fromJson(host),
+      scheduleType: _nullableString(json['scheduleType']),
       sportType: json['sportType'] == 'PICKLEBALL'
           ? scoring.SportType.pickleball
           : scoring.SportType.badminton,
@@ -115,11 +119,13 @@ class TournamentDetail {
   final TournamentStatus status;
   final bool isPublished;
   final String? coverPhoto;
+  final String? coverPhotoPublicId;
   final List<String> youtubeVideoUrls;
   final String? contactName;
   final String? contactEmail;
   final String? contactPhone;
   final TournamentHost? host;
+  final String? scheduleType;
   final scoring.SportType sportType;
   final List<TournamentCategory> categories;
   final List<TournamentVenue> venues;
@@ -143,6 +149,55 @@ class TournamentDetail {
 
   String? get resolvedContactName => contactName ?? host?.name;
   String? get resolvedContactEmail => contactEmail ?? host?.email;
+
+  TournamentDetail copyWith({
+    String? name,
+    String? description,
+    bool clearDescription = false,
+    DateTime? startDate,
+    DateTime? endDate,
+    TournamentStatus? status,
+    bool? isPublished,
+    String? coverPhoto,
+    bool clearCoverPhoto = false,
+    String? coverPhotoPublicId,
+    bool clearCoverPhotoPublicId = false,
+    List<String>? youtubeVideoUrls,
+    String? contactName,
+    bool clearContactName = false,
+    String? contactEmail,
+    bool clearContactEmail = false,
+    String? contactPhone,
+    bool clearContactPhone = false,
+    List<TournamentCategory>? categories,
+    List<TournamentVenue>? venues,
+    String? scheduleType,
+  }) => TournamentDetail(
+    id: id,
+    slug: slug,
+    name: name ?? this.name,
+    description: clearDescription ? null : description ?? this.description,
+    startDate: startDate ?? this.startDate,
+    endDate: endDate ?? this.endDate,
+    hostId: hostId,
+    status: status ?? this.status,
+    isPublished: isPublished ?? this.isPublished,
+    categories: categories ?? this.categories,
+    venues: venues ?? this.venues,
+    playerCount: playerCount,
+    pairCount: pairCount,
+    coverPhoto: clearCoverPhoto ? null : coverPhoto ?? this.coverPhoto,
+    coverPhotoPublicId: clearCoverPhotoPublicId
+        ? null
+        : coverPhotoPublicId ?? this.coverPhotoPublicId,
+    youtubeVideoUrls: youtubeVideoUrls ?? this.youtubeVideoUrls,
+    contactName: clearContactName ? null : contactName ?? this.contactName,
+    contactEmail: clearContactEmail ? null : contactEmail ?? this.contactEmail,
+    contactPhone: clearContactPhone ? null : contactPhone ?? this.contactPhone,
+    host: host,
+    sportType: sportType,
+    scheduleType: scheduleType ?? this.scheduleType,
+  );
 }
 
 class TournamentHost {

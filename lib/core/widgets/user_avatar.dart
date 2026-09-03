@@ -34,15 +34,23 @@ class UserAvatar extends StatelessWidget {
   final bool? showStatusDot;
   final Color? statusColor;
 
-  String get _initials {
-    final parts = name
+  String _initialsFor(double avatarSize) {
+    final parts =
+        name
             ?.trim()
             .split(RegExp(r'\s+'))
             .where((part) => part.isNotEmpty)
             .toList() ??
         const <String>[];
     if (parts.isEmpty) return '?';
-    final initials = parts
+
+    // For very small avatars, a single initial reads better.
+    final maxCount = avatarSize < 32 ? 1 : 2;
+
+    final selected = parts.length <= maxCount
+        ? parts
+        : [parts.first, parts.last];
+    final initials = selected
         .map((part) => part.characters.firstOrNull ?? '')
         .where((initial) => initial.isNotEmpty)
         .join()
@@ -72,23 +80,27 @@ class UserAvatar extends StatelessWidget {
               height: size,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(
-                  color: resolvedBorderColor,
-                  width: resolvedBorderWidth,
-                ),
-                boxShadow:
-                    boxShadow ??
-                    const [BoxShadow(color: Color(0x26000000), blurRadius: 6)],
+                boxShadow: boxShadow ?? const [],
               ),
-              clipBehavior: Clip.antiAlias,
-              child: _hasImage
-                  ? CachedNetworkImage(
-                      imageUrl: imageUrl!.trim(),
-                      fit: BoxFit.cover,
-                      placeholder: (_, _) => _fallback(context),
-                      errorWidget: (_, _, _) => _fallback(context),
+              foregroundDecoration: resolvedBorderWidth > 0
+                  ? BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: resolvedBorderColor,
+                        width: resolvedBorderWidth,
+                      ),
                     )
-                  : _fallback(context),
+                  : null,
+              child: ClipOval(
+                child: _hasImage
+                    ? CachedNetworkImage(
+                        imageUrl: imageUrl!.trim(),
+                        fit: BoxFit.cover,
+                        placeholder: (_, _) => _fallback(context),
+                        errorWidget: (_, _, _) => _fallback(context),
+                      )
+                    : _fallback(context),
+              ),
             ),
             if (shouldShowStatus && status != null)
               Positioned(
@@ -120,12 +132,15 @@ class UserAvatar extends StatelessWidget {
       ),
       child: Center(
         child: Text(
-          _initials,
+          _initialsFor(size),
+          maxLines: 1,
+          textAlign: TextAlign.center,
           style: TextStyle(
             color: Colors.white,
             fontSize: fontSize ?? _fontSizeFor(size),
             fontWeight: FontWeight.bold,
             letterSpacing: .5,
+            height: 1,
           ),
         ),
       ),
@@ -153,11 +168,7 @@ class UserAvatar extends StatelessWidget {
     _ => Colors.grey,
   };
 
-  static double _fontSizeFor(double size) => size >= 56
-      ? 18
-      : size >= 44
-      ? 16
-      : 12;
+  static double _fontSizeFor(double size) => (size * 0.38).clamp(10, 32);
 
   static double _borderWidthFor(double size) => size <= 36
       ? 1.5

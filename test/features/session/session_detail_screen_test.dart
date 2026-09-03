@@ -910,4 +910,41 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'empty slots do not show in collapsed mode and show when expanded',
+    (tester) async {
+      final players = List.generate(
+        8,
+        (i) => SessionPlayer(id: 'p$i', name: 'Player $i', level: 3),
+      );
+
+      // Session capacity is 16 (2 courts * 8 maxPlayersPerCourt).
+      await _pump(tester, _session(players: players));
+
+      // 8 players shown, but 0 empty slot tiles when collapsed.
+      for (final player in players) {
+        expect(find.text(player.name), findsOneWidget);
+      }
+      expect(find.byKey(const ValueKey('empty-slot-0')), findsNothing);
+      expect(find.text('View all players'), findsOneWidget);
+
+      // Tap to expand
+      await tester.tap(find.text('View all players'));
+      await tester.pumpAndSettle();
+
+      // Now empty slots are visible (8 empty slots for capacity 16 - 8 players)
+      for (var i = 0; i < 8; i++) {
+        expect(find.byKey(ValueKey('empty-slot-$i')), findsOneWidget);
+      }
+      expect(find.text('Show less'), findsOneWidget);
+
+      // Tap to collapse
+      await tester.tap(find.text('Show less'));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const ValueKey('empty-slot-0')), findsNothing);
+      expect(find.text('View all players'), findsOneWidget);
+    },
+  );
 }

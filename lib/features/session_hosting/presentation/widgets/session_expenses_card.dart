@@ -9,6 +9,7 @@ import 'package:vmito_app/features/payment/domain/payment.dart';
 import 'package:vmito_app/features/session_hosting/application/host_session_management_controller.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/expense_dialog.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_dialog.dart';
 
 class SessionExpensesCard extends ConsumerWidget {
   const SessionExpensesCard({
@@ -159,26 +160,12 @@ class _ExpenseTile extends ConsumerWidget {
           IconButton(
             tooltip: l10n.commonDelete,
             onPressed: () async {
-              final confirmed = await showDialog<bool>(
-                context: context,
-                builder: (dialogContext) => AlertDialog(
-                  title: Text(l10n.hostManageDeleteExpenseTitle),
-                  content: Text(
-                    l10n.hostManageDeleteExpenseMessage(expense.name),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(dialogContext, false),
-                      child: Text(
-                        MaterialLocalizations.of(context).cancelButtonLabel,
-                      ),
-                    ),
-                    FilledButton(
-                      onPressed: () => Navigator.pop(dialogContext, true),
-                      child: Text(l10n.commonDelete),
-                    ),
-                  ],
-                ),
+              final confirmed = await showAppConfirmDialog(
+                context,
+                type: AppConfirmDialogType.destructive,
+                title: l10n.hostManageDeleteExpenseTitle,
+                content: l10n.hostManageDeleteExpenseMessage(expense.name),
+                confirmLabel: l10n.commonDelete,
               );
               if (confirmed != true) return;
               await ref

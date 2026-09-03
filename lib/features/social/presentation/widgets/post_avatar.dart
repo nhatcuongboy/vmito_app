@@ -71,6 +71,9 @@ class PostAvatar extends StatelessWidget {
             _kRingGradients.length];
     final outerSize = size + (ringWidth + gapWidth) * 2;
 
+    // Gap colour must match the card surface so the ring "floats" correctly.
+    final gapColor = Theme.of(context).colorScheme.surface;
+
     return SizedBox.square(
       dimension: outerSize,
       child: CustomPaint(
@@ -82,7 +85,7 @@ class PostAvatar extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               // White/dark gap between the ring and the avatar.
-              color: isDark ? const Color(0xFF1F2937) : Colors.white,
+              color: gapColor,
             ),
             child: Center(child: circle),
           ),

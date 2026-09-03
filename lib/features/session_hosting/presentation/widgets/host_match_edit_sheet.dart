@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
@@ -154,7 +155,7 @@ class _HostMatchEditSheetState extends ConsumerState<_HostMatchEditSheet> {
         : widget.direction == CourtDirection.vertical
         ? const [1, 3]
         : const [2, 3];
-    return ReactiveForm(
+    return AppReactiveForm(
       formGroup: _form,
       child: Column(
         children: [

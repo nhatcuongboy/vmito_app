@@ -275,6 +275,7 @@ class _SessionList extends StatelessWidget {
         final session = state.sessions[index];
         return SessionCard(
           session: session,
+          showFavorite: true,
           onTap: () => context.push(AppRoutes.sessionDetail(session.id)),
         );
       },

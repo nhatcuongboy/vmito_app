@@ -10,15 +10,22 @@ import 'package:vmito_domain/vmito_domain.dart';
 /// The colours follow the same low, middle, and high level bands throughout
 /// the product. Use [AllSkillLevelsBadge] when an empty requirement means all
 /// skill levels are welcome.
+///
+/// Set [compact] to `true` to use tighter padding, suited for dense contexts
+/// such as member list cards.
 class SkillLevelBadge extends StatelessWidget {
-  const SkillLevelBadge({required this.level, super.key});
+  const SkillLevelBadge({required this.level, this.compact = false, super.key});
 
   final int level;
+
+  /// When `true`, uses tighter horizontal/vertical padding.
+  final bool compact;
 
   @override
   Widget build(BuildContext context) => _Badge(
     label: AppLocalizations.of(context).levelName(level),
     color: _colorFor(level),
+    compact: compact,
   );
 
   Color _colorFor(int value) {
@@ -32,28 +39,33 @@ class SkillLevelBadge extends StatelessWidget {
 
 /// A neutral badge indicating that a session has no skill-level restriction.
 class AllSkillLevelsBadge extends StatelessWidget {
-  const AllSkillLevelsBadge({required this.label, super.key});
+  const AllSkillLevelsBadge({required this.label, this.compact = false, super.key});
 
   final String label;
+
+  /// When `true`, uses tighter horizontal/vertical padding.
+  final bool compact;
 
   @override
   Widget build(BuildContext context) => _Badge(
     label: label,
     color: Theme.of(context).extension<AppPalette>()!.mutedForeground,
+    compact: compact,
   );
 }
 
 class _Badge extends StatelessWidget {
-  const _Badge({required this.label, required this.color});
+  const _Badge({required this.label, required this.color, this.compact = false});
 
   final String label;
   final Color color;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(
-      horizontal: AppSpacing.sm + 2,
-      vertical: 4,
+    padding: EdgeInsets.symmetric(
+      horizontal: compact ? AppSpacing.xs + 2 : AppSpacing.sm + 2,
+      vertical: compact ? AppSpacing.xxs : 4,
     ),
     decoration: BoxDecoration(
       color: color,

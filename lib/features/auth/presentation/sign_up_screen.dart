@@ -10,6 +10,7 @@ import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/auth/application/registration_controller.dart';
 import 'package:vmito_app/features/auth/presentation/widgets/auth_status_panel.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/shared/widgets/app_required_label.dart';
 
 abstract final class SignUpFormControl {
@@ -38,16 +39,39 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])',
   );
 
+  static Map<String, dynamic>? _requiredTrimmed(
+    AbstractControl<dynamic> control,
+  ) {
+    final value = control.value;
+    if (value == null || (value is String && value.trim().isEmpty)) {
+      return {ValidationMessage.required: true};
+    }
+    return null;
+  }
+
+  static Map<String, dynamic>? _emailValidator(
+    AbstractControl<dynamic> control,
+  ) {
+    final raw = control.value as String?;
+    final value = raw?.trim() ?? '';
+    if (value.isEmpty) return null;
+    final tempControl = FormControl<String>(value: value);
+    return Validators.email(tempControl);
+  }
+
   @override
   void initState() {
     super.initState();
     _form = FormGroup(
       {
         SignUpFormControl.name: FormControl<String>(
-          validators: [Validators.required],
+          validators: [Validators.delegate(_requiredTrimmed)],
         ),
         SignUpFormControl.email: FormControl<String>(
-          validators: [Validators.required, Validators.email],
+          validators: [
+            Validators.delegate(_requiredTrimmed),
+            Validators.delegate(_emailValidator),
+          ],
         ),
         SignUpFormControl.phone: FormControl<String>(
           validators: [
@@ -97,10 +121,10 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
     final user = await ref
         .read(registrationControllerProvider.notifier)
         .submit(
-          name: values[SignUpFormControl.name]! as String,
-          email: values[SignUpFormControl.email]! as String,
+          name: (values[SignUpFormControl.name]! as String).trim(),
+          email: (values[SignUpFormControl.email]! as String).trim(),
           password: values[SignUpFormControl.password]! as String,
-          phone: values[SignUpFormControl.phone] as String?,
+          phone: (values[SignUpFormControl.phone] as String?)?.trim(),
           gender: values[SignUpFormControl.gender] as String?,
           locale: Localizations.localeOf(context).languageCode,
         );
@@ -123,13 +147,13 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 480),
-            child: ReactiveForm(
+            child: AppReactiveForm(
               formGroup: _form,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Text(
-                    'Tạo tài khoản mới',
+                    l10n.authSignUpTitle,
                     style: theme.textTheme.titleLarge?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -157,6 +181,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     readOnly: state.isLoading,
                     decoration: InputDecoration(
                       labelText: l10n.authSignUpName,
+                      hintText: l10n.authSignUpNamePlaceholder,
                     ),
                     validationMessages: {
                       ValidationMessage.required: (_) =>
@@ -173,6 +198,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     readOnly: state.isLoading,
                     decoration: InputDecoration(
                       labelText: l10n.authSignUpEmail,
+                      hintText: l10n.authSignUpEmailPlaceholder,
                     ),
                     validationMessages: {
                       ValidationMessage.required: (_) =>
@@ -200,6 +226,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                             l10n.authSignUpPhone,
                             optionalText: l10n.formOptional,
                           ),
+                          hintText: l10n.authSignUpPhonePlaceholder,
                           counterText: '',
                         ),
                         validationMessages: {
@@ -262,6 +289,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                       readOnly: state.isLoading,
                       decoration: InputDecoration(
                         labelText: l10n.authSignUpPassword,
+                        hintText: l10n.authSignUpPasswordPlaceholder,
                         suffixIcon: IconButton(
                           onPressed: () => setState(
                             () => _obscurePassword = !_obscurePassword,
@@ -305,6 +333,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     onSubmitted: (_) => state.isLoading ? null : _submit(),
                     decoration: InputDecoration(
                       labelText: l10n.authSignUpConfirmPassword,
+                      hintText: l10n.authSignUpConfirmPlaceholder,
                       suffixIcon: IconButton(
                         onPressed: () => setState(
                           () => _obscureConfirmation = !_obscureConfirmation,
@@ -340,7 +369,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Đã có tài khoản? ',
+                        l10n.authAlreadyHaveAccount,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           color: palette.mutedForeground,
                         ),
@@ -357,7 +386,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                         child: Text(
-                          'Đăng nhập',
+                          l10n.authSignIn,
                           style: TextStyle(
                             fontWeight: FontWeight.w600,
                             color: theme.colorScheme.primary,
@@ -377,8 +406,16 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
 
   String _errorMessage(AppLocalizations l10n, Object? error) {
     if (error is ApiException) {
-      if (error.statusCode == 429) return l10n.authTooManyRequests;
-      if (error.statusCode == 409) return l10n.authSignUpUserExists;
+      final msg = error.message.toLowerCase();
+      if (error.statusCode == 429 || msg.contains('too many requests')) {
+        return l10n.authTooManyRequests;
+      }
+      if (error.statusCode == 409 ||
+          msg.contains('user already exists') ||
+          msg.contains('already in use') ||
+          msg.contains('already exists')) {
+        return l10n.authSignUpUserExists;
+      }
       if (error.hasServerMessage) return error.message;
     }
     return l10n.authSignUpFailed;

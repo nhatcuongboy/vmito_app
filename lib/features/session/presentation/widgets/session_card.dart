@@ -7,6 +7,8 @@ import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/core/widgets/user_avatar.dart';
+import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
+import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/widgets/level_range_chips.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -32,6 +34,7 @@ class SessionCard extends ConsumerWidget {
     this.onShare,
     this.onDelete,
     this.compactStatusBadge = false,
+    this.showFavorite = false,
     super.key,
   });
 
@@ -43,6 +46,7 @@ class SessionCard extends ConsumerWidget {
   final VoidCallback? onShare;
   final VoidCallback? onDelete;
   final bool compactStatusBadge;
+  final bool showFavorite;
 
   static const _coverWidth = 108.0;
 
@@ -91,13 +95,32 @@ class SessionCard extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        session.name,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              session.name,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          if (showFavorite) ...[
+                            const SizedBox(width: AppSpacing.xs),
+                            FavoriteButton(
+                              key: ValueKey('session-favorite-${session.id}'),
+                              type: FavoriteType.session,
+                              targetId: session.id,
+                              initialIsFavorite: session.isFavorite,
+                              variant: FavoriteButtonVariant.surface,
+                              showCount: false,
+                              size: 24,
+                            ),
+                          ],
+                        ],
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       if (session.displayHostName.isNotEmpty)
@@ -127,8 +150,11 @@ class SessionCard extends ConsumerWidget {
                       Row(
                         children: [
                           Expanded(
-                            child: LevelRangeChips(
-                              requiredLevels: session.requiredLevels,
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: LevelRangeChips(
+                                requiredLevels: session.requiredLevels,
+                              ),
                             ),
                           ),
                           if (priceLabel != null)
@@ -163,21 +189,22 @@ class SessionCard extends ConsumerWidget {
                                     foregroundColor:
                                         theme.colorScheme.onPrimary,
                                     padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                      vertical: AppSpacing.xs,
+                                      horizontal: 14,
+                                      vertical: AppSpacing.sm,
                                     ),
-                                    minimumSize: const Size(0, 34),
+                                    minimumSize: const Size(0, 40),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(
                                         AppRadius.md,
                                       ),
                                     ),
                                   ),
-                                  icon: const Icon(AppIcons.settings, size: 16),
+                                  icon: const Icon(AppIcons.settings, size: 18),
                                   label: const Text(
                                     'Host',
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
+                                      fontSize: 14,
                                     ),
                                   ),
                                   onPressed: onHost,
@@ -192,12 +219,12 @@ class SessionCard extends ConsumerWidget {
                                     EdgeInsets.zero,
                                   ),
                                   minimumSize: WidgetStateProperty.all(
-                                    const Size(34, 34),
+                                    const Size(40, 40),
                                   ),
                                 ),
                                 icon: Container(
-                                  width: 34,
-                                  height: 32,
+                                  width: 40,
+                                  height: 40,
                                   decoration: BoxDecoration(
                                     border: Border.all(color: palette.border),
                                     borderRadius: BorderRadius.circular(
@@ -206,7 +233,7 @@ class SessionCard extends ConsumerWidget {
                                   ),
                                   child: const Icon(
                                     AppIcons.moreVert,
-                                    size: 18,
+                                    size: 20,
                                   ),
                                 ),
                                 itemBuilder: (context) {
@@ -400,11 +427,13 @@ class _Cover extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          CachedNetworkImage(
-            imageUrl: url,
-            fit: BoxFit.cover,
-            placeholder: (context, _) => ColoredBox(color: palette.muted),
-            errorWidget: (context, _, _) => _Placeholder(palette: palette),
+          Positioned.fill(
+            child: CachedNetworkImage(
+              imageUrl: url,
+              fit: BoxFit.cover,
+              placeholder: (context, _) => ColoredBox(color: palette.muted),
+              errorWidget: (context, _, _) => _Placeholder(palette: palette),
+            ),
           ),
           if (session.isCrawled)
             const Positioned(
@@ -491,7 +520,7 @@ class _HostLine extends StatelessWidget {
           UserAvatar(
             name: session.displayHostName,
             imageUrl: image,
-            size: 18,
+            size: 24,
             borderWidth: 0,
             boxShadow: const [],
           ),
@@ -533,8 +562,12 @@ class _TimeLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     const dateColor = Color(0xFFF97316);
-    const timeColor = Color(0xFF3F3F46);
+    final timeColor = isDark
+        ? theme.colorScheme.onSurface.withValues(alpha: 0.85)
+        : const Color(0xFF3F3F46);
     final date = Dates.relativeDay(
       start,
       locale: locale,

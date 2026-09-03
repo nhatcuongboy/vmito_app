@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
@@ -15,6 +15,7 @@ import 'package:vmito_app/core/widgets/user_avatar.dart';
 import 'package:vmito_app/features/social/application/club_management_controller.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_dialog.dart';
 import 'package:vmito_app/shared/widgets/skill_level_badge.dart';
 
 class PublicClubMembersTab extends ConsumerStatefulWidget {
@@ -57,10 +58,6 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final columns = constraints.maxWidth >= _wideBreakpoint ? 2 : 1;
-        final textScale = MediaQuery.textScalerOf(context).scale(14) / 14;
-        final memberExtent = math
-            .max(96, 90 + (textScale - 1) * 150)
-            .toDouble();
         return ListView(
           key: const Key('public-club-members-scroll'),
           padding: const EdgeInsets.fromLTRB(
@@ -95,8 +92,8 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
                                 SliverGridDelegateWithFixedCrossAxisCount(
                                   crossAxisCount: columns,
                                   crossAxisSpacing: AppSpacing.sm,
-                                  mainAxisSpacing: AppSpacing.sm,
-                                  mainAxisExtent: memberExtent,
+                                  mainAxisSpacing: AppSpacing.xs,
+                                  mainAxisExtent: 64,
                                 ),
                             itemBuilder: (context, index) => _memberCard(
                               context,
@@ -233,13 +230,17 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
       child: InkWell(
         onTap: () => _showMemberDetails(member),
         child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.sm),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm,
+            vertical: AppSpacing.xs + 2,
+          ),
           child: Row(
             children: [
               UserAvatar(
                 name: member.name,
                 gender: member.gender,
                 imageUrl: member.image,
+                size: 40,
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
@@ -256,15 +257,18 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
                       ),
                     ),
                     if (member.role != 'MEMBER' || member.level != null) ...[
-                      const SizedBox(height: 5),
+                      const SizedBox(height: 4),
                       Wrap(
                         spacing: AppSpacing.xs,
-                        runSpacing: 4,
+                        runSpacing: AppSpacing.xxs,
                         children: [
                           if (member.role != 'MEMBER')
                             _RoleBadge(role: member.role),
                           if (member.level != null)
-                            SkillLevelBadge(level: member.level!),
+                            SkillLevelBadge(
+                              level: member.level!,
+                              compact: true,
+                            ),
                         ],
                       ),
                     ],
@@ -287,7 +291,7 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
               else
                 Icon(
                   AppIcons.chevronRight,
-                  size: 18,
+                  size: 16,
                   color: palette.mutedForeground,
                 ),
             ],
@@ -324,26 +328,13 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
 
   Future<void> _confirmRemove(ClubMember member) async {
     final l10n = AppLocalizations.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.clubRemoveMember),
-        content: Text(l10n.clubRemoveMemberConfirm(member.name)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(l10n.commonCancel),
-          ),
-          FilledButton(
-            key: const Key('club-member-confirm-remove'),
-            onPressed: () => Navigator.pop(dialogContext, true),
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-            child: Text(l10n.commonRemove),
-          ),
-        ],
-      ),
+    final confirmed = await showAppConfirmDialog(
+      context,
+      type: AppConfirmDialogType.destructive,
+      title: l10n.clubRemoveMember,
+      content: l10n.clubRemoveMemberConfirm(member.name),
+      confirmLabel: l10n.commonRemove,
+      confirmKey: const Key('club-member-confirm-remove'),
     );
     if (confirmed != true || !mounted) return;
     setState(() => _removingMemberId = member.userId);
@@ -392,8 +383,8 @@ class _RoleBadge extends StatelessWidget {
     };
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: 4,
+        horizontal: AppSpacing.xs + 2,
+        vertical: AppSpacing.xxs,
       ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: .13),
@@ -452,23 +443,32 @@ class _MemberDetailsSheet extends StatelessWidget {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                  UserAvatar(
-                    name: member.name,
-                    gender: member.gender,
-                    imageUrl: member.image,
-                    size: 72,
-                  ),
                   const SizedBox(height: AppSpacing.sm),
-                  Text(
-                    member.name,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                  Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        UserAvatar(
+                          name: member.name,
+                          gender: member.gender,
+                          imageUrl: member.image,
+                          size: 72,
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        Text(
+                          member.name,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        _RoleBadge(role: member.role),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Center(child: _RoleBadge(role: member.role)),
                   const SizedBox(height: AppSpacing.lg),
                   Card(
                     margin: EdgeInsets.zero,
@@ -693,7 +693,7 @@ class _ClubMemberSearchSheetState
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                ReactiveForm(
+                AppReactiveForm(
                   formGroup: _form,
                   child: LayoutBuilder(
                     builder: (context, constraints) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/court/presentation/widgets/court/court_player_marker.dart';
+import 'package:vmito_app/features/court/presentation/widgets/court/court_player_tooltip.dart';
 import 'package:vmito_app/features/court/presentation/widgets/court/court_slot_layout.dart';
 import 'package:vmito_app/features/court/presentation/widgets/court/court_slot_placeholder.dart';
 import 'package:vmito_app/features/court/presentation/widgets/court/court_surface_painter.dart';
@@ -20,7 +21,7 @@ import 'package:vmito_domain/vmito_domain.dart';
 ///
 /// Direction is a **coordinate transform on one widget tree**, never a second
 /// layout: see [CourtSlotLayout].
-class BadmintonCourtView extends StatelessWidget {
+class BadmintonCourtView extends StatefulWidget {
   const BadmintonCourtView({
     required this.court,
     this.preSelectedPlayers = const [],
@@ -64,45 +65,131 @@ class BadmintonCourtView extends StatelessWidget {
   final List<Widget> overlays;
 
   @override
+  State<BadmintonCourtView> createState() => _BadmintonCourtViewState();
+}
+
+class _BadmintonCourtViewState extends State<BadmintonCourtView> {
+  OverlayEntry? _tooltipEntry;
+  int? _activeTooltipSeat;
+  final Map<int, GlobalKey> _seatKeys = {};
+  ScrollPosition? _scrollPosition;
+
+  GlobalKey _getSeatKey(int seat) =>
+      _seatKeys.putIfAbsent(seat, () => GlobalKey());
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _updateScrollListener();
+  }
+
+  void _updateScrollListener() {
+    final newPosition = Scrollable.maybeOf(context)?.position;
+    if (newPosition != _scrollPosition) {
+      _scrollPosition?.isScrollingNotifier.removeListener(_onScrollChanged);
+      _scrollPosition = newPosition;
+      _scrollPosition?.isScrollingNotifier.addListener(_onScrollChanged);
+    }
+  }
+
+  void _onScrollChanged() {
+    if (_scrollPosition?.isScrollingNotifier.value == true) {
+      _hideTooltip();
+    }
+  }
+
+  @override
+  void didUpdateWidget(BadmintonCourtView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.court.id != widget.court.id ||
+        oldWidget.court.status != widget.court.status ||
+        oldWidget.court.currentPlayers != widget.court.currentPlayers) {
+      _hideTooltip();
+    }
+  }
+
+  @override
+  void dispose() {
+    _scrollPosition?.isScrollingNotifier.removeListener(_onScrollChanged);
+    _hideTooltip();
+    super.dispose();
+  }
+
+  void _hideTooltip() {
+    _tooltipEntry?.remove();
+    _tooltipEntry = null;
+    _activeTooltipSeat = null;
+  }
+
+  void _handlePlayerTap(int seat, SessionPlayer player, int pairNumber) {
+    if (_activeTooltipSeat == seat) {
+      _hideTooltip();
+      return;
+    }
+
+    _hideTooltip();
+
+    final seatContext = _seatKeys[seat]?.currentContext;
+    if (seatContext == null || !seatContext.mounted) return;
+    final box = seatContext.findRenderObject() as RenderBox?;
+    if (box == null || !box.attached) return;
+
+    final targetRect = box.localToGlobal(Offset.zero) & box.size;
+
+    _activeTooltipSeat = seat;
+    _tooltipEntry = OverlayEntry(
+      builder: (context) => CourtPlayerTooltipOverlay(
+        player: player,
+        pairNumber: pairNumber,
+        targetRect: targetRect,
+        onDismiss: _hideTooltip,
+      ),
+    );
+    Overlay.of(context).insert(_tooltipEntry!);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final format = _format;
     final seats = _seats(format);
-    final direction = court.direction == CourtDirection.vertical
+    final direction = widget.court.direction == CourtDirection.vertical
         ? PairDirection.vertical
         : PairDirection.horizontal;
 
     return Semantics(
-      label: AppLocalizations.of(context).courtName(court),
+      label: AppLocalizations.of(context).courtName(widget.court),
       child: AspectRatio(
         aspectRatio: AppSizes.courtAspectRatio,
         child: CustomPaint(
           painter: CourtSurfacePainter(
-            status: court.status,
-            courtColor: courtColor,
+            status: widget.court.status,
+            courtColor: widget.courtColor,
           ),
           child: LayoutBuilder(
-              builder: (context, constraints) {
-                final width = constraints.maxWidth;
-                final height = constraints.maxHeight;
+            builder: (context, constraints) {
+              final width = constraints.maxWidth;
+              final height = constraints.maxHeight;
 
-                return Stack(
-                  children: [
-                    for (var seat = 0; seat < seats.length; seat++)
-                      () {
-                        final visualIndex = CourtSlotLayout.visualIndexOf(
-                          seat,
-                          direction,
-                          format,
-                        );
-                        final offset = CourtSlotLayout.offsetAt(
-                          visualIndex,
-                          format,
-                        );
-                        return Positioned(
-                          left: width * offset.dx,
-                          top: height * offset.dy,
-                          child: FractionalTranslation(
-                            translation: const Offset(-0.5, -0.5),
+              return Stack(
+                children: [
+                  for (var seat = 0; seat < seats.length; seat++)
+                    () {
+                      final visualIndex = CourtSlotLayout.visualIndexOf(
+                        seat,
+                        direction,
+                        format,
+                      );
+                      final offset = CourtSlotLayout.offsetAt(
+                        visualIndex,
+                        format,
+                      );
+                      return Positioned(
+                        left: width * offset.dx,
+                        top: height * offset.dy,
+                        child: FractionalTranslation(
+                          translation: const Offset(-0.5, -0.5),
+                          child: KeyedSubtree(
+                            key: _getSeatKey(seat),
                             child: _seatChild(
                               context,
                               seat,
@@ -110,16 +197,17 @@ class BadmintonCourtView extends StatelessWidget {
                               CourtSlotLayout.pairNumberFor(visualIndex),
                             ),
                           ),
-                        );
-                      }(),
-                    ...overlays,
-                  ],
-                );
-              },
-            ),
+                        ),
+                      );
+                    }(),
+                  ...widget.overlays,
+                ],
+              );
+            },
           ),
         ),
-      );
+      ),
+    );
   }
 
   Widget _seatChild(
@@ -130,28 +218,32 @@ class BadmintonCourtView extends StatelessWidget {
   ) {
     if (player == null) {
       // Only selection mode draws empty seats; elsewhere a gap is just a gap.
-      if (!mode.isSelection) return const SizedBox.shrink();
+      if (!widget.mode.isSelection) return const SizedBox.shrink();
       return CourtSlotPlaceholder(
         slotNumber: seat + 1,
-        isActive: seat == activeSlot,
-        onTap: onSlotTap == null ? null : () => onSlotTap!(seat),
+        isActive: seat == widget.activeSlot,
+        onTap: widget.onSlotTap == null ? null : () => widget.onSlotTap!(seat),
       );
     }
 
     return CourtPlayerMarker(
       player: player,
-      mode: mode,
-      displayMode: displayMode,
+      mode: widget.mode,
+      displayMode: widget.displayMode,
       pairNumber: pairNumber,
-      isActive: mode.isSelection && seat == activeSlot,
-      // Tapping a filled seat in selection mode clears it and makes it the
-      // active one, so a mis-tap is one tap to fix.
-      onTap: onSlotTap == null ? null : () => onSlotTap!(seat),
+      isActive: widget.mode.isSelection && seat == widget.activeSlot,
+      onTap: () {
+        if (widget.mode.isSelection && widget.onSlotTap != null) {
+          widget.onSlotTap!(seat);
+        } else {
+          _handlePlayerTap(seat, player, pairNumber);
+        }
+      },
     );
   }
 
   CourtFormat get _format {
-    final type = matchType ?? court.matchTypeOr(MatchType.doubles);
+    final type = widget.matchType ?? widget.court.matchTypeOr(MatchType.doubles);
     return type == MatchType.singles
         ? CourtFormat.singles
         : CourtFormat.doubles;
@@ -165,20 +257,20 @@ class BadmintonCourtView extends StatelessWidget {
       null,
     );
 
-    if (selection != null) {
+    if (widget.selection != null) {
       for (
         var seat = 0;
-        seat < slots.length && seat < selection!.length;
+        seat < slots.length && seat < widget.selection!.length;
         seat++
       ) {
-        slots[seat] = selection![seat];
+        slots[seat] = widget.selection![seat];
       }
       return slots;
     }
 
-    final occupants = court.currentPlayers.isNotEmpty
-        ? court.currentPlayers
-        : preSelectedPlayers;
+    final occupants = widget.court.currentPlayers.isNotEmpty
+        ? widget.court.currentPlayers
+        : widget.preSelectedPlayers;
 
     if (_seatsAreUsable(occupants, slots.length)) {
       for (final player in occupants) {

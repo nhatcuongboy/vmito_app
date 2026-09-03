@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -13,6 +14,7 @@ import 'package:vmito_app/features/tournament/presentation/widgets/tournament_cr
 import 'package:vmito_app/features/tournament/presentation/widgets/tournament_create_fields.dart';
 import 'package:vmito_app/features/tournament/presentation/widgets/tournament_location_picker_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_dialog.dart';
 
 const _wideTournamentFormBreakpoint = 700.0;
 const _maxTournamentFormWidth = 760.0;
@@ -162,22 +164,13 @@ class _CreateTournamentScreenState
   Future<bool> _confirmDiscard() async {
     if (!_form.dirty || _allowNavigation) return true;
     final l10n = AppLocalizations.of(context);
-    return await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: Text(l10n.tournamentCreateUnsavedTitle),
-            content: Text(l10n.tournamentCreateUnsavedBody),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: Text(l10n.tournamentCreateUnsavedStay),
-              ),
-              FilledButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(l10n.tournamentCreateUnsavedLeave),
-              ),
-            ],
-          ),
+    return await showAppConfirmDialog(
+          context,
+          type: AppConfirmDialogType.destructive,
+          title: l10n.tournamentCreateUnsavedTitle,
+          content: l10n.tournamentCreateUnsavedBody,
+          cancelLabel: l10n.tournamentCreateUnsavedStay,
+          confirmLabel: l10n.tournamentCreateUnsavedLeave,
         ) ??
         false;
   }
@@ -227,7 +220,7 @@ class _CreateTournamentScreenState
           builder: (context, constraints) {
             final isWide =
                 constraints.maxWidth >= _wideTournamentFormBreakpoint;
-            return ReactiveForm(
+            return AppReactiveForm(
               formGroup: _form,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(AppSpacing.screenPadding),

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/config/app_config.dart';
 import 'package:vmito_app/core/location/google_places_service.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
@@ -14,6 +15,7 @@ import 'package:vmito_app/features/social/domain/form/post_composer_reactive_for
 import 'package:vmito_app/features/social/domain/post_composer_draft.dart';
 import 'package:vmito_app/features/social/presentation/widgets/post_avatar.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_dialog.dart';
 
 const _maxPostImages = 5;
 
@@ -128,7 +130,7 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
               Flexible(
                 child: _showingLocationPanel
                     ? _buildLocationPanel(context)
-                    : ReactiveForm(
+                    : AppReactiveForm(
                         formGroup: _form,
                         child: _buildComposer(context),
                       ),
@@ -526,22 +528,13 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
       return;
     }
     final l10n = AppLocalizations.of(context);
-    final discard = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.socialPostDiscardTitle),
-        content: Text(l10n.socialPostDiscardDescription),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(l10n.socialPostKeepEditing),
-          ),
-          FilledButton.tonal(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(l10n.socialPostDiscard),
-          ),
-        ],
-      ),
+    final discard = await showAppConfirmDialog(
+      context,
+      type: AppConfirmDialogType.destructive,
+      title: l10n.socialPostDiscardTitle,
+      content: l10n.socialPostDiscardDescription,
+      cancelLabel: l10n.socialPostKeepEditing,
+      confirmLabel: l10n.socialPostDiscard,
     );
     if (discard == true && mounted) {
       Navigator.of(context).pop(false);

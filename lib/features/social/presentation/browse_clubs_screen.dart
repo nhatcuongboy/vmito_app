@@ -338,6 +338,8 @@ class _ClubBrowseCard extends StatelessWidget {
                     child: FavoriteButton(
                       type: FavoriteType.club,
                       targetId: club.id,
+                      initialIsFavorite: club.isFavorite,
+                      variant: FavoriteButtonVariant.card,
                       showCount: false,
                     ),
                   ),

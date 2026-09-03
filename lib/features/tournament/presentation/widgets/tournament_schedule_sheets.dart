@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/config/app_config.dart';
 import 'package:vmito_app/features/tournament/application/tournament_schedule_controller.dart';
 import 'package:vmito_app/features/tournament/domain/form/tournament_schedule_forms.dart';
@@ -185,7 +186,7 @@ class _TournamentFilterSheetState extends State<_TournamentFilterSheet> {
         if (registration != null) registrations[registration.id] = registration;
       }
     }
-    return ReactiveForm(
+    return AppReactiveForm(
       formGroup: form,
       child: Column(
         children: [
@@ -606,7 +607,7 @@ class _TournamentScheduleEditFormState
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return ReactiveForm(
+    return AppReactiveForm(
       formGroup: form,
       child: Column(
         children: [
@@ -820,7 +821,7 @@ class _TournamentResultFormState extends State<_TournamentResultForm> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final allowManual = widget.category?.pointsEarning != 'match_results';
-    return ReactiveForm(
+    return AppReactiveForm(
       formGroup: form,
       child: Column(
         children: [
@@ -968,7 +969,7 @@ class _SetEditor extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           for (final (index, control) in array.controls.indexed)
-            ReactiveForm(
+            AppReactiveForm(
               formGroup: control as FormGroup,
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 10),

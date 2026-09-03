@@ -13,6 +13,7 @@ import 'package:vmito_app/features/registration/application/my_join_requests_con
 import 'package:vmito_app/features/registration/domain/my_join_request.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
+import 'package:vmito_app/shared/widgets/app_dialog.dart';
 import 'package:vmito_app/shared/widgets/app_loading_view.dart';
 import 'package:vmito_domain/vmito_domain.dart';
 
@@ -109,30 +110,12 @@ class _MyJoinRequestsSheetState extends ConsumerState<MyJoinRequestsSheet> {
 
   Future<void> _confirmWithdraw(MyJoinRequest request) async {
     final l10n = AppLocalizations.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.myJoinRequestsWithdrawTitle),
-        content: ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 320),
-          child: Text(l10n.myJoinRequestsWithdrawConfirm),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(
-              MaterialLocalizations.of(dialogContext).cancelButtonLabel,
-            ),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(dialogContext).colorScheme.error,
-            ),
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(l10n.myJoinRequestsWithdraw),
-          ),
-        ],
-      ),
+    final confirmed = await showAppConfirmDialog(
+      context,
+      type: AppConfirmDialogType.destructive,
+      title: l10n.myJoinRequestsWithdrawTitle,
+      content: l10n.myJoinRequestsWithdrawConfirm,
+      confirmLabel: l10n.myJoinRequestsWithdraw,
     );
     if (confirmed != true || !mounted) return;
 

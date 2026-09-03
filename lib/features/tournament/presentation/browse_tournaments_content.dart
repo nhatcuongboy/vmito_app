@@ -12,6 +12,8 @@ import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
+import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/tournament/application/tournament_browse_controller.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -231,6 +233,18 @@ class TournamentBrowseCard extends ConsumerWidget {
                           ),
                         ),
                       ),
+                    ),
+                  ),
+                  Positioned(
+                    top: AppSpacing.sm,
+                    right: AppSpacing.sm,
+                    child: FavoriteButton(
+                      key: ValueKey('tournament-favorite-${tournament.id}'),
+                      type: FavoriteType.tournament,
+                      targetId: tournament.id,
+                      initialIsFavorite: tournament.isFavorite,
+                      variant: FavoriteButtonVariant.card,
+                      showCount: false,
                     ),
                   ),
                 ],

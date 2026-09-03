@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/location/device_location_service.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
@@ -174,7 +175,7 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
     return SafeArea(
       child: SizedBox(
         height: MediaQuery.sizeOf(context).height * .9,
-        child: ReactiveForm(
+        child: AppReactiveForm(
           formGroup: _form,
           child: Column(
             children: [

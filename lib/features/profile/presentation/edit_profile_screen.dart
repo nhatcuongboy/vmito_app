@@ -12,6 +12,7 @@ import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/features/profile/application/profile_controller.dart';
 import 'package:vmito_app/features/profile/domain/form/profile_form.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/shared/widgets/app_required_label.dart';
 import 'package:vmito_domain/vmito_domain.dart';
 
@@ -93,7 +94,7 @@ class _EditProfileFormState extends ConsumerState<_EditProfileForm> {
       appBar: AppBar(title: Text(l10n.profileEditTitle)),
       body: SafeArea(
         top: false,
-        child: ReactiveForm(
+        child: AppReactiveForm(
           formGroup: _form,
           child: LayoutBuilder(
             builder: (context, constraints) => Center(

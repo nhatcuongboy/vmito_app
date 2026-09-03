@@ -15,6 +15,9 @@ class CourtOverlayButton extends StatelessWidget {
     this.alignment = Alignment.topLeft,
     this.background,
     this.foreground,
+    this.iconSize = 15,
+    this.padding = const EdgeInsets.all(5.5),
+    this.margin = const EdgeInsets.all(AppSpacing.sm),
     super.key,
   });
 
@@ -24,6 +27,9 @@ class CourtOverlayButton extends StatelessWidget {
   final Alignment alignment;
   final Color? background;
   final Color? foreground;
+  final double iconSize;
+  final EdgeInsetsGeometry padding;
+  final EdgeInsetsGeometry margin;
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +37,7 @@ class CourtOverlayButton extends StatelessWidget {
     return Align(
       alignment: alignment,
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.xs),
+        padding: margin,
         child: Tooltip(
           message: tooltip,
           child: Semantics(
@@ -44,12 +50,10 @@ class CourtOverlayButton extends StatelessWidget {
                 onTap: onPressed,
                 customBorder: const CircleBorder(),
                 child: Padding(
-                  // 32 px of icon plus padding: below the 48 px tap floor, so
-                  // the InkWell's own splash area is widened by the Material.
-                  padding: const EdgeInsets.all(7),
+                  padding: padding,
                   child: Icon(
                     icon,
-                    size: 18,
+                    size: iconSize,
                     color: foreground ?? palette.mutedForeground,
                   ),
                 ),

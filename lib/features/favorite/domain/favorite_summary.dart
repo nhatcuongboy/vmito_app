@@ -14,6 +14,11 @@ enum FavoriteType {
   const FavoriteType(this.wireValue);
 
   final String wireValue;
+
+  static FavoriteType fromWire(String? value) => FavoriteType.values.firstWhere(
+    (type) => type.wireValue == value,
+    orElse: () => FavoriteType.session,
+  );
 }
 
 /// `GET /favorites/:type/:targetId/summary`.

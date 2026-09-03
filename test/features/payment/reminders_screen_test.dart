@@ -8,7 +8,6 @@ import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/features/payment/application/payment_reminders_controller.dart';
 import 'package:vmito_app/features/payment/domain/payment.dart';
 import 'package:vmito_app/features/payment/presentation/reminders_screen.dart';
-import 'package:vmito_app/features/payment/presentation/widgets/reminder_card.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 void main() {
@@ -49,20 +48,18 @@ void main() {
       name: 'Host Alice',
       email: 'alice@vmito.com',
       role: UserRole.host,
-      isHost: true,
-      hasPassword: true,
-      emailVerified: true,
-      createdAt: DateTime.utc(2026, 1, 1),
     );
 
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           currentUserProvider.overrideWithValue(hostUser),
-          remindersListProvider('creator')
-              .overrideWith((ref) async => creatorReminders),
-          remindersListProvider('recipient')
-              .overrideWith((ref) async => recipientReminders),
+          remindersListProvider(
+            'creator',
+          ).overrideWith((ref) async => creatorReminders),
+          remindersListProvider(
+            'recipient',
+          ).overrideWith((ref) async => recipientReminders),
         ],
         child: MaterialApp(
           theme: AppTheme.light,

@@ -187,18 +187,15 @@ class _CoverSpace extends StatelessWidget {
       return Stack(
         fit: StackFit.expand,
         children: [
-          GestureDetector(
-            onTap: progress == null ? onView : null,
-            child: Transform.scale(
-              key: const ValueKey('profile-cover'),
-              scale: stretchScale,
-              child: profile.coverPhoto == null
-                  ? const _FallbackCover()
-                  : CachedNetworkImage(
-                      imageUrl: profile.coverPhoto!,
-                      fit: BoxFit.cover,
-                    ),
-            ),
+          Transform.scale(
+            key: const ValueKey('profile-cover'),
+            scale: stretchScale,
+            child: profile.coverPhoto == null
+                ? const _FallbackCover()
+                : CachedNetworkImage(
+                    imageUrl: profile.coverPhoto!,
+                    fit: BoxFit.cover,
+                  ),
           ),
           const DecoratedBox(
             decoration: BoxDecoration(
@@ -210,6 +207,15 @@ class _CoverSpace extends StatelessWidget {
               ),
             ),
           ),
+          // Transparent tap overlay — lets the SliverAppBar handle scroll
+          // while still firing the lightbox on a clean tap.
+          if (onView != null && progress == null)
+            Positioned.fill(
+              child: GestureDetector(
+                behavior: HitTestBehavior.translucent,
+                onTap: onView,
+              ),
+            ),
           Positioned(
             top: 0,
             left: 0,

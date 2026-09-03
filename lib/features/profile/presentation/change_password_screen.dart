@@ -7,6 +7,7 @@ import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/profile/application/profile_controller.dart';
 import 'package:vmito_app/features/profile/domain/form/profile_form.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/shared/widgets/app_required_label.dart';
 
 class ChangePasswordScreen extends ConsumerStatefulWidget {
@@ -64,7 +65,7 @@ class _ChangePasswordScreenState extends ConsumerState<ChangePasswordScreen> {
       appBar: AppBar(title: Text(l10n.profileChangePassword)),
       body: SafeArea(
         top: false,
-        child: ReactiveForm(
+        child: AppReactiveForm(
           formGroup: _form,
           child: Center(
             child: ConstrainedBox(

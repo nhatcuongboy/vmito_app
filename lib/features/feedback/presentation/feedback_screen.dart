@@ -12,6 +12,7 @@ import 'package:vmito_app/features/feedback/data/feedback_image_picker.dart';
 import 'package:vmito_app/features/feedback/domain/feedback.dart';
 import 'package:vmito_app/features/feedback/domain/form/feedback_form.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/shared/widgets/app_required_label.dart';
 
 class FeedbackScreen extends ConsumerStatefulWidget {
@@ -167,7 +168,7 @@ class _FeedbackTab extends ConsumerWidget {
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.all(AppSpacing.md),
         children: [
-          ReactiveForm(
+          AppReactiveForm(
             formGroup: form,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,

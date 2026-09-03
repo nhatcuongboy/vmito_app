@@ -11,6 +11,7 @@ void main() {
       'endDate': '2026-08-16T10:00:00.000Z',
       'status': 'IN_PROGRESS',
       'isPublished': true,
+      'isFavorite': true,
       'tournamentVenues': [
         {
           'isPrimary': true,
@@ -32,5 +33,6 @@ void main() {
     expect(tournament.venueLatitude, 10.7769);
     expect(tournament.venueLongitude, 106.7009);
     expect(tournament.hasVenueCoordinates, isTrue);
+    expect(tournament.isFavorite, isTrue);
   });
 }

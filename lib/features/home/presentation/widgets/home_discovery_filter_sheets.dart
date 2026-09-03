@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
@@ -79,7 +80,7 @@ class _ClubDiscoveryFilterSheetState extends State<ClubDiscoveryFilterSheet> {
       title: l10n.homeDiscoveryClubFilters,
       onReset: () => Navigator.of(context).pop(const ClubDiscoveryFilters()),
       onApply: _submit,
-      child: ReactiveForm(
+      child: AppReactiveForm(
         formGroup: _form,
         child: Column(
           children: [
@@ -171,7 +172,7 @@ class _TournamentDiscoveryFilterSheetState
         context,
       ).pop(const TournamentDiscoveryFilters()),
       onApply: _submit,
-      child: ReactiveForm(
+      child: AppReactiveForm(
         formGroup: _form,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

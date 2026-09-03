@@ -12,19 +12,25 @@ import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/core/widgets/notification_header_button.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
+import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/social/data/profile_tabs_service.dart';
 import 'package:vmito_app/features/social/domain/profile_tabs.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 class FavoritesScreen extends ConsumerStatefulWidget {
-  const FavoritesScreen({super.key});
+  const FavoritesScreen({
+    this.initialType = FavoriteType.session,
+    super.key,
+  });
+
+  final FavoriteType initialType;
 
   @override
   ConsumerState<FavoritesScreen> createState() => _FavoritesScreenState();
 }
 
 class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
-  var _type = 'SESSION';
+  late FavoriteType _type;
   late Future<List<FavoriteTarget>> _future;
   final _scrollController = ScrollController();
   late final VoidCallback _removeReselectHandler;
@@ -32,6 +38,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
   @override
   void initState() {
     super.initState();
+    _type = widget.initialType;
     _future = _load();
     _removeReselectHandler = ref
         .read(tabReselectionControllerProvider)
@@ -42,6 +49,18 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
   }
 
   @override
+  void didUpdateWidget(FavoritesScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialType != widget.initialType &&
+        widget.initialType != _type) {
+      setState(() {
+        _type = widget.initialType;
+        _future = _load();
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _removeReselectHandler();
     _scrollController.dispose();
@@ -49,7 +68,8 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
   }
 
   Future<List<FavoriteTarget>> _load() async =>
-      (await ref.read(profileTabsServiceProvider).favorites(_type)).items;
+      (await ref.read(profileTabsServiceProvider).favorites(_type.wireValue))
+          .items;
 
   @override
   Widget build(BuildContext context) {
@@ -81,20 +101,23 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
         children: [
           Padding(
             padding: const EdgeInsets.all(12),
-            child: SegmentedButton<String>(
+            child: SegmentedButton<FavoriteType>(
               showSelectedIcon: false,
               segments: [
                 ButtonSegment(
-                  value: 'SESSION',
+                  value: FavoriteType.session,
                   label: Text(l10n.favoritesSessions),
                 ),
                 ButtonSegment(
-                  value: 'VENUE',
+                  value: FavoriteType.venue,
                   label: Text(l10n.favoritesVenues),
                 ),
-                ButtonSegment(value: 'CLUB', label: Text(l10n.favoritesClubs)),
                 ButtonSegment(
-                  value: 'TOURNAMENT',
+                  value: FavoriteType.club,
+                  label: Text(l10n.favoritesClubs),
+                ),
+                ButtonSegment(
+                  value: FavoriteType.tournament,
                   label: Text(l10n.favoritesTournaments),
                 ),
               ],
@@ -123,7 +146,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
                 }
                 return ListView.separated(
                   controller: _scrollController,
-                  key: PageStorageKey('favorites-$_type'),
+                  key: PageStorageKey('favorites-${_type.wireValue}'),
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.all(AppSpacing.screenPadding),
                   itemCount: snapshot.data!.length,
@@ -158,15 +181,13 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
 
   void _open(BuildContext context, FavoriteTarget item) {
     final id = item.slug ?? item.id;
-    if (_type == 'VENUE') {
-      unawaited(context.push(AppRoutes.venueDetail(id)));
-    } else if (_type == 'CLUB') {
-      unawaited(context.push(AppRoutes.clubDetail(id)));
-    } else if (_type == 'SESSION') {
-      unawaited(context.push(AppRoutes.sessionDetail(id)));
-    } else {
-      unawaited(context.push(AppRoutes.tournamentDetail(id)));
-    }
+    final route = switch (_type) {
+      FavoriteType.venue => AppRoutes.venueDetail(id),
+      FavoriteType.club => AppRoutes.clubDetail(id),
+      FavoriteType.session => AppRoutes.sessionDetail(id),
+      FavoriteType.tournament => AppRoutes.tournamentDetail(id),
+    };
+    unawaited(context.push(route));
   }
 }
 

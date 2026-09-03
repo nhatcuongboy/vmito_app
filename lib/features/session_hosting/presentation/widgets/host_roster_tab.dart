@@ -14,6 +14,7 @@ import 'package:vmito_app/features/session_hosting/presentation/widgets/player/p
 import 'package:vmito_app/features/session_hosting/presentation/widgets/player_detail_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
+import 'package:vmito_app/shared/widgets/app_dialog.dart';
 import 'package:vmito_domain/vmito_domain.dart';
 
 /// The host-facing version of the web `SessionPlayersTab`.
@@ -125,8 +126,11 @@ class _HostRosterTabState extends ConsumerState<HostRosterTab> {
                           color: _filters.isNotEmpty
                               ? Theme.of(context).colorScheme.primary
                               : (Theme.of(context).brightness == Brightness.dark
-                                  ? Theme.of(context).colorScheme.outlineVariant.withValues(alpha: .3)
-                                  : const Color(0xFFE2E8F0)),
+                                    ? Theme.of(context)
+                                          .colorScheme
+                                          .outlineVariant
+                                          .withValues(alpha: .3)
+                                    : const Color(0xFFE2E8F0)),
                         ),
                       ),
                       onPressed: () => _showFilters(context, counts),
@@ -145,29 +149,29 @@ class _HostRosterTabState extends ConsumerState<HostRosterTab> {
                   Text(
                     '${_approved.length}/$_capacity người',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   const Spacer(),
                   FilledButton.icon(
                     key: const Key('host-roster-add'),
                     style: FilledButton.styleFrom(
-                      minimumSize: const Size(0, 36),
+                      minimumSize: const Size(0, 42),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
+                        horizontal: 16,
                         vertical: 0,
                       ),
                       textStyle: const TextStyle(
-                        fontSize: 13.5,
+                        fontSize: 14,
                         fontWeight: FontWeight.w600,
                       ),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                        borderRadius: BorderRadius.circular(AppRadius.lg),
                       ),
                     ),
                     onPressed: () => _addPlayer(context),
-                    icon: const Icon(AppIcons.add, size: 17),
+                    icon: const Icon(AppIcons.add, size: 18),
                     label: Text(l10n.hostRosterAdd),
                   ),
                 ],
@@ -223,30 +227,15 @@ class _HostRosterTabState extends ConsumerState<HostRosterTab> {
     } else if (action == _RosterAction.toggleCheckIn) {
       await controller.toggleCheckIn(player.id);
     } else {
-      final remove = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(AppLocalizations.of(context).hostRosterDeleteTitle),
-          content: ConstrainedBox(
-            constraints: const BoxConstraints(minWidth: 320),
-            child: Text(
-              AppLocalizations.of(context).hostRosterDeleteMessage(
-                player.displayName ??
-                    AppLocalizations.of(context).playerName(player),
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(AppLocalizations.of(context).commonCancel),
-            ),
-            FilledButton.tonal(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(AppLocalizations.of(context).hostRosterDeletePlayer),
-            ),
-          ],
+      final remove = await showAppConfirmDialog(
+        context,
+        type: AppConfirmDialogType.destructive,
+        title: AppLocalizations.of(context).hostRosterDeleteTitle,
+        content: AppLocalizations.of(context).hostRosterDeleteMessage(
+          player.displayName ??
+              AppLocalizations.of(context).playerName(player),
         ),
+        confirmLabel: AppLocalizations.of(context).hostRosterDeletePlayer,
       );
       if (remove == true && mounted) await controller.removePlayer(player.id);
     }
@@ -420,9 +409,7 @@ class _RosterListTile extends StatelessWidget {
                               player.displayName ?? l10n.playerName(player),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
+                              style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(
                                     height: 1.15,
                                     fontWeight: FontWeight.w700,
@@ -486,9 +473,7 @@ class _RosterListTile extends StatelessWidget {
                           ),
                         Text(
                           l10n.playerMatchesCount(player.matchesPlayed),
-                          style: Theme.of(context)
-                              .textTheme
-                              .labelSmall
+                          style: Theme.of(context).textTheme.labelSmall
                               ?.copyWith(
                                 color: dark
                                     ? const Color(0xFF94A3B8)
@@ -604,8 +589,11 @@ class _InitialsFallback extends StatelessWidget {
 
 String _playerInitials(String? name) {
   if (name == null || name.trim().isEmpty) return '?';
-  final parts =
-      name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty).toList();
+  final parts = name
+      .trim()
+      .split(RegExp(r'\s+'))
+      .where((p) => p.isNotEmpty)
+      .toList();
   if (parts.isEmpty) return '?';
   if (parts.length == 1) {
     return parts.first.characters.first.toUpperCase();
@@ -624,6 +612,7 @@ class _ActionMenu extends StatelessWidget {
     key: ValueKey('host-roster-actions-${player.id}'),
     tooltip: AppLocalizations.of(context).hostRosterActions,
     padding: EdgeInsets.zero,
+    offset: const Offset(0, 40),
     icon: const Icon(AppIcons.moreVert, size: 20),
     onSelected: onAction,
     itemBuilder: (context) => [
@@ -683,7 +672,6 @@ class _NumberBadge extends StatelessWidget {
     );
   }
 }
-
 
 class _ClubBadge extends StatelessWidget {
   const _ClubBadge({required this.label, super.key});

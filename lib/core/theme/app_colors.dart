@@ -48,6 +48,8 @@ abstract final class AppColors {
   static const Color accentForegroundDark = Color(0xFFFAFAFA);
   static const Color destructiveDark = Color(0xFF7F1D1D);
   static const Color destructiveForegroundDark = Color(0xFFFEF2F2);
+  /// High-contrast error color for dark mode UI text and outlines (red-400).
+  static const Color errorDark = Color(0xFFF87171);
   static const Color borderDark = Color(0xFF27272A);
   static const Color inputDark = Color(0xFF27272A);
   static const Color ringDark = Color(0xFF1EC84B);
@@ -78,7 +80,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     success: AppColors.success,
     warning: AppColors.warning,
     info: AppColors.info,
-    brandSurface: Color(0xFFF2FAF5),
+    brandSurface: Color(0xFFE2F3E8),
     muted: AppColors.muted,
     mutedForeground: AppColors.mutedForeground,
     border: AppColors.border,
@@ -88,7 +90,7 @@ class AppPalette extends ThemeExtension<AppPalette> {
     success: AppColors.success,
     warning: AppColors.warning,
     info: AppColors.info,
-    brandSurface: Color(0xFF102016),
+    brandSurface: Color(0xFF183028),
     muted: AppColors.mutedDark,
     mutedForeground: AppColors.mutedForegroundDark,
     border: AppColors.borderDark,

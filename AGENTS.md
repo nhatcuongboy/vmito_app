@@ -6,9 +6,11 @@
 [`docs/FORM_MANAGEMENT.md`](docs/FORM_MANAGEMENT.md) before creating or
 changing a form.
 
-- New user-editable forms must use `FormGroup`, `ReactiveForm`, and the
+- New user-editable forms must use `FormGroup`, `AppReactiveForm`, and the
   matching `Reactive*` field widgets. Do not introduce `Form`,
   `GlobalKey<FormState>`, or `TextFormField` for a new screen.
+- Forms enforce Reward Early, Punish Late validation: realtime validation is
+  active only after submit (handled automatically by `AppReactiveForm`).
 - When changing a legacy native Flutter form's fields, validation, submit
   flow, or UI, migrate that form to `reactive_forms` in the same change.
   A presentation-only change that preserves its inputs and behaviour (for

@@ -121,22 +121,12 @@ class _MyRegistrationSheet extends ConsumerWidget {
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
 
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AppDialog(
-        title: Text(l10n.registrationWithdraw),
-        content: Text(l10n.registrationWithdrawConfirm),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(false),
-            child: Text(l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(dialogContext).pop(true),
-            child: Text(l10n.commonConfirm),
-          ),
-        ],
-      ),
+    final confirmed = await showAppConfirmDialog(
+      context,
+      type: AppConfirmDialogType.destructive,
+      title: l10n.registrationWithdraw,
+      content: l10n.registrationWithdrawConfirm,
+      confirmLabel: l10n.commonConfirm,
     );
     if (confirmed != true) return;
 

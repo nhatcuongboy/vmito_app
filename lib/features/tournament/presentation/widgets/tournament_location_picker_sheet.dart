@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/tournament/application/tournament_create_controller.dart';
@@ -143,7 +144,7 @@ class _TournamentLocationPickerSheetState
                 ],
               ),
               const SizedBox(height: AppSpacing.sm),
-              ReactiveForm(
+              AppReactiveForm(
                 formGroup: _form,
                 child: ReactiveTextField<String>(
                   key: const Key('tournament-location-search'),

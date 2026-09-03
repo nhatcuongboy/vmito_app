@@ -21,6 +21,7 @@ import 'package:vmito_app/features/social/domain/club_user_option.dart';
 import 'package:vmito_app/features/social/domain/form/club_form.dart';
 import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/shared/widgets/app_required_label.dart';
 import 'package:vmito_app/shared/widgets/level_badge_picker.dart';
 
@@ -134,7 +135,7 @@ class _ClubFormState extends ConsumerState<_ClubForm> {
     return Scaffold(
       appBar: AppBar(title: Text(_editing ? l10n.clubEdit : l10n.clubCreate)),
       body: LayoutBuilder(
-        builder: (context, constraints) => ReactiveForm(
+        builder: (context, constraints) => AppReactiveForm(
           formGroup: _form,
           child: Stack(
             children: [

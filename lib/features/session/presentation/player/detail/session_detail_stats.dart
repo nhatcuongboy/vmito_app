@@ -76,12 +76,7 @@ class _ParticipantsState extends State<_Participants> {
     final visiblePlayers = _expanded
         ? players
         : players.take(_maxVisibleSlots).toList();
-    final visibleEmptySlots = _expanded
-        ? availableSlots
-        : availableSlots.clamp(
-            0,
-            (_maxVisibleSlots - visiblePlayers.length).clamp(0, 999),
-          );
+    final visibleEmptySlots = _expanded || !hasMore ? availableSlots : 0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

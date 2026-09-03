@@ -8,12 +8,16 @@ import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/logger.dart';
+import 'package:vmito_app/core/widgets/app_logo.dart';
+import 'package:vmito_app/core/widgets/language_selector.dart';
+import 'package:vmito_app/core/widgets/theme_mode_selector.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/oauth_provider.dart';
 import 'package:vmito_app/features/auth/presentation/widgets/apple_sign_in_button.dart';
 import 'package:vmito_app/features/auth/presentation/widgets/auth_status_panel.dart';
 import 'package:vmito_app/features/auth/presentation/widgets/oauth_sign_in_button.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 
 /// Email/password sign-in — the reference screen for this codebase.
 ///
@@ -51,15 +55,28 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
   static final _phoneNumber = RegExp(r'^\+?[0-9][0-9 .-]{7,}$');
 
+  static Map<String, dynamic>? _requiredTrimmed(
+    AbstractControl<dynamic> control,
+  ) {
+    final value = control.value;
+    if (value == null || (value is String && value.trim().isEmpty)) {
+      return {ValidationMessage.required: true};
+    }
+    return null;
+  }
+
   @override
   void initState() {
     super.initState();
     _form = FormGroup({
       SignInFormControl.identifier: FormControl<String>(
-        validators: [Validators.required, Validators.delegate(_emailOrPhone)],
+        validators: [
+          Validators.delegate(_requiredTrimmed),
+          Validators.delegate(_emailOrPhone),
+        ],
       ),
       SignInFormControl.password: FormControl<String>(
-        validators: [Validators.required],
+        validators: [Validators.delegate(_requiredTrimmed)],
       ),
     });
   }
@@ -82,6 +99,22 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     super.dispose();
   }
 
+  String _mapErrorMessage(AppLocalizations l10n, ApiException error) {
+    final rawError = error.message.toLowerCase();
+    if (error.statusCode == 429 || rawError.contains('too many requests')) {
+      return l10n.authTooManyRequests;
+    }
+    if (error.statusCode == 401 ||
+        rawError.contains('invalid credentials') ||
+        rawError.contains('invalid email or password')) {
+      return l10n.authInvalidCredentials;
+    }
+    if (error.hasServerMessage) {
+      return error.message;
+    }
+    return l10n.authSignInFailed;
+  }
+
   Future<void> _submit() async {
     _form.markAllAsTouched();
     if (_form.invalid || _form.pending || _isBusy) return;
@@ -101,7 +134,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           );
       _goAfterSignIn();
     } on ApiException catch (error) {
-      if (mounted) setState(() => _errorMessage = error.message);
+      if (mounted) {
+        final l10n = AppLocalizations.of(context);
+        setState(() => _errorMessage = _mapErrorMessage(l10n, error));
+      }
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }
@@ -166,6 +202,10 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
           onPressed: () => context.go(AppRoutes.home),
           tooltip: l10n.navHome,
         ),
+        actions: const [
+          LanguageButton(),
+          ThemeModeButton(),
+        ],
       ),
       body: SafeArea(
         child: Center(
@@ -173,16 +213,16 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
-              child: ReactiveForm(
+              child: AppReactiveForm(
                 formGroup: _form,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Image.asset(
-                      'assets/icons/logo-show.png',
-                      height: 78,
-                      fit: BoxFit.contain,
-                      semanticLabel: l10n.appName,
+                    Center(
+                      child: AppLogo(
+                        height: 78,
+                        semanticLabel: l10n.appName,
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.xl),
 
@@ -197,7 +237,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       textInputAction: TextInputAction.next,
                       readOnly: _isBusy,
                       decoration: InputDecoration(
-                        labelText: l10n.authEmail,
+                        labelText: l10n.authEmailOrPhone,
                         floatingLabelBehavior: FloatingLabelBehavior.auto,
                       ),
                       validationMessages: {

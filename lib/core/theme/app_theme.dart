@@ -32,10 +32,11 @@ abstract final class AppTheme {
       onPrimary: AppColors.primaryForegroundDark,
       secondary: AppColors.secondaryDark,
       onSecondary: AppColors.secondaryForegroundDark,
-      error: AppColors.destructiveDark,
+      error: AppColors.errorDark,
       onError: AppColors.destructiveForegroundDark,
       surface: AppColors.cardDark,
       onSurface: AppColors.cardForegroundDark,
+      onSurfaceVariant: AppColors.mutedForegroundDark,
       surfaceContainerHighest: AppColors.mutedDark,
       outline: AppColors.borderDark,
     ),
@@ -114,9 +115,16 @@ abstract final class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: brightness == Brightness.light
-            ? AppColors.background
-            : AppColors.cardDark,
+        fillColor: WidgetStateColor.resolveWith((states) {
+          if (states.contains(WidgetState.disabled)) {
+            return brightness == Brightness.light
+                ? palette.muted.withValues(alpha: 0.7)
+                : palette.muted.withValues(alpha: 0.4);
+          }
+          return brightness == Brightness.light
+              ? AppColors.background
+              : AppColors.cardDark;
+        }),
         // Keep supporting text visually secondary to entered values. Without
         // this, Material 3 falls back to `onSurfaceVariant`, which is darker
         // than the app's muted token in the light theme.
@@ -149,6 +157,12 @@ abstract final class AppTheme {
           borderRadius: BorderRadius.circular(AppRadius.lg),
           borderSide: BorderSide(color: palette.border),
         ),
+        disabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          borderSide: BorderSide(
+            color: palette.border.withValues(alpha: 0.5),
+          ),
+        ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(AppRadius.lg),
           borderSide: BorderSide(color: scheme.primary, width: 1.5),
@@ -170,6 +184,9 @@ abstract final class AppTheme {
       tabBarTheme: TabBarThemeData(
         labelStyle: tabLabel,
         unselectedLabelStyle: unselectedTabLabel,
+        labelColor: scheme.onSurface,
+        unselectedLabelColor: palette.mutedForeground,
+        indicatorColor: scheme.primary,
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: scheme.surface,

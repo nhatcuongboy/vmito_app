@@ -18,6 +18,7 @@ abstract final class AppIcons {
   static const IconData reminders = LucideIcons.bell_ring;
   static const IconData menu = LucideIcons.menu;
   static const IconData moreVert = LucideIcons.ellipsis_vertical;
+  static const IconData moreHorizontal = LucideIcons.ellipsis;
 
   // --- Actions & Controls ----------------------------------------------------
   static const IconData search = LucideIcons.search;
@@ -113,6 +114,7 @@ abstract final class AppIcons {
   static const IconData playCircle = LucideIcons.circle_play;
   static const IconData pause = LucideIcons.pause;
   static const IconData stop = LucideIcons.square;
+  static const IconData square = LucideIcons.square;
   static const IconData volume = LucideIcons.volume_2;
 
   // --- Sports & Badges -------------------------------------------------------
@@ -139,6 +141,7 @@ abstract final class AppIcons {
   static const IconData banknote = LucideIcons.banknote;
   static const IconData building = LucideIcons.building_2;
   static const IconData dollarCircle = LucideIcons.circle_dollar_sign;
+  static const IconData dollarSign = LucideIcons.dollar_sign;
   static const IconData creditCard = LucideIcons.credit_card;
   static const IconData priceTag = LucideIcons.badge_dollar_sign;
   static const IconData receipt = LucideIcons.receipt;

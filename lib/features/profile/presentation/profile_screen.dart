@@ -71,6 +71,9 @@ class _DevelopmentProfilePreview extends StatelessWidget {
                 gender: user.gender,
                 imageUrl: user.image,
                 size: 96,
+                boxShadow: const [
+                  BoxShadow(color: Color(0x26000000), blurRadius: 6),
+                ],
               ),
               const SizedBox(height: AppSpacing.md),
               Text(

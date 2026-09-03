@@ -236,6 +236,9 @@ class _Header extends StatelessWidget {
           status: player.status.name,
           imageUrl: image,
           size: 60,
+          boxShadow: const [
+            BoxShadow(color: Color(0x26000000), blurRadius: 6),
+          ],
         ),
         const SizedBox(width: AppSpacing.md),
         Expanded(

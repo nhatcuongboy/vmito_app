@@ -12,6 +12,7 @@ import 'package:vmito_app/features/payment/domain/payment.dart';
 import 'package:vmito_app/features/session_hosting/application/host_session_management_controller.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/payment_settings_dialog.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_dialog.dart';
 
 class PaymentSettingsCard extends ConsumerWidget {
   const PaymentSettingsCard({
@@ -380,31 +381,14 @@ Future<void> _showAccountManager(
                   IconButton(
                     tooltip: l10n.commonDelete,
                     onPressed: () async {
-                      final confirmed = await showDialog<bool>(
-                        context: sheetContext,
-                        builder: (dialogContext) => AlertDialog(
-                          title: Text(l10n.hostManageDeleteSettings),
-                          content: Text(
+                      final confirmed = await showAppConfirmDialog(
+                        sheetContext,
+                        type: AppConfirmDialogType.destructive,
+                        title: l10n.hostManageDeleteSettings,
+                        content:
                             '${item.bankName ?? l10n.hostManagePaymentSettings} · '
                             '${item.bankAccountNumber ?? '—'}',
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () =>
-                                  Navigator.pop(dialogContext, false),
-                              child: Text(
-                                MaterialLocalizations.of(
-                                  dialogContext,
-                                ).cancelButtonLabel,
-                              ),
-                            ),
-                            FilledButton(
-                              onPressed: () =>
-                                  Navigator.pop(dialogContext, true),
-                              child: Text(l10n.commonDelete),
-                            ),
-                          ],
-                        ),
+                        confirmLabel: l10n.commonDelete,
                       );
                       if (confirmed != true) return;
                       await ref

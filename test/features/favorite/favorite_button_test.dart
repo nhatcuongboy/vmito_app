@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
@@ -14,16 +17,30 @@ class _FakeFavoriteRepository implements FavoriteRepository {
   _FakeFavoriteRepository({this.summaryResult = const FavoriteSummary()});
 
   FavoriteSummary summaryResult;
+  Exception? summaryError;
+  Exception? addError;
+  Exception? removeError;
+  Completer<void>? pendingAdd;
+  final calls = <String>[];
 
   @override
-  Future<FavoriteSummary> summary(FavoriteType type, String targetId) async =>
-      summaryResult;
+  Future<FavoriteSummary> summary(FavoriteType type, String targetId) async {
+    if (summaryError case final error?) throw error;
+    return summaryResult;
+  }
 
   @override
-  Future<void> add(FavoriteType type, String targetId) async {}
+  Future<void> add(FavoriteType type, String targetId) async {
+    calls.add('add:${type.wireValue}:$targetId');
+    if (addError case final error?) throw error;
+    await pendingAdd?.future;
+  }
 
   @override
-  Future<void> remove(FavoriteType type, String targetId) async {}
+  Future<void> remove(FavoriteType type, String targetId) async {
+    calls.add('remove:${type.wireValue}:$targetId');
+    if (removeError case final error?) throw error;
+  }
 }
 
 Widget _app({
@@ -33,26 +50,50 @@ Widget _app({
   bool overlay = true,
   bool showCount = true,
   bool signedIn = true,
+  Locale locale = const Locale('en'),
+  _FakeFavoriteRepository? repository,
+  VoidCallback? onCardTap,
 }) {
-  final repository = _FakeFavoriteRepository(summaryResult: summary);
+  final activeRepository =
+      repository ?? _FakeFavoriteRepository(summaryResult: summary);
+  final router = GoRouter(
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (_, _) {
+          final favorite = FavoriteButton(
+            type: type,
+            targetId: targetId,
+            initialIsFavorite: summary.isFavorite,
+            overlay: overlay,
+            showCount: showCount,
+          );
+          return Scaffold(
+            body: onCardTap == null
+                ? favorite
+                : InkWell(onTap: onCardTap, child: favorite),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/favorites',
+        builder: (_, state) => Scaffold(
+          body: Text('favorites-${state.uri.queryParameters['type']}'),
+        ),
+      ),
+    ],
+  );
   return ProviderScope(
     overrides: [
-      favoriteRepositoryProvider.overrideWithValue(repository),
+      favoriteRepositoryProvider.overrideWithValue(activeRepository),
       isSignedInProvider.overrideWithValue(signedIn),
     ],
-    child: MaterialApp(
-      locale: const Locale('en'),
+    child: MaterialApp.router(
+      locale: locale,
       theme: AppTheme.light,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(
-        body: FavoriteButton(
-          type: type,
-          targetId: targetId,
-          overlay: overlay,
-          showCount: showCount,
-        ),
-      ),
+      routerConfig: router,
     ),
   );
 }
@@ -133,15 +174,34 @@ void main() {
   });
 
   testWidgets('shows a success toast after adding a favorite', (tester) async {
+    tester.view.physicalSize = const Size(390, 844);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+
     await tester.pumpWidget(
-      _app(summary: const FavoriteSummary()),
+      _app(
+        summary: const FavoriteSummary(),
+        locale: const Locale('vi'),
+      ),
     );
     await tester.pumpAndSettle();
 
     await tester.tap(find.byType(InkWell));
     await tester.pumpAndSettle();
 
-    expect(find.text('Saved to Favorites'), findsOneWidget);
+    expect(find.text('Đã lưu vào Yêu thích'), findsOneWidget);
+    expect(find.text('Xem danh sách'), findsOneWidget);
+    expect(
+      tester.widget<Icon>(find.byKey(const Key('favorite-toast-icon'))).icon,
+      AppIcons.favoriteFilled,
+    );
+
+    final snackBarFinder = find.byType(SnackBar);
+    final snackBar = tester.widget<SnackBar>(snackBarFinder);
+    expect(snackBar.behavior, SnackBarBehavior.floating);
+    expect(snackBar.action, isNull);
+    expect(tester.getSize(snackBarFinder).height, lessThanOrEqualTo(64));
   });
 
   testWidgets('shows a success toast after removing a favorite', (
@@ -158,5 +218,148 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Removed from Favorites'), findsOneWidget);
+    expect(find.text('Undo'), findsOneWidget);
+    expect(
+      tester.widget<Icon>(find.byKey(const Key('favorite-toast-icon'))).icon,
+      AppIcons.favorite,
+    );
+  });
+
+  testWidgets('undo adds the removed favorite again', (tester) async {
+    final repository = _FakeFavoriteRepository(
+      summaryResult: const FavoriteSummary(
+        isFavorite: true,
+        favoriteCount: 1,
+      ),
+    );
+    await tester.pumpWidget(
+      _app(
+        summary: repository.summaryResult,
+        type: FavoriteType.tournament,
+        targetId: 't1',
+        repository: repository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(InkWell));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+
+    expect(repository.calls, ['remove:TOURNAMENT:t1', 'add:TOURNAMENT:t1']);
+    expect(find.text('Saved to Favorites'), findsOneWidget);
+  });
+
+  testWidgets('reports a type-specific add failure and restores state', (
+    tester,
+  ) async {
+    final repository = _FakeFavoriteRepository()..addError = Exception('no');
+    await tester.pumpWidget(
+      _app(
+        summary: const FavoriteSummary(),
+        repository: repository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(InkWell));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Could not add to favorites'), findsOneWidget);
+    expect(find.byIcon(AppIcons.favorite), findsOneWidget);
+    expect(
+      tester.widget<Icon>(find.byKey(const Key('favorite-toast-icon'))).icon,
+      AppIcons.error,
+    );
+  });
+
+  testWidgets('blocks repeated taps while a write is pending', (tester) async {
+    final repository = _FakeFavoriteRepository()
+      ..pendingAdd = Completer<void>();
+    await tester.pumpWidget(
+      _app(
+        summary: const FavoriteSummary(),
+        repository: repository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(InkWell));
+    await tester.pump();
+    await tester.tap(find.byType(InkWell));
+    await tester.pump();
+
+    expect(repository.calls, ['add:VENUE:v1']);
+    repository.pendingAdd!.complete();
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('uses browse state if loading the summary fails', (tester) async {
+    final repository = _FakeFavoriteRepository()
+      ..summaryError = Exception('summary unavailable');
+    await tester.pumpWidget(
+      _app(
+        summary: const FavoriteSummary(isFavorite: true),
+        repository: repository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(InkWell));
+    await tester.pumpAndSettle();
+
+    expect(repository.calls, ['remove:VENUE:v1']);
+    expect(find.text('Removed from Favorites'), findsOneWidget);
+  });
+
+  testWidgets('does not invoke the surrounding card tap', (tester) async {
+    var cardTaps = 0;
+    await tester.pumpWidget(
+      _app(
+        summary: const FavoriteSummary(),
+        onCardTap: () => cardTaps++,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(
+      find.descendant(
+        of: find.byType(FavoriteButton),
+        matching: find.byType(InkWell),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(cardTaps, 0);
+  });
+
+  testWidgets('hides the favorite control for guests', (tester) async {
+    await tester.pumpWidget(
+      _app(summary: const FavoriteSummary(), signedIn: false),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(InkWell), findsNothing);
+    expect(find.byIcon(AppIcons.favorite), findsNothing);
+  });
+
+  testWidgets('view-list action opens the matching favorite type', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      _app(
+        summary: const FavoriteSummary(),
+        type: FavoriteType.club,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(InkWell));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('View list'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('favorites-CLUB'), findsOneWidget);
   });
 }

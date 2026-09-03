@@ -4,14 +4,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/core/widgets/user_avatar.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/social/application/club_management_controller.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_dialog.dart';
 
 class ClubManagementScreen extends ConsumerStatefulWidget {
   const ClubManagementScreen({this.initialTab = 'managing', super.key});
@@ -374,6 +378,55 @@ class _SectionHeader extends StatelessWidget {
   );
 }
 
+class _ClubTag extends StatelessWidget {
+  const _ClubTag({
+    required this.label,
+    this.icon,
+    this.backgroundColor,
+    this.textColor,
+    this.borderColor,
+  });
+
+  final String label;
+  final IconData? icon;
+  final Color? backgroundColor;
+  final Color? textColor;
+  final Color? borderColor;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final bg = backgroundColor ?? theme.colorScheme.surfaceContainerHighest;
+    final fg = textColor ?? theme.colorScheme.onSurfaceVariant;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        border: borderColor != null ? Border.all(color: borderColor!) : null,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 12, color: fg),
+            const SizedBox(width: 4),
+          ],
+          Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: fg,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _AdaptiveGrid extends StatelessWidget {
   const _AdaptiveGrid({
     required this.width,
@@ -389,20 +442,37 @@ class _AdaptiveGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textScale = MediaQuery.textScalerOf(context).scale(1);
-    final cardHeight = 225 + ((textScale - 1).clamp(0, 0.5) * 80);
+    if (width < 600) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < itemCount; i++) ...[
+            if (i > 0) const SizedBox(height: AppSpacing.md),
+            itemBuilder(context, i),
+          ],
+        ],
+      );
+    }
 
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: itemCount,
-      gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-        maxCrossAxisExtent: maxExtent,
-        mainAxisExtent: cardHeight.toDouble(),
-        crossAxisSpacing: AppSpacing.md,
-        mainAxisSpacing: AppSpacing.md,
-      ),
-      itemBuilder: itemBuilder,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final availableWidth = constraints.maxWidth;
+        final columns = (availableWidth / maxExtent).ceil().clamp(1, 4);
+        final itemWidth =
+            (availableWidth - ((columns - 1) * AppSpacing.md)) / columns;
+
+        return Wrap(
+          spacing: AppSpacing.md,
+          runSpacing: AppSpacing.md,
+          children: [
+            for (var i = 0; i < itemCount; i++)
+              SizedBox(
+                width: itemWidth,
+                child: itemBuilder(context, i),
+              ),
+          ],
+        );
+      },
     );
   }
 }
@@ -416,6 +486,8 @@ class _ClubCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>();
     final busy = ref.watch(clubManagementControllerProvider).isLoading;
     final pending = club.status == 'PENDING';
     final contextText =
@@ -423,130 +495,179 @@ class _ClubCard extends ConsumerWidget {
         (club.schedules.isEmpty
             ? null
             : '${club.schedules.first.startTime}-${club.schedules.first.endTime}');
+
     return Card(
       clipBehavior: Clip.antiAlias,
       margin: EdgeInsets.zero,
       child: InkWell(
         onTap: pending
             ? null
-            : () => context.push(AppRoutes.clubDetail(club.slug ?? club.id)),
+            : () => context.push(
+                  showActions
+                      ? AppRoutes.manageClub(club.id)
+                      : AppRoutes.clubDetail(club.slug ?? club.id),
+                ),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _ClubAvatar(club: club),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _ClubAvatar(club: club, size: 54),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                club.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                            if (showActions)
+                              PopupMenuButton<String>(
+                                enabled: !busy,
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                icon: Icon(
+                                  AppIcons.moreHorizontal,
+                                  size: 20,
+                                  color: palette?.mutedForeground,
+                                ),
+                                onSelected: (value) =>
+                                    _handleAction(context, ref, value),
+                                itemBuilder: (_) => [
+                                  PopupMenuItem(
+                                    value: 'manage',
+                                    child: Text(l10n.clubManageAction),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'edit',
+                                    child: Text(l10n.commonEdit),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'fees',
+                                    child: Text(l10n.clubFeeConfiguration),
+                                  ),
+                                  PopupMenuItem(
+                                    value: 'delete',
+                                    child: Text(l10n.commonDelete),
+                                  ),
+                                ],
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 4,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            _buildRoleTag(context, l10n, palette),
+                            _ClubTag(
+                              icon: AppIcons.users,
+                              label: l10n.socialMemberCount(club.memberCount),
+                            ),
+                            if (pending)
+                              _ClubTag(
+                                label: l10n.clubStatusPending,
+                                backgroundColor:
+                                    palette?.warning.withValues(alpha: 0.12),
+                                textColor: palette?.warning,
+                              ),
+                          ],
+                        ),
+                        if (contextText != null) ...[
+                          const SizedBox(height: 6),
                           Row(
                             children: [
+                              Icon(
+                                club.defaultVenue == null
+                                    ? AppIcons.clock
+                                    : AppIcons.mapPin,
+                                size: 13,
+                                color: palette?.mutedForeground,
+                              ),
+                              const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
-                                  club.name,
+                                  contextText,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
-                                ),
-                              ),
-                              if (showActions)
-                                PopupMenuButton<String>(
-                                  enabled: !busy,
-                                  onSelected: (value) =>
-                                      _handleAction(context, ref, value),
-                                  itemBuilder: (_) => [
-                                    PopupMenuItem(
-                                      value: 'manage',
-                                      child: Text(l10n.clubManageAction),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'edit',
-                                      child: Text(l10n.commonEdit),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'fees',
-                                      child: Text(l10n.clubFeeConfiguration),
-                                    ),
-                                    PopupMenuItem(
-                                      value: 'delete',
-                                      child: Text(l10n.commonDelete),
-                                    ),
-                                  ],
-                                ),
-                            ],
-                          ),
-                          Wrap(
-                            spacing: AppSpacing.sm,
-                            children: [
-                              Chip(
-                                visualDensity: VisualDensity.compact,
-                                label: Text(_roleLabel(l10n, club.role)),
-                              ),
-                              Chip(
-                                visualDensity: VisualDensity.compact,
-                                avatar: const Icon(AppIcons.users, size: 14),
-                                label: Text(
-                                  l10n.socialMemberCount(club.memberCount),
-                                ),
-                              ),
-                            ],
-                          ),
-                          if (contextText != null)
-                            Row(
-                              children: [
-                                Icon(
-                                  club.defaultVenue == null
-                                      ? AppIcons.clock
-                                      : AppIcons.mapPin,
-                                  size: 14,
-                                ),
-                                const SizedBox(width: AppSpacing.xs),
-                                Expanded(
-                                  child: Text(
-                                    contextText,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: palette?.mutedForeground,
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
+                          ),
                         ],
-                      ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
-            const Divider(height: 1),
-            Padding(
+            Divider(
+              height: 1,
+              thickness: 1,
+              color: palette?.border.withValues(alpha: 0.6) ?? theme.dividerColor,
+            ),
+            Container(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.md,
-                vertical: AppSpacing.sm,
+                vertical: 10,
               ),
+              color: theme.colorScheme.surfaceContainerLowest,
               child: Row(
                 children: [
+                  Icon(
+                    AppIcons.user,
+                    size: 14,
+                    color: palette?.mutedForeground,
+                  ),
+                  const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       l10n.clubHostedBy(club.hostName ?? l10n.clubNotSpecified),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: palette?.mutedForeground,
+                      ),
                     ),
                   ),
                   if (pending)
-                    Chip(
-                      visualDensity: VisualDensity.compact,
-                      label: Text(l10n.clubStatusPending),
+                    _ClubTag(
+                      label: l10n.clubStatusPending,
+                      backgroundColor: palette?.warning.withValues(alpha: 0.12),
+                      textColor: palette?.warning,
                     )
                   else ...[
-                    Text(l10n.clubView),
-                    const Icon(AppIcons.chevronRight, size: 18),
+                    Text(
+                      showActions ? l10n.clubManageAction : l10n.clubView,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 2),
+                    Icon(
+                      AppIcons.chevronRight,
+                      size: 16,
+                      color: theme.colorScheme.primary,
+                    ),
                   ],
                 ],
               ),
@@ -555,6 +676,34 @@ class _ClubCard extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildRoleTag(
+    BuildContext context,
+    AppLocalizations l10n,
+    AppPalette? palette,
+  ) {
+    final theme = Theme.of(context);
+    return switch (club.role) {
+      'ADMIN' => _ClubTag(
+          icon: AppIcons.shield,
+          label: l10n.clubRoleAdmin,
+          backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+          textColor: theme.colorScheme.primary,
+        ),
+      'MODERATOR' => _ClubTag(
+          icon: AppIcons.shield,
+          label: l10n.clubRoleModerator,
+          backgroundColor:
+              (palette?.info ?? Colors.blue).withValues(alpha: 0.1),
+          textColor: palette?.info ?? Colors.blue,
+        ),
+      _ => _ClubTag(
+          label: l10n.clubRoleMember,
+          backgroundColor: theme.colorScheme.surfaceContainerHighest,
+          textColor: theme.colorScheme.onSurfaceVariant,
+        ),
+    };
   }
 
   String _roleLabel(AppLocalizations l10n, String role) => switch (role) {
@@ -582,22 +731,12 @@ class _ClubCard extends ConsumerWidget {
 
   Future<void> _confirmDelete(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.clubDeleteTitle),
-        content: Text(l10n.clubDeleteConfirm(club.name)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(l10n.commonDelete),
-          ),
-        ],
-      ),
+    final confirmed = await showAppConfirmDialog(
+      context,
+      type: AppConfirmDialogType.destructive,
+      title: l10n.clubDeleteTitle,
+      content: l10n.clubDeleteConfirm(club.name),
+      confirmLabel: l10n.commonDelete,
     );
     if (confirmed != true || !context.mounted) return;
     await _runAction(
@@ -618,6 +757,8 @@ class _IncomingRequestCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>();
     final busy = ref.watch(clubManagementControllerProvider).isLoading;
     return Card(
       margin: EdgeInsets.zero,
@@ -626,26 +767,65 @@ class _IncomingRequestCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: _UserAvatar(
-                name: request.userName,
-                image: request.userImage,
-              ),
-              title: Text(request.userName),
-              subtitle: Text(
-                [
-                  if (request.club?.name.isNotEmpty ?? false)
-                    request.club!.name,
-                  _submitted(context, request.createdAt),
-                  if ((request.sessionsPlayedCount ?? 0) > 0)
-                    l10n.clubSessionsPlayed(request.sessionsPlayedCount!),
-                ].join(' · '),
-              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _UserAvatar(
+                  name: request.userName,
+                  image: request.userImage,
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        request.userName,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        [
+                          if (request.club?.name.isNotEmpty ?? false)
+                            request.club!.name,
+                          _submitted(context, request.createdAt),
+                          if ((request.sessionsPlayedCount ?? 0) > 0)
+                            l10n.clubSessionsPlayed(request.sessionsPlayedCount!),
+                        ].join(' · '),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: palette?.mutedForeground,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            if (request.message?.trim().isNotEmpty ?? false)
-              Text('“${request.message!.trim()}”'),
-            const SizedBox(height: AppSpacing.sm),
+            if (request.message?.trim().isNotEmpty ?? false) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.surfaceContainerLowest,
+                  borderRadius: BorderRadius.circular(AppRadius.md),
+                  border: Border.all(
+                    color: palette?.border.withValues(alpha: 0.5) ??
+                        theme.dividerColor,
+                  ),
+                ),
+                child: Text(
+                  '“${request.message!.trim()}”',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontStyle: FontStyle.italic,
+                    color: palette?.mutedForeground,
+                  ),
+                ),
+              ),
+            ],
+            const SizedBox(height: AppSpacing.md),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -701,6 +881,8 @@ class _OutgoingRequestCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>();
     final busy = ref.watch(clubManagementControllerProvider).isLoading;
     final club = request.club;
     final name = club?.name ?? '';
@@ -708,6 +890,7 @@ class _OutgoingRequestCard extends ConsumerWidget {
       margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Padding(
             padding: const EdgeInsets.all(AppSpacing.md),
@@ -720,31 +903,62 @@ class _OutgoingRequestCard extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        name,
-                        style: Theme.of(context).textTheme.titleMedium,
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              name,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          _ClubTag(
+                            label: l10n.clubStatusPending,
+                            backgroundColor:
+                                palette?.warning.withValues(alpha: 0.12),
+                            textColor: palette?.warning,
+                          ),
+                        ],
                       ),
+                      const SizedBox(height: 2),
                       Text(
                         l10n.clubHostedBy(
                           club?.hostName ?? l10n.clubNotSpecified,
                         ),
-                      ),
-                      if (request.message?.trim().isNotEmpty ?? false)
-                        Padding(
-                          padding: const EdgeInsets.only(top: AppSpacing.sm),
-                          child: Text('“${request.message!.trim()}”'),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: palette?.mutedForeground,
                         ),
-                      Text(_submitted(context, request.createdAt)),
+                      ),
+                      if (request.message?.trim().isNotEmpty ?? false) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          '“${request.message!.trim()}”',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 4),
+                      Text(
+                        _submitted(context, request.createdAt),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: palette?.mutedForeground,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                Chip(label: Text(l10n.clubStatusPending)),
               ],
             ),
           ),
-          const Divider(height: 1),
+          Divider(
+            height: 1,
+            thickness: 1,
+            color: palette?.border.withValues(alpha: 0.6) ?? theme.dividerColor,
+          ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
             child: Row(
               children: [
                 TextButton.icon(
@@ -753,13 +967,13 @@ class _OutgoingRequestCard extends ConsumerWidget {
                       : () => context.push(
                           AppRoutes.clubDetail(club.slug ?? club.id),
                         ),
-                  icon: const Icon(AppIcons.chevronRight),
+                  icon: const Icon(AppIcons.chevronRight, size: 16),
                   label: Text(l10n.clubView),
                 ),
                 const Spacer(),
                 TextButton.icon(
                   onPressed: busy ? null : () => _withdraw(context, ref, name),
-                  icon: const Icon(AppIcons.undo),
+                  icon: const Icon(AppIcons.undo, size: 16),
                   label: Text(l10n.clubWithdrawRequest),
                 ),
               ],
@@ -776,22 +990,12 @@ class _OutgoingRequestCard extends ConsumerWidget {
     String name,
   ) async {
     final l10n = AppLocalizations.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.clubWithdrawTitle),
-        content: Text(l10n.clubWithdrawConfirm(name)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(l10n.clubWithdrawRequest),
-          ),
-        ],
-      ),
+    final confirmed = await showAppConfirmDialog(
+      context,
+      type: AppConfirmDialogType.destructive,
+      title: l10n.clubWithdrawTitle,
+      content: l10n.clubWithdrawConfirm(name),
+      confirmLabel: l10n.clubWithdrawRequest,
     );
     if (confirmed != true || !context.mounted) return;
     await _runAction(
@@ -813,16 +1017,19 @@ class _PendingClubCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>();
     final busy = ref.watch(clubManagementControllerProvider).isLoading;
     return Card(
       margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
-                _ClubAvatar(club: club, size: 64),
+                _ClubAvatar(club: club, size: 56),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
                   child: Column(
@@ -830,22 +1037,48 @@ class _PendingClubCard extends ConsumerWidget {
                     children: [
                       Text(
                         club.name,
-                        style: Theme.of(context).textTheme.titleMedium,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                      Text(club.location ?? l10n.clubNotSpecified),
+                      const SizedBox(height: 2),
+                      if (club.location?.isNotEmpty ?? false)
+                        Row(
+                          children: [
+                            Icon(
+                              AppIcons.mapPin,
+                              size: 14,
+                              color: palette?.mutedForeground,
+                            ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                club.location!,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: palette?.mutedForeground,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       Text(
                         l10n.clubHostedBy(
                           club.hostName ?? l10n.clubNotSpecified,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: palette?.mutedForeground,
+                        ),
                       ),
                     ],
                   ),
                 ),
               ],
             ),
-            const Spacer(),
+            const SizedBox(height: AppSpacing.md),
             Row(
               children: [
                 Expanded(
@@ -895,39 +1128,54 @@ class _PendingClubCard extends ConsumerWidget {
 }
 
 class _ClubAvatar extends StatelessWidget {
-  const _ClubAvatar({required this.club, this.size = 56});
+  const _ClubAvatar({required this.club, this.size = 54});
 
   final ClubSummary club;
   final double size;
 
   @override
-  Widget build(BuildContext context) => Container(
-    width: size,
-    height: size,
-    clipBehavior: Clip.antiAlias,
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(AppRadius.xl),
-      color: Theme.of(context).colorScheme.primary,
-    ),
-    child: club.heroImage == null
-        ? Center(
-            child: Text(
-              club.name.trim().isEmpty
-                  ? '?'
-                  : club.name.trim()[0].toUpperCase(),
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.onPrimary,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>();
+    final hasImage = club.heroImage?.trim().isNotEmpty ?? false;
+
+    return Container(
+      width: size,
+      height: size,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadius.lg),
+        border: Border.all(
+          color: palette?.border.withValues(alpha: 0.8) ?? theme.dividerColor,
+        ),
+        color: theme.colorScheme.primaryContainer,
+      ),
+      child: !hasImage
+          ? Center(
+              child: Text(
+                club.name.trim().isEmpty
+                    ? '?'
+                    : club.name.trim()[0].toUpperCase(),
+                style: TextStyle(
+                  color: theme.colorScheme.onPrimaryContainer,
+                  fontSize: size * 0.42,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            )
+          : CachedNetworkImage(
+              imageUrl: club.heroImage!,
+              fit: BoxFit.cover,
+              errorWidget: (_, _, _) => Center(
+                child: Icon(
+                  AppIcons.clubs,
+                  size: size * 0.45,
+                  color: theme.colorScheme.onPrimaryContainer,
+                ),
               ),
             ),
-          )
-        : CachedNetworkImage(
-            imageUrl: club.heroImage!,
-            fit: BoxFit.cover,
-            errorWidget: (_, _, _) => const Icon(AppIcons.clubs),
-          ),
-  );
+    );
+  }
 }
 
 class _UserAvatar extends StatelessWidget {
@@ -937,11 +1185,10 @@ class _UserAvatar extends StatelessWidget {
   final String? image;
 
   @override
-  Widget build(BuildContext context) => CircleAvatar(
-    backgroundImage: image == null ? null : CachedNetworkImageProvider(image!),
-    child: image == null
-        ? Text(name.trim().isEmpty ? '?' : name.trim()[0].toUpperCase())
-        : null,
+  Widget build(BuildContext context) => UserAvatar(
+    name: name,
+    imageUrl: image,
+    size: 40,
   );
 }
 
@@ -1014,7 +1261,7 @@ class _CardSkeletonGrid extends StatelessWidget {
   Widget build(BuildContext context) => _AdaptiveGrid(
     width: width,
     itemCount: 3,
-    itemBuilder: (_, _) => const Card(child: SizedBox.expand()),
+    itemBuilder: (_, _) => const Card(child: SizedBox(height: 140)),
   );
 }
 
@@ -1034,7 +1281,7 @@ Future<String?> _rejectionReason(BuildContext context) async {
     context: context,
     builder: (dialogContext) => AlertDialog(
       title: Text(l10n.clubReject),
-      content: ReactiveForm(
+      content: AppReactiveForm(
         formGroup: form,
         child: ReactiveTextField<String>(
           key: const Key('club-rejection-reason'),

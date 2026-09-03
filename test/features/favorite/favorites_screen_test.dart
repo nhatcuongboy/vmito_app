@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/network/paginated.dart' as paginated;
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorites_screen.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/social/data/profile_tabs_service.dart';
@@ -52,8 +53,8 @@ void main() {
     await tester.pumpWidget(_app(_FakeProfileTabsService()));
     await tester.pumpAndSettle();
 
-    final segmentedButton = tester.widget<SegmentedButton<String>>(
-      find.byType(typeOf<SegmentedButton<String>>()),
+    final segmentedButton = tester.widget<SegmentedButton<FavoriteType>>(
+      find.byType(typeOf<SegmentedButton<FavoriteType>>()),
     );
     expect(segmentedButton.showSelectedIcon, isFalse);
 
@@ -62,14 +63,34 @@ void main() {
 
     expect(find.text('You have no favorites yet.'), findsOneWidget);
   });
+
+  testWidgets('loads the favorite type selected by the route', (tester) async {
+    final service = _FakeProfileTabsService();
+    await tester.pumpWidget(
+      _app(service, initialType: FavoriteType.tournament),
+    );
+    await tester.pumpAndSettle();
+
+    expect(service.requestedTypes, ['TOURNAMENT']);
+    final segmentedButton = tester.widget<SegmentedButton<FavoriteType>>(
+      find.byType(typeOf<SegmentedButton<FavoriteType>>()),
+    );
+    expect(segmentedButton.selected, {FavoriteType.tournament});
+  });
 }
 
 Type typeOf<T>() => T;
 
-Widget _app(ProfileTabsService service) {
+Widget _app(
+  ProfileTabsService service, {
+  FavoriteType initialType = FavoriteType.session,
+}) {
   final router = GoRouter(
     routes: [
-      GoRoute(path: '/', builder: (_, _) => const FavoritesScreen()),
+      GoRoute(
+        path: '/',
+        builder: (_, _) => FavoritesScreen(initialType: initialType),
+      ),
       GoRoute(
         path: '/sessions/:id',
         builder: (_, _) => const Scaffold(body: Text('Session detail')),
@@ -96,12 +117,14 @@ class _FakeProfileTabsService implements ProfileTabsService {
 
   final bool withSavedSession;
   final bool throwsState;
+  final requestedTypes = <String>[];
 
   @override
   Future<paginated.Page<FavoriteTarget>> favorites(
     String type, {
     int page = 1,
   }) async {
+    requestedTypes.add(type);
     if (throwsState) throw Exception('Failed to load favorites');
     return paginated.Page(
       items: withSavedSession && type == 'SESSION'

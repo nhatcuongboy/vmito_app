@@ -263,6 +263,12 @@ abstract final class ApiEndpoints {
   static String tournamentCourts(String id) => '/tournaments/$id/courts';
   static String tournamentUmpires(String id) => '/tournaments/$id/umpires';
   static String tournamentSponsors(String id) => '/tournaments/$id/sponsors';
+  static String tournamentMyAccess(String id) =>
+      '/tournaments/$id/my-access';
+  static String tournamentManagers(String id) => '/tournaments/$id/managers';
+  static String tournamentManager(String id, String userId) =>
+      '/tournaments/$id/managers/$userId';
+  static String duplicateTournament(String id) => '/tournaments/$id/duplicate';
   static String tournamentCategoryGroups(String categoryId) =>
       '/categories/$categoryId/groups';
   static String tournamentStandings(String categoryId) =>

@@ -119,6 +119,11 @@ class SettingsScreen extends ConsumerWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: OutlinedButton.icon(
+                key: const Key('settings-sign-out-button'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Theme.of(context).colorScheme.error,
+                  side: BorderSide(color: Theme.of(context).colorScheme.error),
+                ),
                 onPressed: () => showSignOutConfirmation(context, ref),
                 icon: const Icon(AppIcons.logout),
                 label: Text(l10n.authSignOut),

@@ -146,10 +146,13 @@ class NotificationListItem extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurface.withValues(
-                                alpha: isUnread ? 0.72 : 0.58,
+                                alpha: isUnread
+                                    ? 0.90
+                                    : (isDark ? 0.76 : 0.65),
                               ),
                             ),
                           ),
+                          const SizedBox(height: AppSpacing.xs),
                           Text(
                             Dates.timeAgo(
                               notification.createdAt,
@@ -159,7 +162,7 @@ class NotificationListItem extends StatelessWidget {
                               color: isUnread
                                   ? accent
                                   : theme.colorScheme.onSurface.withValues(
-                                      alpha: 0.5,
+                                      alpha: isDark ? 0.70 : 0.55,
                                     ),
                               fontWeight: isUnread
                                   ? FontWeight.w600

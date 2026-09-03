@@ -1,10 +1,10 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/core/widgets/user_avatar.dart';
 import 'package:vmito_app/features/social/application/club_management_controller.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -66,13 +66,10 @@ class _RequestCard extends ConsumerWidget {
           children: [
             ListTile(
               contentPadding: EdgeInsets.zero,
-              leading: CircleAvatar(
-                backgroundImage: request.userImage == null
-                    ? null
-                    : CachedNetworkImageProvider(request.userImage!),
-                child: request.userImage == null
-                    ? const Icon(AppIcons.profile)
-                    : null,
+              leading: UserAvatar(
+                name: request.userName,
+                imageUrl: request.userImage,
+                size: 40,
               ),
               title: Text(request.userName),
               subtitle: Text(

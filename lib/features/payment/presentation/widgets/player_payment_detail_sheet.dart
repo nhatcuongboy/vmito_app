@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -470,7 +471,7 @@ class _PaymentReviewSheetState extends ConsumerState<PaymentReviewSheet> {
           AppSpacing.md,
           MediaQuery.viewInsetsOf(context).bottom + AppSpacing.md,
         ),
-        child: ReactiveForm(
+        child: AppReactiveForm(
           formGroup: _form,
           child: SingleChildScrollView(
             child: Column(

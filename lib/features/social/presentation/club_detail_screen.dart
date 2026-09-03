@@ -7,6 +7,8 @@ import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart
 import 'package:go_router/go_router.dart';
 import 'package:html/dom.dart' as html_dom;
 import 'package:html/parser.dart' as html_parser;
+import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vmito_app/core/constants/image_constants.dart';
@@ -16,6 +18,7 @@ import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_address_text.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/core/widgets/user_avatar.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
@@ -27,6 +30,7 @@ import 'package:vmito_app/features/social/presentation/widgets/public_club_membe
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_lightbox.dart';
 import 'package:vmito_app/shared/widgets/detail_hero_header.dart';
+import 'package:vmito_app/shared/widgets/login_prompt_dialog.dart';
 import 'package:vmito_app/shared/widgets/skill_level_badge.dart';
 import 'package:vmito_domain/vmito_domain.dart';
 
@@ -336,50 +340,26 @@ class _ClubDetailState extends ConsumerState<_ClubDetail>
       if (club.defaultVenue != null || club.location != null)
         _card(
           l10n.clubAboutLocation,
-          Column(
-            children: [
-              if (club.defaultVenue case final venue?)
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(AppIcons.location),
-                  title: Text(venue.name),
-                  subtitle: venue.hasAddressData
-                      ? AppAddressText(
-                          address: venue.address,
-                          district: venue.district,
-                          city: venue.city,
-                          newAddress: venue.newAddress,
-                          newDistrict: venue.newDistrict,
-                          newCity: venue.newCity,
-                          maxLines: 2,
-                        )
-                      : null,
-                  trailing: const Icon(AppIcons.chevronRight),
-                  onTap: venue.id == null
-                      ? () => _openMap(venue)
-                      : () => context.push(AppRoutes.venueDetail(venue.id!)),
+          club.defaultVenue != null
+              ? _VenueCard(
+                  venue: club.defaultVenue!,
+                  onTap: club.defaultVenue!.id == null
+                      ? () => _openMap(club.defaultVenue!)
+                      : () =>
+                          context.push(AppRoutes.venueDetail(club.defaultVenue!.id!)),
+                  onOpenMap: () => _openMap(club.defaultVenue!),
                 )
-              else
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: const Icon(AppIcons.location),
-                  title: Text(club.location!),
-                ),
-            ],
-          ),
+              : _SimpleLocationRow(location: club.location!),
         ),
       if (club.hostName != null)
         _card(
           l10n.clubHostName,
           ListTile(
             contentPadding: EdgeInsets.zero,
-            leading: CircleAvatar(
-              backgroundImage: club.hostImage == null
-                  ? null
-                  : CachedNetworkImageProvider(club.hostImage!),
-              child: club.hostImage == null
-                  ? const Icon(AppIcons.profile)
-                  : null,
+            leading: UserAvatar(
+              name: club.hostName,
+              imageUrl: club.hostImage,
+              size: 40,
             ),
             title: Text(club.hostName!),
             onTap: club.hostId == null
@@ -522,8 +502,20 @@ class _ClubDetailState extends ConsumerState<_ClubDetail>
     ),
   );
   Future<void> _join(ClubSummary club) async {
+    // A guest session has no JWT, so the club endpoints will always reject it.
+    // Prompt before opening the request form rather than surfacing that failure.
+    if (ref.read(currentUserProvider)?.isGuest ?? true) {
+      await showLoginPromptDialog(
+        context,
+        featureName: AppLocalizations.of(context).socialJoinClub,
+      );
+      return;
+    }
+
     final message = await _messageDialog();
-    if (!mounted) return;
+    // `null` is an explicit dismissal. An empty string is still a valid request
+    // without a message, so it must remain distinguishable from cancellation.
+    if (!mounted || message == null) return;
     setState(() => _busy = true);
     try {
       final result = await ref
@@ -556,31 +548,9 @@ class _ClubDetailState extends ConsumerState<_ClubDetail>
   }
 
   Future<String?> _messageDialog() {
-    final controller = TextEditingController();
     return showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Tham gia nhóm'),
-        content: TextField(
-          controller: controller,
-          maxLength: 500,
-          minLines: 2,
-          maxLines: 4,
-          decoration: const InputDecoration(
-            hintText: 'Lời nhắn (không bắt buộc)',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Hủy'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, controller.text.trim()),
-            child: const Text('Gửi'),
-          ),
-        ],
-      ),
+      builder: (_) => const _JoinClubDialog(),
     );
   }
 
@@ -652,6 +622,71 @@ class _ClubDetailState extends ConsumerState<_ClubDetail>
     );
     if (leave == true && mounted) await _leave(club);
   }
+}
+
+abstract final class _JoinClubFormControl {
+  static const message = 'message';
+}
+
+class _JoinClubDialog extends StatefulWidget {
+  const _JoinClubDialog();
+
+  @override
+  State<_JoinClubDialog> createState() => _JoinClubDialogState();
+}
+
+class _JoinClubDialogState extends State<_JoinClubDialog> {
+  final _form = FormGroup({
+    _JoinClubFormControl.message: FormControl<String>(),
+  });
+
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    _form.markAllAsTouched();
+    if (_form.invalid || _form.pending) return;
+    final message =
+        _form.control(_JoinClubFormControl.message).value as String?;
+    Navigator.of(context).pop(message?.trim() ?? '');
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+    key: const Key('club-join-dialog'),
+    // The Material default leaves 40 px on each side. This dialog contains a
+    // multi-line field, so use the app's normal screen gutter instead.
+    insetPadding: const EdgeInsets.symmetric(
+      horizontal: AppSpacing.screenPadding,
+    ),
+    title: const Text('Tham gia nhóm'),
+    content: SizedBox(
+      width: double.maxFinite,
+      child: AppReactiveForm(
+        formGroup: _form,
+        child: ReactiveTextField<String>(
+          key: const Key('club-join-message-field'),
+          formControlName: _JoinClubFormControl.message,
+          maxLength: 500,
+          minLines: 2,
+          maxLines: 4,
+          decoration: const InputDecoration(
+            hintText: 'Lời nhắn (không bắt buộc)',
+          ),
+        ),
+      ),
+    ),
+    actions: [
+      TextButton(
+        onPressed: () => Navigator.of(context).pop(),
+        child: const Text('Hủy'),
+      ),
+      FilledButton(onPressed: _submit, child: const Text('Gửi')),
+    ],
+  );
 }
 
 class _ClubIdentityLogo extends StatelessWidget {
@@ -854,22 +889,13 @@ class _ClubHeroState extends State<_ClubHero> {
             controller: _controller,
             itemCount: images.length,
             onPageChanged: (index) => setState(() => _index = index),
-            itemBuilder: (context, index) => GestureDetector(
-              onTap: () => unawaited(
-                showAppLightbox(
-                  context,
-                  images: images,
-                  initialIndex: index,
-                ),
-              ),
-              child: CachedNetworkImage(
-                imageUrl: images[index],
-                fit: BoxFit.cover,
-                placeholder: (_, _) => const ColoredBox(color: Colors.black12),
-                errorWidget: (_, _, _) => const ColoredBox(
-                  color: Colors.black12,
-                  child: Icon(AppIcons.imageOff),
-                ),
+            itemBuilder: (context, index) => CachedNetworkImage(
+              imageUrl: images[index],
+              fit: BoxFit.cover,
+              placeholder: (_, _) => const ColoredBox(color: Colors.black12),
+              errorWidget: (_, _, _) => const ColoredBox(
+                color: Colors.black12,
+                child: Icon(AppIcons.imageOff),
               ),
             ),
           ),
@@ -882,6 +908,21 @@ class _ClubHeroState extends State<_ClubHero> {
             ),
           ),
         ),
+        // Transparent tap overlay — lets PageView handle horizontal swipes
+        // while still firing the lightbox on a clean tap.
+        if (images.isNotEmpty)
+          Positioned.fill(
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onTap: () => unawaited(
+                showAppLightbox(
+                  context,
+                  images: images,
+                  initialIndex: _index,
+                ),
+              ),
+            ),
+          ),
         if (images.length > 1)
           Positioned(
             bottom: AppSpacing.md,
@@ -1174,3 +1215,195 @@ Future<bool> _launchSafeUrl(String rawUrl) async {
     return false;
   }
 }
+
+/// A visual card for a linked venue with a map-placeholder banner,
+/// venue name, formatted address, and a quick "Open in Maps" button.
+class _VenueCard extends StatelessWidget {
+  const _VenueCard({
+    required this.venue,
+    required this.onTap,
+    required this.onOpenMap,
+  });
+
+  final ClubVenue venue;
+  final VoidCallback onTap;
+  final VoidCallback onOpenMap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(AppRadius.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Map placeholder banner
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            child: Container(
+              height: 96,
+              color: palette.muted,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Decorative background dots
+                  Positioned.fill(
+                    child: CustomPaint(painter: _MapDotsPainter(palette)),
+                  ),
+                  // Pin icon
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.3,
+                          ),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      AppIcons.location,
+                      color: theme.colorScheme.onPrimary,
+                      size: 24,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          // Venue name + chevron
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      venue.name,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    if (venue.hasAddressData) ...[
+                      const SizedBox(height: 2),
+                      AppAddressText(
+                        address: venue.address,
+                        district: venue.district,
+                        city: venue.city,
+                        newAddress: venue.newAddress,
+                        newDistrict: venue.newDistrict,
+                        newCity: venue.newCity,
+                        maxLines: 2,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: palette.mutedForeground,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Icon(
+                AppIcons.chevronRight,
+                size: 18,
+                color: palette.mutedForeground,
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          // Open in Maps button
+          OutlinedButton.icon(
+            onPressed: onOpenMap,
+            icon: const Icon(AppIcons.location, size: 16),
+            label: const Text('Mở bản đồ'),
+            style: OutlinedButton.styleFrom(
+              visualDensity: VisualDensity.compact,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.xs,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Fallback row for a plain text location (no linked venue).
+class _SimpleLocationRow extends StatelessWidget {
+  const _SimpleLocationRow({required this.location});
+
+  final String location;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 36,
+          height: 36,
+          decoration: BoxDecoration(
+            color: theme.colorScheme.primary.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            AppIcons.location,
+            size: 18,
+            color: theme.colorScheme.primary,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: Text(
+              location,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: palette.mutedForeground,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Custom painter that draws a subtle grid/dot pattern to simulate a map tile.
+class _MapDotsPainter extends CustomPainter {
+  _MapDotsPainter(this.palette);
+  final AppPalette palette;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = palette.mutedForeground.withValues(alpha: 0.08)
+      ..style = PaintingStyle.fill;
+    const step = 18.0;
+    const radius = 2.0;
+    for (var x = step; x < size.width; x += step) {
+      for (var y = step; y < size.height; y += step) {
+        canvas.drawCircle(Offset(x, y), radius, paint);
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_MapDotsPainter oldDelegate) => false;
+}
+

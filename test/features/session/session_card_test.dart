@@ -4,7 +4,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
+import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
+import 'package:vmito_app/core/widgets/user_avatar.dart';
+import 'package:vmito_app/features/auth/application/auth_controller.dart';
+import 'package:vmito_app/features/favorite/data/favorite_repository.dart';
+import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
+import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 import 'package:vmito_app/features/session/presentation/widgets/session_card.dart';
@@ -21,6 +28,7 @@ Session _session({
   SessionVenue? venue,
   String? location,
   String? hostName,
+  bool isFavorite = false,
 }) => Session(
   id: 's1',
   name: 'Kèo tối thứ 6',
@@ -35,34 +43,61 @@ Session _session({
   venue: venue,
   location: location,
   hostName: hostName,
+  isFavorite: isFavorite,
 );
 
 Future<void> _pump(
   WidgetTester tester,
   Session session, {
   bool showNewAddress = true,
+  bool showFavorite = false,
+  bool signedIn = false,
+  ThemeData? theme,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
       key: ValueKey(showNewAddress),
       overrides: [
         locationPreferencesControllerProvider.overrideWith(
-          () => _TestLocationPreferencesController(showNewAddress),
+          () => _TestLocationPreferencesController(value: showNewAddress),
+        ),
+        isSignedInProvider.overrideWithValue(signedIn),
+        favoriteRepositoryProvider.overrideWithValue(
+          const _TestFavoriteRepository(),
         ),
       ],
       child: MaterialApp(
         locale: const Locale('vi'),
-        theme: AppTheme.light,
+        theme: theme ?? AppTheme.light,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(body: SessionCard(session: session)),
+        home: Scaffold(
+          body: SessionCard(
+            session: session,
+            showFavorite: showFavorite,
+          ),
+        ),
       ),
     ),
   );
 }
 
+class _TestFavoriteRepository implements FavoriteRepository {
+  const _TestFavoriteRepository();
+
+  @override
+  Future<void> add(FavoriteType type, String targetId) async {}
+
+  @override
+  Future<void> remove(FavoriteType type, String targetId) async {}
+
+  @override
+  Future<FavoriteSummary> summary(FavoriteType type, String targetId) async =>
+      const FavoriteSummary();
+}
+
 class _TestLocationPreferencesController extends LocationPreferencesController {
-  _TestLocationPreferencesController(this.value);
+  _TestLocationPreferencesController({required this.value});
 
   final bool value;
 
@@ -75,6 +110,46 @@ class _TestLocationPreferencesController extends LocationPreferencesController {
 
 void main() {
   setUpAll(initializeDateFormatting);
+
+  testWidgets('favorite is opt-in and uses the session API type', (
+    tester,
+  ) async {
+    await _pump(tester, _session());
+    expect(find.byType(FavoriteButton), findsNothing);
+
+    await _pump(
+      tester,
+      _session(isFavorite: true),
+      showFavorite: true,
+      signedIn: true,
+    );
+    await tester.pumpAndSettle();
+
+    final favorite = tester.widget<FavoriteButton>(
+      find.byType(FavoriteButton),
+    );
+    expect(favorite.type, FavoriteType.session);
+    expect(favorite.targetId, 's1');
+    expect(favorite.initialIsFavorite, isTrue);
+    expect(favorite.showCount, isFalse);
+    expect(favorite.variant, FavoriteButtonVariant.surface);
+
+    final headerRow = find.ancestor(
+      of: find.byType(FavoriteButton),
+      matching: find.byType(Row),
+    );
+    expect(headerRow, findsWidgets);
+    expect(
+      find.descendant(of: headerRow, matching: find.text('Kèo tối thứ 6')),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('favorite icon is hidden for guests', (tester) async {
+    await _pump(tester, _session(), showFavorite: true);
+
+    expect(find.byIcon(AppIcons.favorite), findsNothing);
+  });
 
   group('skill band', () {
     testWidgets('shows the range in display order, not numeric order', (
@@ -98,11 +173,19 @@ void main() {
       expect(find.text('TB-'), findsOneWidget);
     });
 
-    testWidgets('shows nothing when all levels are welcome', (tester) async {
-      // An empty requiredLevels means no restriction. Rendering a range would
-      // state a limit the host never set.
+    testWidgets('shows an explicit badge when all levels are welcome', (
+      tester,
+    ) async {
       await _pump(tester, _session());
 
+      expect(find.text('Mọi trình độ'), findsOneWidget);
+      expect(
+        find.byKey(const Key('session-all-levels-badge')),
+        findsOneWidget,
+      );
+      final badge = find.byKey(const Key('session-all-levels-badge'));
+      final slot = find.ancestor(of: badge, matching: find.byType(Align));
+      expect(tester.getSize(badge).width, lessThan(tester.getSize(slot).width));
       expect(find.text('Yếu'), findsNothing);
       expect(find.text('CN'), findsNothing);
     });
@@ -141,6 +224,17 @@ void main() {
 
       expect(find.textContaining('k'), findsNothing);
     });
+
+    testWidgets('shows dong on a small fixed-fee range', (tester) async {
+      await _pump(
+        tester,
+        _session(
+          feeConfig: const SessionFeeConfig(maleFee: 65, femaleFee: 50),
+        ),
+      );
+
+      expect(find.text('50đ-65đ'), findsOneWidget);
+    });
   });
 
   group('time', () {
@@ -170,6 +264,25 @@ void main() {
       expect(time.style?.color, const Color(0xFF3F3F46));
       expect(date.style?.fontWeight, FontWeight.w600);
       expect(time.style?.fontWeight, FontWeight.w600);
+    });
+
+    testWidgets('uses high-contrast time color in dark mode', (tester) async {
+      await _pump(
+        tester,
+        _session(
+          startTime: DateTime.now(),
+          scheduledEndTime: DateTime.now().add(const Duration(hours: 2)),
+        ),
+        theme: AppTheme.dark,
+      );
+
+      final time = tester.widget<Text>(
+        find.byKey(const Key('session-time-value')),
+      );
+      expect(
+        time.style?.color,
+        AppTheme.dark.colorScheme.onSurface.withValues(alpha: 0.85),
+      );
     });
 
     testWidgets('uses the planned end, not the actual one', (tester) async {
@@ -299,7 +412,7 @@ void main() {
       await _pump(tester, session, showNewAddress: false);
       expect(find.text('Sân ABC • Quận Cũ'), findsOneWidget);
 
-      await _pump(tester, session, showNewAddress: true);
+      await _pump(tester, session);
       expect(find.text('Sân ABC • Tân Phú'), findsOneWidget);
     });
   });
@@ -320,6 +433,28 @@ void main() {
 
     expect(find.text('Bài Facebook'), findsOneWidget);
     expect(find.byKey(const Key('session-slots-badge')), findsNothing);
+  });
+
+  testWidgets('uses the web host-avatar size', (tester) async {
+    await _pump(tester, _session(hostName: 'Trần Minh Quân'));
+
+    final avatar = find.byType(UserAvatar);
+    expect(tester.getSize(avatar), const Size.square(24));
+  });
+
+  testWidgets('positions the cover so its aspect ratio cannot stretch cards', (
+    tester,
+  ) async {
+    await _pump(tester, _session(isCrawled: true));
+
+    final image = find.byType(CachedNetworkImage);
+    final positioned = tester.widget<Positioned>(
+      find.ancestor(of: image, matching: find.byType(Positioned)).first,
+    );
+    expect(positioned.left, 0);
+    expect(positioned.top, 0);
+    expect(positioned.right, 0);
+    expect(positioned.bottom, 0);
   });
 
   group('availability badge', () {

@@ -187,9 +187,19 @@ abstract final class AppWebView {
 /// pushing another route. This is useful while an entire native screen is
 /// temporarily delegated to its web implementation.
 class AppWebViewPage extends ConsumerStatefulWidget {
-  const AppWebViewPage({required this.page, super.key});
+  const AppWebViewPage({
+    required this.page,
+    this.actions = const [],
+    this.onTrustedNavigation,
+    super.key,
+  });
 
   final AppWebPage page;
+  final List<Widget> actions;
+
+  /// Return true after handling a trusted URL natively to cancel WebView
+  /// navigation. Returning false leaves the URL inside the WebView.
+  final FutureOr<bool> Function(Uri uri)? onTrustedNavigation;
 
   @override
   ConsumerState<AppWebViewPage> createState() => _AppWebViewPageState();
@@ -256,6 +266,8 @@ class _AppWebViewPageState extends ConsumerState<AppWebViewPage> {
         title: widget.page.title,
         initialUrl: prepared.url,
         sessionId: prepared.sessionId,
+        actions: widget.actions,
+        onTrustedNavigation: widget.onTrustedNavigation,
       );
     },
   );
@@ -266,11 +278,15 @@ class AuthenticatedWebViewScreen extends ConsumerStatefulWidget {
     required this.title,
     required this.initialUrl,
     this.sessionId,
+    this.actions = const [],
+    this.onTrustedNavigation,
     super.key,
   });
   final String title;
   final Uri initialUrl;
   final String? sessionId;
+  final List<Widget> actions;
+  final FutureOr<bool> Function(Uri uri)? onTrustedNavigation;
 
   @override
   ConsumerState<AuthenticatedWebViewScreen> createState() =>
@@ -319,6 +335,7 @@ class _AuthenticatedWebViewScreenState
       appBar: AppBar(
         title: Text(widget.title),
         actions: [
+          ...widget.actions,
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () => _controller?.reload(),
@@ -343,7 +360,13 @@ class _AuthenticatedWebViewScreenState
             setState(() => _progress = progress / 100),
         shouldOverrideUrlLoading: (_, action) async {
           final uri = action.request.url?.uriValue;
-          if (uri == null || _isTrusted(uri)) {
+          if (uri == null) {
+            return NavigationActionPolicy.ALLOW;
+          }
+          if (_isTrusted(uri)) {
+            if (await widget.onTrustedNavigation?.call(uri) ?? false) {
+              return NavigationActionPolicy.CANCEL;
+            }
             return NavigationActionPolicy.ALLOW;
           }
           await launchUrl(uri, mode: LaunchMode.externalApplication);

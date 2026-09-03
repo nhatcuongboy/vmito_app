@@ -219,7 +219,11 @@ int _trailingLineSplit({
   }
 
   if (fits(label)) return 0;
-  for (final whitespace in RegExp(r'\s+').allMatches(label)) {
+  // Iterate in reverse to find the latest split point: we want to keep as
+  // much text as possible on the first line and only move the minimum suffix
+  // to the trailing row (which shares space with the icon).
+  final matches = RegExp(r'\s+').allMatches(label).toList();
+  for (final whitespace in matches.reversed) {
     if (fits(label.substring(whitespace.end))) return whitespace.end;
   }
   return 0;

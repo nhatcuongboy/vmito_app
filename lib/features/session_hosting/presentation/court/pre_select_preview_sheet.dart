@@ -9,6 +9,7 @@ import 'package:vmito_app/features/court/presentation/widgets/court/court_view_m
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/court.dart';
+import 'package:vmito_app/shared/widgets/app_dialog.dart';
 
 /// What the host chose to do next, from the preview sheet.
 enum PreSelectPreviewAction { cancelPreSelection }
@@ -134,25 +135,12 @@ class PreSelectPreviewSheet extends StatelessWidget {
   /// been told they are up, so it takes a confirmation.
   Future<void> _confirmCancel(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.courtConfirmCancelPreSelectTitle),
-        content: ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 320),
-          child: Text(l10n.courtConfirmCancelPreSelectMessage),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(MaterialLocalizations.of(context).cancelButtonLabel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(l10n.courtCancelPreSelect),
-          ),
-        ],
-      ),
+    final confirmed = await showAppConfirmDialog(
+      context,
+      type: AppConfirmDialogType.destructive,
+      title: l10n.courtConfirmCancelPreSelectTitle,
+      content: l10n.courtConfirmCancelPreSelectMessage,
+      confirmLabel: l10n.courtCancelPreSelect,
     );
     if (confirmed != true || !context.mounted) return;
     Navigator.pop(context, PreSelectPreviewAction.cancelPreSelection);

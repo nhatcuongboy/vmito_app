@@ -62,6 +62,10 @@ abstract final class AppRoutes {
 
   static const notifications = '$home/notifications';
   static const favorites = '/favorites';
+  static String favoritesFor(String type) => Uri(
+    path: favorites,
+    queryParameters: {'type': type},
+  ).toString();
   static const transactions = '/transactions';
   static const reminders = '/reminders';
   static const profile = '/profile';
@@ -114,12 +118,24 @@ abstract final class AppRoutes {
     return path == homeSearch ||
         path == mySessionsSearch ||
         RegExp(r'^/tournaments/[^/]+$').hasMatch(path) ||
+        RegExp(r'^/tournaments/[^/]+/manage$').hasMatch(path) ||
         isSessionDetail ||
         RegExp(r'^/sessions/[^/]+/manage$').hasMatch(path);
   }
 
   static const tournaments = '/tournaments';
   static String tournamentDetail(String id) => '/tournaments/$id';
+  static String manageTournament(
+    String id, {
+    String? option,
+    String? categoryId,
+  }) => Uri(
+    path: '/tournaments/$id/manage',
+    queryParameters: {
+      'option': ?option,
+      'categoryId': ?categoryId,
+    },
+  ).toString();
   static const createTournament = '/tournaments/create';
 
   /// Bottom-nav destinations, in tab order. The shell's branch order must
@@ -192,6 +208,9 @@ abstract final class AppRoutes {
     final path = Uri.tryParse(location)?.path ?? location;
     if (path == splash) return true;
     if (RegExp(r'^/user/[^/]+(?:/|$)').hasMatch(path)) return true;
+    if (RegExp(r'^/tournaments/[^/]+/manage(?:/|$)').hasMatch(path)) {
+      return false;
+    }
     final publicSession = RegExp(
       r'^/sessions/([^/]+)(?:/(live))?$',
     ).firstMatch(path);
@@ -225,5 +244,17 @@ abstract final class AppRoutes {
             return rest.isEmpty ? '/' : rest;
           }();
     return stripped.replaceFirst(RegExp('^/tournament/'), '/tournaments/');
+  }
+
+  /// Converts a web deep link to the app route while retaining its query.
+  static String normalizeWebLocation(Uri uri) {
+    final path = stripLocale(uri.path);
+    // `Uri.path` keeps percent escapes on Flutter's web/deep-link inputs.
+    // Decode only non-reserved characters before replacing the path so an
+    // already encoded slug does not become `%2520` on every router redirect.
+    return Uri(
+      path: Uri.decodeFull(path),
+      queryParameters: uri.queryParameters.isEmpty ? null : uri.queryParameters,
+    ).toString();
   }
 }
