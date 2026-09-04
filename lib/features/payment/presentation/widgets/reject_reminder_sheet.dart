@@ -63,8 +63,7 @@ class _RejectReminderSheetState extends ConsumerState<RejectReminderSheet> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final isBusy =
-        ref.watch(paymentRemindersControllerProvider).isLoading;
+    final isBusy = ref.watch(paymentRemindersControllerProvider).isLoading;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -108,7 +107,9 @@ class _RejectReminderSheetState extends ConsumerState<RejectReminderSheet> {
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: isBusy ? null : () => Navigator.of(context).pop(),
+                    onPressed: isBusy
+                        ? null
+                        : () => Navigator.of(context).pop(),
                     child: Text(l10n.commonCancel),
                   ),
                   const SizedBox(width: AppSpacing.sm),

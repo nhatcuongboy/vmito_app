@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/constants/api_endpoints.dart';
 import 'package:vmito_app/core/network/api_client.dart';
+import 'package:vmito_app/core/network/api_options.dart';
 import 'package:vmito_app/core/network/api_response.dart';
 import 'package:vmito_app/core/network/paginated.dart';
 import 'package:vmito_app/features/notification/domain/app_notification.dart';
@@ -38,6 +39,10 @@ class NotificationService {
   Future<int> unreadCount() async {
     final response = await _client.get<Map<String, dynamic>>(
       ApiEndpoints.notificationUnreadCount,
+      // The header refreshes this opportunistically and the controller keeps
+      // the last known count on failure. Do not surface a stale background
+      // authorization error after the app lock has been dismissed.
+      options: apiOptions(skipGlobalError: true),
       dedup: false,
     );
     final value = unwrap(response.data, (json) => json);

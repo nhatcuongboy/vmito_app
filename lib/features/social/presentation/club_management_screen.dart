@@ -503,10 +503,10 @@ class _ClubCard extends ConsumerWidget {
         onTap: pending
             ? null
             : () => context.push(
-                  showActions
-                      ? AppRoutes.manageClub(club.id)
-                      : AppRoutes.clubDetail(club.slug ?? club.id),
-                ),
+                showActions
+                    ? AppRoutes.manageClub(club.id)
+                    : AppRoutes.clubDetail(club.slug ?? club.id),
+              ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: MainAxisSize.min,
@@ -582,8 +582,9 @@ class _ClubCard extends ConsumerWidget {
                             if (pending)
                               _ClubTag(
                                 label: l10n.clubStatusPending,
-                                backgroundColor:
-                                    palette?.warning.withValues(alpha: 0.12),
+                                backgroundColor: palette?.warning.withValues(
+                                  alpha: 0.12,
+                                ),
                                 textColor: palette?.warning,
                               ),
                           ],
@@ -622,7 +623,8 @@ class _ClubCard extends ConsumerWidget {
             Divider(
               height: 1,
               thickness: 1,
-              color: palette?.border.withValues(alpha: 0.6) ?? theme.dividerColor,
+              color:
+                  palette?.border.withValues(alpha: 0.6) ?? theme.dividerColor,
             ),
             Container(
               padding: const EdgeInsets.symmetric(
@@ -686,23 +688,22 @@ class _ClubCard extends ConsumerWidget {
     final theme = Theme.of(context);
     return switch (club.role) {
       'ADMIN' => _ClubTag(
-          icon: AppIcons.shield,
-          label: l10n.clubRoleAdmin,
-          backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
-          textColor: theme.colorScheme.primary,
-        ),
+        icon: AppIcons.shield,
+        label: l10n.clubRoleAdmin,
+        backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.1),
+        textColor: theme.colorScheme.primary,
+      ),
       'MODERATOR' => _ClubTag(
-          icon: AppIcons.shield,
-          label: l10n.clubRoleModerator,
-          backgroundColor:
-              (palette?.info ?? Colors.blue).withValues(alpha: 0.1),
-          textColor: palette?.info ?? Colors.blue,
-        ),
+        icon: AppIcons.shield,
+        label: l10n.clubRoleModerator,
+        backgroundColor: (palette?.info ?? Colors.blue).withValues(alpha: 0.1),
+        textColor: palette?.info ?? Colors.blue,
+      ),
       _ => _ClubTag(
-          label: l10n.clubRoleMember,
-          backgroundColor: theme.colorScheme.surfaceContainerHighest,
-          textColor: theme.colorScheme.onSurfaceVariant,
-        ),
+        label: l10n.clubRoleMember,
+        backgroundColor: theme.colorScheme.surfaceContainerHighest,
+        textColor: theme.colorScheme.onSurfaceVariant,
+      ),
     };
   }
 
@@ -792,7 +793,9 @@ class _IncomingRequestCard extends ConsumerWidget {
                             request.club!.name,
                           _submitted(context, request.createdAt),
                           if ((request.sessionsPlayedCount ?? 0) > 0)
-                            l10n.clubSessionsPlayed(request.sessionsPlayedCount!),
+                            l10n.clubSessionsPlayed(
+                              request.sessionsPlayedCount!,
+                            ),
                         ].join(' · '),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: palette?.mutedForeground,
@@ -812,7 +815,8 @@ class _IncomingRequestCard extends ConsumerWidget {
                   color: theme.colorScheme.surfaceContainerLowest,
                   borderRadius: BorderRadius.circular(AppRadius.md),
                   border: Border.all(
-                    color: palette?.border.withValues(alpha: 0.5) ??
+                    color:
+                        palette?.border.withValues(alpha: 0.5) ??
                         theme.dividerColor,
                   ),
                 ),
@@ -915,8 +919,9 @@ class _OutgoingRequestCard extends ConsumerWidget {
                           ),
                           _ClubTag(
                             label: l10n.clubStatusPending,
-                            backgroundColor:
-                                palette?.warning.withValues(alpha: 0.12),
+                            backgroundColor: palette?.warning.withValues(
+                              alpha: 0.12,
+                            ),
                             textColor: palette?.warning,
                           ),
                         ],
@@ -958,7 +963,10 @@ class _OutgoingRequestCard extends ConsumerWidget {
             color: palette?.border.withValues(alpha: 0.6) ?? theme.dividerColor,
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 2),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: 2,
+            ),
             child: Row(
               children: [
                 TextButton.icon(

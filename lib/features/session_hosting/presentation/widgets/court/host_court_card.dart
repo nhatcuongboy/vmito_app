@@ -32,48 +32,70 @@ class HostCourtCard extends ConsumerWidget {
       hostCourtActionsControllerProvider(session.id).notifier,
     );
     final displayMode = ref.watch(courtDisplayModeControllerProvider);
+    final shadowColor = Theme.of(context).shadowColor;
 
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          HostCourtCardHeader(court: court),
-          BadmintonCourtView(
-            court: court,
-            preSelectedPlayers: session.preSelectedPlayersFor(court),
-            mode: CourtViewMode.manage,
-            displayMode: displayMode,
-            matchType: court.matchTypeOr(session.defaultMatchType),
-            courtColor: parseHexColor(session.courtColor),
-            overlays: [
-              // Nothing to announce on an empty court.
-              if (court.currentPlayers.isNotEmpty)
-                CourtAnnounceButton(
-                  court: court,
-                  players: court.currentPlayers,
-                ),
-              if (court.currentPlayers.isNotEmpty)
-                CourtRepeatWarningButton(session: session, court: court),
-            ],
+    return DecoratedBox(
+      key: ValueKey('host-court-card-surface-${court.id}'),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        boxShadow: [
+          BoxShadow(
+            color: shadowColor.withValues(alpha: 0.12),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
           ),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.sm),
-            child: HostCourtActions(
-              court: court,
-              isSessionLive: session.status.isLive,
-              waitingCount: session.waitingQueue.length,
-              isBusy: actions.isBusy(court.id),
-              onAssign: () => _assign(context, controller),
-              onClear: () => controller.deselectPlayers(court.id),
-              onStart: () => controller.startMatch(court.id),
-              onPreSelect: () =>
-                  _assign(context, controller, preSelect: true),
-              onViewNextMatch: () => _viewNextMatch(context, controller),
-              onEnd: () => _endMatch(context, controller),
-            ),
+          BoxShadow(
+            color: shadowColor.withValues(alpha: 0.08),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
         ],
+      ),
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            HostCourtCardHeader(court: court),
+            BadmintonCourtView(
+              court: court,
+              preSelectedPlayers: session.preSelectedPlayersFor(court),
+              mode: CourtViewMode.manage,
+              displayMode: displayMode,
+              matchType: court.matchTypeOr(session.defaultMatchType),
+              courtColor: parseHexColor(session.courtColor),
+              overlays: [
+                // Nothing to announce on an empty court.
+                if (court.currentPlayers.isNotEmpty)
+                  CourtAnnounceButton(
+                    court: court,
+                    players: court.currentPlayers,
+                  ),
+                if (court.currentPlayers.isNotEmpty)
+                  CourtRepeatWarningButton(session: session, court: court),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              child: HostCourtActions(
+                court: court,
+                isSessionLive: session.status.isLive,
+                waitingCount: session.waitingQueue.length,
+                isBusy: actions.isBusy(court.id),
+                onAssign: () => _assign(context, controller),
+                onClear: () => controller.deselectPlayers(court.id),
+                onStart: () => controller.startMatch(court.id),
+                onPreSelect: () => _assign(
+                  context,
+                  controller,
+                  preSelect: true,
+                ),
+                onViewNextMatch: () => _viewNextMatch(context, controller),
+                onEnd: () => _endMatch(context, controller),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

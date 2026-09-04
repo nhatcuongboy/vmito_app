@@ -26,7 +26,10 @@ class _AboutVmitoDialog extends StatelessWidget {
   static const String _zaloUrl = 'https://zalo.me/84914810765';
   static const String _messengerUrl = 'https://m.me/vmitovn';
 
-  Future<void> _launch(Uri uri, {LaunchMode mode = LaunchMode.platformDefault}) async {
+  Future<void> _launch(
+    Uri uri, {
+    LaunchMode mode = LaunchMode.platformDefault,
+  }) async {
     try {
       await launchUrl(uri, mode: mode);
     } catch (_) {
@@ -45,7 +48,10 @@ class _AboutVmitoDialog extends StatelessWidget {
         : theme.colorScheme.surfaceContainerLow;
 
     return Dialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xl),
+      insetPadding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.xl,
+      ),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
       ),
@@ -53,7 +59,12 @@ class _AboutVmitoDialog extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 400),
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(AppSpacing.lg, AppSpacing.xl, AppSpacing.lg, AppSpacing.lg),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.lg,
+            AppSpacing.xl,
+            AppSpacing.lg,
+            AppSpacing.lg,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -78,34 +89,66 @@ class _AboutVmitoDialog extends StatelessWidget {
                   color: cardBg,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs, horizontal: AppSpacing.xs),
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppSpacing.xs,
+                  horizontal: AppSpacing.xs,
+                ),
                 child: Column(
                   children: [
                     _InfoRow(
-                      icon: const Icon(LucideIcons.phone, size: 16, color: Colors.white),
+                      icon: const Icon(
+                        LucideIcons.phone,
+                        size: 16,
+                        color: Colors.white,
+                      ),
                       iconBg: const Color(0xFF22C55E),
                       text: _phone,
-                      onTap: () => unawaited(_launch(Uri(scheme: 'tel', path: _phone))),
+                      onTap: () =>
+                          unawaited(_launch(Uri(scheme: 'tel', path: _phone))),
                     ),
-                    Divider(height: 1, indent: 48, color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+                    Divider(
+                      height: 1,
+                      indent: 48,
+                      color: theme.colorScheme.outlineVariant.withValues(
+                        alpha: 0.5,
+                      ),
+                    ),
                     _InfoRow(
-                      icon: const Icon(LucideIcons.mail, size: 16, color: Colors.white),
+                      icon: const Icon(
+                        LucideIcons.mail,
+                        size: 16,
+                        color: Colors.white,
+                      ),
                       iconBg: const Color(0xFF22C55E),
                       text: _email,
-                      onTap: () => unawaited(_launch(Uri(scheme: 'mailto', path: _email))),
+                      onTap: () => unawaited(
+                        _launch(Uri(scheme: 'mailto', path: _email)),
+                      ),
                     ),
-                    Divider(height: 1, indent: 48, color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
+                    Divider(
+                      height: 1,
+                      indent: 48,
+                      color: theme.colorScheme.outlineVariant.withValues(
+                        alpha: 0.5,
+                      ),
+                    ),
                     _InfoRow(
                       icon: SvgPicture.string(
                         _facebookSvg,
                         width: 15,
                         height: 15,
-                        colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                        colorFilter: const ColorFilter.mode(
+                          Colors.white,
+                          BlendMode.srcIn,
+                        ),
                       ),
                       iconBg: const Color(0xFF1877F2),
                       text: 'Fanpage',
                       onTap: () => unawaited(
-                        _launch(Uri.parse(_fanpageUrl), mode: LaunchMode.externalApplication),
+                        _launch(
+                          Uri.parse(_fanpageUrl),
+                          mode: LaunchMode.externalApplication,
+                        ),
                       ),
                     ),
                   ],
@@ -135,7 +178,10 @@ class _AboutVmitoDialog extends StatelessWidget {
                         ),
                       ),
                       onTap: () => unawaited(
-                        _launch(Uri.parse(_zaloUrl), mode: LaunchMode.externalApplication),
+                        _launch(
+                          Uri.parse(_zaloUrl),
+                          mode: LaunchMode.externalApplication,
+                        ),
                       ),
                     ),
                   ),
@@ -148,10 +194,16 @@ class _AboutVmitoDialog extends StatelessWidget {
                         _messengerSvg,
                         width: 20,
                         height: 20,
-                        colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+                        colorFilter: const ColorFilter.mode(
+                          Colors.white,
+                          BlendMode.srcIn,
+                        ),
                       ),
                       onTap: () => unawaited(
-                        _launch(Uri.parse(_messengerUrl), mode: LaunchMode.externalApplication),
+                        _launch(
+                          Uri.parse(_messengerUrl),
+                          mode: LaunchMode.externalApplication,
+                        ),
                       ),
                     ),
                   ),
@@ -168,7 +220,9 @@ class _AboutVmitoDialog extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.md - 2),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: AppSpacing.md - 2,
+                    ),
                   ),
                   child: Text(
                     l10n.commonClose,
@@ -205,7 +259,10 @@ class _InfoRow extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.sm + 2),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm,
+            vertical: AppSpacing.sm + 2,
+          ),
           child: Row(
             children: [
               Container(
@@ -223,15 +280,17 @@ class _InfoRow extends StatelessWidget {
                 child: Text(
                   text,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 15,
-                      ),
+                    fontWeight: FontWeight.w500,
+                    fontSize: 15,
+                  ),
                 ),
               ),
               Icon(
                 LucideIcons.chevron_right,
                 size: 18,
-                color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.6),
+                color: Theme.of(
+                  context,
+                ).colorScheme.outline.withValues(alpha: 0.6),
               ),
             ],
           ),

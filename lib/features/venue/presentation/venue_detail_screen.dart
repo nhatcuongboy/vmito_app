@@ -7,12 +7,13 @@ import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/venue/application/venue_controller.dart';
-import 'package:vmito_app/features/venue/data/venue_service.dart';
 import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/features/venue/presentation/venue_detail_content.dart';
+import 'package:vmito_app/features/venue/presentation/venue_edit_request_screen.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
-import 'package:vmito_app/shared/widgets/app_required_label.dart';
+import 'package:vmito_app/shared/widgets/login_prompt_dialog.dart';
 
 class VenueDetailScreen extends ConsumerWidget {
   const VenueDetailScreen({required this.venueId, super.key});
@@ -62,7 +63,7 @@ class _VenueDetailState extends ConsumerState<_VenueDetail> {
         onZalo: () => unawaited(_zalo(venue)),
         onDirections: () => unawaited(_directions(venue)),
         onFindSessions: () => _findSessions(venue),
-        onRequestUpdate: () => unawaited(_request('UPDATE', venue)),
+        onRequestUpdate: () => unawaited(_requestUpdate(venue)),
       ),
       bottomNavigationBar: VenueDetailBottomBar(
         phone: venue.phone,
@@ -138,22 +139,23 @@ class _VenueDetailState extends ConsumerState<_VenueDetail> {
     mode: LaunchMode.externalApplication,
   );
 
-  Future<void> _request(String type, Venue venue) async {
-    final successMessage = AppLocalizations.of(context).venueRequestSent;
-    final result = await showModalBottomSheet<Map<String, String>>(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => _VenueRequestForm(type: type, venue: venue),
+  Future<void> _requestUpdate(Venue venue) async {
+    if (ref.read(authControllerProvider).status != AuthStatus.authenticated) {
+      await showLoginPromptDialog(
+        context,
+        featureName: AppLocalizations.of(context).venueRequestUpdate,
+        targetRoute: AppRoutes.venueDetail(venue.id),
+      );
+      return;
+    }
+    final submitted = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (_) => VenueEditRequestScreen(venue: venue),
+      ),
     );
-    if (result != null && context.mounted) {
-      try {
-        await ref
-            .read(venueServiceProvider)
-            .createRequest(type: type, venueId: venue.id, payload: result);
-        _message(successMessage);
-      } on Object catch (error) {
-        _message(error.toString());
-      }
+    if (submitted == true && mounted) {
+      _message(AppLocalizations.of(context).venueRequestSent);
     }
   }
 
@@ -161,111 +163,4 @@ class _VenueDetailState extends ConsumerState<_VenueDetail> {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
   }
-}
-
-// This legacy form is intentionally unchanged. The detail-page work only
-// repositions its trigger; fields, validation and submission stay intact.
-class _VenueRequestForm extends StatefulWidget {
-  const _VenueRequestForm({required this.type, required this.venue});
-  final String type;
-  final Venue venue;
-  @override
-  State<_VenueRequestForm> createState() => _VenueRequestFormState();
-}
-
-class _VenueRequestFormState extends State<_VenueRequestForm> {
-  final _form = GlobalKey<FormState>();
-  late final _name = TextEditingController(text: widget.venue.name);
-  late final _address = TextEditingController(text: widget.venue.address);
-  late final _city = TextEditingController(
-    text: widget.venue.newCity ?? widget.venue.city,
-  );
-  late final _district = TextEditingController(
-    text: widget.venue.newDistrict ?? widget.venue.district,
-  );
-  late final _note = TextEditingController();
-  @override
-  void dispose() {
-    _name.dispose();
-    _address.dispose();
-    _city.dispose();
-    _district.dispose();
-    _note.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => SafeArea(
-    child: Padding(
-      padding: EdgeInsets.fromLTRB(
-        20,
-        16,
-        20,
-        MediaQuery.viewInsetsOf(context).bottom + 20,
-      ),
-      child: Form(
-        key: _form,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Báo chỉnh sửa thông tin',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              TextFormField(
-                controller: _name,
-                decoration: const InputDecoration(
-                  label: AppRequiredLabel('Tên sân'),
-                ),
-                validator: (value) =>
-                    value?.trim().isEmpty ?? true ? 'Nhập tên sân' : null,
-              ),
-              TextFormField(
-                controller: _address,
-                decoration: const InputDecoration(
-                  label: AppRequiredLabel('Địa chỉ'),
-                ),
-                validator: (value) =>
-                    value?.trim().isEmpty ?? true ? 'Nhập địa chỉ' : null,
-              ),
-              TextFormField(
-                controller: _city,
-                decoration: const InputDecoration(labelText: 'Tỉnh / thành'),
-              ),
-              TextFormField(
-                controller: _district,
-                decoration: const InputDecoration(labelText: 'Phường / xã'),
-              ),
-              TextFormField(
-                controller: _note,
-                decoration: const InputDecoration(labelText: 'Ghi chú'),
-                maxLines: 3,
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  onPressed: () {
-                    if (_form.currentState!.validate()) {
-                      Navigator.pop(context, {
-                        'name': _name.text.trim(),
-                        'address': _address.text.trim(),
-                        'street': _address.text.trim(),
-                        'newCity': _city.text.trim(),
-                        'newDistrict': _district.text.trim(),
-                        if (_note.text.trim().isNotEmpty)
-                          'note': _note.text.trim(),
-                      });
-                    }
-                  },
-                  child: const Text('Gửi yêu cầu'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ),
-  );
 }

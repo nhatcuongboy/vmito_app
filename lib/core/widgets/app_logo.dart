@@ -96,18 +96,21 @@ class AppLogo extends StatelessWidget {
     final iconSpacing = height * 0.055;
     final effectiveVmitoFontSize =
         vmitoFontSize ?? (_kReferenceVmitoFontSize * scale);
-    final effectiveSloganFontSize = sloganFontSize ??
+    final effectiveSloganFontSize =
+        sloganFontSize ??
         ((_kReferenceSloganFontSize * scale).clamp(6.0, 24.0));
     final sloganLetterSpacing = effectiveSloganFontSize * 0.08;
     final textSpacing = height * 0.035;
 
     // Theme-adaptive colors
-    final effectiveTextColor = textColor ??
+    final effectiveTextColor =
+        textColor ??
         (isDark ? const Color(0xFFFFFFFF) : const Color(0xFF0C1F33));
-    final effectiveSloganColor = sloganColor ??
+    final effectiveSloganColor =
+        sloganColor ??
         (isDark ? const Color(0xFFE0E0E0) : const Color(0xFF2C415B));
-    final effectiveDotColor = dotColor ??
-        (isDark ? AppColors.brandDark : AppColors.brand);
+    final effectiveDotColor =
+        dotColor ?? (isDark ? AppColors.brandDark : AppColors.brand);
 
     final vmitoTextStyle = TextStyle(
       fontFamily: 'Poppins',
@@ -244,8 +247,9 @@ class _VmitoDotPainter extends CustomPainter {
 
     // Calculate the top of the lowercase 'i' stem from alphabetic baseline.
     // In Poppins/sans-serif typography, lowercase x-height is ~0.53 of fontSize.
-    final baseline =
-        textPainter.computeDistanceToActualBaseline(TextBaseline.alphabetic);
+    final baseline = textPainter.computeDistanceToActualBaseline(
+      TextBaseline.alphabetic,
+    );
     final stemTop = baseline - (fontSize * 0.53);
 
     // Position the dot above the stem of 'i' with balanced optical spacing

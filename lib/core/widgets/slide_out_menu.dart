@@ -10,14 +10,13 @@ import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
-import 'package:vmito_app/features/home/presentation/widgets/home_header_backdrop.dart';
 import 'package:vmito_app/core/theme/theme_mode_controller.dart';
 import 'package:vmito_app/core/web/admin_web_destination.dart';
 import 'package:vmito_app/core/widgets/language_selector.dart';
-import 'package:vmito_app/core/widgets/sign_out_confirmation.dart';
 import 'package:vmito_app/core/widgets/theme_mode_selector.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
+import 'package:vmito_app/features/home/presentation/widgets/home_header_backdrop.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 /// Left-hand navigation drawer for discovery and account management.
@@ -79,7 +78,7 @@ class SlideOutMenu extends ConsumerWidget {
                     title: l10n.menuExplore,
                     children: [
                       _MenuItem(
-                        icon: AppIcons.sessions,
+                        icon: AppIcons.searchSessions,
                         label: l10n.homeDiscoverySessions,
                         isActive:
                             isDiscoveryActive('sessions') ||
@@ -90,7 +89,7 @@ class SlideOutMenu extends ConsumerWidget {
                         ),
                       ),
                       _MenuItem(
-                        icon: AppIcons.location,
+                        icon: AppIcons.searchVenues,
                         label: l10n.homeDiscoveryVenues,
                         isActive:
                             isDiscoveryActive('venues') ||
@@ -100,7 +99,7 @@ class SlideOutMenu extends ConsumerWidget {
                         ),
                       ),
                       _MenuItem(
-                        icon: AppIcons.clubs,
+                        icon: AppIcons.searchClubs,
                         label: l10n.homeDiscoveryClubs,
                         isActive:
                             isDiscoveryActive('clubs') ||
@@ -128,7 +127,6 @@ class SlideOutMenu extends ConsumerWidget {
                     ],
                   ),
                   if (isSignedIn) ...[
-                    const _MenuDivider(),
                     _MenuSection(
                       title: l10n.menuManage,
                       children: [
@@ -157,16 +155,9 @@ class SlideOutMenu extends ConsumerWidget {
                           isActive: isActive(AppRoutes.reminders),
                           onTap: () => pushTo(AppRoutes.reminders),
                         ),
-                        _MenuItem(
-                          icon: AppIcons.favorite,
-                          label: l10n.navFavorites,
-                          isActive: isActive(AppRoutes.favorites),
-                          onTap: () => goTo(AppRoutes.favorites),
-                        ),
                       ],
                     ),
-                    if (user.isAdmin) ...[
-                      const _MenuDivider(),
+                    if (user.isAdmin)
                       _MenuSection(
                         title: 'ADMIN',
                         children: [
@@ -189,7 +180,6 @@ class SlideOutMenu extends ConsumerWidget {
                             ),
                         ],
                       ),
-                    ],
                     const _MenuDivider(),
                     _MenuSection(
                       children: [
@@ -200,24 +190,6 @@ class SlideOutMenu extends ConsumerWidget {
                           onTap: () => pushTo(AppRoutes.settings),
                         ),
                         _MenuItem(
-                          icon: AppIcons.language,
-                          label: l10n.profileLanguage,
-                          trailing: _languageLabel(l10n, localeCode),
-                          onTap: () {
-                            closeDrawer();
-                            unawaited(showLanguageSelector(context));
-                          },
-                        ),
-                        _MenuItem(
-                          icon: AppIcons.dark,
-                          label: l10n.profileTheme,
-                          trailing: _themeModeLabel(l10n, themeMode),
-                          onTap: () {
-                            closeDrawer();
-                            unawaited(showThemeModeSelector(context));
-                          },
-                        ),
-                        _MenuItem(
                           icon: AppIcons.help,
                           label: l10n.menuHelpFeedback,
                           isActive: isActive(AppRoutes.feedback),
@@ -225,33 +197,7 @@ class SlideOutMenu extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.md,
-                        AppSpacing.sm,
-                        AppSpacing.md,
-                        AppSpacing.md,
-                      ),
-                      child: OutlinedButton.icon(
-                        key: const Key('menu-sign-out-button'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Theme.of(context).colorScheme.error,
-                          side: BorderSide(
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                          textStyle: const TextStyle(
-                            fontSize: 14,
-                            height: 20 / 14,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        onPressed: () =>
-                            unawaited(showSignOutConfirmation(context, ref)),
-                        icon: const Icon(AppIcons.logout, size: 18),
-                        label: Text(l10n.authSignOut),
-                      ),
-                    ),
-                  ] else ...[
+                  ] else
                     Padding(
                       padding: const EdgeInsets.fromLTRB(
                         AppSpacing.md,
@@ -298,35 +244,21 @@ class SlideOutMenu extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    const _MenuDivider(),
-                    _MenuSection(
-                      children: [
-                        _MenuItem(
-                          icon: AppIcons.language,
-                          label: l10n.profileLanguage,
-                          trailing: _languageLabel(l10n, localeCode),
-                          onTap: () {
-                            closeDrawer();
-                            unawaited(showLanguageSelector(context));
-                          },
-                        ),
-                        _MenuItem(
-                          icon: AppIcons.dark,
-                          label: l10n.profileTheme,
-                          trailing: _themeModeLabel(l10n, themeMode),
-                          onTap: () {
-                            closeDrawer();
-                            unawaited(showThemeModeSelector(context));
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
                 ],
               ),
             ),
             const _MenuDivider(),
-            _MenuFooter(appName: l10n.appName),
+            _MenuFooter(
+              appName: l10n.appName,
+              languageCode: localeCode,
+              themeMode: themeMode,
+              onLanguageTap: () {
+                unawaited(showLanguageSelector(context));
+              },
+              onThemeTap: () {
+                unawaited(showThemeModeSelector(context));
+              },
+            ),
           ],
         ),
       ),
@@ -339,19 +271,6 @@ class SlideOutMenu extends ConsumerWidget {
     UserRole.referee => l10n.menuRoleReferee,
     UserRole.player || UserRole.guest => l10n.menuRolePlayer,
   };
-
-  String _languageLabel(AppLocalizations l10n, String code) => switch (code) {
-    'en' => l10n.languageEnglish,
-    'zh' => l10n.languageChinese,
-    _ => l10n.languageVietnamese,
-  };
-
-  String _themeModeLabel(AppLocalizations l10n, ThemeMode mode) =>
-      switch (mode) {
-        ThemeMode.light => l10n.themeModeLight,
-        ThemeMode.dark => l10n.themeModeDark,
-        ThemeMode.system => l10n.themeModeSystem,
-      };
 }
 
 class _ProfileHeader extends StatelessWidget {
@@ -449,13 +368,18 @@ class _MenuSection extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.lg,
-              AppSpacing.sm,
+              AppSpacing.md,
               AppSpacing.lg,
               AppSpacing.xs,
             ),
             child: Text(
-              title!,
+              // Uppercase + tight tracking reads as a section header at a
+              // glance, instead of competing with the 15px item labels below.
+              title!.toUpperCase(),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontSize: 12,
+                height: 16 / 12,
+                letterSpacing: 0.4,
                 color: Theme.of(
                   context,
                 ).extension<AppPalette>()!.mutedForeground,
@@ -475,7 +399,6 @@ class _MenuItem extends StatelessWidget {
     this.icon,
     this.leading,
     this.isActive = false,
-    this.trailing,
     this.onTap,
   }) : assert(
          icon != null || leading != null,
@@ -486,13 +409,11 @@ class _MenuItem extends StatelessWidget {
   final Widget? leading;
   final String label;
   final bool isActive;
-  final String? trailing;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final palette = theme.extension<AppPalette>()!;
     final color = isActive
         ? theme.colorScheme.primary
         : theme.colorScheme.onSurface;
@@ -519,21 +440,6 @@ class _MenuItem extends StatelessWidget {
             fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
-        trailing: trailing == null
-            ? null
-            : ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 112),
-                child: Text(
-                  trailing!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.end,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: palette.mutedForeground,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ),
         onTap: onTap,
       ),
     );
@@ -551,9 +457,25 @@ class _MenuDivider extends StatelessWidget {
 }
 
 class _MenuFooter extends StatelessWidget {
-  const _MenuFooter({required this.appName});
+  const _MenuFooter({
+    required this.appName,
+    required this.languageCode,
+    required this.themeMode,
+    required this.onLanguageTap,
+    required this.onThemeTap,
+  });
 
   final String appName;
+  final String languageCode;
+  final ThemeMode themeMode;
+  final VoidCallback onLanguageTap;
+  final VoidCallback onThemeTap;
+
+  static IconData _themeIcon(ThemeMode mode) => switch (mode) {
+    ThemeMode.light => AppIcons.light,
+    ThemeMode.dark => AppIcons.dark,
+    ThemeMode.system => AppIcons.themeSystem,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -562,38 +484,125 @@ class _MenuFooter extends StatelessWidget {
     final palette = Theme.of(context).extension<AppPalette>()!;
     return Padding(
       key: const Key('menu-footer'),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.sm,
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.lg,
+        AppSpacing.xs,
+        AppSpacing.sm,
+        AppSpacing.xs,
       ),
       child: Row(
         children: [
-          ClipOval(
-            child: Image.asset(
-              'assets/icons/app-logo-96.png',
-              width: 22,
-              height: 22,
+          Expanded(
+            child: Row(
+              children: [
+                ClipOval(
+                  child: Image.asset(
+                    'assets/icons/app-logo-96.png',
+                    width: 22,
+                    height: 22,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Flexible(
+                  child: Text(
+                    appName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Flexible(
+                  child: Text(
+                    l10n.menuFooterYear(DateTime.now().year),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: palette.mutedForeground,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: AppSpacing.sm),
-          Text(
-            appName,
-            style: theme.textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+          _FooterAction(
+            buttonKey: const Key('menu-language-action'),
+            icon: AppIcons.language,
+            label: languageCode.toUpperCase(),
+            tooltip: l10n.languageChangeTooltip,
+            onTap: onLanguageTap,
           ),
-          const SizedBox(width: AppSpacing.sm),
-          Flexible(
-            child: Text(
-              l10n.menuFooterYear(DateTime.now().year),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: palette.mutedForeground,
-              ),
-            ),
+          _FooterAction(
+            buttonKey: const Key('menu-theme-action'),
+            icon: _themeIcon(themeMode),
+            tooltip: l10n.themeTitle,
+            onTap: onThemeTap,
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Compact utility control pinned to the menu footer, sized to the tap-target
+/// floor so the short label does not shrink it below 48 px.
+class _FooterAction extends StatelessWidget {
+  const _FooterAction({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+    required this.buttonKey,
+    this.label,
+  });
+
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+  final Key buttonKey;
+  final String? label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        key: buttonKey,
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(
+            minWidth: AppSizes.minTapTarget,
+            minHeight: AppSizes.minTapTarget,
+          ),
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: label == null ? 0 : AppSpacing.sm,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(icon, size: 18, color: palette.mutedForeground),
+                if (label != null) ...[
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                    label!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: palette.mutedForeground,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

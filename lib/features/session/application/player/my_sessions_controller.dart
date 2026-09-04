@@ -18,9 +18,21 @@ enum MySessionScope { hosted, joined }
 
 enum MySessionFilter { active, ended, all, pending }
 
+enum MySessionSort {
+  dateNearest('startTime', 'asc'),
+  dateFurthest('startTime', 'desc'),
+  newest('created', 'desc');
+
+  const MySessionSort(this.sortBy, this.sortOrder);
+
+  final String sortBy;
+  final String sortOrder;
+}
+
 class MySessionsState {
   const MySessionsState({
     this.filter = MySessionFilter.active,
+    this.sort = MySessionSort.dateNearest,
     this.search = '',
     this.sessions = const [],
     this.pendingRequests = const [],
@@ -35,6 +47,7 @@ class MySessionsState {
   });
 
   final MySessionFilter filter;
+  final MySessionSort sort;
   final String search;
   final List<Session> sessions;
   final List<PendingJoinRequest> pendingRequests;
@@ -51,6 +64,7 @@ class MySessionsState {
 
   MySessionsState copyWith({
     MySessionFilter? filter,
+    MySessionSort? sort,
     String? search,
     List<Session>? sessions,
     List<PendingJoinRequest>? pendingRequests,
@@ -66,6 +80,7 @@ class MySessionsState {
     bool clearError = false,
   }) => MySessionsState(
     filter: filter ?? this.filter,
+    sort: sort ?? this.sort,
     search: search ?? this.search,
     sessions: sessions ?? this.sessions,
     pendingRequests: pendingRequests ?? this.pendingRequests,
@@ -103,6 +118,12 @@ class MySessionsController extends Notifier<MySessionsState> {
     }
     if (state.filter == filter && state.hasLoaded) return;
     state = state.copyWith(filter: filter, page: 1, clearError: true);
+    await _load(reset: true);
+  }
+
+  Future<void> setSort(MySessionSort sort) async {
+    if (state.sort == sort && state.hasLoaded) return;
+    state = state.copyWith(sort: sort, page: 1, clearError: true);
     await _load(reset: true);
   }
 
@@ -255,6 +276,8 @@ class MySessionsController extends Notifier<MySessionsState> {
     MySessionFilter.active => SessionListQuery(
       page: page,
       search: state.search,
+      sortBy: state.sort.sortBy,
+      sortOrder: state.sort.sortOrder,
       excludedStatuses: const [
         SessionStatus.finished,
         SessionStatus.cancelled,
@@ -263,11 +286,15 @@ class MySessionsController extends Notifier<MySessionsState> {
     MySessionFilter.ended => SessionListQuery(
       page: page,
       search: state.search,
+      sortBy: state.sort.sortBy,
+      sortOrder: state.sort.sortOrder,
       status: SessionStatus.finished,
     ),
     MySessionFilter.all || MySessionFilter.pending => SessionListQuery(
       page: page,
       search: state.search,
+      sortBy: state.sort.sortBy,
+      sortOrder: state.sort.sortOrder,
     ),
   };
 }

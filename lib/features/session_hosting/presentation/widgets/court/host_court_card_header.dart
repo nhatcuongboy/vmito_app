@@ -72,8 +72,9 @@ class HostCourtCardHeader extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 32,
-            height: 32,
+            key: ValueKey('host-court-number-${court.id}'),
+            width: 28,
+            height: 28,
             decoration: BoxDecoration(
               color: numberBg,
               shape: BoxShape.circle,
@@ -83,7 +84,7 @@ class HostCourtCardHeader extends StatelessWidget {
               '${court.courtNumber}',
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 14,
+                fontSize: 13,
                 fontWeight: FontWeight.w700,
               ),
             ),

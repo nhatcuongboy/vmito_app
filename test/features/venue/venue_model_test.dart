@@ -14,16 +14,20 @@ void main() {
         'newAddress': '12 Đường Mới',
         'newDistrict': 'Phường Mới',
         'newCity': 'TP mới',
+        'streetAddress': '12 Đường Mới',
+        'locatedWithin': 'Nhà thi đấu A',
       });
 
       expect(
         venue.addressLabel(showNewAddress: true),
-        '12 Đường Mới',
+        '12 Đường Mới, Phường Mới, TP mới',
       );
       expect(
         venue.addressLabel(showNewAddress: false),
         'Địa chỉ cũ, Quận cũ, TP cũ',
       );
+      expect(venue.streetAddress, '12 Đường Mới');
+      expect(venue.locatedWithin, 'Nhà thi đấu A');
     });
 
     test('parses paginated search response and image objects', () {

@@ -4,8 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 
 final _submittedExpando = Expando<bool>('formSubmitted');
-final _rewardEarlyControllerExpando =
-    Expando<RewardEarlyPunishLateController>('rewardEarlyController');
+final _rewardEarlyControllerExpando = Expando<RewardEarlyPunishLateController>(
+  'rewardEarlyController',
+);
 
 /// Extension on [FormGroup] providing "Reward Early, Punish Late" form validation.
 ///

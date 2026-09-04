@@ -130,13 +130,10 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(venueBrowseControllerProvider);
     ref.watch(locationPreferencesControllerProvider);
-    final body = RefreshIndicator(
-      onRefresh: () => ref.read(venueBrowseControllerProvider.notifier).load(),
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 720),
-          child: _body(state),
-        ),
+    final body = Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 720),
+        child: _body(state),
       ),
     );
 
@@ -268,51 +265,60 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
                           context,
                         ).discoveryMapNoLocations,
                       )
-                    : ListView.separated(
-                        controller: _scroll,
-                        padding: const EdgeInsets.all(AppSpacing.screenPadding),
-                        itemCount: state.venues.length + 1,
-                        separatorBuilder: (_, _) =>
-                            const SizedBox(height: AppSpacing.md),
-                        itemBuilder: (context, index) {
-                          if (index == state.venues.length) {
-                            if (state.isLoading && state.venues.isEmpty) {
-                              return const Padding(
-                                padding: EdgeInsets.all(32),
-                                child: Center(
-                                  child: CircularProgressIndicator(),
-                                ),
-                              );
-                            }
-                            if (state.error != null && state.venues.isEmpty) {
-                              return AppErrorView(
-                                error: state.error!,
-                                onRetry: () => ref
-                                    .read(
-                                      venueBrowseControllerProvider.notifier,
+                    : RefreshIndicator(
+                        key: const Key('venue-refresh-indicator'),
+                        onRefresh: () => ref
+                            .read(venueBrowseControllerProvider.notifier)
+                            .load(),
+                        child: ListView.separated(
+                          controller: _scroll,
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.all(
+                            AppSpacing.screenPadding,
+                          ),
+                          itemCount: state.venues.length + 1,
+                          separatorBuilder: (_, _) =>
+                              const SizedBox(height: AppSpacing.md),
+                          itemBuilder: (context, index) {
+                            if (index == state.venues.length) {
+                              if (state.isLoading && state.venues.isEmpty) {
+                                return const Padding(
+                                  padding: EdgeInsets.all(32),
+                                  child: Center(
+                                    child: CircularProgressIndicator(),
+                                  ),
+                                );
+                              }
+                              if (state.error != null && state.venues.isEmpty) {
+                                return AppErrorView(
+                                  error: state.error!,
+                                  onRetry: () => ref
+                                      .read(
+                                        venueBrowseControllerProvider.notifier,
+                                      )
+                                      .load(),
+                                );
+                              }
+                              if (state.venues.isEmpty) {
+                                return const Padding(
+                                  padding: EdgeInsets.all(32),
+                                  child: Center(
+                                    child: Text('Không tìm thấy sân phù hợp.'),
+                                  ),
+                                );
+                              }
+                              return state.isLoadingMore
+                                  ? const Padding(
+                                      padding: EdgeInsets.all(16),
+                                      child: Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
                                     )
-                                    .load(),
-                              );
+                                  : const SizedBox(height: 8);
                             }
-                            if (state.venues.isEmpty) {
-                              return const Padding(
-                                padding: EdgeInsets.all(32),
-                                child: Center(
-                                  child: Text('Không tìm thấy sân phù hợp.'),
-                                ),
-                              );
-                            }
-                            return state.isLoadingMore
-                                ? const Padding(
-                                    padding: EdgeInsets.all(16),
-                                    child: Center(
-                                      child: CircularProgressIndicator(),
-                                    ),
-                                  )
-                                : const SizedBox(height: 8);
-                          }
-                          return VenueCard(venue: state.venues[index]);
-                        },
+                            return VenueCard(venue: state.venues[index]);
+                          },
+                        ),
                       ),
               ),
               if (widget.embedded && widget.showMapToggle)
@@ -683,7 +689,9 @@ class _VenueMetaItem extends StatelessWidget {
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.labelMedium,
+            style: theme.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.normal,
+            ),
           ),
         ),
       ],

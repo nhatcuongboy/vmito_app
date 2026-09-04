@@ -337,7 +337,7 @@ class _MatchResultCard extends StatelessWidget {
     final palette = theme.extension<AppPalette>() ?? AppPalette.light();
     return Card(
       key: Key('host-result-card-${match.id}'),
-      color: colors.surfaceContainerHighest.withValues(alpha: 0.35),
+      color: colors.surface,
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.sm + 4),
         child: Column(
@@ -573,7 +573,7 @@ class _ExtraMatchBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.pill),
       ),
       child: Text(
-        'Thêm',
+        'Phụ',
         style: theme.textTheme.labelSmall?.copyWith(
           color: palette.warning,
           fontWeight: FontWeight.w700,

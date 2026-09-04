@@ -19,10 +19,7 @@ import 'package:vmito_app/shared/widgets/detail_hero_header.dart';
 String venueDisplayName(Venue venue, AppLocalizations l10n) =>
     venue.displayName(
       generic: l10n.venueGenericName(venue.name),
-      bySport: {
-        'BADMINTON': l10n.venueBadmintonName(venue.name),
-        'PICKLEBALL': l10n.venuePickleballName(venue.name),
-      },
+      bySport: const {},
     );
 
 class VenueDetailContent extends StatefulWidget {
@@ -128,14 +125,14 @@ class _VenueDetailContentState extends State<VenueDetailContent> {
           ),
           actionsPadding: DetailHeroHeader.actionsPadding,
           actions: [
-            FavoriteButton(
-              key: const Key('venue-favorite-button'),
-              type: FavoriteType.venue,
-              targetId: widget.venue.id,
-              overlay: !_isPinned,
-              overlayColor: DetailHeroHeader.coverActionBackground,
-              size: FavoriteButton.detailControlSize,
-            ),
+            if (!_isPinned)
+              FavoriteButton(
+                key: const Key('venue-favorite-button'),
+                type: FavoriteType.venue,
+                targetId: widget.venue.id,
+                overlayColor: DetailHeroHeader.coverActionBackground,
+                size: FavoriteButton.detailControlSize,
+              ),
             Padding(
               padding: const EdgeInsets.only(left: AppSpacing.xs),
               child: DetailHeroHeaderButton(
@@ -428,7 +425,7 @@ class _InfoCard extends StatelessWidget {
                       newAddress: venue.newAddress,
                       newDistrict: venue.newDistrict,
                       newCity: venue.newCity,
-                      maxLines: 5,
+                      maxLines: null,
                       suffix: venue.distance == null
                           ? null
                           : ' (${l10n.venueDistance(venue.distance!)})',

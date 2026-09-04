@@ -114,7 +114,9 @@ void main() {
       expect(find.text('vmito'), findsOneWidget);
     });
 
-    testWidgets('adapts text colors in Light Mode and Dark Mode', (tester) async {
+    testWidgets('adapts text colors in Light Mode and Dark Mode', (
+      tester,
+    ) async {
       // 1. Light Mode
       await tester.pumpWidget(
         _buildLogoHarness(

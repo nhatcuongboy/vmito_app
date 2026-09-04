@@ -8,6 +8,8 @@ import 'package:vmito_app/core/localization/locale_controller.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/network/api_client.dart';
 import 'package:vmito_app/core/network/error_interceptor.dart';
+import 'package:vmito_app/core/security/app_lock_controller.dart';
+import 'package:vmito_app/core/security/biometric_lock_storage.dart';
 import 'package:vmito_app/core/storage/token_storage.dart';
 import 'package:vmito_app/core/theme/theme_mode_controller.dart';
 import 'package:vmito_app/core/utils/logger.dart';
@@ -34,8 +36,24 @@ Future<void> bootstrap() async {
   };
 
   final tokenStorage = TokenStorage();
+  final biometricLockStorage = BiometricLockStorage();
   final errorBus = ApiErrorBus();
   final preferences = await SharedPreferences.getInstance();
+
+  await tokenStorage.hydrate();
+  var biometricLockEnabled = await biometricLockStorage.readEnabled();
+  if (biometricLockEnabled &&
+      !tokenStorage.hasAccessToken &&
+      await biometricLockStorage.readAccount() == null) {
+    // A crash between clearing tokens and clearing this flag must not make the
+    // next account inherit the previous account's security preference. A saved
+    // account record is the legitimate no-access-token case: the user signed
+    // out with biometric sign-in armed.
+    await biometricLockStorage.clear();
+    biometricLockEnabled = false;
+  }
+  final shouldLockSavedSession =
+      biometricLockEnabled && tokenStorage.hasAccessToken;
 
   // The interceptor needs to sign the user out on a failed refresh, but the
   // container does not exist yet — this late binding closes the cycle.
@@ -51,6 +69,7 @@ Future<void> bootstrap() async {
   container = ProviderContainer(
     overrides: [
       tokenStorageProvider.overrideWithValue(tokenStorage),
+      biometricLockStorageProvider.overrideWithValue(biometricLockStorage),
       apiErrorBusProvider.overrideWithValue(errorBus),
       apiClientProvider.overrideWithValue(apiClient),
       localeRepositoryProvider.overrideWithValue(
@@ -74,9 +93,20 @@ Future<void> bootstrap() async {
     ],
   );
 
+  container
+      .read(appLockControllerProvider.notifier)
+      .bootstrap(
+        enabled: biometricLockEnabled,
+        hasSession: tokenStorage.hasAccessToken,
+      );
+
   // Resolve auth before the first frame so the router never flashes sign-in
   // at a user who is in fact signed in.
-  await container.read(authControllerProvider.notifier).restoreSession();
+  // A protected saved session is the exception: the root lock gate is mounted
+  // first, and only restores `/users/me` after device authentication succeeds.
+  if (!shouldLockSavedSession) {
+    await container.read(authControllerProvider.notifier).restoreSession();
+  }
   container
       .read(localeControllerProvider.notifier)
       .restore(

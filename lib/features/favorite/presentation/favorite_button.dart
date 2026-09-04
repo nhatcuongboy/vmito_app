@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -63,18 +64,24 @@ class _FavoriteButtonState extends ConsumerState<FavoriteButton>
     );
     _scaleAnimation = TweenSequence<double>([
       TweenSequenceItem(
-        tween: Tween(begin: 1.0, end: 0.75)
-            .chain(CurveTween(curve: Curves.easeIn)),
+        tween: Tween<double>(
+          begin: 1,
+          end: 0.75,
+        ).chain(CurveTween(curve: Curves.easeIn)),
         weight: 25,
       ),
       TweenSequenceItem(
-        tween: Tween(begin: 0.75, end: 1.35)
-            .chain(CurveTween(curve: Curves.easeOutBack)),
+        tween: Tween<double>(
+          begin: 0.75,
+          end: 1.35,
+        ).chain(CurveTween(curve: Curves.easeOutBack)),
         weight: 45,
       ),
       TweenSequenceItem(
-        tween: Tween(begin: 1.35, end: 1.0)
-            .chain(CurveTween(curve: Curves.easeOutCubic)),
+        tween: Tween<double>(
+          begin: 1.35,
+          end: 1,
+        ).chain(CurveTween(curve: Curves.easeOutCubic)),
         weight: 30,
       ),
     ]).animate(_animController);
@@ -102,7 +109,7 @@ class _FavoriteButtonState extends ConsumerState<FavoriteButton>
       final prevFav = previous?.value?.isFavorite;
       final nextFav = next.value?.isFavorite;
       if (prevFav != null && nextFav != null && prevFav != nextFav) {
-        _animController.forward(from: 0.0);
+        unawaited(_animController.forward(from: 0));
       }
     });
 
@@ -268,7 +275,6 @@ class _FavoriteButtonState extends ConsumerState<FavoriteButton>
       message: l10n.favoriteRemoved,
       actionLabel: l10n.favoriteUndo,
       onAction: () => unawaited(_undo(l10n, target)),
-      isSaved: false,
     );
   }
 
@@ -316,18 +322,19 @@ class _FavoriteButtonState extends ConsumerState<FavoriteButton>
     final palette = theme.extension<AppPalette>()!;
     final messenger = ScaffoldMessenger.of(context);
 
-    final resolvedIconColor = iconColor ??
+    final resolvedIconColor =
+        iconColor ??
         (isSaved
             ? AppColors.destructive
             : isError
-                ? AppColors.warning
-                : palette.mutedForeground);
+            ? AppColors.warning
+            : palette.mutedForeground);
 
     final badgeColor = isSaved
-        ? AppColors.destructive.withValues(alpha: 0.1)
+        ? AppColors.destructive.withValues(alpha: 0.16)
         : isError
-            ? AppColors.warning.withValues(alpha: 0.12)
-            : palette.muted;
+        ? AppColors.warning.withValues(alpha: 0.18)
+        : theme.colorScheme.onInverseSurface.withValues(alpha: 0.1);
 
     messenger
       ..removeCurrentSnackBar()
@@ -337,43 +344,37 @@ class _FavoriteButtonState extends ConsumerState<FavoriteButton>
           backgroundColor: Colors.transparent,
           elevation: 0,
           margin: const EdgeInsets.fromLTRB(
-            AppSpacing.md,
+            AppSpacing.sm + AppSpacing.xs,
             0,
-            AppSpacing.md,
-            AppSpacing.sm,
+            AppSpacing.sm + AppSpacing.xs,
+            AppSpacing.sm + AppSpacing.xs,
           ),
           padding: EdgeInsets.zero,
           content: Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.sm + 2,
+            key: const Key('favorite-toast-surface'),
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.sm + AppSpacing.xs,
+              AppSpacing.sm,
+              AppSpacing.sm,
+              AppSpacing.sm,
             ),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
+              color: theme.colorScheme.inverseSurface,
               borderRadius: BorderRadius.circular(AppRadius.xl),
-              border: Border.all(
-                color: isSaved
-                    ? AppColors.destructive.withValues(alpha: 0.2)
-                    : palette.border,
-              ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 16,
-                  offset: const Offset(0, 4),
-                ),
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.04),
-                  blurRadius: 4,
-                  offset: const Offset(0, 1),
+                  color: Colors.black.withValues(alpha: 0.18),
+                  blurRadius: 20,
+                  offset: const Offset(0, 6),
                 ),
               ],
             ),
             child: Row(
               children: [
                 Container(
-                  width: 36,
-                  height: 36,
+                  key: const Key('favorite-toast-badge'),
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
                     color: badgeColor,
                     shape: BoxShape.circle,
@@ -382,24 +383,34 @@ class _FavoriteButtonState extends ConsumerState<FavoriteButton>
                     child: Icon(
                       icon,
                       key: const Key('favorite-toast-icon'),
-                      size: 18,
+                      size: 17,
                       color: resolvedIconColor,
                     ),
                   ),
                 ),
-                const SizedBox(width: AppSpacing.sm + 4),
+                const SizedBox(width: AppSpacing.sm + AppSpacing.xs),
                 Expanded(
                   child: Text(
                     message,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurface,
+                      fontSize: 14,
+                      height: 18 / 14,
+                      color: theme.colorScheme.onInverseSurface,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),
                 if (actionLabel != null && onAction != null) ...[
+                  const SizedBox(width: AppSpacing.sm),
+                  Container(
+                    width: 1,
+                    height: 20,
+                    color: theme.colorScheme.onInverseSurface.withValues(
+                      alpha: 0.16,
+                    ),
+                  ),
                   const SizedBox(width: AppSpacing.xs),
                   TextButton(
                     key: const Key('favorite-toast-action'),
@@ -408,19 +419,10 @@ class _FavoriteButtonState extends ConsumerState<FavoriteButton>
                       onAction();
                     },
                     style: TextButton.styleFrom(
-                      foregroundColor: isSaved
-                          ? theme.colorScheme.primary
-                          : theme.colorScheme.onSurface,
-                      backgroundColor: isSaved
-                          ? theme.colorScheme.primary.withValues(alpha: 0.08)
-                          : palette.muted,
-                      minimumSize: const Size(0, 36),
+                      foregroundColor: palette.success,
+                      minimumSize: const Size(0, 40),
                       padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm + 4,
-                        vertical: 6,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                        horizontal: AppSpacing.sm,
                       ),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       visualDensity: VisualDensity.compact,
@@ -431,9 +433,7 @@ class _FavoriteButtonState extends ConsumerState<FavoriteButton>
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w700,
-                        color: isSaved
-                            ? theme.colorScheme.primary
-                            : theme.colorScheme.onSurface,
+                        color: palette.success,
                       ),
                     ),
                   ),

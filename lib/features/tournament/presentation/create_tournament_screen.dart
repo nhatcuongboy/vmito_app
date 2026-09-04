@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -15,6 +14,7 @@ import 'package:vmito_app/features/tournament/presentation/widgets/tournament_cr
 import 'package:vmito_app/features/tournament/presentation/widgets/tournament_location_picker_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 
 const _wideTournamentFormBreakpoint = 700.0;
 const _maxTournamentFormWidth = 760.0;
@@ -220,7 +220,7 @@ class _CreateTournamentScreenState
           builder: (context, constraints) {
             final isWide =
                 constraints.maxWidth >= _wideTournamentFormBreakpoint;
-            return AppReactiveForm(
+            return AppReactiveForm<void>(
               formGroup: _form,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(AppSpacing.screenPadding),

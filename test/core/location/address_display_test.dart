@@ -37,6 +37,18 @@ void main() {
       },
     );
 
+    test('joins separate new-address administrative fields', () {
+      final result = resolveAppAddress(
+        showNewAddress: true,
+        newAddress: '12 Đường Mới',
+        newDistrict: 'Phường Mới',
+        newCity: 'Thành phố Mới',
+      );
+
+      expect(result.text, '12 Đường Mới, Phường Mới, Thành phố Mới');
+      expect(result.isNew, isTrue);
+    });
+
     test(
       'falls back to the complete legacy address when disabled or missing',
       () {

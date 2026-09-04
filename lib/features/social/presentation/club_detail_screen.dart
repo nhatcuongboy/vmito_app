@@ -130,15 +130,12 @@ class _ClubDetailState extends ConsumerState<_ClubDetail>
             club.members.any(
               (member) => member.userId == user.id && member.role == 'ADMIN',
             ));
-    final canShowMembershipAction = isMember || !club.isInvitationOnly;
+    final canJoin = !isMember && !club.isInvitationOnly;
     return Scaffold(
-      bottomNavigationBar: canShowMembershipAction
+      bottomNavigationBar: canJoin
           ? _ClubMembershipBottomBar(
-              isMember: isMember,
               busy: _busy,
-              onPressed: isMember
-                  ? () => _showMembershipActions(club)
-                  : () => _join(club),
+              onPressed: () => _join(club),
             )
           : null,
       body: NestedScrollView(
@@ -186,14 +183,14 @@ class _ClubDetailState extends ConsumerState<_ClubDetail>
             ),
             actionsPadding: DetailHeroHeader.actionsPadding,
             actions: [
-              FavoriteButton(
-                key: const Key('club-favorite-button'),
-                type: FavoriteType.club,
-                targetId: club.id,
-                overlay: !_isPinned,
-                overlayColor: DetailHeroHeader.coverActionBackground,
-                size: FavoriteButton.detailControlSize,
-              ),
+              if (!_isPinned)
+                FavoriteButton(
+                  key: const Key('club-favorite-button'),
+                  type: FavoriteType.club,
+                  targetId: club.id,
+                  overlayColor: DetailHeroHeader.coverActionBackground,
+                  size: FavoriteButton.detailControlSize,
+                ),
               Padding(
                 padding: const EdgeInsets.only(left: AppSpacing.xs),
                 child: DetailHeroHeaderButton(
@@ -208,6 +205,15 @@ class _ClubDetailState extends ConsumerState<_ClubDetail>
                   ),
                 ),
               ),
+              if (isMember)
+                Padding(
+                  padding: const EdgeInsets.only(left: AppSpacing.xs),
+                  child: _ClubMoreButton(
+                    key: const Key('club-more-button'),
+                    pinned: _isPinned,
+                    onLeave: () => _confirmLeave(club),
+                  ),
+                ),
             ],
             flexibleSpace: FlexibleSpaceBar(
               background: _ClubHero(club: club),
@@ -247,6 +253,8 @@ class _ClubDetailState extends ConsumerState<_ClubDetail>
     final theme = Theme.of(context);
     final palette = theme.extension<AppPalette>()!;
     final l10n = AppLocalizations.of(context);
+    final user = ref.watch(currentUserProvider);
+    final isMember = club.members.any((m) => m.userId == user?.id);
     final logo = _ClubIdentityLogo(club: club);
     final copy = Column(
       key: const Key('club-identity-copy'),
@@ -285,6 +293,10 @@ class _ClubDetailState extends ConsumerState<_ClubDetail>
             ),
           ],
         ),
+        if (isMember) ...[
+          const SizedBox(height: AppSpacing.xs),
+          const _ClubMemberBadge(key: Key('club-member-badge')),
+        ],
       ],
     );
 
@@ -345,8 +357,9 @@ class _ClubDetailState extends ConsumerState<_ClubDetail>
                   venue: club.defaultVenue!,
                   onTap: club.defaultVenue!.id == null
                       ? () => _openMap(club.defaultVenue!)
-                      : () =>
-                          context.push(AppRoutes.venueDetail(club.defaultVenue!.id!)),
+                      : () => context.push(
+                          AppRoutes.venueDetail(club.defaultVenue!.id!),
+                        ),
                   onOpenMap: () => _openMap(club.defaultVenue!),
                 )
               : _SimpleLocationRow(location: club.location!),
@@ -361,7 +374,12 @@ class _ClubDetailState extends ConsumerState<_ClubDetail>
               imageUrl: club.hostImage,
               size: 40,
             ),
-            title: Text(club.hostName!),
+            title: Text(
+              club.hostName!,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             onTap: club.hostId == null
                 ? null
                 : () => context.push(AppRoutes.publicProfile(club.hostId!)),
@@ -481,11 +499,15 @@ class _ClubDetailState extends ConsumerState<_ClubDetail>
       ),
     ),
   );
-  Widget _card(String title, Widget body) => Card(
+  Widget _card(
+    String title,
+    Widget body, {
+    EdgeInsetsGeometry padding = const EdgeInsets.all(AppSpacing.lg),
+  }) => Card(
     margin: EdgeInsets.zero,
     clipBehavior: Clip.antiAlias,
     child: Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: padding,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -566,61 +588,33 @@ class _ClubDetailState extends ConsumerState<_ClubDetail>
   void _toast(String text) =>
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(text)));
 
-  Future<void> _showMembershipActions(ClubSummary club) async {
-    final leave = await showModalBottomSheet<bool>(
+  Future<void> _confirmLeave(ClubSummary club) async {
+    final confirmed = await showDialog<bool>(
       context: context,
-      showDragHandle: true,
       builder: (context) {
         final theme = Theme.of(context);
-        return SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              AppSpacing.xs,
-              AppSpacing.lg,
-              AppSpacing.lg,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Text(
-                  'Bạn đã tham gia nhóm',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  club.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium,
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                OutlinedButton.icon(
-                  key: const Key('club-leave-group-button'),
-                  onPressed: () => Navigator.pop(context, true),
-                  icon: const Icon(AppIcons.userMinus),
-                  label: const Text('Rời nhóm'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: theme.colorScheme.error,
-                    side: BorderSide(color: theme.colorScheme.error),
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text('Hủy'),
-                ),
-              ],
-            ),
+        return AlertDialog(
+          title: const Text('Rời nhóm'),
+          content: Text(
+            'Bạn có chắc muốn rời khỏi nhóm "${club.name}" không?',
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Hủy'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              style: TextButton.styleFrom(
+                foregroundColor: theme.colorScheme.error,
+              ),
+              child: const Text('Rời nhóm'),
+            ),
+          ],
         );
       },
     );
-    if (leave == true && mounted) await _leave(club);
+    if (confirmed == true && mounted) await _leave(club);
   }
 }
 
@@ -665,7 +659,7 @@ class _JoinClubDialogState extends State<_JoinClubDialog> {
     title: const Text('Tham gia nhóm'),
     content: SizedBox(
       width: double.maxFinite,
-      child: AppReactiveForm(
+      child: AppReactiveForm<String>(
         formGroup: _form,
         child: ReactiveTextField<String>(
           key: const Key('club-join-message-field'),
@@ -781,14 +775,100 @@ String _clubInitial(String name) {
   return String.fromCharCode(trimmed.runes.first).toUpperCase();
 }
 
+class _ClubMoreButton extends StatelessWidget {
+  const _ClubMoreButton({
+    required this.pinned,
+    required this.onLeave,
+    super.key,
+  });
+
+  final bool pinned;
+  final VoidCallback onLeave;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return PopupMenuButton<_ClubMoreAction>(
+      tooltip: 'Thêm',
+      position: PopupMenuPosition.under,
+      icon: SizedBox.square(
+        dimension: DetailHeroHeader.actionButtonSize,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: pinned
+                ? Colors.transparent
+                : DetailHeroHeader.coverActionBackground,
+            shape: BoxShape.circle,
+          ),
+          child: Center(
+            child: Icon(
+              Icons.more_vert,
+              size: DetailHeroHeader.actionIconSize,
+              color: pinned ? null : Colors.white,
+            ),
+          ),
+        ),
+      ),
+      style: IconButton.styleFrom(
+        minimumSize: const Size.square(DetailHeroHeader.actionButtonSize),
+        maximumSize: const Size.square(DetailHeroHeader.actionButtonSize),
+        padding: EdgeInsets.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      onSelected: (action) {
+        if (action == _ClubMoreAction.leave) onLeave();
+      },
+      itemBuilder: (_) => [
+        PopupMenuItem(
+          value: _ClubMoreAction.leave,
+          child: Row(
+            children: [
+              Icon(Icons.logout, color: theme.colorScheme.error, size: 20),
+              const SizedBox(width: 12),
+              Text(
+                'Rời nhóm',
+                style: TextStyle(color: theme.colorScheme.error),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+enum _ClubMoreAction { leave }
+
+class _ClubMemberBadge extends StatelessWidget {
+  const _ClubMemberBadge({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final color = theme.colorScheme.primary;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(AppIcons.checkCircle, size: 14, color: color),
+        const SizedBox(width: 4),
+        Text(
+          'Thành viên',
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: color,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _ClubMembershipBottomBar extends StatelessWidget {
   const _ClubMembershipBottomBar({
-    required this.isMember,
     required this.busy,
     required this.onPressed,
   });
 
-  final bool isMember;
   final bool busy;
   final VoidCallback onPressed;
 
@@ -818,26 +898,14 @@ class _ClubMembershipBottomBar extends StatelessWidget {
               ),
               child: SizedBox(
                 width: double.infinity,
-                child: isMember
-                    ? OutlinedButton.icon(
-                        key: const Key('club-membership-status-button'),
-                        onPressed: busy ? null : onPressed,
-                        icon: const Icon(AppIcons.checkCircle),
-                        label: Text(busy ? 'Đang rời nhóm...' : 'Đã tham gia'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: theme.colorScheme.onSurface,
-                          backgroundColor: palette.muted,
-                          side: BorderSide(color: palette.border),
-                        ),
-                      )
-                    : FilledButton.icon(
-                        key: const Key('club-join-button'),
-                        onPressed: busy ? null : onPressed,
-                        icon: const Icon(AppIcons.userPlus),
-                        label: Text(
-                          busy ? l10n.feedbackSubmitting : 'Tham gia nhóm',
-                        ),
-                      ),
+                child: FilledButton.icon(
+                  key: const Key('club-join-button'),
+                  onPressed: busy ? null : onPressed,
+                  icon: const Icon(AppIcons.userPlus),
+                  label: Text(
+                    busy ? l10n.feedbackSubmitting : 'Tham gia nhóm',
+                  ),
+                ),
               ),
             ),
           ),
@@ -1406,4 +1474,3 @@ class _MapDotsPainter extends CustomPainter {
   @override
   bool shouldRepaint(_MapDotsPainter oldDelegate) => false;
 }
-

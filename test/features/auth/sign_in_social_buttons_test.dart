@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_web_auth_2/flutter_web_auth_2.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:vmito_app/core/security/biometric_lock_storage.dart';
 import 'package:vmito_app/core/storage/token_storage.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
@@ -46,6 +47,9 @@ void main() {
         oauthAuthenticateProvider.overrideWithValue(browser.authenticate),
         tokenStorageProvider.overrideWithValue(
           TokenStorage(FakeSecureStorage()),
+        ),
+        biometricLockStorageProvider.overrideWithValue(
+          BiometricLockStorage(FakeSecureStorage()),
         ),
       ],
     );
@@ -141,6 +145,9 @@ void main() {
         authServiceProvider.overrideWithValue(service),
         tokenStorageProvider.overrideWithValue(
           TokenStorage(FakeSecureStorage()),
+        ),
+        biometricLockStorageProvider.overrideWithValue(
+          BiometricLockStorage(FakeSecureStorage()),
         ),
       ],
     );

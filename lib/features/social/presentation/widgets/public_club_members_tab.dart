@@ -458,11 +458,12 @@ class _MemberDetailsSheet extends StatelessWidget {
                         Text(
                           member.name,
                           textAlign: TextAlign.center,
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style:
+                              Theme.of(
+                                context,
+                              ).textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                         const SizedBox(height: AppSpacing.xs),
                         _RoleBadge(role: member.role),

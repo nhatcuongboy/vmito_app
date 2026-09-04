@@ -146,9 +146,7 @@ class NotificationListItem extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodySmall?.copyWith(
                               color: theme.colorScheme.onSurface.withValues(
-                                alpha: isUnread
-                                    ? 0.90
-                                    : (isDark ? 0.76 : 0.65),
+                                alpha: isUnread ? 0.90 : (isDark ? 0.76 : 0.65),
                               ),
                             ),
                           ),

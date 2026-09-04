@@ -1,6 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/config/app_config.dart';
-import 'package:vmito_app/core/network/api_exception.dart' show ApiException;
+import 'package:vmito_app/core/network/api_exception.dart'
+    show ApiErrorKind, ApiException;
+import 'package:vmito_app/core/security/biometric_lock_storage.dart';
 import 'package:vmito_app/core/storage/token_storage.dart';
 import 'package:vmito_app/core/utils/logger.dart';
 import 'package:vmito_app/features/auth/data/auth_service.dart';
@@ -48,6 +50,51 @@ class AuthController extends Notifier<AuthState> {
   TokenStorage get _tokens => ref.read(tokenStorageProvider);
   AuthService get _service => ref.read(authServiceProvider);
   OAuthService get _oauthService => ref.read(oauthServiceProvider);
+  BiometricLockStorage get _biometricLock =>
+      ref.read(biometricLockStorageProvider);
+
+  Future<void> _clearPersistedSession() async {
+    await _tokens.clear();
+    try {
+      await _biometricLock.clear();
+    } on Object catch (error) {
+      // Token removal is the security boundary for sign-out. A failed cleanup
+      // of the non-secret preference must not leave the user authenticated.
+      AppLogger.warn('biometric lock preference cleanup failed', error: error);
+    }
+  }
+
+  /// Applies a fresh JWT pair and, when biometric sign-in is armed, records
+  /// whose account the Face ID button on the sign-in screen now belongs to.
+  ///
+  /// Signing in as somebody else overwrites the record, so the button never
+  /// offers to resume the previous account.
+  Future<void> _completeSignIn(LoginResponse result) async {
+    await _tokens.save(
+      accessToken: result.accessToken,
+      refreshToken: result.refreshToken,
+    );
+    state = AuthState(status: AuthStatus.authenticated, user: result.user);
+    await rememberBiometricAccount(result.user);
+  }
+
+  Future<void> rememberBiometricAccount(User user) async {
+    try {
+      if (!await _biometricLock.readEnabled()) return;
+      await _biometricLock.saveAccount(
+        BiometricAccount(
+          userId: user.id,
+          displayName: user.displayName,
+          email: user.email,
+        ),
+      );
+    } on Object catch (error) {
+      AppLogger.warn('biometric account record failed', error: error);
+    }
+  }
+
+  /// Drops the saved session so the sign-in screen stops offering Face ID.
+  Future<void> forgetBiometricSignIn() => _clearPersistedSession();
 
   /// Reads persisted tokens and revalidates them against the backend.
   ///
@@ -81,7 +128,7 @@ class AuthController extends Notifier<AuthState> {
       state = AuthState(status: AuthStatus.authenticated, user: user);
     } on ApiException catch (error) {
       AppLogger.warn('session restore failed', error: error);
-      if (error.isUnauthorized) await _tokens.clear();
+      if (error.isUnauthorized) await _clearPersistedSession();
       state = const AuthState(status: AuthStatus.unauthenticated);
     } on Object catch (error) {
       AppLogger.warn('session restore failed', error: error);
@@ -92,11 +139,38 @@ class AuthController extends Notifier<AuthState> {
   /// Throws [ApiException] on failure — the form catches and renders it.
   Future<void> signIn({required String email, required String password}) async {
     final result = await _service.login(email: email, password: password);
-    await _tokens.save(
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
-    );
-    state = AuthState(status: AuthStatus.authenticated, user: result.user);
+    await _completeSignIn(result);
+  }
+
+  /// Resumes the account remembered by [rememberBiometricAccount].
+  ///
+  /// The caller runs the device prompt first; this only performs the token
+  /// exchange. A rejected refresh token means the saved session is gone for
+  /// good, so the offer is withdrawn rather than retried.
+  Future<void> signInWithBiometrics() async {
+    final refreshToken = await _tokens.readBiometricRefreshToken();
+    if (refreshToken == null || refreshToken.isEmpty) {
+      await forgetBiometricSignIn();
+      throw const ApiException(
+        kind: ApiErrorKind.unauthorized,
+        message: 'No saved session to resume.',
+        statusCode: 401,
+      );
+    }
+
+    try {
+      final tokens = await _service.refreshTokens(refreshToken);
+      await _tokens.save(
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+      );
+      final user = await _service.currentUser();
+      state = AuthState(status: AuthStatus.authenticated, user: user);
+      await rememberBiometricAccount(user);
+    } on ApiException catch (error) {
+      if (error.isUnauthorized) await forgetBiometricSignIn();
+      rethrow;
+    }
   }
 
   /// Signs in with a verified Apple identity token.
@@ -113,11 +187,7 @@ class AuthController extends Notifier<AuthState> {
       givenName: givenName,
       familyName: familyName,
     );
-    await _tokens.save(
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
-    );
-    state = AuthState(status: AuthStatus.authenticated, user: result.user);
+    await _completeSignIn(result);
   }
 
   /// Runs the backend-driven Google or Facebook browser flow, then stores the
@@ -130,11 +200,7 @@ class AuthController extends Notifier<AuthState> {
       provider: provider,
       locale: locale,
     );
-    await _tokens.save(
-      accessToken: result.accessToken,
-      refreshToken: result.refreshToken,
-    );
-    state = AuthState(status: AuthStatus.authenticated, user: result.user);
+    await _completeSignIn(result);
   }
 
   /// Deletes the account, then signs out locally.
@@ -144,7 +210,7 @@ class AuthController extends Notifier<AuthState> {
   /// cleared once the server has confirmed.
   Future<void> deleteAccount() async {
     await _service.deleteAccount();
-    await _tokens.clear();
+    await _clearPersistedSession();
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
 
@@ -168,13 +234,35 @@ class AuthController extends Notifier<AuthState> {
   }
 
   Future<void> signOut() async {
-    await _tokens.clear();
+    // Signing out is not the same as forgetting the device. When biometric
+    // sign-in is armed the refresh token is parked under a key the request
+    // interceptor cannot reach, so only an explicit face/fingerprint scan can
+    // spend it.
+    if (await _isBiometricSignInArmed()) {
+      await _tokens.parkRefreshTokenForBiometrics();
+    } else {
+      await _clearPersistedSession();
+    }
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
 
+  Future<bool> _isBiometricSignInArmed() async {
+    try {
+      if (!await _biometricLock.readEnabled()) return false;
+      if (await _biometricLock.readAccount() == null) return false;
+      final refreshToken = await _tokens.readRefreshToken();
+      return refreshToken != null && refreshToken.isNotEmpty;
+    } on Object catch (error) {
+      AppLogger.warn('biometric sign-in check failed', error: error);
+      return false;
+    }
+  }
+
   /// Called by the interceptor when refresh fails for good.
+  ///
+  /// The refresh token is dead, so the biometric offer must go with it.
   Future<void> handleSessionExpired() async {
-    await _tokens.clear();
+    await _clearPersistedSession();
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
 

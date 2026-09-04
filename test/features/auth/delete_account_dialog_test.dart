@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
+import 'package:vmito_app/core/security/biometric_lock_storage.dart';
 import 'package:vmito_app/core/storage/token_storage.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
@@ -18,11 +19,15 @@ Future<ProviderContainer> _pumpDialog(
   WidgetTester tester,
   AuthService service,
 ) async {
+  final secureStorage = FakeSecureStorage();
   final container = ProviderContainer(
     overrides: [
       authServiceProvider.overrideWithValue(service),
       tokenStorageProvider.overrideWithValue(
-        TokenStorage(FakeSecureStorage()),
+        TokenStorage(secureStorage),
+      ),
+      biometricLockStorageProvider.overrideWithValue(
+        BiometricLockStorage(secureStorage),
       ),
     ],
   );

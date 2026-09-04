@@ -128,6 +128,7 @@ Future<void> _pump(
   PlayerDetail? playerDetail,
   ClubSummary? club,
   double width = 390,
+  Locale locale = const Locale('en'),
 }) async {
   final playerDetailOverride = playerDetail;
   final clubOverride = club;
@@ -181,7 +182,7 @@ Future<void> _pump(
       ],
       child: MaterialApp(
         theme: AppTheme.light,
-        locale: const Locale('en'),
+        locale: locale,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
         home: SessionDetailScreen(sessionId: session.id),
@@ -266,12 +267,41 @@ void main() {
       ),
     );
 
-    expect(find.textContaining('259 Hòa Bình'), findsOneWidget);
+    final address = tester.widget<Text>(
+      find
+          .descendant(
+            of: find.byKey(const Key('session-detail-address')),
+            matching: find.byType(Text),
+          )
+          .first,
+    );
+    expect(
+      address.textSpan?.toPlainText(includePlaceholders: false),
+      contains(
+        '259 Hòa Bình, Phường Phú Thạnh, Thành phố Hồ Chí Minh',
+      ),
+    );
+    expect(address.maxLines, isNull);
     expect(find.text('New'), findsOneWidget);
     expect(
       tester.getSize(find.byKey(const Key('session-get-directions'))).height,
       24,
     );
+  });
+
+  testWidgets('shows only the generic venue prefix with the database name', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _session(
+        venue: const SessionVenue(id: 'v1', name: 'Phú Nhuận Badminton'),
+      ),
+      locale: const Locale('vi'),
+    );
+
+    expect(find.text('Sân Phú Nhuận Badminton'), findsOneWidget);
+    expect(find.textContaining('Sân cầu lông'), findsNothing);
   });
 
   testWidgets('reveals the pinned white header after scrolling past the hero', (
@@ -924,7 +954,7 @@ void main() {
 
       // 8 players shown, but 0 empty slot tiles when collapsed.
       for (final player in players) {
-        expect(find.text(player.name), findsOneWidget);
+        expect(find.text(player.name!), findsOneWidget);
       }
       expect(find.byKey(const ValueKey('empty-slot-0')), findsNothing);
       expect(find.text('View all players'), findsOneWidget);

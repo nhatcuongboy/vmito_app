@@ -105,8 +105,7 @@ class _CreateCustomReminderSheetState
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final isBusy =
-        ref.watch(paymentRemindersControllerProvider).isLoading;
+    final isBusy = ref.watch(paymentRemindersControllerProvider).isLoading;
 
     final searchResults = ref.watch(
       reminderUserSearchProvider(_searchQuery),
@@ -307,10 +306,8 @@ class _CreateCustomReminderSheetState
                 validationMessages: {
                   ValidationMessage.required: (_) =>
                       l10n.reminderAmountRequired,
-                  ValidationMessage.min: (_) =>
-                      l10n.reminderAmountRequired,
-                  ValidationMessage.number: (_) =>
-                      l10n.reminderAmountRequired,
+                  ValidationMessage.min: (_) => l10n.reminderAmountRequired,
+                  ValidationMessage.number: (_) => l10n.reminderAmountRequired,
                 },
               ),
               const SizedBox(height: AppSpacing.md),
@@ -332,8 +329,7 @@ class _CreateCustomReminderSheetState
                   contentPadding: const EdgeInsets.all(AppSpacing.sm),
                 ),
                 validationMessages: {
-                  ValidationMessage.required: (_) =>
-                      l10n.reminderNoteRequired,
+                  ValidationMessage.required: (_) => l10n.reminderNoteRequired,
                 },
               ),
               const SizedBox(height: AppSpacing.lg),
@@ -343,7 +339,9 @@ class _CreateCustomReminderSheetState
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   TextButton(
-                    onPressed: isBusy ? null : () => Navigator.of(context).pop(),
+                    onPressed: isBusy
+                        ? null
+                        : () => Navigator.of(context).pop(),
                     child: Text(l10n.commonCancel),
                   ),
                   const SizedBox(width: AppSpacing.sm),

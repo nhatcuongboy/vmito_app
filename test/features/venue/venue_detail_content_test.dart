@@ -6,6 +6,8 @@ import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
+import 'package:vmito_app/features/favorite/data/favorite_repository.dart';
+import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/features/venue/presentation/venue_detail_content.dart';
@@ -85,6 +87,18 @@ class _TestLocationPreferencesController extends LocationPreferencesController {
   );
 }
 
+class _TestFavoriteRepository implements FavoriteRepository {
+  @override
+  Future<void> add(FavoriteType type, String targetId) async {}
+
+  @override
+  Future<void> remove(FavoriteType type, String targetId) async {}
+
+  @override
+  Future<FavoriteSummary> summary(FavoriteType type, String targetId) async =>
+      const FavoriteSummary(favoriteCount: 12);
+}
+
 Future<void> _pump(
   WidgetTester tester, {
   double width = 390,
@@ -98,6 +112,7 @@ Future<void> _pump(
   bool showNewAddress = true,
   String? bottomPhone = '0901234567',
   int? minimumPrice = 80000,
+  bool signedIn = false,
 }) async {
   tester.view
     ..physicalSize = Size(width * 3, 844 * 3)
@@ -108,7 +123,10 @@ Future<void> _pump(
     ProviderScope(
       key: ValueKey(showNewAddress),
       overrides: [
-        isSignedInProvider.overrideWithValue(false),
+        isSignedInProvider.overrideWithValue(signedIn),
+        favoriteRepositoryProvider.overrideWithValue(
+          _TestFavoriteRepository(),
+        ),
         locationPreferencesControllerProvider.overrideWith(
           () => _TestLocationPreferencesController(
             showNewAddress: showNewAddress,
@@ -207,16 +225,14 @@ void main() {
   testWidgets('reveals sticky title after the hero scrolls away', (
     tester,
   ) async {
-    await _pump(tester);
+    await _pump(tester, signedIn: true);
     AnimatedOpacity sticky() => tester.widget<AnimatedOpacity>(
       find.byKey(const Key('venue-sticky-title')),
     );
-    FavoriteButton favorite() => tester.widget<FavoriteButton>(
-      find.byKey(const Key('venue-favorite-button')),
-    );
 
     expect(sticky().opacity, 0);
-    expect(favorite().overlay, isTrue);
+    expect(find.byKey(const Key('venue-favorite-button')), findsOneWidget);
+    expect(find.text('12'), findsOneWidget);
     final stickyText = tester.widget<Text>(
       find.descendant(
         of: find.byKey(const Key('venue-sticky-title')),
@@ -234,25 +250,25 @@ void main() {
     );
     await tester.pump();
     expect(sticky().opacity, 1);
-    expect(favorite().overlay, isFalse);
-    expect(
-      tester.getSize(find.byKey(const Key('venue-share-button'))),
-      tester.getSize(find.byKey(const Key('venue-favorite-button'))),
-    );
+    expect(find.byKey(const Key('venue-favorite-button')), findsNothing);
+    expect(find.text('12'), findsNothing);
     expect(
       tester.getSize(find.byKey(const Key('venue-share-button'))),
       const Size.square(FavoriteButton.detailControlSize),
     );
   });
 
-  testWidgets('share button matches favorite button on the cover', (
+  testWidgets('shows the favorite count only on the expanded cover', (
     tester,
   ) async {
-    await _pump(tester);
+    await _pump(tester, signedIn: true);
 
+    expect(find.text('12'), findsOneWidget);
     expect(
-      tester.getSize(find.byKey(const Key('venue-share-button'))),
-      tester.getSize(find.byKey(const Key('venue-favorite-button'))),
+      tester.getSize(find.byKey(const Key('venue-favorite-button'))).width,
+      greaterThan(
+        tester.getSize(find.byKey(const Key('venue-share-button'))).width,
+      ),
     );
     expect(
       tester.getSize(find.byKey(const Key('venue-share-button'))),
@@ -298,12 +314,28 @@ void main() {
     );
     expect(locationIcon.top, closeTo(leadingAddressLines.top, 3));
     expect(directions.bottom, closeTo(address.bottom, 0.1));
-    expect(directions.right, closeTo(address.right, 0.1));
+    expect(directions.left, greaterThanOrEqualTo(address.left));
+    expect(directions.right, lessThanOrEqualTo(address.right));
     expect(directions.height, lessThanOrEqualTo(24));
     expect(leadingAddressLines.right, closeTo(address.right, 0.1));
 
     final directionsButton = tester.widget<IconButton>(
       find.byKey(const Key('venue-address-directions-button')),
+    );
+    final addressText = tester.widget<Text>(
+      find
+          .descendant(
+            of: find.byKey(const Key('venue-address')),
+            matching: find.byType(Text),
+          )
+          .first,
+    );
+    expect(
+      addressText.textSpan?.toPlainText(includePlaceholders: false),
+      contains(
+        '5 Hoàng Minh Giám, Phường Đức Nhuận, '
+        'Thành Phố Hồ Chí Minh',
+      ),
     );
     final directionsIcon = directionsButton.icon as Icon;
     expect(directionsIcon.icon, AppIcons.navigation);
@@ -337,6 +369,7 @@ void main() {
     final aboutHeading = tester.widget<Text>(find.text('Giới thiệu về sân'));
     final pricingHeading = tester.widget<Text>(find.text('Bảng giá'));
 
+    expect(venueName.data, 'Sân Phú Nhuận');
     expect(venueName.style?.fontSize, 20);
     expect(aboutHeading.style?.fontSize, 16);
     expect(pricingHeading.style?.fontSize, 16);

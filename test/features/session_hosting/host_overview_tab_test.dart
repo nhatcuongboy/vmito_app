@@ -54,7 +54,7 @@ void main() {
   ) async {
     await tester.pumpWidget(app(session));
 
-    expect(find.text('THÔNG TIN KÈO'), findsOneWidget);
+    expect(find.text('Thông tin kèo'), findsOneWidget);
     expect(find.text('Gò Vấp'), findsOneWidget);
     expect(find.text('Thống kê kèo'), findsOneWidget);
     expect(find.text('Người chơi'), findsOneWidget);
@@ -62,6 +62,20 @@ void main() {
     expect(find.text('Đang chơi'), findsOneWidget);
     expect(find.text('Sẵn sàng'), findsOneWidget);
     expect(find.text('3/8'), findsOneWidget);
+  });
+
+  testWidgets('uses a clear card title and a low-emphasis edit action', (
+    tester,
+  ) async {
+    await tester.pumpWidget(app(session, onEdit: () {}));
+
+    final title = tester.widget<Text>(find.text('Thông tin kèo'));
+    expect(title.style?.fontSize, 16);
+    expect(title.style?.fontWeight, FontWeight.w600);
+    expect(
+      tester.widget(find.byKey(const Key('host-overview-edit-session'))),
+      isA<TextButton>(),
+    );
   });
 
   testWidgets('edit action invokes the shared modal callback', (tester) async {

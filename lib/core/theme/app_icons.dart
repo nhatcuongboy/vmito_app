@@ -23,6 +23,11 @@ abstract final class AppIcons {
   // --- Actions & Controls ----------------------------------------------------
   static const IconData search = LucideIcons.search;
   static const IconData searchOff = LucideIcons.search_x;
+  // Discovery entries reuse the entity icon in its "search" variant so they
+  // stay distinguishable from the management entries for the same entity.
+  static const IconData searchSessions = LucideIcons.calendar_search;
+  static const IconData searchVenues = LucideIcons.map_pin_search;
+  static const IconData searchClubs = LucideIcons.user_round_search;
   static const IconData close = LucideIcons.x;
   static const IconData cancel = LucideIcons.circle_x;
   static const IconData add = LucideIcons.plus;
@@ -71,6 +76,8 @@ abstract final class AppIcons {
   static const IconData eye = LucideIcons.eye;
   static const IconData eyeOff = LucideIcons.eye_off;
   static const IconData lock = LucideIcons.lock;
+  static const IconData biometric = LucideIcons.scan_face;
+  static const IconData fingerprint = LucideIcons.fingerprint_pattern;
   static const IconData shield = LucideIcons.shield;
   static const IconData shieldCheck = LucideIcons.shield_check;
   static const IconData verified = LucideIcons.badge_check;

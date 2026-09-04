@@ -6,6 +6,7 @@ class Venue {
     required this.name,
     this.slug,
     this.address,
+    this.streetAddress,
     this.district,
     this.city,
     this.newAddress,
@@ -35,6 +36,7 @@ class Venue {
     this.wifiName,
     this.wifiPassword,
     this.bookingPolicy,
+    this.locatedWithin,
   });
 
   factory Venue.fromJson(Map<String, dynamic> json) => Venue(
@@ -42,6 +44,7 @@ class Venue {
     name: json['name'] as String? ?? '',
     slug: json['slug'] as String?,
     address: json['address'] as String?,
+    streetAddress: json['streetAddress'] as String?,
     district: json['district'] as String?,
     city: json['city'] as String?,
     newAddress: json['newAddress'] as String?,
@@ -85,12 +88,14 @@ class Venue {
     wifiName: json['wifiName'] as String?,
     wifiPassword: json['wifiPassword'] as String?,
     bookingPolicy: json['bookingPolicy'] as String?,
+    locatedWithin: json['locatedWithin'] as String?,
   );
 
   final String id;
   final String name;
   final String? slug;
   final String? address;
+  final String? streetAddress;
   final String? district;
   final String? city;
   final String? newAddress;
@@ -120,6 +125,7 @@ class Venue {
   final String? wifiName;
   final String? wifiPassword;
   final String? bookingPolicy;
+  final String? locatedWithin;
 
   String displayName({
     required String generic,
@@ -148,6 +154,8 @@ class Venue {
     district: district,
     city: city,
     newAddress: newAddress,
+    newDistrict: newDistrict,
+    newCity: newCity,
   ).text;
 
   List<String> get gallery => [

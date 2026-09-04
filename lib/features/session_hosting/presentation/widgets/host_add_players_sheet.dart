@@ -202,8 +202,8 @@ class _HostAddPlayersSheetState extends ConsumerState<_HostAddPlayersSheet> {
                     builder: (context, _, _) => Text(
                       l10n.hostAddPlayerTitle(_players.controls.length),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),

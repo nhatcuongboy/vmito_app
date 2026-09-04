@@ -11,7 +11,10 @@ class TournamentCreateHero extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFF08783E), Color(0xFF1FBD72)],
@@ -21,9 +24,10 @@ class TournamentCreateHero extends StatelessWidget {
       child: Row(
         children: [
           const CircleAvatar(
+            radius: 18,
             backgroundColor: Color(0x33FFFFFF),
             foregroundColor: Colors.white,
-            child: Icon(AppIcons.trophy),
+            child: Icon(AppIcons.trophy, size: 20),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -32,15 +36,17 @@ class TournamentCreateHero extends StatelessWidget {
               children: [
                 Text(
                   l10n.tournamentCreateHeading,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(height: AppSpacing.xs),
+                const SizedBox(height: AppSpacing.xxs),
                 Text(
                   l10n.tournamentCreateIntro,
-                  style: const TextStyle(color: Color(0xE6FFFFFF)),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: const Color(0xE6FFFFFF),
+                  ),
                 ),
               ],
             ),

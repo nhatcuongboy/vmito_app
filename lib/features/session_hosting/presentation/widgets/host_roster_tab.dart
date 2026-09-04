@@ -232,8 +232,7 @@ class _HostRosterTabState extends ConsumerState<HostRosterTab> {
         type: AppConfirmDialogType.destructive,
         title: AppLocalizations.of(context).hostRosterDeleteTitle,
         content: AppLocalizations.of(context).hostRosterDeleteMessage(
-          player.displayName ??
-              AppLocalizations.of(context).playerName(player),
+          player.displayName ?? AppLocalizations.of(context).playerName(player),
         ),
         confirmLabel: AppLocalizations.of(context).hostRosterDeletePlayer,
       );

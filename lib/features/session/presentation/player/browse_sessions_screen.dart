@@ -120,8 +120,6 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
           : _buildSearchResultsAppBar(
               l10n: l10n,
               query: activeQuery,
-              state: state,
-              controller: controller,
             ),
       body: NotificationListener<ScrollNotification>(
         onNotification: (notification) {
@@ -192,6 +190,11 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
                   },
                 ),
               ),
+            ),
+            _MySessionsToolbar(
+              sortLabel: _sortLabel(l10n, state.sort),
+              onSort: () => _openSort(state, controller),
+              onFilter: () => _openFilters(state, controller),
             ),
             Expanded(
               child: RefreshIndicator(
@@ -286,12 +289,6 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
           ),
         ),
       IconButton(
-        key: const Key('my-sessions-filter-button'),
-        tooltip: l10n.sessionFiltersTitle,
-        icon: const Icon(AppIcons.tune),
-        onPressed: () => _openFilters(state, controller),
-      ),
-      IconButton(
         key: const Key('my-sessions-search-button'),
         tooltip: l10n.homeSearchTooltip,
         icon: const Icon(AppIcons.search),
@@ -314,8 +311,6 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
   PreferredSizeWidget _buildSearchResultsAppBar({
     required AppLocalizations l10n,
     required String query,
-    required MySessionsState state,
-    required MySessionsController controller,
   }) => AppBar(
     leading: IconButton(
       key: const Key('my-sessions-search-exit-results'),
@@ -355,15 +350,7 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
         ),
       ),
     ),
-    actions: [
-      IconButton(
-        key: const Key('my-sessions-filter-button'),
-        tooltip: l10n.sessionFiltersTitle,
-        icon: const Icon(AppIcons.tune),
-        onPressed: () => _openFilters(state, controller),
-      ),
-      const SizedBox(width: 4),
-    ],
+    actions: const [SizedBox(width: 4)],
   );
 
   void _openFilters(
@@ -374,6 +361,55 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
     currentFilter: state.filter,
     onFilterSelected: (filter) => unawaited(controller.setFilter(filter)),
   );
+
+  String _sortLabel(AppLocalizations l10n, MySessionSort sort) =>
+      switch (sort) {
+        MySessionSort.dateNearest => l10n.homeDiscoverySortDateNearest,
+        MySessionSort.dateFurthest => l10n.homeDiscoverySortDateFurthest,
+        MySessionSort.newest => l10n.homeDiscoverySortNewest,
+      };
+
+  void _openSort(MySessionsState state, MySessionsController controller) {
+    unawaited(
+      showModalBottomSheet<MySessionSort>(
+        context: context,
+        useRootNavigator: true,
+        showDragHandle: true,
+        builder: (context) {
+          final l10n = AppLocalizations.of(context);
+          return SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  title: Text(
+                    l10n.homeDiscoverySortBy,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                for (final sort in MySessionSort.values)
+                  ListTile(
+                    key: ValueKey('my-sessions-sort-${sort.name}'),
+                    title: Text(_sortLabel(l10n, sort)),
+                    trailing: sort == state.sort
+                        ? Icon(
+                            AppIcons.check,
+                            color: Theme.of(context).colorScheme.primary,
+                          )
+                        : null,
+                    onTap: () => Navigator.of(context).pop(sort),
+                  ),
+              ],
+            ),
+          );
+        },
+      ).then((sort) {
+        if (sort != null) unawaited(controller.setSort(sort));
+      }),
+    );
+  }
 
   Future<void> _openSearch() async {
     final scope = _scope;
@@ -417,6 +453,53 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
           currentFilter: currentFilter,
           onFilterSelected: onFilterSelected,
         ),
+      ),
+    );
+  }
+}
+
+class _MySessionsToolbar extends StatelessWidget {
+  const _MySessionsToolbar({
+    required this.sortLabel,
+    required this.onSort,
+    required this.onFilter,
+  });
+
+  final String sortLabel;
+  final VoidCallback onSort;
+  final VoidCallback onFilter;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.sm,
+      ),
+      child: Row(
+        children: [
+          const Spacer(),
+          OutlinedButton.icon(
+            key: const Key('my-sessions-sort-button'),
+            onPressed: onSort,
+            style: OutlinedButton.styleFrom(
+              minimumSize: const Size(0, 40),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              visualDensity: VisualDensity.compact,
+            ),
+            icon: const Icon(AppIcons.sortAlpha, size: 18),
+            label: Text(sortLabel),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          IconButton.outlined(
+            key: const Key('my-sessions-filter-button'),
+            tooltip: l10n.sessionFiltersTitle,
+            onPressed: onFilter,
+            visualDensity: VisualDensity.compact,
+            icon: const Icon(AppIcons.tune, size: 20),
+          ),
+        ],
       ),
     );
   }
@@ -737,10 +820,12 @@ class _EmptyMySessionsView extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
         Text(
           switch (scope) {
-            MySessionScope.hosted =>
-              AppLocalizations.of(context).mySessionsHostedEmpty,
-            MySessionScope.joined =>
-              AppLocalizations.of(context).mySessionsJoinedEmpty,
+            MySessionScope.hosted => AppLocalizations.of(
+              context,
+            ).mySessionsHostedEmpty,
+            MySessionScope.joined => AppLocalizations.of(
+              context,
+            ).mySessionsJoinedEmpty,
           },
           textAlign: TextAlign.center,
         ),

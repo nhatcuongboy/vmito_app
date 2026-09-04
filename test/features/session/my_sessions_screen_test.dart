@@ -154,7 +154,7 @@ Future<void> _pumpWithRouter(
 void main() {
   setUpAll(() => registerFallbackValue(const SessionListQuery()));
 
-  testWidgets('defaults to Quản lý kèo / Đang mở and keeps scope state', (
+  testWidgets('renders the fixed sort/filter toolbar and keeps scope state', (
     tester,
   ) async {
     final repository = _MockSessionRepository();
@@ -170,6 +170,23 @@ void main() {
     expect(find.byType(SearchBar), findsNothing);
     expect(find.byKey(const Key('my-sessions-search-button')), findsOneWidget);
     expect(find.byKey(const Key('my-sessions-filter-button')), findsOneWidget);
+    expect(find.byKey(const Key('my-sessions-sort-button')), findsOneWidget);
+    expect(find.text('Ngày gần nhất'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.byKey(const Key('my-sessions-sort-button'))).dy,
+      greaterThan(
+        tester.getBottomLeft(find.byKey(const Key('my-sessions-scope'))).dy,
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('my-sessions-sort-button')));
+    await tester.pumpAndSettle();
+    expect(find.text('Ngày xa nhất'), findsOneWidget);
+    expect(find.text('Mới nhất'), findsOneWidget);
+    await tester.tap(
+      find.byKey(const ValueKey('my-sessions-sort-dateFurthest')),
+    );
+    await tester.pumpAndSettle();
 
     // Open filter sheet and select ended
     await tester.tap(find.byKey(const Key('my-sessions-filter-button')));
@@ -183,6 +200,7 @@ void main() {
     // Switch to Kèo tham gia tab
     await tester.tap(find.text('Kèo tham gia'));
     await tester.pumpAndSettle();
+    expect(find.text('Ngày gần nhất'), findsOneWidget);
 
     // Pending requests button should only be visible in Quản lý kèo scope
     expect(find.byKey(const Key('pending-requests-button')), findsNothing);
@@ -199,6 +217,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('pending-requests-button')), findsOneWidget);
+    expect(find.text('Ngày xa nhất'), findsOneWidget);
 
     final scope = ProviderScope.containerOf(
       tester.element(find.byType(BrowseSessionsScreen)),
@@ -210,6 +229,14 @@ void main() {
     expect(
       scope.read(mySessionsControllerProvider(MySessionScope.joined)).filter,
       MySessionFilter.all,
+    );
+    expect(
+      scope.read(mySessionsControllerProvider(MySessionScope.hosted)).sort,
+      MySessionSort.dateFurthest,
+    );
+    expect(
+      scope.read(mySessionsControllerProvider(MySessionScope.joined)).sort,
+      MySessionSort.dateNearest,
     );
   });
 

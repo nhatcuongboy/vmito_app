@@ -285,13 +285,17 @@ void main() {
   testWidgets('reveals the compact title below an iPhone safe area', (
     tester,
   ) async {
-    await _pump(tester, safeAreaTop: 59);
+    await _pump(tester, safeAreaTop: 59, currentUser: _adminUser);
 
     AnimatedOpacity sticky() => tester.widget<AnimatedOpacity>(
       find.byKey(const Key('club-sticky-title')),
     );
 
     expect(sticky().opacity, 0);
+    expect(
+      find.byKey(const Key('club-favorite-button')),
+      findsOneWidget,
+    );
     await tester.drag(
       find.byKey(const Key('club-detail-scroll')),
       const Offset(0, -360),
@@ -299,18 +303,7 @@ void main() {
     await tester.pump();
 
     expect(sticky().opacity, 1);
-    expect(
-      tester
-          .widget<FavoriteButton>(
-            find.byKey(const Key('club-favorite-button')),
-          )
-          .overlay,
-      isFalse,
-    );
-    expect(
-      tester.getSize(find.byKey(const Key('club-share-button'))),
-      tester.getSize(find.byKey(const Key('club-favorite-button'))),
-    );
+    expect(find.byKey(const Key('club-favorite-button')), findsNothing);
     expect(
       tester.getSize(find.byKey(const Key('club-share-button'))),
       const Size.square(FavoriteButton.detailControlSize),
@@ -320,7 +313,7 @@ void main() {
   testWidgets('share button matches favorite button on the cover', (
     tester,
   ) async {
-    await _pump(tester);
+    await _pump(tester, currentUser: _adminUser);
 
     expect(
       tester.getSize(find.byKey(const Key('club-share-button'))),

@@ -112,8 +112,8 @@ class _LevelList extends StatelessWidget {
         AppSpacing.lg,
       ),
       itemCount: validLevels.length,
-      separatorBuilder:
-          (_, _) => const Divider(height: AppSpacing.xxl, thickness: 0.5),
+      separatorBuilder: (_, _) =>
+          const Divider(height: AppSpacing.xxl, thickness: 0.5),
       itemBuilder: (context, index) {
         final level = validLevels[index];
         final text = descriptions[level]?.trim() ?? '';

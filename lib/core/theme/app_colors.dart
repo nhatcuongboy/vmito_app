@@ -48,6 +48,7 @@ abstract final class AppColors {
   static const Color accentForegroundDark = Color(0xFFFAFAFA);
   static const Color destructiveDark = Color(0xFF7F1D1D);
   static const Color destructiveForegroundDark = Color(0xFFFEF2F2);
+
   /// High-contrast error color for dark mode UI text and outlines (red-400).
   static const Color errorDark = Color(0xFFF87171);
   static const Color borderDark = Color(0xFF27272A);

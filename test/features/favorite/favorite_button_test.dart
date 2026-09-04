@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
+import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/favorite/data/favorite_repository.dart';
@@ -202,6 +203,27 @@ void main() {
     expect(snackBar.behavior, SnackBarBehavior.floating);
     expect(snackBar.action, isNull);
     expect(tester.getSize(snackBarFinder).height, lessThanOrEqualTo(64));
+
+    final surface = tester.widget<Container>(
+      find.byKey(const Key('favorite-toast-surface')),
+    );
+    final decoration = surface.decoration! as BoxDecoration;
+    expect(decoration.color, AppTheme.light.colorScheme.inverseSurface);
+    expect(decoration.border, isNull);
+    expect(decoration.borderRadius, BorderRadius.circular(AppRadius.xl));
+
+    final badge = tester.widget<Container>(
+      find.byKey(const Key('favorite-toast-badge')),
+    );
+    final badgeDecoration = badge.decoration! as BoxDecoration;
+    expect(
+      badgeDecoration.color,
+      AppColors.destructive.withValues(alpha: 0.16),
+    );
+    expect(
+      tester.getSize(find.byKey(const Key('favorite-toast-badge'))),
+      const Size.square(32),
+    );
   });
 
   testWidgets('shows a success toast after removing a favorite', (
@@ -222,6 +244,15 @@ void main() {
     expect(
       tester.widget<Icon>(find.byKey(const Key('favorite-toast-icon'))).icon,
       AppIcons.favorite,
+    );
+
+    final badge = tester.widget<Container>(
+      find.byKey(const Key('favorite-toast-badge')),
+    );
+    final badgeDecoration = badge.decoration! as BoxDecoration;
+    expect(
+      badgeDecoration.color,
+      AppTheme.light.colorScheme.onInverseSurface.withValues(alpha: 0.1),
     );
   });
 

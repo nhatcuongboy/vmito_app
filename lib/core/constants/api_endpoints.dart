@@ -195,7 +195,7 @@ abstract final class ApiEndpoints {
   static const hostFinanceReport = '/payments/host/report';
   static String hostPaymentsForUser(String userId) =>
       '/payments/host/user/$userId';
-   static const paymentReminders = '/payment-reminders';
+  static const paymentReminders = '/payment-reminders';
   static const aggregatePaymentReminder = '/payment-reminders/aggregate';
   static const paymentReminderCustom = '/payment-reminders/custom';
   static String paymentReminder(String id) => '/payment-reminders/$id';
@@ -263,8 +263,7 @@ abstract final class ApiEndpoints {
   static String tournamentCourts(String id) => '/tournaments/$id/courts';
   static String tournamentUmpires(String id) => '/tournaments/$id/umpires';
   static String tournamentSponsors(String id) => '/tournaments/$id/sponsors';
-  static String tournamentMyAccess(String id) =>
-      '/tournaments/$id/my-access';
+  static String tournamentMyAccess(String id) => '/tournaments/$id/my-access';
   static String tournamentManagers(String id) => '/tournaments/$id/managers';
   static String tournamentManager(String id, String userId) =>
       '/tournaments/$id/managers/$userId';

@@ -3,11 +3,40 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:vmito_app/core/constants/api_endpoints.dart';
 import 'package:vmito_app/core/network/api_client.dart';
+import 'package:vmito_app/core/network/api_options.dart';
 import 'package:vmito_app/features/session/data/session_form_service.dart';
 
 class _MockApiClient extends Mock implements ApiClient {}
 
 void main() {
+  test('feature flag capability probe suppresses global errors', () async {
+    final client = _MockApiClient();
+    Options? requestOptions;
+    when(
+      () => client.get<dynamic>(
+        ApiEndpoints.featureFlags,
+        options: any(named: 'options'),
+      ),
+    ).thenAnswer((invocation) async {
+      requestOptions = invocation.namedArguments[#options] as Options?;
+      return Response<dynamic>(
+        requestOptions: RequestOptions(path: ApiEndpoints.featureFlags),
+        data: const {
+          'success': true,
+          'data': {'PLAYER_VIP_ENABLED': false},
+        },
+      );
+    });
+
+    final flags = await SessionFormService(client).featureFlags();
+
+    expect(flags['PLAYER_VIP_ENABLED'], isFalse);
+    expect(
+      requestOptions?.extra?[ApiOptionKeys.skipGlobalError],
+      isTrue,
+    );
+  });
+
   test(
     'getMyImages parses the account gallery page and filters invalid rows',
     () async {

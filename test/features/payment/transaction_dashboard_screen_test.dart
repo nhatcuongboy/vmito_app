@@ -16,7 +16,11 @@ void main() {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
-    expect(find.text('Bảng giao dịch'), findsOneWidget);
+    expect(find.text('Giao dịch'), findsOneWidget);
+    expect(
+      tester.getSize(find.byKey(const Key('finance-period-menu'))).height,
+      lessThanOrEqualTo(56),
+    );
     await tester.scrollUntilVisible(
       find.text('Biểu đồ thu chi'),
       300,
@@ -38,7 +42,9 @@ void main() {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Tùy chọn'));
+    await tester.tap(find.byKey(const Key('finance-period-menu')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('finance-period-custom')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Áp dụng'));
     await tester.pump();

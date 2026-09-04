@@ -82,8 +82,8 @@ class _MarkPaidSheetState extends ConsumerState<MarkPaidSheet> {
     _form.markAllAsTouched();
     if (_form.invalid || _isUploading) return;
 
-    final method = _form.control(MarkPaidControl.paymentMethod).value
-        as PaymentMethod;
+    final method =
+        _form.control(MarkPaidControl.paymentMethod).value as PaymentMethod;
     final proofImageUrl =
         _form.control(MarkPaidControl.proofImageUrl).value as String?;
     final proofImagePublicId =
@@ -111,8 +111,7 @@ class _MarkPaidSheetState extends ConsumerState<MarkPaidSheet> {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final locale = Localizations.localeOf(context).languageCode;
-    final isBusy =
-        ref.watch(paymentRemindersControllerProvider).isLoading;
+    final isBusy = ref.watch(paymentRemindersControllerProvider).isLoading;
 
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -191,11 +190,10 @@ class _MarkPaidSheetState extends ConsumerState<MarkPaidSheet> {
                           style: OutlinedButton.styleFrom(
                             backgroundColor:
                                 currentMethod == PaymentMethod.bankTransfer
-                                    ? theme.colorScheme.primaryContainer
-                                    : null,
+                                ? theme.colorScheme.primaryContainer
+                                : null,
                             side: BorderSide(
-                              color: currentMethod ==
-                                      PaymentMethod.bankTransfer
+                              color: currentMethod == PaymentMethod.bankTransfer
                                   ? theme.colorScheme.primary
                                   : theme.colorScheme.outlineVariant,
                             ),
@@ -210,18 +208,16 @@ class _MarkPaidSheetState extends ConsumerState<MarkPaidSheet> {
                           icon: const Icon(Icons.money, size: 18),
                           label: Text(l10n.transactionCash),
                           style: OutlinedButton.styleFrom(
-                            backgroundColor:
-                                currentMethod == PaymentMethod.cash
-                                    ? theme.colorScheme.primaryContainer
-                                    : null,
+                            backgroundColor: currentMethod == PaymentMethod.cash
+                                ? theme.colorScheme.primaryContainer
+                                : null,
                             side: BorderSide(
                               color: currentMethod == PaymentMethod.cash
                                   ? theme.colorScheme.primary
                                   : theme.colorScheme.outlineVariant,
                             ),
                           ),
-                          onPressed: () =>
-                              control.value = PaymentMethod.cash,
+                          onPressed: () => control.value = PaymentMethod.cash,
                         ),
                       ),
                     ],
@@ -260,8 +256,9 @@ class _MarkPaidSheetState extends ConsumerState<MarkPaidSheet> {
                                 border: Border.all(
                                   color: theme.colorScheme.outlineVariant,
                                 ),
-                                borderRadius:
-                                    BorderRadius.circular(AppSpacing.xs),
+                                borderRadius: BorderRadius.circular(
+                                  AppSpacing.xs,
+                                ),
                               ),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -277,8 +274,9 @@ class _MarkPaidSheetState extends ConsumerState<MarkPaidSheet> {
                               alignment: Alignment.topRight,
                               children: [
                                 ClipRRect(
-                                  borderRadius:
-                                      BorderRadius.circular(AppSpacing.xs),
+                                  borderRadius: BorderRadius.circular(
+                                    AppSpacing.xs,
+                                  ),
                                   child: CachedNetworkImage(
                                     imageUrl: imageUrl,
                                     height: 160,
@@ -304,9 +302,11 @@ class _MarkPaidSheetState extends ConsumerState<MarkPaidSheet> {
                             )
                           else
                             InkWell(
-                              onTap: () => _showImagePickerSourceDialog(context),
-                              borderRadius:
-                                  BorderRadius.circular(AppSpacing.xs),
+                              onTap: () =>
+                                  _showImagePickerSourceDialog(context),
+                              borderRadius: BorderRadius.circular(
+                                AppSpacing.xs,
+                              ),
                               child: Container(
                                 height: 110,
                                 decoration: BoxDecoration(
@@ -314,8 +314,9 @@ class _MarkPaidSheetState extends ConsumerState<MarkPaidSheet> {
                                     color: theme.colorScheme.outlineVariant,
                                     style: BorderStyle.solid,
                                   ),
-                                  borderRadius:
-                                      BorderRadius.circular(AppSpacing.xs),
+                                  borderRadius: BorderRadius.circular(
+                                    AppSpacing.xs,
+                                  ),
                                 ),
                                 child: Center(
                                   child: Column(
@@ -329,9 +330,10 @@ class _MarkPaidSheetState extends ConsumerState<MarkPaidSheet> {
                                       const SizedBox(height: 6),
                                       Text(
                                         l10n.reminderClickToUpload,
-                                        style: theme.textTheme.bodySmall?.copyWith(
-                                          color: theme.colorScheme.primary,
-                                        ),
+                                        style: theme.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: theme.colorScheme.primary,
+                                            ),
                                       ),
                                     ],
                                   ),

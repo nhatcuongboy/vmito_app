@@ -4,7 +4,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
@@ -22,6 +21,7 @@ import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
 import 'package:vmito_app/shared/widgets/app_lightbox.dart';
+import 'package:vmito_app/shared/widgets/skill_level_badge.dart';
 import 'package:vmito_domain/vmito_domain.dart';
 
 /// Mobile port of the host web app's `SessionOverviewTab`.
@@ -60,6 +60,9 @@ class HostOverviewTab extends ConsumerWidget {
     final showStartButton = session.status == SessionStatus.preparing;
     final showEndButton = session.status == SessionStatus.inProgress;
     final showBottomBar = showStartButton || showEndButton;
+    final hasStatusBanner =
+        session.status == SessionStatus.cancelled ||
+        session.status == SessionStatus.finished;
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -78,20 +81,24 @@ class HostOverviewTab extends ConsumerWidget {
               constraints: const BoxConstraints(maxWidth: 900),
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(AppSpacing.md),
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.sm,
+                  AppSpacing.md,
+                  AppSpacing.md,
+                ),
                 children: [
-                  _StatusBanner(session: session),
-                  if (session.status == SessionStatus.cancelled)
+                  if (hasStatusBanner) ...[
+                    _StatusBanner(session: session),
                     const SizedBox(height: AppSpacing.md),
+                  ],
                   if (images.isNotEmpty) ...[
-                    if (session.status != SessionStatus.cancelled)
-                      const SizedBox(height: AppSpacing.md),
                     _SessionGallery(
                       images: images,
                       onShare: () => _share(context, session),
                     ),
+                    const SizedBox(height: AppSpacing.md),
                   ],
-                  const SizedBox(height: AppSpacing.md),
                   _InfoCard(
                     session: session,
                     onEdit: onEdit,
@@ -162,6 +169,11 @@ class _SessionActionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = theme.extension<AppPalette>()!;
+    final buttonWidget = showStart
+        ? _StartSessionButton(sessionId: sessionId)
+        : (showEnd ? _EndSessionButton(sessionId: sessionId) : null);
+
+    if (buttonWidget == null) return const SizedBox.shrink();
 
     return Container(
       decoration: BoxDecoration(
@@ -174,12 +186,11 @@ class _SessionActionBar extends StatelessWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 900),
             child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: showStart
-                  ? _StartSessionButton(sessionId: sessionId)
-                  : (showEnd
-                        ? _EndSessionButton(sessionId: sessionId)
-                        : const SizedBox.shrink()),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm,
+              ),
+              child: buttonWidget,
             ),
           ),
         ),
@@ -240,7 +251,6 @@ class _EndSessionButton extends ConsumerWidget {
 
   Future<void> _handlePress(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
     final confirmed = await showAppConfirmDialog(
       context,
       type: AppConfirmDialogType.destructive,
@@ -262,11 +272,11 @@ class _EndSessionButton extends ConsumerWidget {
     final theme = Theme.of(context);
     return SizedBox(
       width: double.infinity,
-      child: OutlinedButton.icon(
+      child: FilledButton.icon(
         key: const ValueKey('end-session'),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: theme.colorScheme.error,
-          side: BorderSide(color: theme.colorScheme.error),
+        style: FilledButton.styleFrom(
+          backgroundColor: theme.colorScheme.error,
+          foregroundColor: theme.colorScheme.onError,
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.md,
             vertical: AppSpacing.sm + 2,
@@ -427,11 +437,15 @@ class _SessionGalleryState extends State<_SessionGallery> {
               top: 10,
               right: 10,
               child: IconButton(
-                icon: const Icon(AppIcons.share, color: Colors.white),
+                icon: const Icon(AppIcons.share, size: 16, color: Colors.white),
                 onPressed: widget.onShare,
+                iconSize: 16,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
                 style: IconButton.styleFrom(
                   backgroundColor: Colors.black.withValues(alpha: 0.5),
-                  minimumSize: const Size.square(40),
+                  minimumSize: const Size.square(30),
+                  maximumSize: const Size.square(30),
                 ),
               ),
             ),
@@ -476,13 +490,26 @@ class _InfoCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _InfoCardHeader(onEdit: onEdit),
+            _InfoRow(
+              icon: AppIcons.sessions,
+              textStyle: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+              label: session.name,
+            ),
             if (session.displayHostName.isNotEmpty)
               _InfoRow(
                 icon: AppIcons.user,
-                label: '${l10n.sessionHostLabel}: ${session.displayHostName}',
+                textStyle: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+                label: session.displayHostName,
               ),
             _InfoRow(
               icon: AppIcons.calendar,
+              textStyle: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w500,
+              ),
               label: session.displayStartTime == null
                   ? 'Chưa có thời gian'
                   : Dates.dayWithRange(
@@ -494,10 +521,14 @@ class _InfoCard extends StatelessWidget {
             if (session.hasLocation)
               _InfoRow(
                 icon: AppIcons.location,
+                textStyle: theme.textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
                 label: session.displayPlace(showNewAddress: showNewAddress),
               ),
+            const _InfoGroupDivider(),
             _InfoRow(
-              icon: AppIcons.sessions,
+              icon: AppIcons.square,
               label: capacity > 0
                   ? '${session.numberOfCourts} sân · '
                         '${session.maxPlayersPerCourt} người/sân · '
@@ -517,11 +548,11 @@ class _InfoCard extends StatelessWidget {
               topPadding: 8,
               child: _LevelBadges(levels: session.requiredLevels),
             ),
-            if (feeLabel != null && feeConfig != null)
+            if (feeLabel != null && feeConfig != null) ...[
+              const _InfoGroupDivider(),
               _InfoRow(
                 icon: AppIcons.creditCard,
                 alignCenter: true,
-                topPadding: 8,
                 child: Row(
                   children: [
                     Expanded(
@@ -563,6 +594,7 @@ class _InfoCard extends StatelessWidget {
                   ],
                 ),
               ),
+            ],
             if (session.description?.trim().isNotEmpty ?? false) ...[
               const Divider(height: 24),
               Text('Mô tả', style: theme.textTheme.labelLarge),
@@ -592,27 +624,21 @@ class _InfoCardHeader extends StatelessWidget {
     children: [
       Expanded(
         child: Text(
-          'THÔNG TIN KÈO',
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: Theme.of(context).extension<AppPalette>()!.mutedForeground,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.6,
-          ),
+          'Thông tin kèo',
+          style: Theme.of(context).textTheme.titleMedium,
         ),
       ),
       if (onEdit != null) ...[
         const SizedBox(width: AppSpacing.sm),
-        OutlinedButton.icon(
+        TextButton.icon(
           key: const Key('host-overview-edit-session'),
           onPressed: onEdit,
-          icon: const Icon(AppIcons.edit, size: 14),
+          icon: const Icon(AppIcons.edit, size: 16),
           label: Text(AppLocalizations.of(context).hostManageEditSession),
-          style: OutlinedButton.styleFrom(
+          style: TextButton.styleFrom(
             minimumSize: const Size(0, AppSizes.minTapTarget),
             visualDensity: VisualDensity.compact,
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.sm + 2,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
           ),
         ),
       ],
@@ -635,17 +661,15 @@ class _LevelBadges extends StatelessWidget {
       crossAxisAlignment: WrapCrossAlignment.center,
       children: [
         if (sorted.isEmpty)
-          _OverviewLevelBadge(
+          AllSkillLevelsBadge(
             key: const Key('host-overview-all-levels'),
             label: l10n.sessionFormAllLevels,
-            color: Theme.of(context).extension<AppPalette>()!.mutedForeground,
           )
         else
           for (final level in sorted)
-            _OverviewLevelBadge(
+            SkillLevelBadge(
               key: ValueKey('host-overview-level-$level'),
-              label: l10n.levelName(level),
-              color: _levelColor(context, level),
+              level: level,
             ),
         IconButton(
           key: const Key('host-overview-level-info'),
@@ -660,44 +684,6 @@ class _LevelBadges extends StatelessWidget {
       ],
     );
   }
-
-  Color _levelColor(BuildContext context, int level) {
-    final rank = levelRank(level);
-    if (rank == null) {
-      return Theme.of(context).extension<AppPalette>()!.mutedForeground;
-    }
-    if (rank <= 3) return AppColors.success;
-    if (rank <= 6) return AppColors.warning;
-    return Theme.of(context).colorScheme.error;
-  }
-}
-
-class _OverviewLevelBadge extends StatelessWidget {
-  const _OverviewLevelBadge({
-    required this.label,
-    required this.color,
-    super.key,
-  });
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-    decoration: BoxDecoration(
-      color: color.withValues(alpha: 0.14),
-      borderRadius: BorderRadius.circular(AppRadius.pill),
-      border: Border.all(color: color.withValues(alpha: 0.45)),
-    ),
-    child: Text(
-      label,
-      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-        color: color,
-        fontWeight: FontWeight.w700,
-      ),
-    ),
-  );
 }
 
 class _InfoRow extends StatelessWidget {
@@ -705,6 +691,7 @@ class _InfoRow extends StatelessWidget {
     required this.icon,
     this.label,
     this.child,
+    this.textStyle,
     this.alignCenter = false,
     this.topPadding = 12,
   }) : assert(
@@ -714,6 +701,7 @@ class _InfoRow extends StatelessWidget {
   final IconData icon;
   final String? label;
   final Widget? child;
+  final TextStyle? textStyle;
   final bool alignCenter;
   final double topPadding;
   @override
@@ -724,11 +712,51 @@ class _InfoRow extends StatelessWidget {
           ? CrossAxisAlignment.center
           : CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 19, color: Theme.of(context).colorScheme.primary),
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: Theme.of(
+              context,
+            ).colorScheme.primary.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+          ),
+          alignment: Alignment.center,
+          child: Icon(
+            icon,
+            size: 16,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
         const SizedBox(width: 10),
-        Expanded(child: child ?? Text(label!)),
+        Expanded(
+          // Keeps a single line of text optically centred against the 28 px
+          // icon while multi-line content still starts at the icon's top.
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: 28),
+            child: Align(
+              alignment: AlignmentDirectional.centerStart,
+              child:
+                  child ??
+                  Text(
+                    label!,
+                    style: textStyle ?? Theme.of(context).textTheme.bodyMedium,
+                  ),
+            ),
+          ),
+        ),
       ],
     ),
+  );
+}
+
+class _InfoGroupDivider extends StatelessWidget {
+  const _InfoGroupDivider();
+
+  @override
+  Widget build(BuildContext context) => const Padding(
+    padding: EdgeInsets.only(top: AppSpacing.md),
+    child: Divider(),
   );
 }
 

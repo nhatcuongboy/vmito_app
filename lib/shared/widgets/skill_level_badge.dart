@@ -39,7 +39,11 @@ class SkillLevelBadge extends StatelessWidget {
 
 /// A neutral badge indicating that a session has no skill-level restriction.
 class AllSkillLevelsBadge extends StatelessWidget {
-  const AllSkillLevelsBadge({required this.label, this.compact = false, super.key});
+  const AllSkillLevelsBadge({
+    required this.label,
+    this.compact = false,
+    super.key,
+  });
 
   final String label;
 
@@ -55,7 +59,11 @@ class AllSkillLevelsBadge extends StatelessWidget {
 }
 
 class _Badge extends StatelessWidget {
-  const _Badge({required this.label, required this.color, this.compact = false});
+  const _Badge({
+    required this.label,
+    required this.color,
+    this.compact = false,
+  });
 
   final String label;
   final Color color;

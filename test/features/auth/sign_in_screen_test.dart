@@ -39,43 +39,55 @@ Future<void> _pumpSignIn(
 }
 
 void main() {
-  testWidgets('displays localized validation errors when fields are empty (vi)', (
-    tester,
-  ) async {
-    final service = _MockAuthService();
-    await _pumpSignIn(tester, service: service, locale: const Locale('vi'));
+  testWidgets(
+    'displays localized validation errors when fields are empty (vi)',
+    (
+      tester,
+    ) async {
+      final service = _MockAuthService();
+      await _pumpSignIn(tester, service: service, locale: const Locale('vi'));
 
-    await tester.tap(find.byKey(const ValueKey('signin-submit-button')));
-    await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('signin-submit-button')));
+      await tester.pump();
 
-    expect(find.text('Vui lòng nhập email hoặc số điện thoại'), findsOneWidget);
-    expect(find.text('Vui lòng nhập mật khẩu'), findsOneWidget);
-    verifyNever(
-      () => service.login(
-        email: any(named: 'email'),
-        password: any(named: 'password'),
-      ),
-    );
-  });
+      expect(
+        find.text('Vui lòng nhập email hoặc số điện thoại'),
+        findsOneWidget,
+      );
+      expect(find.text('Vui lòng nhập mật khẩu'), findsOneWidget);
+      verifyNever(
+        () => service.login(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      );
+    },
+  );
 
-  testWidgets('displays localized validation errors when fields are empty (en)', (
-    tester,
-  ) async {
-    final service = _MockAuthService();
-    await _pumpSignIn(tester, service: service, locale: const Locale('en'));
+  testWidgets(
+    'displays localized validation errors when fields are empty (en)',
+    (
+      tester,
+    ) async {
+      final service = _MockAuthService();
+      await _pumpSignIn(tester, service: service, locale: const Locale('en'));
 
-    await tester.tap(find.byKey(const ValueKey('signin-submit-button')));
-    await tester.pump();
+      await tester.tap(find.byKey(const ValueKey('signin-submit-button')));
+      await tester.pump();
 
-    expect(find.text('Please enter your email or phone number'), findsOneWidget);
-    expect(find.text('Please enter your password'), findsOneWidget);
-    verifyNever(
-      () => service.login(
-        email: any(named: 'email'),
-        password: any(named: 'password'),
-      ),
-    );
-  });
+      expect(
+        find.text('Please enter your email or phone number'),
+        findsOneWidget,
+      );
+      expect(find.text('Please enter your password'), findsOneWidget);
+      verifyNever(
+        () => service.login(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      );
+    },
+  );
 
   testWidgets('maps 401 ApiException to localized invalid credentials error', (
     tester,
@@ -134,6 +146,9 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('signin-submit-button')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Quá nhiều yêu cầu. Vui lòng thử lại sau.'), findsOneWidget);
+    expect(
+      find.text('Quá nhiều yêu cầu. Vui lòng thử lại sau.'),
+      findsOneWidget,
+    );
   });
 }

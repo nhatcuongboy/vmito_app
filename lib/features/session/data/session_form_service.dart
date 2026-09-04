@@ -5,6 +5,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/constants/api_endpoints.dart';
 import 'package:vmito_app/core/network/api_client.dart';
+import 'package:vmito_app/core/network/api_options.dart';
 import 'package:vmito_app/core/network/paginated.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 
@@ -180,7 +181,12 @@ class SessionFormService {
   }
 
   Future<Map<String, bool>> featureFlags() async {
-    final response = await _client.get<dynamic>(ApiEndpoints.featureFlags);
+    // This is an optional capability probe used by background UI refreshes.
+    // Callers already fall back to disabled features when it fails.
+    final response = await _client.get<dynamic>(
+      ApiEndpoints.featureFlags,
+      options: apiOptions(skipGlobalError: true),
+    );
     final json =
         (_payload(response.data) as Map?)?.cast<String, dynamic>() ?? {};
     return {for (final entry in json.entries) entry.key: entry.value == true};

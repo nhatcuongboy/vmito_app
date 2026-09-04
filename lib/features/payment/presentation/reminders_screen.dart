@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/payment/application/payment_reminders_controller.dart';
@@ -117,8 +118,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen>
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final user = ref.watch(currentUserProvider);
-    final canCreateReminders =
-        user?.isHost == true || user?.isAdmin == true;
+    final canCreateReminders = user?.isHost == true || user?.isAdmin == true;
 
     return Scaffold(
       appBar: AppBar(
@@ -173,6 +173,7 @@ class _ToCollectTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
     final asyncReminders = ref.watch(remindersListProvider('creator'));
 
     return RefreshIndicator(
@@ -192,7 +193,8 @@ class _ToCollectTab extends ConsumerWidget {
               ),
               const SizedBox(height: AppSpacing.sm),
               FilledButton.tonal(
-                onPressed: () => ref.invalidate(remindersListProvider('creator')),
+                onPressed: () =>
+                    ref.invalidate(remindersListProvider('creator')),
                 child: Text(l10n.commonRetry),
               ),
             ],
@@ -212,13 +214,13 @@ class _ToCollectTab extends ConsumerWidget {
                         Icon(
                           Icons.notifications_none,
                           size: 48,
-                          color: theme.colorScheme.outline,
+                          color: palette.mutedForeground,
                         ),
                         const SizedBox(height: AppSpacing.sm),
                         Text(
                           l10n.reminderNoToCollect,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.outline,
+                            color: palette.mutedForeground,
                           ),
                         ),
                       ],
@@ -248,7 +250,9 @@ class _ToCollectTab extends ConsumerWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     OutlinedButton(
-                      onPressed: isActioning ? null : () => onRemindAgain(reminder),
+                      onPressed: isActioning
+                          ? null
+                          : () => onRemindAgain(reminder),
                       child: isActioning
                           ? const SizedBox(
                               width: 14,
@@ -343,6 +347,7 @@ class _ToPayTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
     final asyncReminders = ref.watch(remindersListProvider('recipient'));
 
     return RefreshIndicator(
@@ -383,13 +388,13 @@ class _ToPayTab extends ConsumerWidget {
                         Icon(
                           Icons.notifications_none,
                           size: 48,
-                          color: theme.colorScheme.outline,
+                          color: palette.mutedForeground,
                         ),
                         const SizedBox(height: AppSpacing.sm),
                         Text(
                           l10n.reminderNoToPay,
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.outline,
+                            color: palette.mutedForeground,
                           ),
                         ),
                       ],

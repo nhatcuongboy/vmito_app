@@ -156,39 +156,45 @@ void main() {
     expect(find.bySemanticsLabel('Tiếp tục với Google'), findsOneWidget);
   });
 
-  testWidgets('displays localized validation errors when fields are empty (vi)', (
-    tester,
-  ) async {
-    final service = _MockAuthService();
-    await _pumpSignUp(tester, service: service, locale: const Locale('vi'));
+  testWidgets(
+    'displays localized validation errors when fields are empty (vi)',
+    (
+      tester,
+    ) async {
+      final service = _MockAuthService();
+      await _pumpSignUp(tester, service: service, locale: const Locale('vi'));
 
-    final submit = find.byKey(const ValueKey('signup-submit-button'));
-    await tester.ensureVisible(submit);
-    await tester.tap(submit);
-    await tester.pump();
+      final submit = find.byKey(const ValueKey('signup-submit-button'));
+      await tester.ensureVisible(submit);
+      await tester.tap(submit);
+      await tester.pump();
 
-    expect(find.text('Vui lòng nhập họ và tên'), findsOneWidget);
-    expect(find.text('Vui lòng nhập email'), findsOneWidget);
-    expect(find.text('Vui lòng nhập mật khẩu'), findsOneWidget);
-    expect(find.text('Vui lòng xác nhận mật khẩu'), findsOneWidget);
-  });
+      expect(find.text('Vui lòng nhập họ và tên'), findsOneWidget);
+      expect(find.text('Vui lòng nhập email'), findsOneWidget);
+      expect(find.text('Vui lòng nhập mật khẩu'), findsOneWidget);
+      expect(find.text('Vui lòng xác nhận mật khẩu'), findsOneWidget);
+    },
+  );
 
-  testWidgets('displays localized validation errors when fields are empty (en)', (
-    tester,
-  ) async {
-    final service = _MockAuthService();
-    await _pumpSignUp(tester, service: service, locale: const Locale('en'));
+  testWidgets(
+    'displays localized validation errors when fields are empty (en)',
+    (
+      tester,
+    ) async {
+      final service = _MockAuthService();
+      await _pumpSignUp(tester, service: service, locale: const Locale('en'));
 
-    final submit = find.byKey(const ValueKey('signup-submit-button'));
-    await tester.ensureVisible(submit);
-    await tester.tap(submit);
-    await tester.pump();
+      final submit = find.byKey(const ValueKey('signup-submit-button'));
+      await tester.ensureVisible(submit);
+      await tester.tap(submit);
+      await tester.pump();
 
-    expect(find.text('Please enter your full name'), findsOneWidget);
-    expect(find.text('Please enter your email'), findsOneWidget);
-    expect(find.text('Please enter a password'), findsOneWidget);
-    expect(find.text('Please confirm your password'), findsOneWidget);
-  });
+      expect(find.text('Please enter your full name'), findsOneWidget);
+      expect(find.text('Please enter your email'), findsOneWidget);
+      expect(find.text('Please enter a password'), findsOneWidget);
+      expect(find.text('Please confirm your password'), findsOneWidget);
+    },
+  );
 
   testWidgets('maps 409 ApiException to localized user exists error', (
     tester,

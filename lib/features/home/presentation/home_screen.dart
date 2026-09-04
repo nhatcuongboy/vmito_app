@@ -274,7 +274,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ),
     title: Text(
       l10n.appName,
-      style: TextStyle(color: Theme.of(context).colorScheme.primary),
+      style: Theme.of(context).appBarTheme.titleTextStyle?.copyWith(
+        color: Theme.of(context).colorScheme.primary,
+        fontWeight: FontWeight.w800,
+        letterSpacing: -0.4,
+      ),
     ),
     actions: [
       if (isAuthenticated) ...[

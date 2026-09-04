@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:printing/printing.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
@@ -21,6 +20,7 @@ import 'package:vmito_app/features/payment/domain/payment.dart';
 import 'package:vmito_app/features/payment/presentation/widgets/host_finance_chart.dart';
 import 'package:vmito_app/features/payment/presentation/widgets/player_payment_detail_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 
 enum _ExportAction { csv, pdf, print }
 
@@ -120,11 +120,13 @@ class _TransactionDashboardScreenState
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(AppSpacing.screenPadding),
-                  child: AppReactiveForm(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.screenPadding,
+                    vertical: AppSpacing.sm,
+                  ),
+                  child: AppReactiveForm<void>(
                     formGroup: _filterForm,
                     child: _FinanceFilterCard(
-                      form: _filterForm,
                       onPreset: _selectPeriod,
                       onCustom: _showCustomRange,
                     ),
@@ -208,7 +210,7 @@ class _TransactionDashboardScreenState
           AppSpacing.md,
           MediaQuery.viewInsetsOf(context).bottom + AppSpacing.md,
         ),
-        child: AppReactiveForm(
+        child: AppReactiveForm<void>(
           formGroup: _filterForm,
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -364,12 +366,10 @@ class _TransactionDashboardScreenState
 
 class _FinanceFilterCard extends StatelessWidget {
   const _FinanceFilterCard({
-    required this.form,
     required this.onPreset,
     required this.onCustom,
   });
 
-  final FormGroup form;
   final ValueChanged<FinancePeriod> onPreset;
   final VoidCallback onCustom;
 
@@ -378,39 +378,83 @@ class _FinanceFilterCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Card(
       margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.sm),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                const Icon(AppIcons.calendarMonth, size: 18),
-                const SizedBox(width: AppSpacing.sm),
-                Text(l10n.transactionDateRange),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            ReactiveValueListenableBuilder<FinancePeriod>(
-              formControlName: FinanceFilterControl.period,
-              builder: (context, control, _) => Wrap(
-                spacing: AppSpacing.sm,
-                runSpacing: AppSpacing.xs,
-                children: [
-                  for (final period in FinancePeriod.values)
-                    ChoiceChip(
-                      key: Key('finance-period-${period.name}'),
-                      label: Text(_periodLabel(l10n, period)),
-                      selected: control.value == period,
-                      onSelected: (_) => period == FinancePeriod.custom
-                          ? onCustom()
-                          : onPreset(period),
+      clipBehavior: Clip.antiAlias,
+      child: ReactiveValueListenableBuilder<FinancePeriod>(
+        formControlName: FinanceFilterControl.period,
+        builder: (context, control, _) {
+          final selected = control.value ?? FinancePeriod.thisMonth;
+          return PopupMenuButton<FinancePeriod>(
+            key: const Key('finance-period-menu'),
+            tooltip: l10n.transactionDateRange,
+            initialValue: selected,
+            onSelected: (period) =>
+                period == FinancePeriod.custom ? onCustom() : onPreset(period),
+            itemBuilder: (context) => [
+              for (final period in FinancePeriod.values)
+                PopupMenuItem(
+                  key: Key('finance-period-${period.name}'),
+                  value: period,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 24,
+                        child: period == selected
+                            ? Icon(
+                                AppIcons.check,
+                                size: 18,
+                                color: Theme.of(context).colorScheme.primary,
+                              )
+                            : null,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Text(_periodLabel(l10n, period)),
+                    ],
+                  ),
+                ),
+            ],
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                minHeight: AppSizes.minTapTarget,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.xs,
+                ),
+                child: Row(
+                  children: [
+                    const Icon(AppIcons.calendarMonth, size: 20),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.transactionDateRange,
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  color: Theme.of(
+                                    context,
+                                  ).extension<AppPalette>()!.mutedForeground,
+                                ),
+                          ),
+                          const SizedBox(height: AppSpacing.xxs),
+                          Text(
+                            _periodLabel(l10n, selected),
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
                     ),
-                ],
+                    const Icon(AppIcons.chevronDown),
+                  ],
+                ),
               ),
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -710,7 +754,7 @@ class _BySessionTabState extends State<_BySessionTab> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return AppReactiveForm(
+    return AppReactiveForm<void>(
       formGroup: _form,
       child: ReactiveValueListenableBuilder<SessionFinanceSort>(
         formControlName: 'sort',
@@ -860,7 +904,7 @@ class _ByPlayerTabState extends ConsumerState<_ByPlayerTab> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return AppReactiveForm(
+    return AppReactiveForm<void>(
       formGroup: _form,
       child: ReactiveFormConsumer(
         builder: (context, form, _) {

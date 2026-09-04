@@ -53,7 +53,10 @@ void main() {
         expect(find.text('Name is required'), findsNothing);
 
         // 2. Type an invalid email and then move focus to name-field (blur email)
-        await tester.enterText(find.byKey(const ValueKey('email-field')), 'invalid-email');
+        await tester.enterText(
+          find.byKey(const ValueKey('email-field')),
+          'invalid-email',
+        );
         await tester.tap(find.byKey(const ValueKey('name-field')));
         await tester.pumpAndSettle();
 

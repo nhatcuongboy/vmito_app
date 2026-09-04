@@ -257,7 +257,7 @@ class _LocationRow extends ConsumerWidget {
     final venueName = session.venue?.name?.trim();
     final title = venueName == null || venueName.isEmpty
         ? session.displayPlace(showNewAddress: showNewAddress)
-        : venueName;
+        : _sessionVenueDisplayName(venueName, l10n);
     final venue = session.venue;
     final hasAddress = [
       venue?.address,
@@ -317,7 +317,7 @@ class _LocationRow extends ConsumerWidget {
                     newAddress: venue?.newAddress,
                     newDistrict: venue?.newDistrict,
                     newCity: venue?.newCity,
-                    maxLines: 2,
+                    maxLines: null,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: palette.mutedForeground,
                     ),
@@ -329,6 +329,17 @@ class _LocationRow extends ConsumerWidget {
       ],
     );
   }
+}
+
+String _sessionVenueDisplayName(String name, AppLocalizations l10n) {
+  final normalized = name.toLowerCase();
+  final alreadyHasGenericAffix =
+      normalized == 'sân' ||
+      normalized.startsWith('sân ') ||
+      normalized.startsWith('sân.') ||
+      normalized.endsWith(' court') ||
+      normalized.endsWith('场');
+  return alreadyHasGenericAffix ? name : l10n.venueGenericName(name);
 }
 
 class _HostRow extends StatelessWidget {

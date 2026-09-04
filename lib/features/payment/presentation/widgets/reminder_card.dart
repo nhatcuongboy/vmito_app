@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/core/widgets/user_avatar.dart';
 import 'package:vmito_app/features/payment/domain/payment.dart';
@@ -21,63 +22,66 @@ class ReminderCard extends StatelessWidget {
   final Widget? actions;
 
   void _showProofImageDialog(BuildContext context, String imageUrl) {
-    unawaited(showDialog<void>(
-      context: context,
-      builder: (ctx) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.all(AppSpacing.md),
-        child: Stack(
-          alignment: Alignment.topRight,
-          children: [
-            InteractiveViewer(
-              minScale: 0.5,
-              maxScale: 4,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(AppSpacing.sm),
-                child: CachedNetworkImage(
-                  imageUrl: imageUrl,
-                  fit: BoxFit.contain,
-                  placeholder: (_, _) => const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                  errorWidget: (_, _, _) => Container(
-                    color: Colors.black54,
-                    padding: const EdgeInsets.all(AppSpacing.lg),
-                    child: const Icon(
-                      Icons.broken_image,
-                      color: Colors.white,
-                      size: 48,
+    unawaited(
+      showDialog<void>(
+        context: context,
+        builder: (ctx) => Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.all(AppSpacing.md),
+          child: Stack(
+            alignment: Alignment.topRight,
+            children: [
+              InteractiveViewer(
+                minScale: 0.5,
+                maxScale: 4,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(AppSpacing.sm),
+                  child: CachedNetworkImage(
+                    imageUrl: imageUrl,
+                    fit: BoxFit.contain,
+                    placeholder: (_, _) => const Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                    errorWidget: (_, _, _) => Container(
+                      color: Colors.black54,
+                      padding: const EdgeInsets.all(AppSpacing.lg),
+                      child: const Icon(
+                        Icons.broken_image,
+                        color: Colors.white,
+                        size: 48,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-            IconButton(
-              icon: const CircleAvatar(
-                backgroundColor: Colors.black54,
-                child: Icon(Icons.close, color: Colors.white),
+              IconButton(
+                icon: const CircleAvatar(
+                  backgroundColor: Colors.black54,
+                  child: Icon(Icons.close, color: Colors.white),
+                ),
+                onPressed: () => Navigator.of(ctx).pop(),
               ),
-              onPressed: () => Navigator.of(ctx).pop(),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ));
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
     final isDark = theme.brightness == Brightness.dark;
     final locale = Localizations.localeOf(context).languageCode;
 
-    final counterparty =
-        role == 'creator' ? reminder.recipient : reminder.creator;
-    final counterpartyName =
-        counterparty?.name.isNotEmpty == true
-            ? counterparty!.name
-            : l10n.reminderUnknownUser;
+    final counterparty = role == 'creator'
+        ? reminder.recipient
+        : reminder.creator;
+    final counterpartyName = counterparty?.name.isNotEmpty == true
+        ? counterparty!.name
+        : l10n.reminderUnknownUser;
 
     final statusColor = switch (reminder.status) {
       PaymentReminderStatus.resolved => Colors.green,
@@ -223,7 +227,7 @@ class ReminderCard extends StatelessWidget {
                           '${l10n.reminderLastRemindedAt}: ${Dates.dayAndTime(reminder.lastRemindedAt!, locale: locale)}'
                           '${reminder.reminderCount > 1 ? ' · ${l10n.reminderCount(reminder.reminderCount)}' : ''}',
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.outline,
+                            color: palette.mutedForeground,
                           ),
                         ),
                     ],
@@ -241,8 +245,7 @@ class ReminderCard extends StatelessWidget {
             ),
 
             // Proof section if AWAITING_CONFIRMATION
-            if (reminder.status ==
-                    PaymentReminderStatus.awaitingConfirmation &&
+            if (reminder.status == PaymentReminderStatus.awaitingConfirmation &&
                 (reminder.proofImageUrl != null ||
                     reminder.proofNotes != null)) ...[
               const SizedBox(height: AppSpacing.sm),

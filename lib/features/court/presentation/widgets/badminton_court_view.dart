@@ -243,7 +243,8 @@ class _BadmintonCourtViewState extends State<BadmintonCourtView> {
   }
 
   CourtFormat get _format {
-    final type = widget.matchType ?? widget.court.matchTypeOr(MatchType.doubles);
+    final type =
+        widget.matchType ?? widget.court.matchTypeOr(MatchType.doubles);
     return type == MatchType.singles
         ? CourtFormat.singles
         : CourtFormat.doubles;

@@ -74,3 +74,21 @@ abstract class LoginResponse with _$LoginResponse {
   factory LoginResponse.fromJson(Map<String, dynamic> json) =>
       _$LoginResponseFromJson(json);
 }
+
+/// `POST /auth/refresh` response.
+///
+/// Carries no user, unlike login — the caller must follow up with
+/// `/users/me`. The backend revokes the presented token and issues a new one,
+/// so the returned pair must replace the stored pair, not sit beside it.
+@freezed
+abstract class AuthTokens with _$AuthTokens {
+  const factory AuthTokens({
+    required String accessToken,
+    required String refreshToken,
+    String? tokenType,
+    @JsonKey(name: 'expiresIn') dynamic expiresIn,
+  }) = _AuthTokens;
+
+  factory AuthTokens.fromJson(Map<String, dynamic> json) =>
+      _$AuthTokensFromJson(json);
+}

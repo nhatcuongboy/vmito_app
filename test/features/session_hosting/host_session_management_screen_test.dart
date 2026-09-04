@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
+import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/court/application/live_session_controller.dart';
@@ -133,6 +134,22 @@ void main() {
     expect(find.text('Hủy buổi chơi'), findsOneWidget);
   });
 
+  testWidgets('separates the header and content surfaces', (tester) async {
+    await _pump(tester);
+
+    final appBar = tester.widget<AppBar>(find.byType(AppBar));
+    final content = tester.widget<ColoredBox>(
+      find.byKey(const Key('host-session-content-background')),
+    );
+
+    expect(appBar.backgroundColor, AppColors.card);
+    expect(appBar.shape, isA<Border>());
+    expect(content.color.r, closeTo(247 / 255, 0.002));
+    expect(content.color.g, closeTo(247 / 255, 0.002));
+    expect(content.color.b, closeTo(248 / 255, 0.002));
+    expect(content.color, isNot(appBar.backgroundColor));
+  });
+
   testWidgets('More shows end action while a session is in progress', (
     tester,
   ) async {
@@ -155,7 +172,7 @@ void main() {
     expect(find.text('Sửa buổi chơi'), findsNothing);
   });
 
-  testWidgets('compact header gives a long name one line above the status', (
+  testWidgets('header keeps a long name on one line beside the status', (
     tester,
   ) async {
     const longName =
@@ -171,7 +188,9 @@ void main() {
     final badgeRect = tester.getRect(
       find.byKey(const Key('host-session-status-badge')),
     );
-    final appBar = tester.widget<AppBar>(find.byType(AppBar));
+    final moreRect = tester.getRect(
+      find.byKey(const Key('host-session-more-menu')),
+    );
 
     expect(title.data, longName);
     expect(title.maxLines, 1);
@@ -179,12 +198,12 @@ void main() {
     expect(title.style?.fontSize, 20);
     expect(title.style?.height, closeTo(24 / 20, 0.0001));
     expect(title.style?.fontWeight, FontWeight.w700);
-    expect(appBar.toolbarHeight, 72);
+    expect(titleRect.right, lessThanOrEqualTo(badgeRect.left));
+    expect(badgeRect.right, lessThanOrEqualTo(moreRect.left));
     expect(
-      find.byKey(const Key('host-session-header-compact')),
-      findsOneWidget,
+      (titleRect.center.dy - badgeRect.center.dy).abs(),
+      lessThanOrEqualTo(1),
     );
-    expect(badgeRect.top, greaterThanOrEqualTo(titleRect.bottom));
     expect(tester.takeException(), isNull);
   });
 

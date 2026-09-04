@@ -48,8 +48,9 @@ abstract final class CourtSlotLayout {
 
   /// The normalized offset [visualIndex] is centered at (0..1 range).
   static Offset offsetAt(int visualIndex, CourtFormat format) {
-    final offsets =
-        format == CourtFormat.singles ? _singlesOffsets : _doublesOffsets;
+    final offsets = format == CourtFormat.singles
+        ? _singlesOffsets
+        : _doublesOffsets;
     return offsets[visualIndex.clamp(0, offsets.length - 1)];
   }
 

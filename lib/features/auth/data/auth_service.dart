@@ -31,6 +31,19 @@ class AuthService {
     return unwrap(response.data, LoginResponse.fromJson);
   }
 
+  /// Exchanges a stored refresh token for a fresh pair.
+  ///
+  /// `/auth/refresh` is in the auth interceptor's no-refresh list, so a 401
+  /// here surfaces as an `ApiException` instead of looping.
+  Future<AuthTokens> refreshTokens(String refreshToken) async {
+    final response = await _client.post<Map<String, dynamic>>(
+      ApiEndpoints.refresh,
+      data: {'refreshToken': refreshToken},
+      options: apiOptions(skipGlobalError: true),
+    );
+    return unwrap(response.data, AuthTokens.fromJson);
+  }
+
   /// `locale` is a query param, and it decides the language of the welcome
   /// email — pass the app's current locale, not a constant.
   Future<User> register({

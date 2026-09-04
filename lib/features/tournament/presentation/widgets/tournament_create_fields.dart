@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/tournament/domain/form/tournament_create_form.dart';
@@ -55,13 +54,6 @@ class TournamentCreateFields extends StatelessWidget {
           style: Theme.of(
             context,
           ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          l10n.tournamentCreateSportHelper,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).extension<AppPalette>()!.mutedForeground,
-          ),
         ),
         const SizedBox(height: AppSpacing.sm),
         ReactiveValueListenableBuilder<TournamentSportType>(

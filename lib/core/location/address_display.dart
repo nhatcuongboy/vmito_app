@@ -1,7 +1,7 @@
 /// The presentation value used for venue and session addresses.
 ///
-/// The web app treats `newAddress` as a server-composed, complete address.
-/// Therefore it must not be combined with the legacy district/city fields.
+/// New-format address components are combined without duplicating
+/// administrative parts already included in `newAddress`.
 class AppAddressDisplayValue {
   const AppAddressDisplayValue({required this.text, required this.isNew});
 
@@ -22,10 +22,15 @@ AppAddressDisplayValue resolveAppAddress({
   String? district,
   String? city,
   String? newAddress,
+  String? newDistrict,
+  String? newCity,
 }) {
   final newText = _clean(newAddress);
   if (showNewAddress && newText != null) {
-    return AppAddressDisplayValue(text: newText, isNew: true);
+    return AppAddressDisplayValue(
+      text: _joinUnique(newAddress, newDistrict, newCity),
+      isNew: true,
+    );
   }
 
   return AppAddressDisplayValue(
@@ -68,6 +73,20 @@ String _join(String? first, String? second, String? third) => [
   second,
   third,
 ].map(_clean).whereType<String>().join(', ');
+
+String _joinUnique(String? first, String? second, String? third) {
+  final parts = <String>[];
+  for (final value in [first, second, third].map(_clean).whereType<String>()) {
+    final normalizedValue = value.toLowerCase();
+    if (parts.any(
+      (part) => part.toLowerCase().contains(normalizedValue),
+    )) {
+      continue;
+    }
+    parts.add(value);
+  }
+  return parts.join(', ');
+}
 
 String? _clean(String? value) {
   final cleaned = value?.trim();

@@ -202,7 +202,77 @@ void main() {
     },
   );
 
-  test('hosted and joined keep independent filter and search state', () async {
+  test(
+    'hosted and joined keep independent filter, sort, and search state',
+    () async {
+      final repository = _MockSessionRepository();
+      when(
+        () => repository.hostedBy(
+          any(),
+          limit: any(named: 'limit'),
+          page: any(named: 'page'),
+          query: any(named: 'query'),
+        ),
+      ).thenAnswer((_) async => _page(<Session>[]));
+      when(() => repository.joinedByCurrentUser(any())).thenAnswer(
+        (_) async => _page(<Session>[]),
+      );
+      when(repository.pendingJoinRequestCount).thenAnswer((_) async => 0);
+      final container = _container(repository);
+      final hosted = container.read(
+        mySessionsControllerProvider(MySessionScope.hosted).notifier,
+      );
+      final joined = container.read(
+        mySessionsControllerProvider(MySessionScope.joined).notifier,
+      );
+
+      await hosted.setFilter(MySessionFilter.ended);
+      await hosted.setSort(MySessionSort.dateFurthest);
+      await hosted.setSearch('hosted');
+      await joined.setFilter(MySessionFilter.all);
+      await joined.setSort(MySessionSort.newest);
+      await joined.setSearch('joined');
+
+      expect(
+        container
+            .read(mySessionsControllerProvider(MySessionScope.hosted))
+            .filter,
+        MySessionFilter.ended,
+      );
+      expect(
+        container
+            .read(mySessionsControllerProvider(MySessionScope.hosted))
+            .search,
+        'hosted',
+      );
+      expect(
+        container
+            .read(mySessionsControllerProvider(MySessionScope.hosted))
+            .sort,
+        MySessionSort.dateFurthest,
+      );
+      expect(
+        container
+            .read(mySessionsControllerProvider(MySessionScope.joined))
+            .filter,
+        MySessionFilter.all,
+      );
+      expect(
+        container
+            .read(mySessionsControllerProvider(MySessionScope.joined))
+            .search,
+        'joined',
+      );
+      expect(
+        container
+            .read(mySessionsControllerProvider(MySessionScope.joined))
+            .sort,
+        MySessionSort.newest,
+      );
+    },
+  );
+
+  test('sort reloads sessions with the selected backend ordering', () async {
     final repository = _MockSessionRepository();
     when(
       () => repository.hostedBy(
@@ -212,47 +282,29 @@ void main() {
         query: any(named: 'query'),
       ),
     ).thenAnswer((_) async => _page(<Session>[]));
-    when(() => repository.joinedByCurrentUser(any())).thenAnswer(
-      (_) async => _page(<Session>[]),
-    );
     when(repository.pendingJoinRequestCount).thenAnswer((_) async => 0);
     final container = _container(repository);
-    final hosted = container.read(
+    final controller = container.read(
       mySessionsControllerProvider(MySessionScope.hosted).notifier,
     );
-    final joined = container.read(
-      mySessionsControllerProvider(MySessionScope.joined).notifier,
-    );
 
-    await hosted.setFilter(MySessionFilter.ended);
-    await hosted.setSearch('hosted');
-    await joined.setFilter(MySessionFilter.all);
-    await joined.setSearch('joined');
+    await controller.loadInitial();
+    await controller.setSort(MySessionSort.dateFurthest);
+    await controller.setSort(MySessionSort.newest);
 
-    expect(
-      container
-          .read(mySessionsControllerProvider(MySessionScope.hosted))
-          .filter,
-      MySessionFilter.ended,
-    );
-    expect(
-      container
-          .read(mySessionsControllerProvider(MySessionScope.hosted))
-          .search,
-      'hosted',
-    );
-    expect(
-      container
-          .read(mySessionsControllerProvider(MySessionScope.joined))
-          .filter,
-      MySessionFilter.all,
-    );
-    expect(
-      container
-          .read(mySessionsControllerProvider(MySessionScope.joined))
-          .search,
-      'joined',
-    );
+    final queries = verify(
+      () => repository.hostedBy(
+        'u1',
+        limit: 20,
+        query: captureAny(named: 'query'),
+      ),
+    ).captured.cast<SessionListQuery>();
+    expect(queries[0].sortBy, 'startTime');
+    expect(queries[0].sortOrder, 'asc');
+    expect(queries[1].sortBy, 'startTime');
+    expect(queries[1].sortOrder, 'desc');
+    expect(queries[2].sortBy, 'created');
+    expect(queries[2].sortOrder, 'desc');
   });
 
   test('restore invalidates an in-flight search response', () async {

@@ -69,6 +69,8 @@ abstract class SessionVenue with _$SessionVenue {
       district: district,
       city: city,
       newAddress: newAddress,
+      newDistrict: newDistrict,
+      newCity: newCity,
     );
     return resolved.isEmpty ? null : resolved.text;
   }

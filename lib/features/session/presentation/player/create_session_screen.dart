@@ -1169,9 +1169,9 @@ class _BasicSection extends StatelessWidget {
                                   context,
                                 ).extension<AppPalette>()!.mutedForeground
                               : Theme.of(context)
-                                  .extension<AppPalette>()!
-                                  .mutedForeground
-                                  .withValues(alpha: 0.5),
+                                    .extension<AppPalette>()!
+                                    .mutedForeground
+                                    .withValues(alpha: 0.5),
                         ),
                       ),
                       const SizedBox(width: AppSpacing.xs),
@@ -1212,9 +1212,9 @@ class _BasicSection extends StatelessWidget {
                               color: canEditVenue
                                   ? null
                                   : Theme.of(context)
-                                      .extension<AppPalette>()!
-                                      .mutedForeground
-                                      .withValues(alpha: 0.6),
+                                        .extension<AppPalette>()!
+                                        .mutedForeground
+                                        .withValues(alpha: 0.6),
                             ),
                           ),
                           child: Text(
@@ -1224,9 +1224,9 @@ class _BasicSection extends StatelessWidget {
                             style: TextStyle(
                               color: canEditVenue
                                   ? Theme.of(context).colorScheme.onSurface
-                                  : Theme.of(context)
-                                      .extension<AppPalette>()!
-                                      .mutedForeground,
+                                  : Theme.of(
+                                      context,
+                                    ).extension<AppPalette>()!.mutedForeground,
                             ),
                           ),
                         ),
@@ -1242,18 +1242,18 @@ class _BasicSection extends StatelessWidget {
                                 context,
                               ).colorScheme.primary.withValues(alpha: .07)
                             : Theme.of(context)
-                                .extension<AppPalette>()!
-                                .muted
-                                .withValues(alpha: .5),
+                                  .extension<AppPalette>()!
+                                  .muted
+                                  .withValues(alpha: .5),
                         border: Border.all(
                           color: canEditVenue
                               ? Theme.of(
                                   context,
                                 ).colorScheme.primary.withValues(alpha: .25)
                               : Theme.of(context)
-                                  .extension<AppPalette>()!
-                                  .border
-                                  .withValues(alpha: .6),
+                                    .extension<AppPalette>()!
+                                    .border
+                                    .withValues(alpha: .6),
                         ),
                         borderRadius: BorderRadius.circular(AppRadius.lg),
                       ),
@@ -1267,8 +1267,8 @@ class _BasicSection extends StatelessWidget {
                                   color: canEditVenue
                                       ? Theme.of(context).colorScheme.primary
                                       : Theme.of(context)
-                                          .extension<AppPalette>()!
-                                          .mutedForeground,
+                                            .extension<AppPalette>()!
+                                            .mutedForeground,
                                   fontWeight: FontWeight.w600,
                                 ),
                           ),
@@ -1300,9 +1300,9 @@ class _BasicSection extends StatelessWidget {
                             style: TextStyle(
                               color: canEditVenue
                                   ? null
-                                  : Theme.of(context)
-                                      .extension<AppPalette>()!
-                                      .mutedForeground,
+                                  : Theme.of(
+                                      context,
+                                    ).extension<AppPalette>()!.mutedForeground,
                             ),
                             decoration: InputDecoration(
                               enabled: canEditVenue,
@@ -1326,9 +1326,9 @@ class _BasicSection extends StatelessWidget {
                             style: TextStyle(
                               color: canEditVenue
                                   ? null
-                                  : Theme.of(context)
-                                      .extension<AppPalette>()!
-                                      .mutedForeground,
+                                  : Theme.of(
+                                      context,
+                                    ).extension<AppPalette>()!.mutedForeground,
                             ),
                             decoration: InputDecoration(
                               enabled: canEditVenue,
@@ -1339,9 +1339,9 @@ class _BasicSection extends StatelessWidget {
                                 color: canEditVenue
                                     ? null
                                     : Theme.of(context)
-                                        .extension<AppPalette>()!
-                                        .mutedForeground
-                                        .withValues(alpha: 0.6),
+                                          .extension<AppPalette>()!
+                                          .mutedForeground
+                                          .withValues(alpha: 0.6),
                               ),
                             ),
                             onChanged: (_) {
@@ -1634,9 +1634,9 @@ class _TimeSection extends StatelessWidget {
                             context,
                           ).extension<AppPalette>()!.mutedForeground
                         : Theme.of(context)
-                            .extension<AppPalette>()!
-                            .mutedForeground
-                            .withValues(alpha: 0.5),
+                              .extension<AppPalette>()!
+                              .mutedForeground
+                              .withValues(alpha: 0.5),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.xs),
@@ -1944,13 +1944,15 @@ class _CourtsSection extends StatelessWidget {
               style: OutlinedButton.styleFrom(
                 minimumSize: const Size.fromHeight(48),
                 foregroundColor: Theme.of(context).colorScheme.primary,
-                disabledForegroundColor:
-                    palette.mutedForeground.withValues(alpha: 0.7),
-                disabledBackgroundColor:
-                    palette.muted.withValues(alpha: 0.4),
+                disabledForegroundColor: palette.mutedForeground.withValues(
+                  alpha: 0.7,
+                ),
+                disabledBackgroundColor: palette.muted.withValues(alpha: 0.4),
                 side: BorderSide(
                   color: enabled
-                      ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)
+                      ? Theme.of(
+                          context,
+                        ).colorScheme.primary.withValues(alpha: 0.5)
                       : palette.border.withValues(alpha: 0.4),
                 ),
               ),

@@ -99,48 +99,50 @@ void main() {
     expect(result, isTrue);
   });
 
-  testWidgets('AppConfirmDialog renders destructive type with error background', (
-    tester,
-  ) async {
-    bool? result;
-    await tester.pumpWidget(
-      buildSubject(
-        Builder(
-          builder: (context) => ElevatedButton(
-            onPressed: () async {
-              result = await showAppConfirmDialog(
-                context,
-                type: AppConfirmDialogType.destructive,
-                title: 'Sign Out',
-                content: 'Are you sure?',
-                confirmLabel: 'Sign Out',
-              );
-            },
-            child: const Text('Open'),
+  testWidgets(
+    'AppConfirmDialog renders destructive type with error background',
+    (
+      tester,
+    ) async {
+      bool? result;
+      await tester.pumpWidget(
+        buildSubject(
+          Builder(
+            builder: (context) => ElevatedButton(
+              onPressed: () async {
+                result = await showAppConfirmDialog(
+                  context,
+                  type: AppConfirmDialogType.destructive,
+                  title: 'Sign Out',
+                  content: 'Are you sure?',
+                  confirmLabel: 'Sign Out',
+                );
+              },
+              child: const Text('Open'),
+            ),
           ),
         ),
-      ),
-    );
+      );
 
-    await tester.tap(find.text('Open'));
-    await tester.pumpAndSettle();
+      await tester.tap(find.text('Open'));
+      await tester.pumpAndSettle();
 
-    expect(find.text('Sign Out'), findsNWidgets(2)); // Title and button
-    final confirmButton = tester.widget<FilledButton>(
-      find.widgetWithText(FilledButton, 'Sign Out'),
-    );
-    final context = tester.element(find.byType(AppConfirmDialog));
-    final expectedErrorColor = Theme.of(context).colorScheme.error;
-    expect(
-      confirmButton.style?.backgroundColor?.resolve({}),
-      expectedErrorColor,
-    );
+      expect(find.text('Sign Out'), findsNWidgets(2)); // Title and button
+      final confirmButton = tester.widget<FilledButton>(
+        find.widgetWithText(FilledButton, 'Sign Out'),
+      );
+      final context = tester.element(find.byType(AppConfirmDialog));
+      final expectedErrorColor = Theme.of(context).colorScheme.error;
+      expect(
+        confirmButton.style?.backgroundColor?.resolve({}),
+        expectedErrorColor,
+      );
 
-    await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
-    await tester.pumpAndSettle();
-    expect(result, isFalse);
-  });
-
+      await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+      await tester.pumpAndSettle();
+      expect(result, isFalse);
+    },
+  );
 
   test('AppTheme configures roomier dialog sizing on mobile', () {
     expect(

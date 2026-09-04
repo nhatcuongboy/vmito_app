@@ -20,6 +20,7 @@ class TokenStorage {
 
   static const _accessTokenKey = 'vmito.access_token';
   static const _refreshTokenKey = 'vmito.refresh_token';
+  static const _biometricRefreshTokenKey = 'vmito.biometric_refresh_token';
 
   /// Cached so the dio request interceptor stays synchronous — a platform
   /// channel round trip per request would be a real cost on a list screen.
@@ -44,6 +45,9 @@ class TokenStorage {
     await Future.wait([
       _storage.write(key: _accessTokenKey, value: accessToken),
       _storage.write(key: _refreshTokenKey, value: refreshToken),
+      // A live pair supersedes anything parked for biometrics; the parked one
+      // is revoked the moment this pair was minted from it.
+      _storage.delete(key: _biometricRefreshTokenKey),
     ]);
   }
 
@@ -59,11 +63,34 @@ class TokenStorage {
     }
   }
 
+  /// Ends the session and parks the refresh token where [AuthInterceptor]
+  /// cannot see it.
+  ///
+  /// Leaving it under [_refreshTokenKey] would let any 401 on a public screen
+  /// silently re-authenticate the network layer behind a signed-out UI — the
+  /// app would then send a bearer token on requests it believes are anonymous,
+  /// and role-gated endpoints answer 403.
+  Future<void> parkRefreshTokenForBiometrics() async {
+    final refreshToken = await _storage.read(key: _refreshTokenKey);
+    _cachedAccessToken = null;
+    await Future.wait([
+      _storage.delete(key: _accessTokenKey),
+      _storage.delete(key: _refreshTokenKey),
+      if (refreshToken != null)
+        _storage.write(key: _biometricRefreshTokenKey, value: refreshToken),
+    ]);
+  }
+
+  /// Only [AuthController.signInWithBiometrics] may read this.
+  Future<String?> readBiometricRefreshToken() =>
+      _storage.read(key: _biometricRefreshTokenKey);
+
   Future<void> clear() async {
     _cachedAccessToken = null;
     await Future.wait([
       _storage.delete(key: _accessTokenKey),
       _storage.delete(key: _refreshTokenKey),
+      _storage.delete(key: _biometricRefreshTokenKey),
     ]);
   }
 }

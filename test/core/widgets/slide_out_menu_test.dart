@@ -143,7 +143,7 @@ void main() {
     );
     await _openDrawer(tester);
 
-    expect(find.text('Khám phá'), findsOneWidget);
+    expect(find.text('KHÁM PHÁ'), findsOneWidget);
     expect(find.text('Tìm kèo'), findsOneWidget);
     expect(find.text('Tìm sân'), findsOneWidget);
     expect(find.text('Tìm nhóm'), findsOneWidget);
@@ -151,7 +151,7 @@ void main() {
     expect(find.text('Bảng xếp hạng'), findsOneWidget);
     expect(find.text('Bảng tin'), findsNothing);
     expect(find.text('ADMIN'), findsNothing);
-    expect(find.text('Quản lý'), findsNothing);
+    expect(find.text('QUẢN LÝ'), findsNothing);
     expect(find.text('Cài đặt'), findsNothing);
     expect(find.text('Đăng xuất'), findsNothing);
     expect(find.text('Đăng nhập'), findsOneWidget);
@@ -178,14 +178,10 @@ void main() {
     );
     expect(signInRect.width, signUpRect.width);
     expect(signInRect.bottom, lessThan(signUpRect.top));
-    await tester.scrollUntilVisible(
-      find.text('Ngôn ngữ'),
-      240,
-      scrollable: find.byType(Scrollable),
-    );
-    expect(find.text('Ngôn ngữ'), findsOneWidget);
-    expect(find.text('Giao diện'), findsOneWidget);
-    expect(find.text('© 2026 Vmito.'), findsOneWidget);
+    expect(find.byKey(const Key('menu-language-action')), findsOneWidget);
+    expect(find.byKey(const Key('menu-theme-action')), findsOneWidget);
+    expect(find.text('VI'), findsOneWidget);
+    expect(find.text('© 2026'), findsOneWidget);
     expect(find.textContaining('Tất cả quyền'), findsNothing);
     expect(find.textContaining('v1.4.0'), findsNothing);
     expect(
@@ -216,7 +212,7 @@ void main() {
     await _openDrawer(tester);
 
     expect(find.text('Cá nhân'), findsNothing);
-    expect(find.text('Quản lý'), findsNothing);
+    expect(find.text('QUẢN LÝ'), findsNothing);
     expect(find.text('ADMIN'), findsNothing);
     expect(find.text('Đăng nhập'), findsOneWidget);
   });
@@ -228,7 +224,7 @@ void main() {
     );
     await _openDrawer(tester);
 
-    final section = tester.widget<Text>(find.text('Khám phá'));
+    final section = tester.widget<Text>(find.text('KHÁM PHÁ'));
     final activeItem = tester.widget<Text>(find.text('Tìm kèo'));
     final inactiveItem = tester.widget<Text>(find.text('Tìm sân'));
     final activeTile = find.ancestor(
@@ -237,7 +233,7 @@ void main() {
     );
     final activeIcon = find.descendant(
       of: activeTile,
-      matching: find.byIcon(AppIcons.sessions),
+      matching: find.byIcon(AppIcons.searchSessions),
     );
     final signIn = tester.widget<OutlinedButton>(
       find.ancestor(
@@ -248,6 +244,7 @@ void main() {
 
     expect(section.style?.fontSize, 12);
     expect(section.style?.height, closeTo(16 / 12, 0.0001));
+    expect(section.style?.letterSpacing, 0.4);
     expect(section.style?.fontWeight, FontWeight.w700);
     expect(activeItem.style?.fontSize, 15);
     expect(activeItem.style?.height, closeTo(20 / 15, 0.0001));
@@ -266,18 +263,8 @@ void main() {
       FontWeight.w600,
     );
 
-    await tester.scrollUntilVisible(
-      find.text('Tiếng Việt'),
-      240,
-      scrollable: find.byType(Scrollable),
-    );
-    final trailing = tester.widget<Text>(find.text('Tiếng Việt'));
     final footerName = tester.widget<Text>(find.text('Vmito'));
-    final footerYear = tester.widget<Text>(find.text('© 2026 Vmito.'));
-    expect(trailing.style?.fontSize, 14);
-    expect(trailing.style?.fontWeight, FontWeight.w500);
-    expect(trailing.maxLines, 1);
-    expect(trailing.overflow, TextOverflow.ellipsis);
+    final footerYear = tester.widget<Text>(find.text('© 2026'));
     expect(footerName.style?.fontSize, 14);
     expect(footerName.style?.fontWeight, FontWeight.w700);
     expect(footerYear.style?.fontSize, 12);
@@ -348,13 +335,14 @@ void main() {
 
     expect(find.text('Nhật Cường'), findsOneWidget);
     expect(find.text('Chủ kèo'), findsOneWidget);
-    expect(find.text('Quản lý'), findsOneWidget);
+    expect(find.text('QUẢN LÝ'), findsOneWidget);
     expect(find.text('Kèo'), findsOneWidget);
     expect(find.text('Nhóm'), findsOneWidget);
     expect(find.text('Giao dịch'), findsOneWidget);
     expect(find.text('Nhắc thanh toán'), findsOneWidget);
     expect(find.text('ADMIN'), findsNothing);
-    expect(find.text('Yêu thích'), findsOneWidget);
+    expect(find.text('Yêu thích'), findsNothing);
+    expect(find.text('Đăng xuất'), findsNothing);
     await tester.scrollUntilVisible(
       find.text('Trợ giúp & phản hồi'),
       240,
@@ -456,11 +444,44 @@ void main() {
 
     final footer = tester.getRect(find.byKey(const Key('menu-footer')));
     final appName = tester.getRect(find.text('Vmito'));
-    final year = tester.getRect(find.text('© 2026 Vmito.'));
+    final year = tester.getRect(find.text('© 2026'));
+    final language = tester.getRect(
+      find.byKey(const Key('menu-language-action')),
+    );
+    final themeAction = tester.getRect(
+      find.byKey(const Key('menu-theme-action')),
+    );
 
-    expect(footer.height, lessThanOrEqualTo(40));
+    expect(footer.height, lessThanOrEqualTo(56));
     expect((appName.center.dy - year.center.dy).abs(), lessThanOrEqualTo(1));
+    expect(language.height, greaterThanOrEqualTo(48));
+    expect(themeAction.height, greaterThanOrEqualTo(48));
+    expect(year.right, lessThanOrEqualTo(language.left));
     expect(find.textContaining('Tất cả quyền'), findsNothing);
+  });
+
+  testWidgets('language and theme sheets keep the drawer open', (tester) async {
+    final router = _buildRouter();
+    await tester.pumpWidget(
+      _harness(const AuthState(status: AuthStatus.unauthenticated), router),
+    );
+    await _openDrawer(tester);
+
+    await tester.tap(find.byKey(const Key('menu-language-action')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Ngôn ngữ'), findsOneWidget);
+    expect(find.byType(SlideOutMenu), findsOneWidget);
+
+    await tester.tapAt(const Offset(400, 100));
+    await tester.pumpAndSettle();
+    expect(find.byType(SlideOutMenu), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('menu-theme-action')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Giao diện'), findsOneWidget);
+    expect(find.byType(SlideOutMenu), findsOneWidget);
   });
 
   testWidgets('player does not see the transaction dashboard', (tester) async {
@@ -495,9 +516,9 @@ void main() {
     );
     await _openDrawer(tester);
 
-    await _tapMenuItem(tester, 'Yêu thích');
+    await _tapMenuItem(tester, 'Nhóm');
 
-    expect(find.text('Favorites body'), findsOneWidget);
+    expect(find.text('Groups body'), findsOneWidget);
     expect(find.byType(SlideOutMenu), findsNothing);
   });
 
@@ -531,7 +552,7 @@ void main() {
     );
     await _openDrawer(tester);
 
-    final sectionRect = tester.getRect(find.text('Khám phá'));
+    final sectionRect = tester.getRect(find.text('KHÁM PHÁ'));
     expect(sectionRect.top, greaterThanOrEqualTo(47));
   });
 

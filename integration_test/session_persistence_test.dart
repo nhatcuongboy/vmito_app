@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
+import 'package:vmito_app/core/security/biometric_lock_storage.dart';
 import 'package:vmito_app/core/storage/token_storage.dart';
 
 /// Does a signed-in session survive an app restart?
@@ -17,6 +18,7 @@ void main() {
     // Keychain items outlive app deletion, so a leaked token would follow this
     // simulator into later runs.
     await TokenStorage().clear();
+    await BiometricLockStorage().clear();
   });
 
   testWidgets('tokens written at sign-in survive a relaunch', (tester) async {
@@ -67,5 +69,17 @@ void main() {
 
     expect(afterRestart.accessToken, 'new');
     expect(await afterRestart.readRefreshToken(), 'keep-me');
+  });
+
+  testWidgets('biometric lock preference survives relaunch and clears', (
+    tester,
+  ) async {
+    await BiometricLockStorage().setEnabled(enabled: true);
+
+    final afterRestart = BiometricLockStorage();
+    expect(await afterRestart.readEnabled(), isTrue);
+
+    await afterRestart.clear();
+    expect(await BiometricLockStorage().readEnabled(), isFalse);
   });
 }

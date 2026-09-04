@@ -32,6 +32,63 @@ void main() {
   );
 
   group('BrowseVenuesScreen', () {
+    testWidgets('refresh indicator starts below discovery controls', (
+      tester,
+    ) async {
+      const discoveryHeaderKey = Key('test-discovery-header');
+      await tester.pumpWidget(
+        buildApp(
+          const BrowseVenuesScreen(
+            embedded: true,
+            showFilterSummary: true,
+            discoveryHeader: SizedBox(
+              key: discoveryHeaderKey,
+              height: 96,
+            ),
+          ),
+          overrides: [
+            venueBrowseControllerProvider.overrideWith(
+              () => _FakeVenueBrowseController(
+                const VenueBrowseState(
+                  filter: VenueFilter(sortBy: 'createdAt'),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final refreshIndicator = find.byKey(
+        const Key('venue-refresh-indicator'),
+      );
+      expect(refreshIndicator, findsOneWidget);
+      expect(
+        find.ancestor(
+          of: find.byKey(discoveryHeaderKey),
+          matching: refreshIndicator,
+        ),
+        findsNothing,
+      );
+      expect(
+        find.ancestor(
+          of: find.byKey(const Key('venue-filter-summary')),
+          matching: refreshIndicator,
+        ),
+        findsNothing,
+      );
+      expect(
+        tester.getTopLeft(refreshIndicator).dy,
+        greaterThanOrEqualTo(
+          tester
+              .getBottomLeft(
+                find.byKey(const Key('venue-filter-summary')),
+              )
+              .dy,
+        ),
+      );
+    });
+
     testWidgets('renders active filter and sort summary without old dropdown', (
       tester,
     ) async {
@@ -249,6 +306,14 @@ void main() {
         expect(find.byKey(const Key('venue-meta-divider')), findsNothing);
         expect(find.text('10 sân'), findsOneWidget);
         expect(find.text('06:00 – 22:00'), findsOneWidget);
+        expect(
+          tester.widget<Text>(find.text('10 sân')).style?.fontWeight,
+          FontWeight.normal,
+        );
+        expect(
+          tester.widget<Text>(find.text('06:00 – 22:00')).style?.fontWeight,
+          FontWeight.normal,
+        );
         expect(find.text('Mới'), findsNothing);
         expect(find.text('120.000đ/giờ'), findsNothing);
         expect(

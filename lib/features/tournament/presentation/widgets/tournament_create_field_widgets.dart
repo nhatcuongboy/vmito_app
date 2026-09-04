@@ -22,49 +22,67 @@ class TournamentSportCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final primary = Theme.of(context).colorScheme.primary;
+    final palette = Theme.of(context).extension<AppPalette>()!;
+    final selectedColor = sport == TournamentSportType.badminton
+        ? Theme.of(context).colorScheme.primary
+        : Colors.deepPurple;
     final label = sport == TournamentSportType.badminton
         ? l10n.tournamentCreateBadminton
         : l10n.tournamentCreatePickleball;
     return Semantics(
       button: true,
       selected: selected,
-      child: InkWell(
-        key: Key('tournament-sport-${sport.name}'),
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 160),
-          constraints: const BoxConstraints(minHeight: 72),
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: selected ? primary.withValues(alpha: .1) : null,
-            border: Border.all(
-              color: selected
-                  ? primary
-                  : Theme.of(context).extension<AppPalette>()!.border,
-              width: selected ? 2 : 1,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        decoration: ShapeDecoration(
+          color: selected ? selectedColor : Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppRadius.lg),
+            side: BorderSide(
+              color: selected ? selectedColor : palette.border,
+              width: selected ? 1 : 2,
             ),
-            borderRadius: BorderRadius.circular(AppRadius.xl),
           ),
-          child: Row(
-            children: [
-              Icon(
-                sport == TournamentSportType.badminton
-                    ? AppIcons.award
-                    : AppIcons.circle,
-                color: selected ? primary : null,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          key: Key('tournament-sport-${sport.name}'),
+          onTap: onTap,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              minHeight: AppSizes.minTapTarget,
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  if (sport == TournamentSportType.badminton)
+                    Image.asset(
+                      'assets/icons/shuttlecock.png',
+                      width: 22,
+                      height: 22,
+                    )
+                  else
+                    Icon(
+                      Icons.sports_tennis,
+                      size: 20,
+                      color: selected ? Colors.white : null,
+                    ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Flexible(
+                    child: Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: selected ? Colors.white : null,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  label,
-                  maxLines: 2,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
-              ),
-              if (selected) Icon(AppIcons.checkCircle, color: primary),
-            ],
+            ),
           ),
         ),
       ),

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/security/biometric_authenticator.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/logger.dart';
@@ -12,9 +13,11 @@ import 'package:vmito_app/core/widgets/app_logo.dart';
 import 'package:vmito_app/core/widgets/language_selector.dart';
 import 'package:vmito_app/core/widgets/theme_mode_selector.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
+import 'package:vmito_app/features/auth/application/biometric_sign_in_provider.dart';
 import 'package:vmito_app/features/auth/domain/oauth_provider.dart';
 import 'package:vmito_app/features/auth/presentation/widgets/apple_sign_in_button.dart';
 import 'package:vmito_app/features/auth/presentation/widgets/auth_status_panel.dart';
+import 'package:vmito_app/features/auth/presentation/widgets/biometric_sign_in.dart';
 import 'package:vmito_app/features/auth/presentation/widgets/oauth_sign_in_button.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
@@ -49,9 +52,11 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   bool _isSubmitting = false;
   OAuthProvider? _oauthProvider;
   bool _obscurePassword = true;
+  bool _isBiometricSigningIn = false;
   String? _errorMessage;
 
-  bool get _isBusy => _isSubmitting || _oauthProvider != null;
+  bool get _isBusy =>
+      _isSubmitting || _oauthProvider != null || _isBiometricSigningIn;
 
   static final _phoneNumber = RegExp(r'^\+?[0-9][0-9 .-]{7,}$');
 
@@ -143,6 +148,60 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
     }
   }
 
+  /// The Face ID / fingerprint shortcut: device check first, then the token
+  /// exchange. A failed device check never reaches the network.
+  Future<void> _signInWithBiometrics() async {
+    if (_isBusy) return;
+    final l10n = AppLocalizations.of(context);
+
+    setState(() {
+      _isBiometricSigningIn = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final result = await ref
+          .read(biometricAuthenticatorProvider)
+          .authenticate(reason: l10n.biometricSignInReason);
+      if (!result.authenticated) {
+        if (mounted) {
+          setState(
+            () => _errorMessage = switch (result.failure) {
+              BiometricAuthFailure.canceled => null,
+              BiometricAuthFailure.unavailable =>
+                l10n.biometricUnavailableError,
+              BiometricAuthFailure.lockedOut => l10n.biometricLockedOutError,
+              BiometricAuthFailure.failed || null => l10n.biometricFailedError,
+            },
+          );
+        }
+        return;
+      }
+
+      await ref.read(authControllerProvider.notifier).signInWithBiometrics();
+      _goAfterSignIn();
+    } on ApiException catch (error) {
+      AppLogger.warn('biometric sign-in failed', error: error);
+      if (mounted) {
+        setState(
+          () => _errorMessage = error.isUnauthorized
+              ? l10n.biometricSignInExpired
+              : _mapErrorMessage(l10n, error),
+        );
+      }
+      ref.invalidate(biometricSignInOfferProvider);
+    } finally {
+      if (mounted) setState(() => _isBiometricSigningIn = false);
+    }
+  }
+
+  /// "Switch account" — drops the saved session so the shortcut disappears
+  /// and the next sign-in starts from a blank form.
+  Future<void> _forgetBiometricAccount() async {
+    await ref.read(authControllerProvider.notifier).forgetBiometricSignIn();
+    ref.invalidate(biometricSignInOfferProvider);
+  }
+
   Future<void> _signInWithOAuth(OAuthProvider provider) async {
     setState(() {
       _oauthProvider = provider;
@@ -194,6 +253,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
+    final biometricOffer = ref.watch(biometricSignInOfferProvider).value;
 
     return Scaffold(
       appBar: AppBar(
@@ -225,6 +285,16 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.xl),
+
+                    if (biometricOffer != null) ...[
+                      BiometricAccountCard(
+                        offer: biometricOffer,
+                        onSwitchAccount: _isBusy
+                            ? null
+                            : _forgetBiometricAccount,
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                    ],
 
                     ReactiveTextField<String>(
                       key: const ValueKey('signin-identifier-field'),
@@ -264,13 +334,27 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       decoration: InputDecoration(
                         labelText: l10n.authPassword,
                         floatingLabelBehavior: FloatingLabelBehavior.auto,
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword ? AppIcons.eyeOff : AppIcons.eye,
-                          ),
-                          onPressed: () => setState(
-                            () => _obscurePassword = !_obscurePassword,
-                          ),
+                        suffixIcon: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (biometricOffer != null)
+                              BiometricSignInButton(
+                                kind: biometricOffer.kind,
+                                onPressed: _isBusy
+                                    ? null
+                                    : _signInWithBiometrics,
+                              ),
+                            IconButton(
+                              icon: Icon(
+                                _obscurePassword
+                                    ? AppIcons.eyeOff
+                                    : AppIcons.eye,
+                              ),
+                              onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       validationMessages: {
@@ -319,6 +403,29 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                             )
                           : Text(l10n.authSignIn),
                     ),
+                    if (biometricOffer != null) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      OutlinedButton.icon(
+                        key: const ValueKey('signin-biometric-action'),
+                        onPressed: _isBusy ? null : _signInWithBiometrics,
+                        icon: _isBiometricSigningIn
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Icon(
+                                biometricOffer.kind == BiometricKind.fingerprint
+                                    ? AppIcons.fingerprint
+                                    : AppIcons.biometric,
+                              ),
+                        label: Text(
+                          biometricSignInLabel(l10n, biometricOffer.kind),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: AppSpacing.md),
                     Row(
                       children: [

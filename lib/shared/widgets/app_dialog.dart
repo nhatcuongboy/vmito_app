@@ -94,8 +94,7 @@ class AppConfirmDialog extends StatelessWidget {
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
           child: Text(
-            cancelLabel ??
-                MaterialLocalizations.of(context).cancelButtonLabel,
+            cancelLabel ?? MaterialLocalizations.of(context).cancelButtonLabel,
           ),
         ),
         FilledButton(
@@ -137,4 +136,3 @@ Future<bool?> showAppConfirmDialog(
     ),
   );
 }
-

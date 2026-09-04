@@ -38,7 +38,8 @@ class CourtPlayerTooltipOverlay extends StatelessWidget {
     const gap = 6.0;
     const viewportPadding = 12.0;
 
-    final fitsAbove = targetRect.top - (cardHeight + arrowHeight + gap) >=
+    final fitsAbove =
+        targetRect.top - (cardHeight + arrowHeight + gap) >=
         viewPadding.top + viewportPadding;
 
     final double cardTop;
@@ -68,7 +69,9 @@ class CourtPlayerTooltipOverlay extends StatelessWidget {
     final playerName = l10n.playerName(player);
     final pairLabel = l10n.courtPair(pairNumber);
     final level = player.level;
-    final levelLabel = level != null ? (levelShortLabel(level) ?? 'N/A') : 'N/A';
+    final levelLabel = level != null
+        ? (levelShortLabel(level) ?? 'N/A')
+        : 'N/A';
 
     return Stack(
       children: [
@@ -165,11 +168,11 @@ class CourtPlayerTooltipOverlay extends StatelessWidget {
                                       '#${player.playerNumber}',
                                       style: theme.textTheme.labelSmall
                                           ?.copyWith(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w700,
-                                        color: palette.mutedForeground,
-                                        letterSpacing: 0.5,
-                                      ),
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
+                                            color: palette.mutedForeground,
+                                            letterSpacing: 0.5,
+                                          ),
                                     ),
                                     const SizedBox(height: 2),
                                   ],
@@ -179,11 +182,11 @@ class CourtPlayerTooltipOverlay extends StatelessWidget {
                                     overflow: TextOverflow.ellipsis,
                                     style: theme.textTheme.titleMedium
                                         ?.copyWith(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w700,
-                                      color: theme.colorScheme.onSurface,
-                                      height: 1.2,
-                                    ),
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          color: theme.colorScheme.onSurface,
+                                          height: 1.2,
+                                        ),
                                   ),
                                 ],
                               ),
@@ -249,8 +252,7 @@ class CourtPlayerTooltipOverlay extends StatelessWidget {
                             const SizedBox(width: AppSpacing.sm),
                             Expanded(
                               child: _TooltipInfoCell(
-                                label: l10n.courtTooltipWaitTime
-                                    .toUpperCase(),
+                                label: l10n.courtTooltipWaitTime.toUpperCase(),
                                 value: l10n.formatWaitTime(
                                   player.currentWaitTime,
                                 ),

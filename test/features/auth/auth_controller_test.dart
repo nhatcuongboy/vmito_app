@@ -1,11 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
 import 'package:vmito_app/core/config/app_config.dart';
+import 'package:vmito_app/core/network/api_exception.dart';
+import 'package:vmito_app/core/security/biometric_lock_storage.dart';
 import 'package:vmito_app/core/storage/token_storage.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
+import 'package:vmito_app/features/auth/data/auth_service.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
 
 import '../../support/fake_secure_storage.dart';
+
+class _MockAuthService extends Mock implements AuthService {}
 
 void main() {
   test(
@@ -33,4 +39,158 @@ void main() {
       }
     },
   );
+
+  test('sign-out clears both tokens and biometric lock preference', () async {
+    final secureStorage = FakeSecureStorage();
+    final tokens = TokenStorage(secureStorage);
+    final biometricLock = BiometricLockStorage(secureStorage);
+    await tokens.save(accessToken: 'access', refreshToken: 'refresh');
+    await biometricLock.setEnabled(enabled: true);
+    final container = ProviderContainer(
+      overrides: [
+        tokenStorageProvider.overrideWithValue(tokens),
+        biometricLockStorageProvider.overrideWithValue(biometricLock),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await container.read(authControllerProvider.notifier).signOut();
+
+    expect(tokens.hasAccessToken, isFalse);
+    expect(await tokens.readRefreshToken(), isNull);
+    expect(await biometricLock.readEnabled(), isFalse);
+    expect(
+      container.read(authControllerProvider).status,
+      AuthStatus.unauthenticated,
+    );
+  });
+
+  test(
+    'sign-out parks the refresh token out of the interceptor\'s reach',
+    () async {
+      final secureStorage = FakeSecureStorage();
+      final tokens = TokenStorage(secureStorage);
+      final biometricLock = BiometricLockStorage(secureStorage);
+      await tokens.save(accessToken: 'access', refreshToken: 'refresh');
+      await biometricLock.setEnabled(enabled: true);
+      await biometricLock.saveAccount(
+        const BiometricAccount(
+          userId: 'user-1',
+          displayName: 'Player',
+          email: 'player@example.com',
+        ),
+      );
+      final container = ProviderContainer(
+        overrides: [
+          tokenStorageProvider.overrideWithValue(tokens),
+          biometricLockStorageProvider.overrideWithValue(biometricLock),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(authControllerProvider.notifier).signOut();
+
+      expect(tokens.hasAccessToken, isFalse);
+      // The interceptor reads this key; leaving a token there would let a 401
+      // on a public screen silently re-authenticate a signed-out user.
+      expect(await tokens.readRefreshToken(), isNull);
+      expect(await tokens.readBiometricRefreshToken(), 'refresh');
+      expect(await biometricLock.readAccount(), isNotNull);
+      expect(
+        container.read(authControllerProvider).status,
+        AuthStatus.unauthenticated,
+      );
+    },
+  );
+
+  test('biometric sign-in exchanges the stored refresh token', () async {
+    final secureStorage = FakeSecureStorage();
+    final tokens = TokenStorage(secureStorage);
+    final biometricLock = BiometricLockStorage(secureStorage);
+    await tokens.save(accessToken: 'stale', refreshToken: 'refresh');
+    await tokens.parkRefreshTokenForBiometrics();
+    await biometricLock.setEnabled(enabled: true);
+
+    final service = _MockAuthService();
+    when(() => service.refreshTokens('refresh')).thenAnswer(
+      (_) async => const AuthTokens(
+        accessToken: 'fresh-access',
+        refreshToken: 'rotated-refresh',
+      ),
+    );
+    when(service.currentUser).thenAnswer(
+      (_) async => const User(
+        id: 'user-1',
+        email: 'player@example.com',
+        name: 'Player',
+        role: UserRole.player,
+      ),
+    );
+
+    final container = ProviderContainer(
+      overrides: [
+        tokenStorageProvider.overrideWithValue(tokens),
+        biometricLockStorageProvider.overrideWithValue(biometricLock),
+        authServiceProvider.overrideWithValue(service),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await container
+        .read(authControllerProvider.notifier)
+        .signInWithBiometrics();
+
+    expect(
+      container.read(authControllerProvider).status,
+      AuthStatus.authenticated,
+    );
+    expect(tokens.accessToken, 'fresh-access');
+    // The backend revokes the presented token, so the rotated one must land.
+    expect(await tokens.readRefreshToken(), 'rotated-refresh');
+    expect((await biometricLock.readAccount())?.userId, 'user-1');
+  });
+
+  test('a rejected refresh token withdraws the biometric offer', () async {
+    final secureStorage = FakeSecureStorage();
+    final tokens = TokenStorage(secureStorage);
+    final biometricLock = BiometricLockStorage(secureStorage);
+    await tokens.save(accessToken: 'stale', refreshToken: 'dead');
+    await tokens.parkRefreshTokenForBiometrics();
+    await biometricLock.setEnabled(enabled: true);
+    await biometricLock.saveAccount(
+      const BiometricAccount(
+        userId: 'user-1',
+        displayName: 'Player',
+        email: 'player@example.com',
+      ),
+    );
+
+    final service = _MockAuthService();
+    when(() => service.refreshTokens('dead')).thenThrow(
+      const ApiException(
+        kind: ApiErrorKind.unauthorized,
+        message: 'Refresh token revoked',
+        statusCode: 401,
+      ),
+    );
+
+    final container = ProviderContainer(
+      overrides: [
+        tokenStorageProvider.overrideWithValue(tokens),
+        biometricLockStorageProvider.overrideWithValue(biometricLock),
+        authServiceProvider.overrideWithValue(service),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await expectLater(
+      container.read(authControllerProvider.notifier).signInWithBiometrics(),
+      throwsA(isA<ApiException>()),
+    );
+
+    expect(await tokens.readRefreshToken(), isNull);
+    expect(await tokens.readBiometricRefreshToken(), isNull);
+    expect(await biometricLock.readEnabled(), isFalse);
+    expect(await biometricLock.readAccount(), isNull);
+  });
 }

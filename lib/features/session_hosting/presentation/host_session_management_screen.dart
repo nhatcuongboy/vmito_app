@@ -74,6 +74,12 @@ class _HostSessionManagementScreenState
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
+    final contentBackground = Color.alphaBlend(
+      palette.muted.withValues(alpha: 0.75),
+      theme.colorScheme.surface,
+    );
     final session = ref.watch(sessionDetailProvider(sessionId));
     ref
       ..watch(liveSessionRealtimeProvider(sessionId))
@@ -93,76 +99,92 @@ class _HostSessionManagementScreenState
       initialIndex: widget.initialTab.clamp(0, 4),
       child: Scaffold(
         appBar: AppBar(
-          toolbarHeight: 72,
+          titleSpacing: 0,
+          backgroundColor: theme.colorScheme.surface,
+          shape: Border(
+            bottom: BorderSide(color: palette.border),
+          ),
           title: session.maybeWhen(
-            data: (value) => _SessionHeaderTitle(
-              name: value.name,
-              status: value.status,
+            data: (value) => Text(
+              value.name,
+              key: const Key('host-session-title'),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
             orElse: () => Text(l10n.hostManageTitle),
           ),
           actions: [
             session.maybeWhen(
-              data: (value) => PopupMenuButton<_SessionAction>(
-                key: const Key('host-session-more-menu'),
-                icon: const Icon(AppIcons.moreVert),
-                offset: const Offset(0, 48),
-                tooltip: MaterialLocalizations.of(context).moreButtonTooltip,
-                onSelected: (action) => _handleAction(value, action),
-                itemBuilder: (context) => [
-                  if (value.status == SessionStatus.preparing)
-                    PopupMenuItem(
-                      value: _SessionAction.startSession,
-                      child: Row(
-                        children: [
-                          Icon(
-                            AppIcons.play,
-                            size: 18,
-                            color: Theme.of(context).colorScheme.primary,
+              data: (value) => Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _SessionStatusBadge(status: value.status),
+                  const SizedBox(width: AppSpacing.xs),
+                  PopupMenuButton<_SessionAction>(
+                    key: const Key('host-session-more-menu'),
+                    icon: const Icon(AppIcons.moreVert),
+                    offset: const Offset(0, 48),
+                    tooltip: MaterialLocalizations.of(context).moreButtonTooltip,
+                    onSelected: (action) => _handleAction(value, action),
+                    itemBuilder: (context) => [
+                      if (value.status == SessionStatus.preparing)
+                        PopupMenuItem(
+                          value: _SessionAction.startSession,
+                          child: Row(
+                            children: [
+                              Icon(
+                                AppIcons.play,
+                                size: 18,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              const SizedBox(width: 12),
+                              Flexible(
+                                child: Text(
+                                  l10n.hostManageStartSession,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 12),
-                          Flexible(
-                            child: Text(
-                              l10n.hostManageStartSession,
-                              overflow: TextOverflow.ellipsis,
-                            ),
+                        ),
+                      if (value.status == SessionStatus.inProgress)
+                        PopupMenuItem(
+                          value: _SessionAction.endSession,
+                          child: Row(
+                            children: [
+                              Icon(
+                                AppIcons.stop,
+                                size: 18,
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                              const SizedBox(width: 12),
+                              Flexible(
+                                child: Text(
+                                  l10n.hostManageEndSession,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
+                        ),
+                      PopupMenuItem(
+                        value: _SessionAction.edit,
+                        child: Text(l10n.editSessionTitle),
                       ),
-                    ),
-                  if (value.status == SessionStatus.inProgress)
-                    PopupMenuItem(
-                      value: _SessionAction.endSession,
-                      child: Row(
-                        children: [
-                          Icon(
-                            AppIcons.stop,
-                            size: 18,
-                            color: Theme.of(context).colorScheme.error,
-                          ),
-                          const SizedBox(width: 12),
-                          Flexible(
-                            child: Text(
-                              l10n.hostManageEndSession,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                        ],
+                      PopupMenuItem(
+                        value: _SessionAction.clone,
+                        child: Text(l10n.cloneSessionTitle),
                       ),
-                    ),
-                  PopupMenuItem(
-                    value: _SessionAction.edit,
-                    child: Text(l10n.editSessionTitle),
+                      if (value.status == SessionStatus.preparing)
+                        PopupMenuItem(
+                          value: _SessionAction.cancel,
+                          child: Text(l10n.cancelSessionTitle),
+                        ),
+                    ],
                   ),
-                  PopupMenuItem(
-                    value: _SessionAction.clone,
-                    child: Text(l10n.cloneSessionTitle),
-                  ),
-                  if (value.status == SessionStatus.preparing)
-                    PopupMenuItem(
-                      value: _SessionAction.cancel,
-                      child: Text(l10n.cancelSessionTitle),
-                    ),
                 ],
               ),
               orElse: SizedBox.shrink,
@@ -193,39 +215,43 @@ class _HostSessionManagementScreenState
             ),
           ],
         ),
-        body: session.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, _) => AppErrorView(
-            error: error,
-            onRetry: () => ref.invalidate(
-              sessionDetailProvider(sessionId),
+        body: ColoredBox(
+          key: const Key('host-session-content-background'),
+          color: contentBackground,
+          child: session.when(
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (error, _) => AppErrorView(
+              error: error,
+              onRetry: () => ref.invalidate(
+                sessionDetailProvider(sessionId),
+              ),
             ),
-          ),
-          data: (value) => TabBarView(
-            key: const Key('host-session-tab-view'),
-            children: [
-              HostOverviewTab(
-                key: const Key('host-tab-overview-content'),
-                session: value,
-                onEdit: () => unawaited(_editSession(value)),
-              ),
-              HostRosterTab(
-                key: const Key('host-tab-roster-content'),
-                session: value,
-              ),
-              HostCourtsTab(
-                key: const Key('host-tab-courts-content'),
-                session: value,
-              ),
-              HostResultsTab(
-                key: const Key('host-tab-results-content'),
-                session: value,
-              ),
-              HostPaymentLedgerTab(
-                key: const Key('host-tab-payments-content'),
-                session: value,
-              ),
-            ],
+            data: (value) => TabBarView(
+              key: const Key('host-session-tab-view'),
+              children: [
+                HostOverviewTab(
+                  key: const Key('host-tab-overview-content'),
+                  session: value,
+                  onEdit: () => unawaited(_editSession(value)),
+                ),
+                HostRosterTab(
+                  key: const Key('host-tab-roster-content'),
+                  session: value,
+                ),
+                HostCourtsTab(
+                  key: const Key('host-tab-courts-content'),
+                  session: value,
+                ),
+                HostResultsTab(
+                  key: const Key('host-tab-results-content'),
+                  session: value,
+                ),
+                HostPaymentLedgerTab(
+                  key: const Key('host-tab-payments-content'),
+                  session: value,
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -300,50 +326,6 @@ class _HostSessionManagementScreenState
     if (updated == null || !mounted) return;
     ref.invalidate(sessionDetailProvider(session.id));
   }
-}
-
-class _SessionHeaderTitle extends StatelessWidget {
-  const _SessionHeaderTitle({required this.name, required this.status});
-
-  final String name;
-  final SessionStatus status;
-
-  @override
-  Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, constraints) {
-      final isWide = constraints.maxWidth >= 480;
-      final title = Text(
-        name,
-        key: const Key('host-session-title'),
-        maxLines: isWide ? 2 : 1,
-        overflow: TextOverflow.ellipsis,
-        style: AppTypography.managementAppBarTitle(
-          Theme.of(context).textTheme,
-        ),
-      );
-
-      if (isWide) {
-        return Row(
-          children: [
-            Expanded(child: title),
-            const SizedBox(width: AppSpacing.md),
-            _SessionStatusBadge(status: status),
-          ],
-        );
-      }
-
-      return Column(
-        key: const Key('host-session-header-compact'),
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          title,
-          const SizedBox(height: AppSpacing.xs),
-          _SessionStatusBadge(status: status),
-        ],
-      );
-    },
-  );
 }
 
 class _SessionStatusBadge extends StatelessWidget {
@@ -421,7 +403,7 @@ class _HostSessionBottomNavBar extends StatelessWidget {
         final activeIndex = tabController.indexIsChanging
             ? tabController.index
             : (tabController.animation?.value ?? tabController.index.toDouble())
-                .round();
+                  .round();
 
         return DecoratedBox(
           key: const Key('host-session-bottom-nav'),
@@ -535,8 +517,9 @@ class _HostNavTabItem extends StatelessWidget {
                         style: theme.textTheme.labelSmall?.copyWith(
                           fontSize: 11,
                           height: 1.2,
-                          fontWeight:
-                              isActive ? FontWeight.w600 : FontWeight.w500,
+                          fontWeight: isActive
+                              ? FontWeight.w600
+                              : FontWeight.w500,
                           color: isActive ? activeColor : inactiveColor,
                         ),
                       ),

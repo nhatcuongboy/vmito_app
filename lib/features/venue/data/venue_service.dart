@@ -6,6 +6,7 @@ import 'package:vmito_app/core/constants/api_endpoints.dart';
 import 'package:vmito_app/core/network/api_client.dart';
 import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/features/venue/domain/venue_approval_request.dart';
+import 'package:vmito_app/features/venue/domain/venue_edit_request.dart';
 
 class VenueService {
   const VenueService(this._client);
@@ -74,6 +75,15 @@ class VenueService {
       'venueId': ?venueId,
       'payload': payload,
     },
+  );
+
+  Future<void> createEditRequest({
+    required String venueId,
+    required VenueEditRequestDraft draft,
+  }) => createRequest(
+    type: 'UPDATE',
+    venueId: venueId,
+    payload: draft.toJson(),
   );
 
   Future<List<VenueApprovalRequest>> pendingAdminRequests() async {
