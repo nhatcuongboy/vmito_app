@@ -809,16 +809,6 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
         return Scaffold(
           appBar: AppBar(
             automaticallyImplyLeading: !widget.modalPresentation,
-            leading: widget.modalPresentation
-                ? IconButton(
-                    key: const Key('session-edit-modal-close'),
-                    tooltip: MaterialLocalizations.of(
-                      context,
-                    ).closeButtonTooltip,
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(AppIcons.close),
-                  )
-                : null,
             title: Text(
               _isEditing
                   ? l10n.editSessionTitle
@@ -827,10 +817,19 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
                   : l10n.createSessionTitle,
             ),
             actions: [
-              if (!_isEditing)
+              if (!_isEditing && !widget.modalPresentation)
                 _AiAppBarAction(
                   label: l10n.sessionFormCreateByAi,
                   onPressed: _showAiDialog,
+                ),
+              if (widget.modalPresentation)
+                IconButton(
+                  key: const Key('session-edit-modal-close'),
+                  tooltip: MaterialLocalizations.of(
+                    context,
+                  ).closeButtonTooltip,
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(AppIcons.close),
                 ),
               const SizedBox(width: AppSpacing.sm),
             ],
@@ -965,20 +964,19 @@ class _AiAppBarAction extends StatelessWidget {
     child: OutlinedButton.icon(
       key: const Key('create-session-ai'),
       onPressed: onPressed,
-      icon: const Icon(AppIcons.sparkles, size: 14),
+      icon: const Icon(AppIcons.sparkles, size: 16),
       label: Text(label),
       style: OutlinedButton.styleFrom(
         foregroundColor: Colors.deepPurple,
-        backgroundColor: Colors.deepPurple.withValues(alpha: .06),
-        side: BorderSide(color: Colors.deepPurple.withValues(alpha: .25)),
-        minimumSize: const Size(0, 44),
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        textStyle: Theme.of(context).textTheme.labelSmall?.copyWith(
+        side: BorderSide(color: Colors.deepPurple.withValues(alpha: .4)),
+        minimumSize: const Size(0, 36),
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.xs,
+        ),
+        textStyle: Theme.of(context).textTheme.labelMedium?.copyWith(
           fontWeight: FontWeight.w600,
         ),
-        tapTargetSize: MaterialTapTargetSize.padded,
-        visualDensity: VisualDensity.standard,
-        shape: const StadiumBorder(),
       ),
     ),
   );
@@ -1390,9 +1388,7 @@ class _SportOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = Theme.of(context).extension<AppPalette>()!;
-    final selectedColor = type == SessionSportType.badminton
-        ? Theme.of(context).colorScheme.primary
-        : Colors.deepPurple;
+    final selectedColor = Colors.green;
 
     final Color backgroundColor;
     final BorderSide borderSide;
@@ -1444,9 +1440,12 @@ class _SportOption extends StatelessWidget {
               : SystemMouseCursors.basic,
           onTap: enabled ? onSelected : null,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: AppSizes.minTapTarget),
+            constraints: const BoxConstraints(minHeight: 40),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.xs,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

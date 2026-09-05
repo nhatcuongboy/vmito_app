@@ -23,25 +23,22 @@ class TournamentSportCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final palette = Theme.of(context).extension<AppPalette>()!;
-    final selectedColor = sport == TournamentSportType.badminton
-        ? Theme.of(context).colorScheme.primary
-        : Colors.deepPurple;
+    // Keep the tournament sport selector visually aligned with the selector
+    // used when creating a session.
+    const selectedColor = Colors.green;
     final label = sport == TournamentSportType.badminton
         ? l10n.tournamentCreateBadminton
         : l10n.tournamentCreatePickleball;
     return Semantics(
       button: true,
       selected: selected,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 160),
-        decoration: ShapeDecoration(
-          color: selected ? selectedColor : Colors.transparent,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.lg),
-            side: BorderSide(
-              color: selected ? selectedColor : palette.border,
-              width: selected ? 1 : 2,
-            ),
+      child: Material(
+        color: selected ? selectedColor : Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.lg),
+          side: BorderSide(
+            color: selected ? selectedColor : palette.border,
+            width: selected ? 1 : 2,
           ),
         ),
         clipBehavior: Clip.antiAlias,
@@ -49,11 +46,12 @@ class TournamentSportCard extends StatelessWidget {
           key: Key('tournament-sport-${sport.name}'),
           onTap: onTap,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              minHeight: AppSizes.minTapTarget,
-            ),
+            constraints: const BoxConstraints(minHeight: 40),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.xs,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [

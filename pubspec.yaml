@@ -86,7 +86,10 @@ dependencies:
 
   # --- Platform utils -------------------------------------------------------
   url_launcher: ^6.3.2
-  flutter_inappwebview: ^6.1.5
+  # 6.1.x is incompatible with AGP 9 because its Android implementation uses
+  # the removed `proguard-android.txt` default. The upstream beta switches to
+  # `proguard-android-optimize.txt` and supports Flutter >= 3.32.
+  flutter_inappwebview: ^6.2.0-beta.3
   share_plus: ^13.3.0
   pdf: ^3.13.0
   printing: ^5.15.0

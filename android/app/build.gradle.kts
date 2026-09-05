@@ -1,4 +1,5 @@
 import java.util.Properties
+import org.gradle.api.tasks.compile.JavaCompile
 
 plugins {
     id("com.android.application")
@@ -21,6 +22,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
 
     defaultConfig {
@@ -58,4 +60,29 @@ flutter {
 
 dependencies {
     implementation("androidx.appcompat:appcompat:1.7.1")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+}
+
+// Flutter 3.44 regenerates the Android registrant during a release build with
+// dev-only plugins such as integration_test, while its Gradle integration
+// correctly excludes those plugins from the release classpath. Remove that
+// stale registration immediately before compilation so test-only code is not
+// packaged in production APKs. See flutter/flutter#162649.
+tasks.withType<JavaCompile>().configureEach {
+    if (name == "compileReleaseJavaWithJavac") {
+        doFirst {
+            val registrant = file(
+                "src/main/java/io/flutter/plugins/GeneratedPluginRegistrant.java",
+            )
+            if (registrant.exists()) {
+                val content = registrant.readText()
+                val integrationTestRegistration = Regex(
+                    """\s*try \{\s*flutterEngine\.getPlugins\(\)\.add\(new dev\.flutter\.plugins\.integration_test\.IntegrationTestPlugin\(\)\);\s*\} catch \(Exception e\) \{\s*Log\.e\(TAG, \"Error registering plugin integration_test, dev\.flutter\.plugins\.integration_test\.IntegrationTestPlugin\", e\);\s*\}""",
+                )
+                registrant.writeText(
+                    content.replace(integrationTestRegistration, "\n"),
+                )
+            }
+        }
+    }
 }

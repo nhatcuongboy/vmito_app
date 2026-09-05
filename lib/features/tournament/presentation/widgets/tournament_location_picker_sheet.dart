@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/utils/logger.dart';
 import 'package:vmito_app/features/tournament/application/tournament_create_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
@@ -79,8 +80,17 @@ class _TournamentLocationPickerSheetState
             input: query,
             language: Localizations.localeOf(context).languageCode,
           );
+      AppLogger.debug(
+        'TournamentLocationPickerSheet.search query="$query" '
+        'resultCount=${result.length}',
+      );
       if (mounted && query == _query) setState(() => _suggestions = result);
-    } on Object {
+    } on Object catch (e, stackTrace) {
+      AppLogger.error(
+        'TournamentLocationPickerSheet.search failed query="$query"',
+        error: e,
+        stackTrace: stackTrace,
+      );
       if (mounted) setState(() => _suggestions = const []);
     } finally {
       if (mounted) setState(() => _isLoading = false);

@@ -200,51 +200,32 @@ class _ResultsControls extends StatelessWidget {
         (courtId == null ? 0 : 1) +
         (hasPlayerFilter ? 1 : 0) +
         (filter == _ResultFilter.all ? 0 : 1);
+    // Mirrors the "Quản lý kèo" toolbar (_MySessionsToolbar): sort label
+    // button, then a compact outlined icon button for filters.
     return Row(
       children: [
-        OutlinedButton.icon(
-          key: const Key('host-results-filter'),
-          style: OutlinedButton.styleFrom(
-            minimumSize: const Size(0, 36),
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.sm + 4,
-            ),
-          ),
-          onPressed: onShowFilters,
-          icon: Badge(
-            isLabelVisible: activeFilterCount > 0,
-            label: Text('$activeFilterCount'),
-            child: const Icon(AppIcons.filter, size: 16),
-          ),
-          label: Text(activeFilterCount == 0 ? 'Bộ lọc' : 'Đã lọc'),
-        ),
         const Spacer(),
-        PopupMenuButton<bool>(
+        OutlinedButton.icon(
           key: const Key('host-results-sort'),
-          tooltip: 'Sắp xếp kết quả',
-          onSelected: (value) {
-            if (value != newestFirst) onSortChanged();
-          },
-          itemBuilder: (context) => const [
-            PopupMenuItem(value: true, child: Text('Mới nhất')),
-            PopupMenuItem(value: false, child: Text('Cũ nhất')),
-          ],
-          child: Container(
-            height: AppSizes.minTapTarget,
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-            alignment: Alignment.center,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  newestFirst ? AppIcons.arrowDownward : AppIcons.arrowUpward,
-                  size: 18,
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                Text(newestFirst ? 'Mới nhất' : 'Cũ nhất'),
-                const Icon(Icons.arrow_drop_down),
-              ],
-            ),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size(0, 40),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            visualDensity: VisualDensity.compact,
+          ),
+          onPressed: onSortChanged,
+          icon: const Icon(AppIcons.sortAlpha, size: 18),
+          label: Text(newestFirst ? 'Mới nhất' : 'Cũ nhất'),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Badge(
+          isLabelVisible: activeFilterCount > 0,
+          label: Text('$activeFilterCount'),
+          child: IconButton.outlined(
+            key: const Key('host-results-filter'),
+            tooltip: 'Bộ lọc',
+            visualDensity: VisualDensity.compact,
+            onPressed: onShowFilters,
+            icon: const Icon(AppIcons.tune, size: 20),
           ),
         ),
       ],

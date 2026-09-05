@@ -86,12 +86,10 @@ class _HostCourtsTabState extends ConsumerState<HostCourtsTab> {
         separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
         itemBuilder: (context, index) {
           if (index == 0) {
-            return Row(
+            return const Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Text(l10n.courtDisplayModeLabel, style: _labelStyle(context)),
-                const SizedBox(width: AppSpacing.sm),
-                const CourtDisplayModeSwitch(),
+                CourtDisplayModeSwitch(),
               ],
             );
           }
@@ -103,7 +101,4 @@ class _HostCourtsTabState extends ConsumerState<HostCourtsTab> {
       ),
     );
   }
-
-  TextStyle? _labelStyle(BuildContext context) =>
-      Theme.of(context).textTheme.labelMedium;
 }

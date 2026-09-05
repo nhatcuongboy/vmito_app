@@ -81,13 +81,16 @@ class _VenueEditRequestScreenState
     );
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          key: const Key('venue-edit-close'),
-          tooltip: l10n.commonClose,
-          onPressed: submitting ? null : () => Navigator.of(context).pop(),
-          icon: const Icon(AppIcons.close),
-        ),
+        automaticallyImplyLeading: false,
         title: Text(l10n.venueEditTitle),
+        actions: [
+          IconButton(
+            key: const Key('venue-edit-close'),
+            tooltip: l10n.commonClose,
+            onPressed: submitting ? null : () => Navigator.of(context).pop(),
+            icon: const Icon(AppIcons.close),
+          ),
+        ],
       ),
       body: AppReactiveForm<void>(
         formGroup: _form,

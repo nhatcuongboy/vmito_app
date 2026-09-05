@@ -232,14 +232,6 @@ class _EditProfileFormState extends ConsumerState<_EditProfileForm> {
             value: 'FEMALE',
             child: Text(l10n.profileGenderFemale),
           ),
-          DropdownMenuItem(
-            value: 'OTHER',
-            child: Text(l10n.profileGenderOther),
-          ),
-          DropdownMenuItem(
-            value: 'PREFER_NOT_TO_SAY',
-            child: Text(l10n.profileGenderPreferNotToSay),
-          ),
         ],
       );
 }
