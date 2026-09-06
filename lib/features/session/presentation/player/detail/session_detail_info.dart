@@ -317,7 +317,7 @@ class _LocationRow extends ConsumerWidget {
                     newAddress: venue?.newAddress,
                     newDistrict: venue?.newDistrict,
                     newCity: venue?.newCity,
-                    maxLines: null,
+                    maxLines: 2,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       color: palette.mutedForeground,
                     ),

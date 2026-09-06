@@ -4,11 +4,11 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
+import 'package:vmito_app/core/widgets/user_avatar.dart';
 import 'package:vmito_app/features/payment/domain/form/host_payment_forms.dart';
 import 'package:vmito_app/features/payment/domain/form/transaction_forms.dart';
 import 'package:vmito_app/features/payment/domain/payment.dart';
@@ -16,6 +16,7 @@ import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session_hosting/application/host_session_management_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_lightbox.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 
 class PaymentLedgerView extends ConsumerStatefulWidget {
   const PaymentLedgerView({
@@ -714,13 +715,13 @@ class _PlayerAvatar extends StatelessWidget {
   final PaymentRecord payment;
   @override
   Widget build(BuildContext context) {
+    final name = payment.player?.displayName ?? 
+                 AppLocalizations.of(context).hostManageUnknownPlayer;
     final image = payment.player?.userImage;
-    return CircleAvatar(
-      radius: 24,
-      backgroundImage: image?.isNotEmpty ?? false
-          ? CachedNetworkImageProvider(image!)
-          : null,
-      child: image?.isNotEmpty ?? false ? null : const Icon(AppIcons.user),
+    return UserAvatar(
+      name: name,
+      imageUrl: image,
+      size: 48,
     );
   }
 }

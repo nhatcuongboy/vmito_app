@@ -380,110 +380,123 @@ class _RosterListTile extends StatelessWidget {
               child: const SizedBox(width: 6),
             ),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.sm,
-                        4,
-                        AppSpacing.xxs,
-                        4,
+              child: Container(
+                color: dark
+                    ? scheme.surfaceContainerLow
+                    : Color.alphaBlend(
+                        colors.border.withValues(alpha: .08),
+                        const Color(0xFFF1F5F9).withValues(alpha: .6),
                       ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          _PlayerAvatar(
-                            player: player,
-                            statusColor: colors.dot,
-                            radius: 19,
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            child: Text(
-                              key: ValueKey(
-                                'host-roster-name-${player.id}',
-                              ),
-                              player.displayName ?? l10n.playerName(player),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(
-                                    height: 1.15,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: -.2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.sm,
+                          4,
+                          AppSpacing.xxs,
+                          4,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                _NumberBadge(
+                                  number: player.playerNumber,
+                                  compact: true,
+                                ),
+                                const SizedBox(height: 4),
+                                _PlayerAvatar(
+                                  player: player,
+                                  statusColor: colors.dot,
+                                  radius: 19,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.only(top: 22),
+                                child: Text(
+                                  key: ValueKey(
+                                    'host-roster-name-${player.id}',
                                   ),
+                                  player.displayName ?? l10n.playerName(player),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.titleMedium
+                                      ?.copyWith(
+                                        height: 1.15,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: -.2,
+                                      ),
+                                ),
+                              ),
                             ),
+                            Padding(
+                              padding: const EdgeInsets.only(top: 22),
+                              child: SizedBox(
+                                width: 32,
+                                height: 32,
+                                child: _ActionMenu(
+                                  player: player,
+                                  onAction: onAction,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: dark
+                          ? scheme.outlineVariant.withValues(alpha: .2)
+                          : const Color(0xFFF1F5F9),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.sm,
+                        vertical: 4,
+                      ),
+                      child: Wrap(
+                        spacing: 5,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          _LevelBadge(
+                            key: ValueKey('host-roster-level-${player.id}'),
+                            label: _levelLabel(l10n, player.level),
                           ),
-                          SizedBox(
-                            width: 32,
-                            height: 32,
-                            child: _ActionMenu(
-                              player: player,
-                              onAction: onAction,
+                          _GenderBadge(
+                            key: ValueKey('host-roster-gender-${player.id}'),
+                            gender: player.gender,
+                          ),
+                          if (player.isClubMember &&
+                              player.clubName?.isNotEmpty == true)
+                            _ClubBadge(
+                              key: ValueKey('host-roster-club-${player.id}'),
+                              label: player.clubName!,
                             ),
+                          Text(
+                            l10n.playerMatchesCount(player.matchesPlayed),
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  color: dark
+                                      ? const Color(0xFF94A3B8)
+                                      : const Color(0xFF64748B),
+                                  fontWeight: FontWeight.w500,
+                                ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-                  Divider(
-                    height: 1,
-                    thickness: 1,
-                    color: dark
-                        ? scheme.outlineVariant.withValues(alpha: .2)
-                        : const Color(0xFFF1F5F9),
-                  ),
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.sm,
-                      vertical: 4,
-                    ),
-                    color: dark
-                        ? scheme.surfaceContainerLow
-                        : Color.alphaBlend(
-                            colors.border.withValues(alpha: .08),
-                            const Color(0xFFF1F5F9).withValues(alpha: .6),
-                          ),
-                    child: Wrap(
-                      spacing: 5,
-                      runSpacing: 4,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        _NumberBadge(
-                          number: player.playerNumber,
-                          compact: true,
-                        ),
-                        _LevelBadge(
-                          key: ValueKey('host-roster-level-${player.id}'),
-                          label: _levelLabel(l10n, player.level),
-                        ),
-                        _GenderBadge(
-                          key: ValueKey('host-roster-gender-${player.id}'),
-                          gender: player.gender,
-                        ),
-                        if (player.isClubMember &&
-                            player.clubName?.isNotEmpty == true)
-                          _ClubBadge(
-                            key: ValueKey('host-roster-club-${player.id}'),
-                            label: player.clubName!,
-                          ),
-                        Text(
-                          l10n.playerMatchesCount(player.matchesPlayed),
-                          style: Theme.of(context).textTheme.labelSmall
-                              ?.copyWith(
-                                color: dark
-                                    ? const Color(0xFF94A3B8)
-                                    : const Color(0xFF64748B),
-                                fontWeight: FontWeight.w500,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],

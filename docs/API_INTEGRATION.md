@@ -104,10 +104,11 @@ Backend-driven OAuth redirect. The web app uses a plain `<a href>` to
 `{API}/auth/{google,facebook}`, and the backend redirects back with tokens as
 **query parameters**. There is no PKCE code exchange on the client.
 
-Flutter captures the backend's existing HTTPS `/{locale}/auth/callback`
-redirect with `flutter_web_auth_2`, then stores the returned JWT pair in secure
-storage. This keeps the callback contract identical to the web app and avoids
-an extra custom-scheme redirect in the backend.
+Flutter sends `mobile=1` when starting the backend OAuth flow. The backend
+redirects successful mobile sign-ins to `vmito://auth/callback`, which
+`flutter_web_auth_2` captures before storing the returned JWT pair in secure
+storage. Web sign-ins without `mobile=1` keep using the existing HTTPS
+`/{locale}/auth/callback` route.
 
 **Apple Sign-In does not exist on the backend.** Passport strategies present:
 `google`, `facebook`, `local`, `jwt`. Because Google and Facebook login are

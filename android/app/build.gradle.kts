@@ -27,7 +27,9 @@ val keystoreProperties = Properties().apply {
 
 android {
     namespace = "com.vmito.app"
-    compileSdk = flutter.compileSdkVersion
+    // flutter_secure_storage 11 requires Android API 37. Keep this explicit
+    // until Flutter's default compile SDK catches up.
+    compileSdk = 37
     ndkVersion = flutter.ndkVersion
 
     compileOptions {

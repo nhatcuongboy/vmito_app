@@ -83,11 +83,10 @@ class _RegisterSessionSheetState extends ConsumerState<_RegisterSessionSheet> {
     return required.isEmpty ? validLevels : sortByRank(required);
   }
 
+  /// Only male and female options are available for registration.
   /// Gender drives the fee on a priced session, and the fee table only has
   /// male and female columns.
-  List<Gender> get _genderOptions => widget.session.feeConfig == null
-      ? Gender.values
-      : const [Gender.male, Gender.female];
+  List<Gender> get _genderOptions => const [Gender.male, Gender.female];
 
   void _addGuest() => setState(
     () => _drafts = [

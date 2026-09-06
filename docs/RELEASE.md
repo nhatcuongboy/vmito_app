@@ -143,9 +143,11 @@ $ANDROID_HOME/build-tools/<ver>/aapt2 dump permissions build/app/outputs/flutter
 
 ### 3.2 OAuth callback
 
-Google/Facebook reuse the backend's HTTPS `/{locale}/auth/callback` contract.
-`flutter_web_auth_2` 5 captures the exact host and path through the browser's
-authentication-tab result, so no custom Android callback activity is needed.
+Google/Facebook start in the system authentication session and add `mobile=1`
+to the backend request. The backend then redirects to
+`vmito://auth/callback`; both iOS and Android register that scheme and
+`flutter_web_auth_2` returns the callback payload to Flutter. Never open the
+provider flow in `AppWebView` or another app-controlled embedded WebView.
 
 ### 3.3 Core library desugaring
 

@@ -173,16 +173,56 @@ class _HostSessionManagementScreenState
                         ),
                       PopupMenuItem(
                         value: _SessionAction.edit,
-                        child: Text(l10n.editSessionTitle),
+                        child: Row(
+                          children: [
+                            const Icon(AppIcons.edit, size: 18),
+                            const SizedBox(width: 12),
+                            Flexible(
+                              child: Text(
+                                l10n.editSessionTitle,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       PopupMenuItem(
                         value: _SessionAction.clone,
-                        child: Text(l10n.cloneSessionTitle),
+                        child: Row(
+                          children: [
+                            const Icon(AppIcons.copy, size: 18),
+                            const SizedBox(width: 12),
+                            Flexible(
+                              child: Text(
+                                l10n.cloneSessionTitle,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                       if (value.status == SessionStatus.preparing)
                         PopupMenuItem(
                           value: _SessionAction.cancel,
-                          child: Text(l10n.cancelSessionTitle),
+                          child: Row(
+                            children: [
+                              Icon(
+                                AppIcons.cancel,
+                                size: 18,
+                                color: Theme.of(context).colorScheme.error,
+                              ),
+                              const SizedBox(width: 12),
+                              Flexible(
+                                child: Text(
+                                  l10n.cancelSessionTitle,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: Theme.of(context).colorScheme.error,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                     ],
                   ),

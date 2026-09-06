@@ -123,7 +123,7 @@ class RegistrationPlayerCard extends StatelessWidget {
                   initialValue: draft.level,
                   isExpanded: true,
                   decoration: InputDecoration(
-                    label: AppRequiredLabel(l10n.registrationLevel),
+                    labelText: l10n.registrationLevel,
                     hintText: l10n.registrationLevelHint,
                     isDense: true,
                   ),

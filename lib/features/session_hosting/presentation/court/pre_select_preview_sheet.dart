@@ -58,10 +58,11 @@ class PreSelectPreviewSheet extends StatelessWidget {
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               l10n.courtNextMatchPreviewTitle(court.courtNumber),
+              textAlign: TextAlign.start,
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w700,
               ),
@@ -69,6 +70,7 @@ class PreSelectPreviewSheet extends StatelessWidget {
             const SizedBox(height: AppSpacing.xxs),
             Text(
               l10n.courtNextMatchPreviewDescription,
+              textAlign: TextAlign.start,
               style: theme.textTheme.bodySmall?.copyWith(
                 color: palette.mutedForeground,
               ),

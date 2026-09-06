@@ -333,12 +333,14 @@ void main() {
         const Session(
           id: 'h1',
           name: 'Hosted one',
+          hostName: 'Chủ kèo',
           status: SessionStatus.preparing,
         ),
       ]),
     );
     await _pumpWithRouter(tester, repository);
 
+    expect(find.byKey(const Key('session-host-name')), findsNothing);
     await tester.tap(find.text('Hosted one'));
     await tester.pumpAndSettle();
 

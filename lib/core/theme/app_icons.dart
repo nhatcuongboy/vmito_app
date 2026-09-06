@@ -103,6 +103,8 @@ abstract final class AppIcons {
   static const IconData trophy = LucideIcons.trophy;
   static const IconData award = LucideIcons.award;
   static const IconData sparkles = LucideIcons.sparkles;
+  static const IconData flame = LucideIcons.flame;
+  static const IconData flameFilled = Icons.local_fire_department;
   static const IconData favorite = LucideIcons.heart;
   static const IconData favoriteFilled = Icons.favorite;
   static const IconData chat = LucideIcons.message_square;

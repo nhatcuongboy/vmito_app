@@ -177,20 +177,21 @@ class _MatchResultSheetState extends State<MatchResultSheet> {
                 if (value) _winningPair = null;
               }),
             ),
-            TextField(
-              key: const ValueKey('match-result-shuttlecocks'),
-              controller: _shuttlecocks,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              decoration: InputDecoration(
-                isDense: true,
-                labelText: l10n.matchResultShuttlecockCount,
-                hintText: l10n.matchResultShuttlecockPlaceholder,
-                border: const OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
+            // Ẩn field số lượng cầu
+            // TextField(
+            //   key: const ValueKey('match-result-shuttlecocks'),
+            //   controller: _shuttlecocks,
+            //   keyboardType: const TextInputType.numberWithOptions(
+            //     decimal: true,
+            //   ),
+            //   decoration: InputDecoration(
+            //     isDense: true,
+            //     labelText: l10n.matchResultShuttlecockCount,
+            //     hintText: l10n.matchResultShuttlecockPlaceholder,
+            //     border: const OutlineInputBorder(),
+            //   ),
+            // ),
+            // const SizedBox(height: AppSpacing.sm),
             TextField(
               key: const ValueKey('match-result-notes'),
               controller: _notes,

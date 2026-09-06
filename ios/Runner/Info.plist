@@ -28,22 +28,33 @@
 	<string>$(FLUTTER_BUILD_NAME)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>vmito</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>GoogleMapsAPIKey</key>
 	<string>$(GOOGLE_MAPS_API_KEY)</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Vmito uses selected photos for your profile, cover photo, and community posts.</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Vmito uses your location to show nearby sessions, venues, and clubs.</string>
-	<key>NSCameraUsageDescription</key>
-	<string>Vmito uses the camera for profile photos and to scan session QR codes.</string>
-	<key>NSFaceIDUsageDescription</key>
-	<string>Vmito uses Face ID to protect and unlock your saved session.</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>Vmito uses the camera for profile photos and to scan session QR codes.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Vmito uses Face ID to protect and unlock your saved session.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Vmito uses your location to show nearby sessions, venues, and clubs.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Vmito uses selected photos for your profile, cover photo, and community posts.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

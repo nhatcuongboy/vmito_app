@@ -1222,7 +1222,8 @@
   "@hostAddPlayerTitle": {"placeholders": {"count": {"type": "int"}}},
   "hostAddPlayerNewPlayer": "Người chơi mới",
   "hostAddPlayerSelectExisting": "Chọn người chơi có sẵn",
-  "hostAddPlayerCreateNew": "Tạo người chơi mới",
+  "hostAddPlayerSearchExisting": "Tìm theo tên hoặc email",
+  "hostAddPlayerNoUsersFound": "Không tìm thấy người chơi phù hợp. Quay lại để nhập thông tin người chơi mới.",
   "hostAddPlayerName": "Tên người chơi",
   "hostAddPlayerNameRequired": "Tên người chơi là bắt buộc",
   "hostAddPlayerGender": "Giới tính",
@@ -1237,7 +1238,7 @@
   "hostAddPlayerClubFeeHint": "Khoản thu của người chơi này sẽ dùng phí cố định theo buổi mà CLB đã cấu hình cho tháng diễn ra kèo.",
   "hostAddPlayerAddAnother": "Thêm người chơi",
   "hostAddPlayerRemove": "Xóa người chơi",
-  "hostAddPlayerSaveAll": "Lưu tất cả ({count})",
+  "hostAddPlayerSaveAll": "Thêm ({count})",
   "@hostAddPlayerSaveAll": {"placeholders": {"count": {"type": "int"}}},
   "hostAddPlayerAlreadySelected": "Đã có trong kèo hoặc đã được chọn",
   "hostAddPlayerSuccess": "Đã thêm {count} người chơi thành công",
@@ -1621,7 +1622,7 @@
   "courtDisplayModeLabel": "Hiển thị",
   "courtDisplayModeNumber": "Số áo",
   "courtDisplayModeName": "Tên",
-  "courtElapsedMinutes": "{minutes}p",
+  "courtElapsedMinutes": "{minutes} phút",
   "@courtElapsedMinutes": {
     "placeholders": {
       "minutes": {

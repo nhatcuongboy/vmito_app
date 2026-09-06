@@ -232,7 +232,6 @@ void main() {
     await tester.tap(find.byKey(const Key('host-roster-add')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Thêm người chơi (1)'), findsOneWidget);
     expect(find.text('Thêm khách'), findsNothing);
     await tester.scrollUntilVisible(
       find.byKey(const Key('host-add-player-row')),
@@ -243,7 +242,6 @@ void main() {
 
     await tester.tap(find.byKey(const Key('host-add-player-row')));
     await tester.pumpAndSettle();
-    expect(find.text('Thêm người chơi (2)'), findsOneWidget);
 
     await tester.scrollUntilVisible(
       find.byKey(const Key('host-remove-player-1')),
@@ -252,7 +250,36 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('host-remove-player-1')));
     await tester.pump();
-    expect(find.text('Thêm người chơi (1)'), findsOneWidget);
+  });
+
+  testWidgets('existing-player picker stays in the add sheet and can go back', (
+    tester,
+  ) async {
+    final repository = _MockSessionRepository();
+    when(() => repository.searchUsers(any())).thenAnswer(
+      (_) async => const <HostPlayerUserOption>[],
+    );
+
+    await tester.pumpWidget(subject(repository: repository));
+    await tester.tap(find.byKey(const Key('host-roster-add')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('host-player-name-0')), 'Lan');
+
+    await tester.tap(find.byKey(const Key('host-player-user-0')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('host-user-picker-back')), findsOneWidget);
+    expect(find.byKey(const Key('host-add-players-close')), findsOneWidget);
+    expect(find.text('Tạo người chơi mới'), findsNothing);
+    expect(find.text('Tìm theo tên hoặc email'), findsOneWidget);
+    expect(find.byKey(const ValueKey('user-picker')), findsOneWidget);
+    expect(find.byKey(const ValueKey('player-form-list')), findsNothing);
+
+    await tester.tap(find.byKey(const Key('host-user-picker-back')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('host-player-name-0')), findsOneWidget);
+    expect(find.text('Lan'), findsOneWidget);
   });
 
   testWidgets('valid host form submits through the bulk endpoint controller', (
@@ -275,7 +302,8 @@ void main() {
     await tester.tap(find.byKey(const Key('host-add-player-submit')));
     await tester.pumpAndSettle();
 
-    expect(find.text('Thêm người chơi (1)'), findsNothing);
+    // Sheet should close after successful submission
+    expect(find.byKey(const Key('host-add-player-submit')), findsNothing);
     verify(() => repository.createPlayers('session-1', any())).called(1);
     expect(submitted, contains(containsPair('name', 'Lan')));
   });
@@ -298,7 +326,8 @@ void main() {
 
     await tester.tap(find.text('Vẫn thêm'));
     await tester.pumpAndSettle();
-    expect(find.text('Thêm người chơi (1)'), findsOneWidget);
+    // Sheet should be open now
+    expect(find.byKey(const Key('host-add-player-submit')), findsOneWidget);
   });
 
   testWidgets('selecting a monthly member auto-applies the session club fee', (

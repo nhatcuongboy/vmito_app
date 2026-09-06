@@ -64,6 +64,7 @@ class CourtRepeatWarningButton extends ConsumerWidget {
       tooltip: AppLocalizations.of(context).matchRepeatOpenDetails,
       background: palette.warning,
       foreground: Colors.black87,
+      alignment: Alignment.center,
       onPressed: () => showMatchRepeatWarningSheet(context, warning: warning),
     );
   }

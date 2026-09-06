@@ -75,28 +75,33 @@ class CourtSelectionSheet extends ConsumerWidget {
         child: Column(
           children: [
             const _Grabber(),
-            Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-              ).copyWith(bottom: AppSpacing.sm),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    selectionKey.preSelect
-                        ? l10n.courtPreSelectNext
-                        : l10n.courtSelectionTitle(court.courtNumber),
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                ).copyWith(bottom: AppSpacing.sm),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      selectionKey.preSelect
+                          ? l10n.courtPreSelectNext
+                          : l10n.courtSelectionTitle(court.courtNumber),
+                      textAlign: TextAlign.start,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
-                  ),
-                  Text(
-                    l10n.courtSelectionDescription,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: palette.mutedForeground,
+                    Text(
+                      l10n.courtSelectionDescription,
+                      textAlign: TextAlign.start,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: palette.mutedForeground,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             _MatchTypeToggle(

@@ -57,6 +57,7 @@ class HostedSessionsSection extends ConsumerWidget {
                         padding: const EdgeInsets.only(bottom: AppSpacing.md),
                         child: SessionCard(
                           session: session,
+                          hideHostInfo: true,
                           onTap: () => context.push(
                             AppRoutes.manageSession(session.id),
                           ),

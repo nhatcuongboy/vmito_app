@@ -26,7 +26,7 @@ class _CompletingBrowser {
   }) async {
     calls += 1;
     lastUrl = url;
-    return 'https://vmito.com/vi/auth/callback?token=access&'
+    return 'vmito://auth/callback?token=access&'
         'refreshToken=refresh&userId=user-1&email=a%40example.com&'
         'name=Player&role=PLAYER';
   }

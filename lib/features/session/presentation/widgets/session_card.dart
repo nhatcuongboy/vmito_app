@@ -35,6 +35,7 @@ class SessionCard extends ConsumerWidget {
     this.onDelete,
     this.compactStatusBadge = false,
     this.showFavorite = false,
+    this.hideHostInfo = false,
     super.key,
   });
 
@@ -47,6 +48,7 @@ class SessionCard extends ConsumerWidget {
   final VoidCallback? onDelete;
   final bool compactStatusBadge;
   final bool showFavorite;
+  final bool hideHostInfo;
 
   static const _coverWidth = 108.0;
 
@@ -123,7 +125,7 @@ class SessionCard extends ConsumerWidget {
                         ],
                       ),
                       const SizedBox(height: AppSpacing.xs),
-                      if (session.displayHostName.isNotEmpty)
+                      if (!hideHostInfo && session.displayHostName.isNotEmpty)
                         _HostLine(session: session),
                       if (session.displayStartTime case final start?)
                         _TimeLine(

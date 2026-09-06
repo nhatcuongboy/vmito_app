@@ -18,7 +18,7 @@ class _RecordingBrowser {
     this.url = url;
     this.callbackUrlScheme = callbackUrlScheme;
     this.options = options;
-    return 'https://vmito.com/vi/auth/callback?'
+    return 'vmito://auth/callback?'
         'token=access&refreshToken=refresh&userId=user-1&'
         'email=player%40example.com&name=Nguyen%20Van%20A&role=PLAYER';
   }
@@ -59,9 +59,10 @@ void main() {
     final authUri = Uri.parse(browser.url!);
     expect(authUri.path, '/api/auth/facebook');
     expect(authUri.queryParameters['locale'], 'vi');
-    expect(browser.callbackUrlScheme, 'https');
-    expect(browser.options?.httpsHost, 'vmito.com');
-    expect(browser.options?.httpsPath, '/vi/auth/callback');
+    expect(authUri.queryParameters['mobile'], '1');
+    expect(browser.callbackUrlScheme, 'vmito');
+    expect(browser.options?.httpsHost, isNull);
+    expect(browser.options?.httpsPath, isNull);
     expect(result.user.role, UserRole.player);
   });
 }

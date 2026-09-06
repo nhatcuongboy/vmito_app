@@ -1215,7 +1215,8 @@
   "@hostAddPlayerTitle": {"placeholders": {"count": {"type": "int"}}},
   "hostAddPlayerNewPlayer": "New Player",
   "hostAddPlayerSelectExisting": "Select existing player (optional)",
-  "hostAddPlayerCreateNew": "Create new player",
+  "hostAddPlayerSearchExisting": "Search by name or email",
+  "hostAddPlayerNoUsersFound": "No matching player found. Go back to enter a new player's details.",
   "hostAddPlayerName": "Player name",
   "hostAddPlayerNameRequired": "Player name is required",
   "hostAddPlayerGender": "Gender",
@@ -1230,7 +1231,7 @@
   "hostAddPlayerClubFeeHint": "This player's payment will use the club's fixed fee for the session month.",
   "hostAddPlayerAddAnother": "Add Player",
   "hostAddPlayerRemove": "Remove player",
-  "hostAddPlayerSaveAll": "Save All ({count})",
+  "hostAddPlayerSaveAll": "Add ({count})",
   "@hostAddPlayerSaveAll": {"placeholders": {"count": {"type": "int"}}},
   "hostAddPlayerAlreadySelected": "Already in this session or selected",
   "hostAddPlayerSuccess": "Added {count} player(s) successfully",
@@ -1614,7 +1615,7 @@
   "courtDisplayModeLabel": "Display",
   "courtDisplayModeNumber": "Number",
   "courtDisplayModeName": "Name",
-  "courtElapsedMinutes": "{minutes}m",
+  "courtElapsedMinutes": "{minutes} min",
   "@courtElapsedMinutes": {
     "placeholders": {
       "minutes": {

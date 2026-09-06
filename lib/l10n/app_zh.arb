@@ -1215,7 +1215,8 @@
   "@hostAddPlayerTitle": {"placeholders": {"count": {"type": "int"}}},
   "hostAddPlayerNewPlayer": "新玩家",
   "hostAddPlayerSelectExisting": "选择现有玩家（可选）",
-  "hostAddPlayerCreateNew": "创建新玩家",
+  "hostAddPlayerSearchExisting": "按姓名或邮箱搜索",
+  "hostAddPlayerNoUsersFound": "未找到匹配的玩家。返回以输入新玩家的信息。",
   "hostAddPlayerName": "玩家姓名",
   "hostAddPlayerNameRequired": "玩家姓名是必填项",
   "hostAddPlayerGender": "性别",
@@ -1230,7 +1231,7 @@
   "hostAddPlayerClubFeeHint": "该玩家的付款将采用俱乐部为活动月份配置的固定费用。",
   "hostAddPlayerAddAnother": "添加玩家",
   "hostAddPlayerRemove": "移除玩家",
-  "hostAddPlayerSaveAll": "保存所有 ({count})",
+  "hostAddPlayerSaveAll": "添加 ({count})",
   "@hostAddPlayerSaveAll": {"placeholders": {"count": {"type": "int"}}},
   "hostAddPlayerAlreadySelected": "已在此活动中或已被选择",
   "hostAddPlayerSuccess": "已成功添加 {count} 名玩家",
@@ -1614,7 +1615,7 @@
   "courtDisplayModeLabel": "显示",
   "courtDisplayModeNumber": "号码",
   "courtDisplayModeName": "姓名",
-  "courtElapsedMinutes": "{minutes}分",
+  "courtElapsedMinutes": "{minutes} 分钟",
   "@courtElapsedMinutes": {
     "placeholders": {
       "minutes": {

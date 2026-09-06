@@ -15,12 +15,14 @@ typedef OAuthAuthenticate =
 
 /// Runs the backend-owned Google/Facebook OAuth flow in a secure browser tab.
 ///
-/// The backend always redirects to the web app's `/{locale}/auth/callback`
-/// URL. `flutter_web_auth_2` captures that HTTPS redirect before the page is
-/// loaded, so the mobile app receives the same token payload as the web app
-/// without embedding provider login pages in an unsafe WebView.
+/// The backend redirects mobile sign-ins to the app-owned custom scheme. The
+/// system authentication session captures that redirect, so provider pages are
+/// never embedded in an app-controlled WebView and the web app is not loaded
+/// after a successful sign-in.
 class OAuthService {
   const OAuthService(this._authenticate);
+
+  static const callbackScheme = 'vmito';
 
   final OAuthAuthenticate _authenticate;
 
@@ -28,23 +30,18 @@ class OAuthService {
     required OAuthProvider provider,
     required String locale,
   }) async {
-    final callbackBase = Uri.parse(AppConfig.webBaseUrl);
-    final callbackPath = '/$locale/auth/callback';
     final endpoint = switch (provider) {
       OAuthProvider.google => ApiEndpoints.oauthGoogle,
       OAuthProvider.facebook => ApiEndpoints.oauthFacebook,
     };
     final authUri = Uri.parse('${AppConfig.apiBaseUrl}$endpoint').replace(
-      queryParameters: {'locale': locale},
+      queryParameters: {'locale': locale, 'mobile': '1'},
     );
 
     final callback = await _authenticate(
       url: authUri.toString(),
-      callbackUrlScheme: callbackBase.scheme,
-      options: FlutterWebAuth2Options(
-        httpsHost: callbackBase.scheme == 'https' ? callbackBase.host : null,
-        httpsPath: callbackBase.scheme == 'https' ? callbackPath : null,
-      ),
+      callbackUrlScheme: callbackScheme,
+      options: const FlutterWebAuth2Options(),
     );
 
     return parseCallback(callback);

@@ -173,7 +173,7 @@ class _HostEditPlayerSheetState extends ConsumerState<_HostEditPlayerSheet> {
                       child: ReactiveDropdownField<Gender>(
                         formControlName: HostPlayerFormControl.gender,
                         decoration: InputDecoration(
-                          label: AppRequiredLabel(l10n.hostAddPlayerGender),
+                          labelText: l10n.hostAddPlayerGender,
                         ),
                         items: [
                           DropdownMenuItem(
@@ -184,10 +184,6 @@ class _HostEditPlayerSheetState extends ConsumerState<_HostEditPlayerSheet> {
                             value: Gender.female,
                             child: Text(l10n.genderFemale),
                           ),
-                          DropdownMenuItem(
-                            value: Gender.other,
-                            child: Text(l10n.genderOther),
-                          ),
                         ],
                       ),
                     ),
@@ -196,7 +192,7 @@ class _HostEditPlayerSheetState extends ConsumerState<_HostEditPlayerSheet> {
                       child: ReactiveDropdownField<int>(
                         formControlName: HostPlayerFormControl.level,
                         decoration: InputDecoration(
-                          label: AppRequiredLabel(l10n.registrationLevel),
+                          labelText: l10n.registrationLevel,
                         ),
                         validationMessages: {
                           ValidationMessage.required: (_) =>

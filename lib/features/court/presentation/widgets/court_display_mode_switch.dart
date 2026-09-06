@@ -15,6 +15,7 @@ class CourtDisplayModeSwitch extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final mode = ref.watch(courtDisplayModeControllerProvider);
     final controller = ref.read(courtDisplayModeControllerProvider.notifier);
+    final theme = Theme.of(context);
 
     return SegmentedButton<CourtDisplayMode>(
       key: const Key('court-display-mode-switch'),
@@ -34,9 +35,10 @@ class CourtDisplayModeSwitch extends ConsumerWidget {
       onSelectionChanged: (selection) => controller.select(selection.first),
       showSelectedIcon: false,
       style: SegmentedButton.styleFrom(
+        backgroundColor: Colors.white,
         minimumSize: const Size(0, 36),
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm + 2),
-        textStyle: Theme.of(context).textTheme.labelMedium?.copyWith(
+        textStyle: theme.textTheme.labelMedium?.copyWith(
           fontSize: 13,
           fontWeight: FontWeight.w600,
         ),

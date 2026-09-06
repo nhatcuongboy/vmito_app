@@ -157,7 +157,7 @@ void main() {
           locale: const Locale('vi'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const Scaffold(
+          home: Scaffold(
             body: CourtSelectionSheet(
               selectionKey: (
                 sessionId: 's1',

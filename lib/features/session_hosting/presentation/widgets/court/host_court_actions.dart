@@ -68,14 +68,7 @@ class HostCourtActions extends StatelessWidget {
           icon: const Icon(AppIcons.shuffle, size: 16),
           label: Text(l10n.courtAssignPlayers),
         ),
-      if (isReady && !isRunning)
-        FilledButton.icon(
-          key: ValueKey('start-${court.id}'),
-          style: _solid(palette.success),
-          onPressed: isBusy ? null : onStart,
-          icon: const Icon(AppIcons.play, size: 16),
-          label: Text(l10n.courtStartMatch),
-        ),
+      // Thay đổi thứ tự: nút "Hủy" trước, nút "Bắt đầu" sau
       if (isReady && hasPlayers)
         OutlinedButton.icon(
           key: ValueKey('clear-${court.id}'),
@@ -84,12 +77,20 @@ class HostCourtActions extends StatelessWidget {
           icon: const Icon(AppIcons.close, size: 16),
           label: Text(l10n.courtCancelSelection),
         ),
+      if (isReady && !isRunning)
+        FilledButton.icon(
+          key: ValueKey('start-${court.id}'),
+          style: _solid(palette.success),
+          onPressed: isBusy ? null : onStart,
+          icon: const Icon(AppIcons.play, size: 16),
+          label: Text(l10n.courtStartMatch),
+        ),
       if (isPlaying && !court.hasPreSelection)
         OutlinedButton.icon(
           key: ValueKey('pre-select-${court.id}'),
           style: _outline(palette.success),
           onPressed: isBusy || !hasEnoughWaiting ? null : onPreSelect,
-          icon: const Icon(AppIcons.queueNext, size: 16),
+          icon: const Icon(AppIcons.userPlus, size: 16),
           label: Text(l10n.courtPreSelectShort),
         ),
       if (isPlaying && court.hasPreSelection)

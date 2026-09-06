@@ -472,34 +472,40 @@ class _MySessionsToolbar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm,
+    final palette = Theme.of(context).extension<AppPalette>()!;
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: palette.border)),
       ),
-      child: Row(
-        children: [
-          const Spacer(),
-          OutlinedButton.icon(
-            key: const Key('my-sessions-sort-button'),
-            onPressed: onSort,
-            style: OutlinedButton.styleFrom(
-              minimumSize: const Size(0, 40),
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              visualDensity: VisualDensity.compact,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.xs,
+        ),
+        child: Row(
+          children: [
+            const Spacer(),
+            OutlinedButton.icon(
+              key: const Key('my-sessions-sort-button'),
+              onPressed: onSort,
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(0, 40),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                visualDensity: VisualDensity.compact,
+              ),
+              icon: const Icon(AppIcons.sortAlpha, size: 18),
+              label: Text(sortLabel),
             ),
-            icon: const Icon(AppIcons.sortAlpha, size: 18),
-            label: Text(sortLabel),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          IconButton.outlined(
-            key: const Key('my-sessions-filter-button'),
-            tooltip: l10n.sessionFiltersTitle,
-            onPressed: onFilter,
-            visualDensity: VisualDensity.compact,
-            icon: const Icon(AppIcons.tune, size: 20),
-          ),
-        ],
+            const SizedBox(width: AppSpacing.sm),
+            IconButton.outlined(
+              key: const Key('my-sessions-filter-button'),
+              tooltip: l10n.sessionFiltersTitle,
+              onPressed: onFilter,
+              visualDensity: VisualDensity.compact,
+              icon: const Icon(AppIcons.tune, size: 20),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -639,6 +645,7 @@ class _SessionsBody extends StatelessWidget {
         final session = state.sessions[index];
         final card = SessionCard(
           session: session,
+          hideHostInfo: scope == MySessionScope.hosted,
           onTap: () => context.push(AppRoutes.sessionDetail(session.id)),
           onHost: scope == MySessionScope.hosted
               ? () => context.push(AppRoutes.manageSession(session.id))

@@ -150,6 +150,12 @@ void main() {
     expect(selectedText.style?.height, closeTo(20 / 15, 0.0001));
     expect(selectedText.style?.fontWeight, FontWeight.w600);
     expect(unselectedText.style?.fontWeight, FontWeight.w500);
+    final sessionFlame = tester.widget<Icon>(
+      find.byIcon(AppIcons.flameFilled),
+    );
+    expect(sessionFlame.size, 16);
+    expect(sessionFlame.color, const Color(0xFFFF6B35));
+    expect(find.byIcon(AppIcons.flame), findsNothing);
 
     await tester.tap(find.byKey(const Key('home-discovery-tab-venues')));
     await tester.pumpAndSettle();
