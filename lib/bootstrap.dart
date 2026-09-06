@@ -4,10 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vmito_app/app.dart';
+import 'package:vmito_app/core/device/installation_id_store.dart';
 import 'package:vmito_app/core/localization/locale_controller.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/network/api_client.dart';
 import 'package:vmito_app/core/network/error_interceptor.dart';
+import 'package:vmito_app/core/notifications/firebase_bootstrap.dart';
+import 'package:vmito_app/core/notifications/push_registration_manager.dart';
 import 'package:vmito_app/core/security/app_lock_controller.dart';
 import 'package:vmito_app/core/security/biometric_lock_storage.dart';
 import 'package:vmito_app/core/storage/token_storage.dart';
@@ -25,6 +28,7 @@ import 'package:vmito_app/features/session/application/player/my_sessions_search
 /// dependency means adding it here, not reaching for a service locator.
 Future<void> bootstrap() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeFirebaseForPush();
 
   FlutterError.onError = (details) {
     AppLogger.error(
@@ -72,6 +76,16 @@ Future<void> bootstrap() async {
       biometricLockStorageProvider.overrideWithValue(biometricLockStorage),
       apiErrorBusProvider.overrideWithValue(errorBus),
       apiClientProvider.overrideWithValue(apiClient),
+      installationIdStoreProvider.overrideWithValue(
+        InstallationIdStore(preferences),
+      ),
+      sessionCleanupProvider.overrideWithValue(
+        ({unregisterServer = true}) async {
+          await container
+              .read(pushRegistrationManagerProvider)
+              ?.unregister(unregisterServer: unregisterServer);
+        },
+      ),
       localeRepositoryProvider.overrideWithValue(
         SharedPreferencesLocaleRepository(preferences),
       ),

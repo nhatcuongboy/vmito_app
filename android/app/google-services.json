@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "620559665452",
+    "project_id": "vmito-a5680",
+    "storage_bucket": "vmito-a5680.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:620559665452:android:96929f4fe3238ba8df0489",
+        "android_client_info": {
+          "package_name": "com.vmito.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBP_e00tfgcUpiOvfwqSuckjwvFCqcU1c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

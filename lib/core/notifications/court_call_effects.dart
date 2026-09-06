@@ -1,12 +1,10 @@
 import 'dart:async';
 
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_tts/flutter_tts.dart';
+import 'package:vmito_app/core/notifications/app_local_notifications.dart';
 
 abstract interface class CourtCallEffects {
-  Stream<String> get actions;
-
   Future<void> initialize();
 
   Future<void> notify({
@@ -28,58 +26,15 @@ abstract interface class CourtCallEffects {
 
 class PlatformCourtCallEffects implements CourtCallEffects {
   PlatformCourtCallEffects({
-    FlutterLocalNotificationsPlugin? notifications,
+    required this._notifications,
     FlutterTts? tts,
-  }) : _notifications = notifications ?? FlutterLocalNotificationsPlugin(),
-       _tts = tts ?? FlutterTts();
+  }) : _tts = tts ?? FlutterTts();
 
-  final FlutterLocalNotificationsPlugin _notifications;
+  final AppLocalNotifications _notifications;
   final FlutterTts _tts;
-  final StreamController<String> _actions = StreamController.broadcast();
-  Future<void>? _initialization;
 
   @override
-  Stream<String> get actions => _actions.stream;
-
-  @override
-  Future<void> initialize() => _initialization ??= _initialize();
-
-  Future<void> _initialize() async {
-    await _notifications.initialize(
-      settings: const InitializationSettings(
-        android: AndroidInitializationSettings('@mipmap/ic_launcher'),
-        iOS: DarwinInitializationSettings(
-          requestAlertPermission: false,
-          requestBadgePermission: false,
-          requestSoundPermission: false,
-        ),
-      ),
-      onDidReceiveNotificationResponse: (response) {
-        final payload = response.payload;
-        if (payload != null && payload.isNotEmpty) _actions.add(payload);
-      },
-    );
-    final launch = await _notifications.getNotificationAppLaunchDetails();
-    final payload = launch?.notificationResponse?.payload;
-    if ((launch?.didNotificationLaunchApp ?? false) &&
-        payload != null &&
-        payload.isNotEmpty) {
-      _actions.add(payload);
-    }
-  }
-
-  Future<void> _requestPermissions() async {
-    await _notifications
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.requestNotificationsPermission();
-    await _notifications
-        .resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin
-        >()
-        ?.requestPermissions(alert: true, badge: true, sound: true);
-  }
+  Future<void> initialize() => _notifications.initialize();
 
   @override
   Future<void> notify({
@@ -87,28 +42,11 @@ class PlatformCourtCallEffects implements CourtCallEffects {
     required String message,
     required String payload,
   }) async {
-    await initialize();
-    await _requestPermissions();
     await _notifications.show(
-      id: DateTime.now().millisecondsSinceEpoch.remainder(1 << 31),
       title: title,
       body: message,
-      notificationDetails: const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'court_calls',
-          'Court calls',
-          channelDescription: 'Calls players to their assigned court',
-          importance: Importance.max,
-          priority: Priority.high,
-        ),
-        iOS: DarwinNotificationDetails(
-          presentAlert: true,
-          presentBanner: true,
-          presentSound: true,
-          interruptionLevel: InterruptionLevel.timeSensitive,
-        ),
-      ),
       payload: payload,
+      channel: AppNotificationChannel.courtCall,
     );
   }
 
@@ -150,5 +88,7 @@ class PlatformCourtCallEffects implements CourtCallEffects {
 }
 
 final courtCallEffectsProvider = Provider<CourtCallEffects>(
-  (ref) => PlatformCourtCallEffects(),
+  (ref) => PlatformCourtCallEffects(
+    notifications: ref.watch(appLocalNotificationsProvider),
+  ),
 );

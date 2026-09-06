@@ -31,6 +31,7 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+/android/build/
 /coverage/
 
 # Symbolication related
@@ -52,14 +53,47 @@ app.*.map.json
 lib/l10n/app_localizations*.dart
 lib/l10n/untranslated.json
 
-# Firebase config. Never commit these; each developer pulls their own.
-android/app/google-services.json
-ios/Runner/GoogleService-Info.plist
-lib/firebase_options.dart
+# Firebase client config files are intentionally committed. They contain
+# project identifiers/public API keys, not server credentials; CI and store
+# builds need the same files that `flutterfire configure` generated.
 
 # Generated from openapi/openapi.json. Regenerate with tool/sync_openapi.sh
 # then `dart run build_runner build`. openapi/openapi.json IS committed.
 lib/core/api/generated/
 
-# Real API keys for local runs. Copy an env/*.json and fill in the blanks.
+# Real API keys and local configs. Copy an env/*.json and fill in the blanks.
 env/*.local.json
+env/local.json
+*.local.json
+.env
+.env.*
+*.env
+
+# Android & Gradle artifacts and local configs
+.gradle/
+**/.gradle/
+.kotlin/
+**/.kotlin/
+**/captures/
+**/local.properties
+
+# Android keystore and release signing keys
+**/key.properties
+**/*.keystore
+**/*.jks
+
+# iOS / macOS local configs, credentials and Xcode user state
+**/GoogleMaps.xcconfig
+**/xcuserdata/
+**/*.xcuserstate
+**/DerivedData/
+
+# Apple certificates and provisioning profiles
+*.p8
+*.p12
+*.cer
+*.mobileprovision
+
+# AI & local editor caches
+.claude/
+

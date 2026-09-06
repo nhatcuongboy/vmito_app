@@ -53,3 +53,46 @@ String? getNotificationTargetRoute(
           ? AppRoutes.clubDetail(notification.clubId!)
           : null);
 }
+
+/// Resolves the flat string map carried by an FCM `data` payload.
+///
+/// The server should always include these routing fields in `data`, even when
+/// it also sends a visible `notification` block, so taps work from every app
+/// lifecycle state.
+String getPushNotificationTargetRoute(
+  Map<String, dynamic> data, {
+  UserRole? userRole,
+}) {
+  final explicitRoute = data['route']?.toString();
+  if (explicitRoute != null &&
+      explicitRoute.startsWith('/') &&
+      !explicitRoute.startsWith('//')) {
+    return explicitRoute;
+  }
+
+  final normalized = Map<String, dynamic>.from(data);
+  final type = normalized['type']?.toString().toUpperCase() ?? 'UNKNOWN';
+  final action = normalized['action']?.toString();
+  final sessionId = normalized['sessionId']?.toString();
+  if (sessionId != null &&
+      sessionId.isNotEmpty &&
+      (action == 'court_call' || normalized['courtNumber'] != null)) {
+    return AppRoutes.liveSession(sessionId);
+  }
+
+  final notification = AppNotification.fromJson({
+    'id': normalized['notificationId']?.toString() ?? 'push',
+    'userId': normalized['userId']?.toString() ?? '',
+    'type': type,
+    'title': normalized['title']?.toString() ?? '',
+    'message':
+        normalized['body']?.toString() ??
+        normalized['message']?.toString() ??
+        '',
+    'data': normalized,
+    'isRead': false,
+    'createdAt': DateTime.now().toUtc().toIso8601String(),
+  });
+  return getNotificationTargetRoute(notification, userRole: userRole) ??
+      AppRoutes.notifications;
+}

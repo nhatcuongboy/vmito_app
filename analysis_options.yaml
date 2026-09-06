@@ -7,6 +7,9 @@ include: package:very_good_analysis/analysis_options.yaml
 
 analyzer:
   exclude:
+    # Flutter's Swift Package Manager checkout lives under build/ios and
+    # contains the plugins' own examples/tests, which are not app sources.
+    - "build/**"
     - "**/*.g.dart"
     - "**/*.freezed.dart"
     - "lib/l10n/app_localizations*.dart"

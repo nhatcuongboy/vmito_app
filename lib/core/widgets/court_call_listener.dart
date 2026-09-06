@@ -24,7 +24,6 @@ class CourtCallListener extends ConsumerStatefulWidget {
 
 class _CourtCallListenerState extends ConsumerState<CourtCallListener> {
   StreamSubscription<Map<String, dynamic>>? _subscription;
-  StreamSubscription<String>? _notificationActions;
   final Set<String> _handled = {};
   bool _dialogOpen = false;
 
@@ -35,9 +34,6 @@ class _CourtCallListenerState extends ConsumerState<CourtCallListener> {
     _subscription = socket.on(SessionEvent.playersSelected).listen(_onEvent);
     final effects = ref.read(courtCallEffectsProvider);
     unawaited(effects.initialize());
-    _notificationActions = effects.actions.listen((route) {
-      if (mounted && route.startsWith('/sessions/')) context.go(route);
-    });
   }
 
   Future<void> _onEvent(Map<String, dynamic> payload) async {
@@ -99,7 +95,6 @@ class _CourtCallListenerState extends ConsumerState<CourtCallListener> {
   @override
   void dispose() {
     unawaited(_subscription?.cancel());
-    unawaited(_notificationActions?.cancel());
     super.dispose();
   }
 

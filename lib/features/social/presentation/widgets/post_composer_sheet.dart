@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
-import 'package:vmito_app/core/config/app_config.dart';
 import 'package:vmito_app/core/location/google_places_service.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -304,11 +303,9 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
             controller: _locationController,
             focusNode: _locationFocusNode,
             autofocus: true,
-            enabled: !_isSearchingLocations && AppConfig.hasGooglePlaces,
+            enabled: !_isSearchingLocations,
             decoration: InputDecoration(
-              hintText: AppConfig.hasGooglePlaces
-                  ? l10n.socialLocationPlaceholder
-                  : l10n.socialLocationSearchFailed,
+              hintText: l10n.socialLocationPlaceholder,
               prefixIcon: const Icon(AppIcons.search),
               suffixIcon: _isSearchingLocations
                   ? const Padding(
@@ -438,7 +435,6 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
   }
 
   Future<void> _searchLocations(String query) async {
-    if (!AppConfig.hasGooglePlaces) return;
     setState(() => _isSearchingLocations = true);
     try {
       final suggestions = await ref

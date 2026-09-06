@@ -92,8 +92,8 @@ void main() {
       'app chrome uses theme-aware brand surfaces and navigation states',
       () {
         for (final (theme, brandSurface, indicatorAlpha) in [
-          (AppTheme.light, const Color(0xFFF2FAF5), 0.16),
-          (AppTheme.dark, const Color(0xFF102016), 0.20),
+          (AppTheme.light, const Color(0xFFE2F3E8), 0.16),
+          (AppTheme.dark, const Color(0xFF183028), 0.20),
         ]) {
           final palette = theme.extension<AppPalette>()!;
           final navigation = theme.navigationBarTheme;

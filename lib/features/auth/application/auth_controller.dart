@@ -210,6 +210,7 @@ class AuthController extends Notifier<AuthState> {
   /// cleared once the server has confirmed.
   Future<void> deleteAccount() async {
     await _service.deleteAccount();
+    await _runSessionCleanup();
     await _clearPersistedSession();
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
@@ -234,6 +235,7 @@ class AuthController extends Notifier<AuthState> {
   }
 
   Future<void> signOut() async {
+    await _runSessionCleanup();
     // Signing out is not the same as forgetting the device. When biometric
     // sign-in is armed the refresh token is parked under a key the request
     // interceptor cannot reach, so only an explicit face/fingerprint scan can
@@ -244,6 +246,16 @@ class AuthController extends Notifier<AuthState> {
       await _clearPersistedSession();
     }
     state = const AuthState(status: AuthStatus.unauthenticated);
+  }
+
+  Future<void> _runSessionCleanup({bool unregisterServer = true}) async {
+    try {
+      await ref.read(sessionCleanupProvider)(
+        unregisterServer: unregisterServer,
+      );
+    } on Object catch (error) {
+      AppLogger.warn('session cleanup failed', error: error);
+    }
   }
 
   Future<bool> _isBiometricSignInArmed() async {
@@ -262,6 +274,7 @@ class AuthController extends Notifier<AuthState> {
   ///
   /// The refresh token is dead, so the biometric offer must go with it.
   Future<void> handleSessionExpired() async {
+    await _runSessionCleanup(unregisterServer: false);
     await _clearPersistedSession();
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
@@ -271,6 +284,14 @@ class AuthController extends Notifier<AuthState> {
 
 final authControllerProvider = NotifierProvider<AuthController, AuthState>(
   AuthController.new,
+);
+
+typedef SessionCleanup = Future<void> Function({bool unregisterServer});
+
+/// Runs authenticated, best-effort cleanup immediately before local tokens are
+/// removed. Bootstrap wires push-device unregistration into this hook.
+final sessionCleanupProvider = Provider<SessionCleanup>(
+  (ref) => ({unregisterServer = true}) async {},
 );
 
 /// Convenience selectors — prefer these in widgets so a rebuild is scoped to

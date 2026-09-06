@@ -555,10 +555,12 @@ it, rather than answering each from scratch.
   A reviewer who joins as a guest, backgrounds the app, and returns to a lost
   session will read that as a bug. Fix it, or make sure the review notes use a
   signed-in demo account only.
-- **Push notifications** need `firebase_core` / `firebase_messaging` (still
-  commented out in `pubspec.yaml`) plus `google-services.json` and
-  `GoogleService-Info.plist`, which are gitignored by design. If the store
-  listing mentions notifications, they must work.
+- **Push notifications** are wired on the client, but release readiness still
+  requires the backend device-registration/send flow, production APNs key in
+  Firebase, and a paid Apple Developer team whose provisioning profile carries
+  the Push Notifications and Time Sensitive Notifications capabilities. If the
+  store listing mentions notifications, verify all lifecycle states on real
+  devices first.
 
 ---
 

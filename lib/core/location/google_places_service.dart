@@ -1,7 +1,8 @@
-import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:vmito_app/core/config/app_config.dart';
+import 'package:vmito_app/core/constants/api_endpoints.dart';
+import 'package:vmito_app/core/network/api_client.dart';
+import 'package:vmito_app/core/network/api_options.dart';
+import 'package:vmito_app/core/network/api_response.dart';
 import 'package:vmito_app/core/utils/logger.dart';
 
 class PlaceSuggestion {
@@ -34,66 +35,36 @@ class PlaceDetails {
   final String? city;
 }
 
+/// Address autocomplete via Vmito's backend proxy.
+///
+/// The proxy owns the Google Places credential so the mobile binary never
+/// contains a third-party secret.
 class GooglePlacesService {
-  GooglePlacesService({Dio? client}) : _client = client ?? Dio();
+  const GooglePlacesService(this._client);
 
-  final Dio _client;
+  final ApiClient _client;
 
   Future<List<PlaceSuggestion>> autocomplete({
     required String input,
     required String language,
   }) async {
-    if (!AppConfig.hasGooglePlaces) {
-      AppLogger.warn(
-        'GooglePlacesService.autocomplete skipped: GOOGLE_PLACES_API_KEY is '
-        'empty for this build (--dart-define-from-file env/*.json).',
-      );
-      return const [];
-    }
     if (input.trim().length < 2) return const [];
-    AppLogger.network(
-      'GooglePlacesService.autocomplete input="$input" '
-      'keyLength=${AppConfig.googlePlacesApiKey.length}',
-    );
+
     try {
       final response = await _client.post<Map<String, dynamic>>(
-        'https://places.googleapis.com/v1/places:autocomplete',
-        data: {
-          'input': input.trim(),
-          'languageCode': language,
-          'includedRegionCodes': ['vn'],
-        },
-        options: _options('suggestions.placePrediction'),
+        ApiEndpoints.placesAutocomplete,
+        data: {'input': input.trim(), 'language': language},
+        options: apiOptions(skipGlobalError: true),
       );
-      final suggestions =
-          response.data?['suggestions'] as List<dynamic>? ?? const [];
-      AppLogger.network(
-        'GooglePlacesService.autocomplete status=${response.statusCode} '
-        'suggestionCount=${suggestions.length}',
-      );
-      return [
-        for (final item in suggestions.whereType<Map<String, dynamic>>())
-          if (item['placePrediction'] case final Map<String, dynamic>
-              prediction)
-            PlaceSuggestion(
-              placeId: prediction['placeId'] as String? ?? '',
-              primaryText:
-                  ((prediction['structuredFormat'] as Map?)?['mainText']
-                          as Map?)?['text']
-                      as String? ??
-                  ((prediction['text'] as Map?)?['text'] as String? ?? ''),
-              secondaryText:
-                  ((prediction['structuredFormat'] as Map?)?['secondaryText']
-                          as Map?)?['text']
-                      as String? ??
-                  '',
-            ),
-      ].where((item) => item.placeId.isNotEmpty).toList(growable: false);
-    } on DioException catch (e) {
+      return unwrapList(
+        response.data,
+        _suggestionFromJson,
+      ).where((item) => item.placeId.isNotEmpty).toList(growable: false);
+    } on Object catch (error, stackTrace) {
       AppLogger.error(
-        'GooglePlacesService.autocomplete failed status=${e.response?.statusCode} '
-        'body=${e.response?.data}',
-        error: e,
+        'GooglePlacesService.autocomplete failed',
+        error: error,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
@@ -103,71 +74,41 @@ class GooglePlacesService {
     required String placeId,
     required String language,
   }) async {
-    Map<String, dynamic> json;
     try {
       final response = await _client.get<Map<String, dynamic>>(
-        'https://places.googleapis.com/v1/places/$placeId',
-        queryParameters: {'languageCode': language},
-        options: _options('id,formattedAddress,location,addressComponents'),
+        ApiEndpoints.placesDetails,
+        queryParameters: {'placeId': placeId, 'language': language},
+        options: apiOptions(skipGlobalError: true),
       );
-      AppLogger.network(
-        'GooglePlacesService.details placeId=$placeId '
-        'status=${response.statusCode}',
-      );
-      json = response.data ?? const <String, dynamic>{};
-    } on DioException catch (e) {
+      return unwrap(response.data, _detailsFromJson);
+    } on Object catch (error, stackTrace) {
       AppLogger.error(
-        'GooglePlacesService.details failed placeId=$placeId '
-        'status=${e.response?.statusCode} body=${e.response?.data}',
-        error: e,
+        'GooglePlacesService.details failed',
+        error: error,
+        stackTrace: stackTrace,
       );
       rethrow;
     }
-    final components = json['addressComponents'] as List<dynamic>? ?? const [];
-    String? component(Set<String> types) {
-      for (final item in components.whereType<Map<String, dynamic>>()) {
-        final itemTypes = (item['types'] as List<dynamic>? ?? const [])
-            .whereType<String>()
-            .toSet();
-        if (itemTypes.intersection(types).isNotEmpty) {
-          return item['longText'] as String?;
-        }
-      }
-      return null;
-    }
-
-    final location = json['location'] as Map<String, dynamic>?;
-    return PlaceDetails(
-      placeId: json['id'] as String? ?? placeId,
-      address: json['formattedAddress'] as String? ?? '',
-      latitude: (location?['latitude'] as num?)?.toDouble(),
-      longitude: (location?['longitude'] as num?)?.toDouble(),
-      district: component({'administrative_area_level_2', 'sublocality'}),
-      city: component({'administrative_area_level_1'}),
-    );
   }
 
-  Options _options(String fieldMask) => Options(
-    headers: {
-      'X-Goog-Api-Key': AppConfig.googlePlacesApiKey,
-      'X-Goog-FieldMask': fieldMask,
-      ..._appIdentityHeaders,
-    },
-  );
+  static PlaceSuggestion _suggestionFromJson(Map<String, dynamic> json) =>
+      PlaceSuggestion(
+        placeId: json['placeId'] as String? ?? '',
+        primaryText: json['primaryText'] as String? ?? '',
+        secondaryText: json['secondaryText'] as String? ?? '',
+      );
 
-  // Places API (New) is called over plain HTTP, so a key restricted to this
-  // app's iOS/Android identity can't detect the caller on its own — Google
-  // rejects every request as an <empty> app unless we self-report it here.
-  static const _bundleId = 'com.vmito.app';
-
-  Map<String, String> get _appIdentityHeaders =>
-      switch (defaultTargetPlatform) {
-        TargetPlatform.iOS => {'X-Ios-Bundle-Identifier': _bundleId},
-        TargetPlatform.android => {'X-Android-Package': _bundleId},
-        _ => const {},
-      };
+  static PlaceDetails _detailsFromJson(Map<String, dynamic> json) =>
+      PlaceDetails(
+        placeId: json['placeId'] as String? ?? '',
+        address: json['address'] as String? ?? '',
+        latitude: (json['latitude'] as num?)?.toDouble(),
+        longitude: (json['longitude'] as num?)?.toDouble(),
+        district: json['district'] as String?,
+        city: json['city'] as String?,
+      );
 }
 
 final googlePlacesServiceProvider = Provider<GooglePlacesService>(
-  (ref) => GooglePlacesService(),
+  (ref) => GooglePlacesService(ref.watch(apiClientProvider)),
 );

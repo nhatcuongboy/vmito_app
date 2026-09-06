@@ -28,8 +28,8 @@ Google Maps uses native SDK keys, so these two values are configured outside
 
 Enable **Maps SDK for Android** and **Maps SDK for iOS** in Google Cloud. Use
 separate keys restricted to Android package `com.vmito.app` (plus signing
-certificate SHA-1) and iOS bundle id `com.vmito.app`. These keys are separate
-from `GOOGLE_PLACES_API_KEY`, which remains in the environment JSON files.
+certificate SHA-1) and iOS bundle id `com.vmito.app`. Address autocomplete is
+served through the Vmito backend, which keeps its Google Places key server-side.
 
 ## Running
 

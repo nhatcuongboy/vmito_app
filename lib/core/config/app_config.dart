@@ -68,22 +68,6 @@ abstract final class AppConfig {
     defaultValue: 'https://vmito.com',
   );
 
-  /// Google Places API (New) key, used by the shared address autocomplete in
-  /// session and social-post composers.
-  ///
-  /// This ships inside the binary, so it must be a **mobile-only** key with
-  /// application restrictions (Android package + SHA-1, iOS bundle id) and an
-  /// API restriction to Places API (New). Reusing the web's browser key would
-  /// effectively unrestrict it — HTTP-referrer restrictions do not apply to a
-  /// mobile client.
-  ///
-  /// Empty is a supported state: the address field degrades to plain text.
-  static const String googlePlacesApiKey = String.fromEnvironment(
-    'GOOGLE_PLACES_API_KEY',
-  );
-
-  static bool get hasGooglePlaces => googlePlacesApiKey.isNotEmpty;
-
   static const Duration connectTimeout = Duration(seconds: 15);
   static const Duration receiveTimeout = Duration(seconds: 30);
 

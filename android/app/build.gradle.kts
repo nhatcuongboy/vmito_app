@@ -1,8 +1,12 @@
 import java.util.Properties
+import java.io.FileInputStream
 import org.gradle.api.tasks.compile.JavaCompile
 
 plugins {
     id("com.android.application")
+    // START: FlutterFire Configuration
+    id("com.google.gms.google-services")
+    // END: FlutterFire Configuration
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
@@ -11,6 +15,13 @@ val localProperties = Properties().apply {
     val localPropertiesFile = rootProject.file("local.properties")
     if (localPropertiesFile.exists()) {
         localPropertiesFile.inputStream().use { input -> load(input) }
+    }
+}
+
+val keystorePropertiesFile = rootProject.file("key.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) {
+        FileInputStream(keystorePropertiesFile).use(::load)
     }
 }
 
@@ -39,11 +50,34 @@ android {
             localProperties.getProperty("MAPS_API_KEY", "")
     }
 
+    signingConfigs {
+        create("release") {
+            keyAlias = keystoreProperties.getProperty("keyAlias")
+            keyPassword = keystoreProperties.getProperty("keyPassword")
+            storeFile = keystoreProperties.getProperty("storeFile")?.let(::file)
+            storePassword = keystoreProperties.getProperty("storePassword")
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
+        }
+    }
+}
+
+tasks.matching {
+    it.name == "packageRelease" || it.name == "bundleRelease"
+}.configureEach {
+    doFirst {
+        check(keystorePropertiesFile.exists()) {
+            "Missing android/key.properties: release builds require the upload key."
+        }
+        check(
+            listOf("storeFile", "storePassword", "keyAlias", "keyPassword")
+                .all { keystoreProperties.getProperty(it).isNullOrBlank().not() },
+        ) {
+            "android/key.properties is missing a release-signing value."
         }
     }
 }

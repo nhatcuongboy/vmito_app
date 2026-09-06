@@ -57,6 +57,29 @@ class NotificationService {
 
   Future<void> delete(String id) =>
       _client.delete<void>(ApiEndpoints.notificationDelete(id));
+
+  Future<void> registerDevice({
+    required String token,
+    required String platform,
+    required String appVersion,
+    required String locale,
+    required String deviceId,
+  }) => _client.post<void>(
+    ApiEndpoints.notificationDevices,
+    data: {
+      'token': token,
+      'platform': platform,
+      'appVersion': appVersion,
+      'locale': locale,
+      'deviceId': deviceId,
+    },
+    options: apiOptions(skipGlobalError: true),
+  );
+
+  Future<void> unregisterDevice(String token) => _client.delete<void>(
+    '${ApiEndpoints.notificationDevices}/${Uri.encodeComponent(token)}',
+    options: apiOptions(skipGlobalError: true),
+  );
 }
 
 final notificationServiceProvider = Provider<NotificationService>(

@@ -88,8 +88,19 @@ class RewardEarlyPunishLateController {
     });
     _subscriptions.add(collectionSub);
 
-    collection.forEachChild(_bindControl);
+    _childrenOf(collection).forEach(_bindControl);
   }
+
+  /// [AbstractControl.forEachChild] is protected outside reactive_forms.
+  /// Form groups and arrays expose their children publicly, so iterate those
+  /// concrete control collections instead.
+  Iterable<AbstractControl<dynamic>> _childrenOf(
+    FormControlCollection<dynamic> collection,
+  ) => switch (collection) {
+    FormGroup() => collection.controls.values,
+    FormArray() => collection.controls,
+    _ => const [],
+  };
 
   void _bindControl(AbstractControl<dynamic> control) {
     if (control is FormControlCollection<dynamic>) {
@@ -109,7 +120,7 @@ class RewardEarlyPunishLateController {
   void _rebindDescendants() {
     // Cancel descendant subscriptions while keeping the root touch subscription.
     while (_subscriptions.length > 1) {
-      _subscriptions.removeLast().cancel();
+      unawaited(_subscriptions.removeLast().cancel());
     }
     _attachDescendantListeners(formGroup);
   }
@@ -119,7 +130,7 @@ class RewardEarlyPunishLateController {
     if (_isDisposed) return;
     _isDisposed = true;
     for (final sub in _subscriptions) {
-      sub.cancel();
+      unawaited(sub.cancel());
     }
     _subscriptions.clear();
   }

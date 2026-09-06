@@ -44,11 +44,11 @@ dependencies:
   connectivity_plus: ^7.3.1
 
   # --- Routing --------------------------------------------------------------
-  go_router: ^17.3.0
+  go_router: ^18.0.1
 
   # --- Storage --------------------------------------------------------------
   # Tokens go in flutter_secure_storage (Keychain/Keystore) — never in prefs.
-  flutter_secure_storage: ^10.3.1
+  flutter_secure_storage: ^11.0.0
   shared_preferences: ^2.5.5
 
   # --- i18n / formatting ----------------------------------------------------
@@ -56,15 +56,15 @@ dependencies:
 
   # --- UI -------------------------------------------------------------------
   cupertino_icons: ^1.0.8
-  cached_network_image: ^3.4.1
+  cached_network_image: ^4.0.0
   flutter_svg: ^2.3.0
   flutter_lucide: ^1.11.0
   flutter_widget_from_html_core: ^0.17.2
   html: ^0.15.6
   # The application-wide standard for model-driven, validated forms.
   reactive_forms: ^18.2.2
-  shimmer: ^3.0.0
-  flutter_slidable: ^3.1.0
+  shimmer: ^4.0.0
+  flutter_slidable: ^4.0.3
 
   # --- Media ----------------------------------------------------------------
   # Backend proxies uploads to Cloudinary; compress client-side to match the
@@ -104,9 +104,9 @@ dependencies:
   logger: ^2.7.0
   sign_in_with_apple: ^8.1.0
 
-  # --- Deferred to P0-A (needs google-services.json / GoogleService-Info.plist)
-  # firebase_core: ^4.x
-  # firebase_messaging: ^16.x
+  # --- Push notifications --------------------------------------------------
+  firebase_core: ^4.14.0
+  firebase_messaging: ^16.1.1
 
   riverpod: any
 dev_dependencies:

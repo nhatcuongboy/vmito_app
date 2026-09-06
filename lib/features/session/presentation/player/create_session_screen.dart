@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
-import 'package:vmito_app/core/config/app_config.dart';
 import 'package:vmito_app/core/location/google_places_service.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
@@ -863,9 +862,7 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
                       form: _form,
                       canEditVenue: _baseState.canEditTime,
                       onVenue: _showVenuePicker,
-                      onCustomAddress: AppConfig.hasGooglePlaces
-                          ? _showAddressPicker
-                          : null,
+                      onCustomAddress: _showAddressPicker,
                       onSportChanged: _loadVenues,
                     ),
                     const SizedBox(height: AppSpacing.lg),

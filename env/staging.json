@@ -1,6 +1,5 @@
 {
   "FLAVOR": "staging",
   "API_BASE_URL": "https://staging.vmito.com/api",
-  "WEB_BASE_URL": "https://staging.vmito.com",
-  "GOOGLE_PLACES_API_KEY": ""
+  "WEB_BASE_URL": "https://staging.vmito.com"
 }

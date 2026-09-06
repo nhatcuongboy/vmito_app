@@ -78,7 +78,7 @@ expensive area in the repository.
 | Sign-up | done |
 | Forgot/reset password | done |
 | Google/Facebook OAuth (`flutter_web_auth_2`) | done |
-| FCM + `flutter_local_notifications` wiring | **todo** — needs Firebase config files and device-token backend endpoints |
+| FCM + `flutter_local_notifications` wiring | client done — backend device-token endpoints/FCM sender and production APNs credentials pending |
 | App icons, splash, bundle IDs | done — synced from `vmito-fe/public/icons`, `com.vmito.app` |
 | CI (analyze + test on PR) | done |
 | iOS time-sensitive notification entitlement | client wired — Apple portal approval pending |
