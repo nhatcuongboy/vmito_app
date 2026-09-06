@@ -34,7 +34,7 @@ abstract final class AppIcons {
   static const IconData addCircle = LucideIcons.circle_plus;
   static const IconData removeCircle = LucideIcons.circle_minus;
   static const IconData queueNext = LucideIcons.list_plus;
-  static const IconData delete = LucideIcons.trash_2;
+  static const IconData delete = LucideIcons.trash;
   static const IconData edit = LucideIcons.pencil;
   static const IconData share = LucideIcons.share_2;
   static const IconData externalLink = LucideIcons.external_link;
@@ -62,7 +62,7 @@ abstract final class AppIcons {
   static const IconData error = LucideIcons.circle_alert;
   static const IconData help = LucideIcons.circle_question_mark;
   static const IconData copy = LucideIcons.copy;
-  static const IconData history = LucideIcons.history;
+  static const IconData history = LucideIcons.rotate_ccw;
   static const IconData link = LucideIcons.link;
   static const IconData download = LucideIcons.download;
   static const IconData upload = LucideIcons.upload;

@@ -5,7 +5,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
-import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/core/widgets/user_avatar.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
