@@ -127,7 +127,9 @@ class _HostSessionManagementScreenState
                     key: const Key('host-session-more-menu'),
                     icon: const Icon(AppIcons.moreVert),
                     offset: const Offset(0, 48),
-                    tooltip: MaterialLocalizations.of(context).moreButtonTooltip,
+                    tooltip: MaterialLocalizations.of(
+                      context,
+                    ).moreButtonTooltip,
                     onSelected: (action) => _handleAction(value, action),
                     itemBuilder: (context) => [
                       if (value.status == SessionStatus.preparing)
