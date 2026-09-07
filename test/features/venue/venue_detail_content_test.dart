@@ -375,6 +375,20 @@ void main() {
     expect(pricingHeading.style?.fontSize, 16);
   });
 
+  testWidgets('adds the Sân prefix even when the raw name has an '
+      'English sport keyword', (tester) async {
+    await _pump(
+      tester,
+      venue: const Venue(id: 'venue-en-name', name: '37 Club Badminton'),
+    );
+
+    final venueName = tester.widget<Text>(
+      find.byKey(const Key('venue-display-name')),
+    );
+
+    expect(venueName.data, 'Sân 37 Club Badminton');
+  });
+
   testWidgets('shows the complete pricing row like the web venue detail', (
     tester,
   ) async {

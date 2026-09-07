@@ -130,7 +130,13 @@ class Venue {
   String displayName({
     required String generic,
     required Map<String, String> bySport,
+    required String localeName,
   }) {
+    // Vietnamese always shows the "Sân" prefix; a Vietnamese affix already
+    // in the raw name (e.g. "Sân ABC") is the only case that skips it.
+    if (localeName == 'vi') {
+      return _hasVietnameseVenueNameAffix(name) ? name : generic;
+    }
     if (_hasVenueNameAffix(name)) return name;
     final sports = sportTypes.isNotEmpty
         ? sportTypes
@@ -175,16 +181,21 @@ const _sportNameKeywords = [
 
 bool _hasVenueNameAffix(String name) {
   final lowerName = name.toLowerCase();
-  return lowerName.startsWith('sân ') ||
-      lowerName.startsWith('sân.') ||
-      lowerName.startsWith('clb ') ||
-      lowerName.startsWith('câu lạc bộ ') ||
-      lowerName.startsWith('câu lạc bộ\n') ||
+  return _hasVietnameseVenueNameAffix(name) ||
       lowerName.endsWith(' court') ||
       lowerName.endsWith(' club') ||
       lowerName.endsWith('场') ||
       lowerName.endsWith('俱乐部') ||
       _sportNameKeywords.any(lowerName.contains);
+}
+
+bool _hasVietnameseVenueNameAffix(String name) {
+  final lowerName = name.toLowerCase();
+  return lowerName.startsWith('sân ') ||
+      lowerName.startsWith('sân.') ||
+      lowerName.startsWith('clb ') ||
+      lowerName.startsWith('câu lạc bộ ') ||
+      lowerName.startsWith('câu lạc bộ\n');
 }
 
 class VenuePage {

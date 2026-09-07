@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
@@ -250,7 +251,7 @@ void main() {
       expect(controller.state.filter.favoriteOnly, isFalse);
     });
 
-    testWidgets('VenueCard uses coverPhoto as avatar when logo is absent', (
+    testWidgets('VenueCard shows the default logo when logo is absent', (
       tester,
     ) async {
       const venueWithoutLogo = Venue(
@@ -266,6 +267,15 @@ void main() {
 
       expect(find.text('Sân Trường THPT Phú Nhuận'), findsOneWidget);
       expect(find.byType(ClipOval), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(ClipOval),
+          matching: find.byWidgetPredicate(
+            (widget) => widget is Icon && widget.icon == AppIcons.location,
+          ),
+        ),
+        findsOneWidget,
+      );
       final favorite = tester.widget<FavoriteButton>(
         find.byType(FavoriteButton),
       );

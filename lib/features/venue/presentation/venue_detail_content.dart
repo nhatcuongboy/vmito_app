@@ -20,6 +20,7 @@ String venueDisplayName(Venue venue, AppLocalizations l10n) =>
     venue.displayName(
       generic: l10n.venueGenericName(venue.name),
       bySport: const {},
+      localeName: l10n.localeName,
     );
 
 class VenueDetailContent extends StatefulWidget {
@@ -365,19 +366,6 @@ class _InfoCard extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (venue.logo?.trim().isNotEmpty ?? false) ...[
-                  ClipRRect(
-                    key: const Key('venue-logo'),
-                    borderRadius: BorderRadius.circular(AppRadius.lg),
-                    child: CachedNetworkImage(
-                      imageUrl: venue.logo!,
-                      width: 48,
-                      height: 48,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                ],
                 Expanded(
                   child: Text(
                     venueDisplayName(venue, l10n),

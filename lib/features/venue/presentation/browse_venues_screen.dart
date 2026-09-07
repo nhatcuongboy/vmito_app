@@ -467,10 +467,8 @@ class VenueCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final avatarUrl = (venue.logo?.trim().isNotEmpty ?? false)
+    final logoUrl = venue.logo?.trim().isNotEmpty ?? false
         ? venue.logo!.trim()
-        : (venue.coverPhoto?.trim().isNotEmpty ?? false)
-        ? venue.coverPhoto!.trim()
         : null;
     final openingHours = venue.openingHours?.trim() ?? '';
     final hasCourts = venue.numberOfCourts != null;
@@ -543,23 +541,14 @@ class VenueCard extends StatelessWidget {
                       ],
                     ),
                     child: ClipOval(
-                      child: avatarUrl != null
+                      child: logoUrl != null
                           ? CachedNetworkImage(
-                              imageUrl: avatarUrl,
+                              imageUrl: logoUrl,
                               fit: BoxFit.cover,
-                              errorWidget: (_, _, _) => ColoredBox(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.surfaceContainerHighest,
-                                child: const Icon(AppIcons.location),
-                              ),
+                              errorWidget: (_, _, _) =>
+                                  const _VenueDefaultLogo(),
                             )
-                          : ColoredBox(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.surfaceContainerHighest,
-                              child: const Icon(AppIcons.location),
-                            ),
+                          : const _VenueDefaultLogo(),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -709,6 +698,15 @@ class _VenueCover extends StatelessWidget {
       color: Theme.of(context).colorScheme.primaryContainer,
       child: const Icon(AppIcons.sessions, size: 48),
     ),
+  );
+}
+
+class _VenueDefaultLogo extends StatelessWidget {
+  const _VenueDefaultLogo();
+  @override
+  Widget build(BuildContext context) => ColoredBox(
+    color: Theme.of(context).colorScheme.primary,
+    child: const Icon(AppIcons.location, color: Colors.white),
   );
 }
 
