@@ -59,6 +59,10 @@ void main() {
 
     expect(find.text('Nguyễn Văn A'), findsOneWidget);
     expect(find.text('player@example.test'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('profile-change-password-button')),
+      findsNothing,
+    );
 
     await tester.enterText(
       find.byKey(const ValueKey('profile-name-field')),

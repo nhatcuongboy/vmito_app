@@ -4,18 +4,19 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/core/widgets/app_tab_bar.dart';
 import 'package:vmito_app/core/widgets/user_avatar.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/social/application/club_management_controller.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 
 class ClubManagementScreen extends ConsumerStatefulWidget {
   const ClubManagementScreen({this.initialTab = 'managing', super.key});
@@ -81,7 +82,7 @@ class _ClubManagementScreenState extends ConsumerState<ClubManagementScreen>
         title: Text(
           _tabs.index == 1 ? l10n.clubJoinedTitle : l10n.clubManageTitle,
         ),
-        bottom: TabBar(
+        bottom: AppTabBar(
           controller: _tabs,
           tabs: [
             Tab(text: l10n.clubManagingTab),

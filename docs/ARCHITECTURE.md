@@ -427,8 +427,10 @@ Compile-time, via `--dart-define-from-file`. `AppConfig` reads
 `String.fromEnvironment`, which is a const expression: flavor branches fold
 away at build time and there is no runtime env lookup or `.env` file to ship.
 
-`env/dev.json`, `env/dev.android.json` (emulator needs `10.0.2.2`),
-`env/staging.json`, `env/production.json`.
+`env/dev.json`, `env/dev.android.json` (emulator needs `10.0.2.2`), and
+`env/staging.json` are safe templates. Store builds use git-ignored
+`env/production.android.local.json` and `env/production.ios.local.json` so the
+native Places key in each artifact is restricted to exactly one platform.
 
 ## Full example feature
 
@@ -626,4 +628,3 @@ until then.
 | `core/api/generated/*` (unused OpenAPI client, ~17k lines, zero imports) | delete, or document why it stays | confirm with the team before deleting — verify no build script regenerates/depends on it first |
 | `AppRoutes.join`, `AppRoutes.scanQr` | add real `GoRoute`s, or remove from `AppRoutes.publicPaths` | dead route |
 | `core/widgets/app_placeholder_screen.dart` | delete if still unused after the above, or wire to `join`/`scanQr` | dead code |
-

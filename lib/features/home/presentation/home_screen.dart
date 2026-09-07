@@ -300,6 +300,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             style: OutlinedButton.styleFrom(
               minimumSize: const Size(0, 44),
               padding: const EdgeInsets.symmetric(horizontal: 12),
+              side: BorderSide(
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.32),
+              ),
               visualDensity: VisualDensity.standard,
             ),
             onPressed: () => context.push(AppRoutes.signIn),

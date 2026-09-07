@@ -12,6 +12,7 @@ import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/core/widgets/app_tab_bar.dart';
 import 'package:vmito_app/features/payment/application/host_finance_export_service.dart';
 import 'package:vmito_app/features/payment/application/payment_providers.dart';
 import 'package:vmito_app/features/payment/application/transaction_dashboard_controller.dart';
@@ -96,6 +97,13 @@ class _TransactionDashboardScreenState
               ],
             ),
           ],
+          bottom: AppTabBar(
+            tabs: [
+              Tab(text: l10n.transactionTabOverview),
+              Tab(text: l10n.transactionTabBySession),
+              Tab(text: l10n.transactionTabByPlayer),
+            ],
+          ),
         ),
         body: Center(
           child: ConstrainedBox(
@@ -131,13 +139,6 @@ class _TransactionDashboardScreenState
                       onCustom: _showCustomRange,
                     ),
                   ),
-                ),
-                TabBar(
-                  tabs: [
-                    Tab(text: l10n.transactionTabOverview),
-                    Tab(text: l10n.transactionTabBySession),
-                    Tab(text: l10n.transactionTabByPlayer),
-                  ],
                 ),
                 Expanded(
                   child: reportValue.when(

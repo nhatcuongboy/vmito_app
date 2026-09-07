@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/court/domain/match_result_draft.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
@@ -7,6 +6,9 @@ import 'package:vmito_app/features/session_hosting/presentation/court/match_resu
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/court.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_action_bar.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_grabber.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 import 'package:vmito_domain/vmito_domain.dart';
 
 /// Collects the result as a match ends.
@@ -112,8 +114,6 @@ class _MatchResultSheetState extends State<MatchResultSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final palette = theme.extension<AppPalette>()!;
     final l10n = AppLocalizations.of(context);
     final (pair1, pair2) = _pairs;
 
@@ -121,25 +121,19 @@ class _MatchResultSheetState extends State<MatchResultSheet> {
       expand: false,
       initialChildSize: 0.85,
       builder: (context, scrollController) => SafeArea(
-        child: ListView(
-          controller: scrollController,
-          padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
           children: [
-            Text(
-              l10n.matchResultTitle,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
+            const AppSheetGrabber(),
+            AppSheetHeader(
+              title: l10n.matchResultTitle,
+              subtitle: l10n.matchResultSelectWinnerHint,
             ),
-            const SizedBox(height: AppSpacing.xxs),
-            Text(
-              l10n.matchResultSelectWinnerHint,
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: palette.mutedForeground,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Row(
+            Expanded(
+              child: ListView(
+                controller: scrollController,
+                padding: const EdgeInsets.all(AppSpacing.md),
+                children: [
+                  Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
@@ -203,19 +197,29 @@ class _MatchResultSheetState extends State<MatchResultSheet> {
                 border: const OutlineInputBorder(),
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
-            FilledButton(
-              key: const ValueKey('submit-match-result'),
-              onPressed: () => Navigator.pop(context, _draft(pair1, pair2)),
-              child: Text(l10n.matchResultSubmit),
+                ],
+              ),
             ),
-            const SizedBox(height: AppSpacing.xs),
-            // Ending without a result is a legitimate choice, not a mistake:
-            // most sessions never score their matches.
-            TextButton(
-              key: const ValueKey('skip-match-result'),
-              onPressed: () => Navigator.pop(context, const MatchResultDraft()),
-              child: Text(l10n.matchResultSkip),
+            AppSheetActionBar(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FilledButton(
+                    key: const ValueKey('submit-match-result'),
+                    onPressed: () => Navigator.pop(context, _draft(pair1, pair2)),
+                    child: Text(l10n.matchResultSubmit),
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  // Ending without a result is a legitimate choice, not a
+                  // mistake: most sessions never score their matches.
+                  TextButton(
+                    key: const ValueKey('skip-match-result'),
+                    onPressed: () =>
+                        Navigator.pop(context, const MatchResultDraft()),
+                    child: Text(l10n.matchResultSkip),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

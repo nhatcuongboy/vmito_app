@@ -38,11 +38,6 @@ abstract final class ApiEndpoints {
   static const deleteAccount = '/users/me';
   static String user(String id) => '/users/$id';
 
-  // --- Places ---------------------------------------------------------------
-  // The backend owns the Google Maps credential. Keep the mobile client on
-  // Vmito's API so a third-party key never ships inside an app binary.
-  static const placesAutocomplete = '/places/autocomplete';
-  static const placesDetails = '/places/details';
   static String publicUser(String id) => '/users/public/$id';
   static const uploadAvatar = '/upload/avatar';
   static const uploadCover = '/upload/cover';

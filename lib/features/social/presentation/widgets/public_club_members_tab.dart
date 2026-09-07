@@ -58,6 +58,14 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final columns = constraints.maxWidth >= _wideBreakpoint ? 2 : 1;
+        final textScale = MediaQuery.textScalerOf(context).scale(16) / 16;
+        // Keep the default member rows compact.  A very large text scale still
+        // needs extra room for the name and badges to avoid clipping.
+        final memberTileExtent = switch (textScale) {
+          >= 1.8 => 240.0,
+          >= 1.3 => 96.0,
+          _ => 80.0,
+        };
         return ListView(
           key: const Key('public-club-members-scroll'),
           padding: const EdgeInsets.fromLTRB(
@@ -75,16 +83,23 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
                   margin: EdgeInsets.zero,
                   clipBehavior: Clip.antiAlias,
                   child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.lg),
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.lg,
+                      AppSpacing.md,
+                      AppSpacing.lg,
+                      AppSpacing.lg,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
                         _header(context),
+                        const SizedBox(height: AppSpacing.sm),
                         if (members.isEmpty)
                           _emptyState(context)
                         else ...[
                           GridView.builder(
                             key: Key('club-members-grid-$columns'),
+                            padding: EdgeInsets.zero,
                             shrinkWrap: true,
                             physics: const NeverScrollableScrollPhysics(),
                             itemCount: members.length,
@@ -93,7 +108,7 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
                                   crossAxisCount: columns,
                                   crossAxisSpacing: AppSpacing.sm,
                                   mainAxisSpacing: AppSpacing.xs,
-                                  mainAxisExtent: 64,
+                                  mainAxisExtent: memberTileExtent,
                                 ),
                             itemBuilder: (context, index) => _memberCard(
                               context,
@@ -102,7 +117,7 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
                             ),
                           ),
                           if (hasMore) ...[
-                            const SizedBox(height: AppSpacing.md),
+                            const SizedBox(height: AppSpacing.sm),
                             Center(
                               child: OutlinedButton(
                                 key: const Key('club-members-view-more'),
@@ -134,43 +149,33 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
     final theme = Theme.of(context);
     final palette = theme.extension<AppPalette>()!;
     final l10n = AppLocalizations.of(context);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Wrap(
+      alignment: WrapAlignment.end,
+      spacing: AppSpacing.sm,
+      runSpacing: AppSpacing.sm,
       children: [
-        Text(
-          l10n.clubMembers,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.bold,
+        Container(
+          key: const Key('club-members-count'),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.sm,
+            vertical: 4,
+          ),
+          decoration: BoxDecoration(
+            color: palette.muted,
+            borderRadius: BorderRadius.circular(AppRadius.pill),
+          ),
+          child: Text(
+            l10n.clubMembersCount(widget.club.memberCount),
+            style: theme.textTheme.labelSmall,
           ),
         ),
-        Row(
-          children: [
-            Container(
-              key: const Key('club-members-count'),
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm,
-                vertical: 4,
-              ),
-              decoration: BoxDecoration(
-                color: palette.muted,
-                borderRadius: BorderRadius.circular(AppRadius.pill),
-              ),
-              child: Text(
-                l10n.clubMembersCount(widget.club.memberCount),
-                style: theme.textTheme.labelSmall,
-              ),
-            ),
-            if (widget.isAdmin) ...[
-              const SizedBox(width: AppSpacing.sm),
-              FilledButton.icon(
-                key: const Key('club-members-add'),
-                onPressed: _showAddMemberSheet,
-                icon: const Icon(AppIcons.userPlus, size: 18),
-                label: Text(l10n.clubAddMember),
-              ),
-            ],
-          ],
-        ),
+        if (widget.isAdmin)
+          FilledButton.icon(
+            key: const Key('club-members-add'),
+            onPressed: _showAddMemberSheet,
+            icon: const Icon(AppIcons.userPlus, size: 18),
+            label: Text(l10n.clubAddMember),
+          ),
       ],
     );
   }
@@ -232,7 +237,7 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.sm,
-            vertical: AppSpacing.xs + 2,
+            vertical: AppSpacing.xs,
           ),
           child: Row(
             children: [
@@ -240,7 +245,7 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
                 name: member.name,
                 gender: member.gender,
                 imageUrl: member.image,
-                size: 40,
+                size: 44,
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
@@ -253,6 +258,7 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -262,13 +268,13 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
                         spacing: AppSpacing.xs,
                         runSpacing: AppSpacing.xxs,
                         children: [
-                          if (member.role != 'MEMBER')
-                            _RoleBadge(role: member.role),
                           if (member.level != null)
                             SkillLevelBadge(
                               level: member.level!,
                               compact: true,
                             ),
+                          if (member.role != 'MEMBER')
+                            _RoleBadge(role: member.role),
                         ],
                       ),
                     ],

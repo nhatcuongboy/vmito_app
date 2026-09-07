@@ -196,8 +196,7 @@ class _AchievementContent extends ConsumerWidget {
               ),
             OutlinedButton.icon(
               key: const ValueKey('achievement-view-leaderboard-button'),
-              onPressed: () =>
-                  unawaited(context.pushNamed(AppRoutes.nameLeaderboard)),
+              onPressed: () => context.goNamed(AppRoutes.nameLeaderboard),
               icon: const Icon(AppIcons.award),
               label: Text(l10n.leaderboardViewLeaderboard),
             ),

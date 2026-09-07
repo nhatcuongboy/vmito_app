@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
+import 'package:vmito_app/core/location/google_places_attribution.dart';
 import 'package:vmito_app/core/location/google_places_service.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
@@ -36,7 +36,10 @@ import 'package:vmito_app/features/venue/data/venue_service.dart';
 import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/match.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/shared/widgets/app_required_label.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_action_bar.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 import 'package:vmito_app/shared/widgets/level_badge_picker.dart';
 
 const _wideFormBreakpoint = 768.0;
@@ -532,6 +535,7 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
                   },
                 ),
               ),
+              if (suggestions.isNotEmpty) const GooglePlacesAttribution(),
             ],
           ),
         ),
@@ -843,7 +847,7 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
                   isCreation: !_isEditing,
                   onSubmit: _submit,
                 ),
-          body: AppReactiveForm(
+          body: AppReactiveForm<void>(
             formGroup: _form,
             child: Center(
               child: ConstrainedBox(
@@ -1865,7 +1869,7 @@ class _CourtsSection extends StatelessWidget {
           children: [
             for (var index = 0; index < array.controls.length; index++) ...[
               if (index > 0) const Divider(height: AppSpacing.lg * 2),
-              AppReactiveForm(
+              AppReactiveForm<void>(
                 formGroup: array.controls[index] as FormGroup,
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -3244,46 +3248,14 @@ class _AccountImageLibrarySheetState
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final palette = Theme.of(context).extension<AppPalette>()!;
     return SizedBox(
       height: MediaQuery.sizeOf(context).height * .88,
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.lg,
-              AppSpacing.md,
-              AppSpacing.sm,
-              AppSpacing.sm,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.sessionFormSelectFromGallery,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      Text(
-                        l10n.sessionFormGallerySelection(_selected.length, 5),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: palette.mutedForeground,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-                  onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(AppIcons.close),
-                ),
-              ],
-            ),
+          AppSheetHeader(
+            title: l10n.sessionFormSelectFromGallery,
+            subtitle: l10n.sessionFormGallerySelection(_selected.length, 5),
           ),
-          const Divider(height: 1),
           Expanded(child: _buildContent(context)),
           if (_page < _totalPages || (_loading && _images.isNotEmpty))
             Padding(
@@ -3299,8 +3271,7 @@ class _AccountImageLibrarySheetState
                     : Text(l10n.commonLoadMore),
               ),
             ),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
+          AppSheetActionBar(
             child: Row(
               children: [
                 Expanded(

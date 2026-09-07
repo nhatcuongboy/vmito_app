@@ -25,6 +25,7 @@ import 'package:vmito_app/features/session/presentation/widgets/session_card.dar
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
 import 'package:vmito_app/shared/widgets/app_loading_view.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 
 /// Authenticated hub for sessions the current user hosts or has joined.
 class BrowseSessionsScreen extends ConsumerStatefulWidget {
@@ -381,13 +382,9 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                ListTile(
-                  title: Text(
-                    l10n.homeDiscoverySortBy,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
+                AppSheetHeader(
+                  title: l10n.homeDiscoverySortBy,
+                  showCloseButton: false,
                 ),
                 for (final sort in MySessionSort.values)
                   ListTile(
@@ -530,27 +527,17 @@ class _FilterBottomSheet extends StatelessWidget {
     ];
 
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AppSheetHeader(title: l10n.sessionFiltersTitle),
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  l10n.sessionFiltersTitle,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                IconButton(
-                  icon: const Icon(AppIcons.close),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            ...filters.map((item) {
+                ...filters.map((item) {
               final filter = item.$1;
               final label = item.$2;
               final isSelected = filter == currentFilter;
@@ -578,9 +565,11 @@ class _FilterBottomSheet extends StatelessWidget {
                   Navigator.of(context).pop();
                 },
               );
-            }),
-          ],
-        ),
+                }),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

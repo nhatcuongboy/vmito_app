@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vmito_app/core/device/app_version_provider.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/profile/presentation/settings_screen.dart';
@@ -15,6 +16,7 @@ Widget _destination(String label) => Scaffold(
 Widget _app({
   Brightness brightness = Brightness.light,
   TextScaler textScaler = TextScaler.noScaling,
+  String? appVersion = '1.0.0',
 }) {
   final router = GoRouter(
     initialLocation: AppRoutes.settings,
@@ -47,6 +49,14 @@ Widget _app({
     ],
   );
   return ProviderScope(
+    overrides: [
+      appVersionProvider.overrideWith((ref) async {
+        if (appVersion == null) {
+          throw StateError('Package metadata unavailable');
+        }
+        return appVersion;
+      }),
+    ],
     child: MaterialApp.router(
       locale: const Locale('vi'),
       theme: brightness == Brightness.light ? AppTheme.light : AppTheme.dark,
@@ -120,6 +130,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Tác giả: Nhật Cường'), findsOneWidget);
+    expect(find.text('Phiên bản 1.0.0'), findsOneWidget);
+    expect(find.textContaining('build'), findsNothing);
+    expect(find.textContaining('+1'), findsNothing);
     expect(find.text('0914810765'), findsOneWidget);
     expect(find.text('admin@vmito.com'), findsOneWidget);
     expect(find.text('Fanpage'), findsOneWidget);
@@ -129,6 +142,23 @@ void main() {
     await tester.tap(find.text('Đóng'));
     await tester.pumpAndSettle();
     expect(find.text('Tác giả: Nhật Cường'), findsNothing);
+  });
+
+  testWidgets('keeps About Vmito usable when the version cannot be loaded', (
+    tester,
+  ) async {
+    await tester.pumpWidget(_app(appVersion: null));
+    await tester.pump();
+
+    await tester.ensureVisible(find.text('Về Vmito'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Về Vmito'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Tác giả: Nhật Cường'), findsOneWidget);
+    expect(find.textContaining('Phiên bản'), findsNothing);
+    expect(find.text('Đóng'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('does not overflow on narrow and wide layouts', (tester) async {

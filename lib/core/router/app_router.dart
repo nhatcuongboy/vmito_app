@@ -56,7 +56,7 @@ import 'package:vmito_app/features/venue/presentation/venue_detail_screen.dart';
 /// push *above* the bottom bar rather than inside a tab.
 final rootNavigatorKey = GlobalKey<NavigatorState>();
 
-/// The app's [GoRouter], rebuilt whenever auth status changes.
+/// The app's [GoRouter], refreshed in place whenever auth state changes.
 ///
 /// `redirect` is the single gate: no screen checks auth for itself.
 ///
@@ -64,7 +64,9 @@ final rootNavigatorKey = GlobalKey<NavigatorState>();
 /// destination, so each tab keeps its own stack — opening a session from the
 /// Sessions tab and switching to Profile and back returns to that session.
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final auth = ref.watch(authControllerProvider);
+  // Recreating GoRouter resets its location to splash and loses the redirect
+  // carried by a pushed sign-in page. Refresh the existing navigation stack.
+  final authRefresh = ValueNotifier(ref.read(authControllerProvider));
 
   HomeDiscoveryTab? parseHomeDiscoveryTab(String? tab) => switch (tab) {
     'sessions' => HomeDiscoveryTab.sessions,
@@ -74,11 +76,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     _ => null,
   };
 
-  return GoRouter(
+  final router = GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: AppRoutes.splash,
+    refreshListenable: authRefresh,
     debugLogDiagnostics: true,
     redirect: (context, state) {
+      final auth = ref.read(authControllerProvider);
       final location = AppRoutes.stripLocale(state.uri.path);
 
       // Tokens are still being read from the Keychain. Hold on the splash
@@ -211,7 +215,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.createTournament,
         parentNavigatorKey: rootNavigatorKey,
         redirect: (context, state) {
-          final role = auth.user?.role;
+          final role = ref.read(authControllerProvider).user?.role;
           return role == UserRole.host || role == UserRole.admin
               ? null
               : AppRoutes.homeForDiscoveryTab('tournaments');
@@ -488,6 +492,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                       GoRoute(
                         path: 'change-password',
                         name: AppRoutes.nameChangePassword,
+                        parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) =>
                             const ChangePasswordScreen(),
                       ),
@@ -513,4 +518,30 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       body: Center(child: Text('Route not found: ${state.uri}')),
     ),
   );
+  ref
+    ..listen(authControllerProvider, (_, next) {
+      if (router.routerDelegate.currentConfiguration.isNotEmpty) {
+        final currentUri = router.state.uri;
+        final location = AppRoutes.stripLocale(currentUri.path);
+        final leavingAuth =
+            next.status == AuthStatus.authenticated &&
+            location.startsWith('/auth/');
+        final losingAccess =
+            next.isResolved &&
+            next.status != AuthStatus.authenticated &&
+            !AppRoutes.isPublic(location);
+        if (leavingAuth || losingAccess) {
+          // Pushed pages are not the stack's base URI. Evaluate the visible
+          // location through the redirect above after sign-in or session loss.
+          router.go(currentUri.toString());
+          return;
+        }
+      }
+      authRefresh.value = next;
+    })
+    ..onDispose(() {
+      router.dispose();
+      authRefresh.dispose();
+    });
+  return router;
 });

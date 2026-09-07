@@ -137,7 +137,8 @@ permissions; do not declare them again. After building, verify the final merged
 set — an unexplained permission is a Play data-safety mismatch:
 
 ```sh
-flutter build apk --release --dart-define-from-file=env/production.json
+flutter build apk --release \
+  --dart-define-from-file=env/production.android.local.json
 $ANDROID_HOME/build-tools/<ver>/aapt2 dump permissions build/app/outputs/flutter-apk/app-release.apk
 ```
 
@@ -207,6 +208,10 @@ shrinking to work around a single class.
 ---
 
 ## 4. iOS platform configuration
+
+The minimum deployment target is **iOS 16.0**, required by the native Places
+SDK dependency. Keep `ios/Podfile` and all Runner build configurations in
+Xcode aligned to 16.0.
 
 ### 4.1 Usage descriptions
 
@@ -375,16 +380,31 @@ One source of truth: the `version:` line in [pubspec.yaml](../pubspec.yaml),
 currently `1.0.0+1`.
 
 - `1.0.0` → Android `versionName`, iOS `CFBundleShortVersionString`. User-visible.
-- `+1` → Android `versionCode`, iOS `CFBundleVersion`. **Must strictly increase
-  on every upload**, including builds that never reach production. Never
-  reuse a number; both stores reject it permanently.
+- `+1` → Android `versionCode`, iOS `CFBundleVersion`. Internal build number.
+
+Store requirements differ slightly:
+
+- Google Play requires every new `versionCode` to be greater than all values
+  previously uploaded for the app. A used value cannot be uploaded again.
+- App Store Connect identifies an iOS build by bundle ID, version number, and
+  build string. Increment the build string before uploading another build for
+  the same version. Apple permits reusing the build string when processing of
+  the previous upload failed, but not after it completed successfully.
+
+Vmito uses one stricter cross-platform policy: increment the build number
+globally for every artifact intended for store upload, never reuse it, and keep
+Android and iOS on the same value. This makes artifacts and support reports
+unambiguous.
 
 Rules:
 
-- Bump the build number for every upload, even a rejected one.
-- Bump the patch/minor for anything users would notice.
-- Keep Android and iOS on the same `version` string so support tickets are
-  unambiguous.
+- Keep `X.Y.Z` unchanged when replacing a build before that release is
+  published; only increment `N` (for example, `1.0.0+1` → `1.0.0+2`).
+- For a new user-facing release, bump patch for bug fixes, minor for backward-
+  compatible features, or major for substantial/breaking changes. Always
+  increment `N` too (for example, `1.0.0+2` → `1.0.1+3`).
+- Update `pubspec.yaml`, commit and tag the exact release source, then build.
+  Do not edit the generated Android or iOS version fields directly.
 - Tag the commit: `git tag v1.0.0+7 && git push --tags`. A store build must be
   reproducible from a tag.
 
@@ -394,8 +414,8 @@ Override at build time when needed: `--build-name=1.0.1 --build-number=8`.
 
 ## 7. Build commands
 
-Always with `env/production.json` — a store build pointed at staging is the
-single easiest catastrophic mistake here.
+Always use the OS-specific production file. Besides the production API URLs,
+each file contains only the native Places key restricted to that platform.
 
 ### Pre-flight
 
@@ -415,7 +435,7 @@ flutter test                    # unit + widget
 ```sh
 flutter build appbundle \
   --release \
-  --dart-define-from-file=env/production.json \
+  --dart-define-from-file=env/production.android.local.json \
   --obfuscate \
   --split-debug-info=build/symbols/android/1.0.0+1
 ```
@@ -438,7 +458,7 @@ bundletool install-apks --apks=/tmp/vmito.apks
 ```sh
 flutter build ipa \
   --release \
-  --dart-define-from-file=env/production.json \
+  --dart-define-from-file=env/production.ios.local.json \
   --obfuscate \
   --split-debug-info=build/symbols/ios/1.0.0+1 \
   --export-method app-store
@@ -574,7 +594,8 @@ Run through this for every store release.
 
 - [ ] `applicationId` / bundle identifier is not `com.example.*`
 - [ ] Version bumped; build number strictly higher than every previous upload
-- [ ] Built with `--dart-define-from-file=env/production.json`
+- [ ] Built with the matching `env/production.<os>.local.json` file
+- [ ] Places key is restricted to Android package + signing SHA-1 or iOS bundle ID
 - [ ] App points at the production API — confirmed on-device, not by reading JSON
 - [ ] `flutter analyze` clean, `flutter test` green, domain tests green
 
@@ -588,6 +609,7 @@ Run through this for every store release.
 
 **iOS**
 
+- [ ] Minimum deployment target remains iOS 16.0
 - [ ] All usage-description strings present and specific
 - [ ] `CFBundleURLTypes` registered; social login round-trips on a device
 - [ ] `ITSAppUsesNonExemptEncryption` set

@@ -13,6 +13,7 @@ import 'package:vmito_app/features/session_hosting/application/player_statistics
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 import 'package:vmito_domain/vmito_domain.dart';
 
 Future<void> showSessionPlayerDetailSheet(
@@ -51,25 +52,37 @@ class _SessionPlayerDetailSheet extends ConsumerWidget {
           constraints: BoxConstraints(
             maxHeight: MediaQuery.sizeOf(context).height * .82,
           ),
-          child: detail.when(
-            loading: () => _PlayerSummary(
-              player: player,
-              image: image,
-              child: const Padding(
-                padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
-                child: LinearProgressIndicator(),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AppSheetHeader(
+                title: l10n.hostPlayerDetailTitle,
+                padding: EdgeInsets.zero,
               ),
-            ),
-            error: (_, _) => _PlayerSummary(
-              player: player,
-              image: image,
-              child: Text(l10n.hostPlayerDetailError),
-            ),
-            data: (value) => _PlayerDetailContent(
-              player: player,
-              detail: value,
-              image: image,
-            ),
+              Flexible(
+                child: detail.when(
+                  loading: () => _PlayerSummary(
+                    player: player,
+                    image: image,
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
+                      child: LinearProgressIndicator(),
+                    ),
+                  ),
+                  error: (_, _) => _PlayerSummary(
+                    player: player,
+                    image: image,
+                    child: Text(l10n.hostPlayerDetailError),
+                  ),
+                  data: (value) => _PlayerDetailContent(
+                    player: player,
+                    detail: value,
+                    image: image,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -90,18 +103,12 @@ class _PlayerSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
     final name = l10n.playerName(player);
     return ListView(
       key: const Key('session-player-detail-sheet'),
       shrinkWrap: true,
       children: [
-        Text(
-          l10n.hostPlayerDetailTitle,
-          style: theme.textTheme.titleLarge,
-        ),
-        const SizedBox(height: AppSpacing.md),
         _Header(player: player, name: name, image: image),
         const SizedBox(height: AppSpacing.md),
         child,
@@ -145,11 +152,6 @@ class _PlayerDetailContent extends StatelessWidget {
       key: const Key('session-player-detail-sheet'),
       shrinkWrap: true,
       children: [
-        Text(
-          l10n.hostPlayerDetailTitle,
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        const SizedBox(height: AppSpacing.md),
         _Header(
           player: player,
           name: detail.name ?? l10n.playerName(player),

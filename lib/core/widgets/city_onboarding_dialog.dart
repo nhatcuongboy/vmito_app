@@ -37,6 +37,10 @@ class CityOnboardingDialog extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    // A two-column grid leaves too little room for a location icon and longer
+    // city names on narrow windows. Use one column there so labels remain
+    // readable instead of being truncated.
+    final isCompact = MediaQuery.sizeOf(context).width < 400;
     final gridHeight = (MediaQuery.sizeOf(context).height * .3).clamp(
       120.0,
       300.0,
@@ -59,16 +63,27 @@ class CityOnboardingDialog extends ConsumerWidget {
               height: gridHeight,
               child: GridView.count(
                 primary: false,
-                crossAxisCount: 2,
-                childAspectRatio: 2.7,
+                crossAxisCount: isCompact ? 1 : 2,
+                mainAxisExtent: AppSizes.minTapTarget,
                 mainAxisSpacing: AppSpacing.sm,
                 crossAxisSpacing: AppSpacing.sm,
                 children: [
                   for (final city in legacyCities())
-                    OutlinedButton.icon(
+                    OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm,
+                        ),
+                      ),
                       onPressed: () => _select(context, ref, city),
-                      icon: const Icon(AppIcons.location, size: 17),
-                      label: Text(city, overflow: TextOverflow.ellipsis),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(AppIcons.location, size: 17),
+                          const SizedBox(width: AppSpacing.sm),
+                          Text(city, maxLines: 1),
+                        ],
+                      ),
                     ),
                 ],
               ),

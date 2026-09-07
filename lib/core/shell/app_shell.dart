@@ -1,12 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart' show ScrollDirection;
 import 'package:flutter/services.dart' show SystemSound, SystemSoundType;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/app_shell_scaffold_key.dart';
+import 'package:vmito_app/core/shell/bottom_bar_scroll_visibility_controller.dart';
 import 'package:vmito_app/core/shell/tab_reselection_controller.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
@@ -41,34 +41,51 @@ class _AppShellState extends ConsumerState<AppShell> {
   // key therefore belongs to a shell instance rather than being app-global.
   final _scaffoldKey = GlobalKey<ScaffoldState>();
 
-  // Any tab's list scrolling down hides the bar, matching Instagram/TikTok —
-  // a fresh tab always starts with it visible.
-  bool _navBarVisible = true;
+  final _bottomBarVisibility = BottomBarScrollVisibilityController();
+  Listenable? _routerDelegate;
+  bool _navigationRefreshScheduled = false;
+  bool _keyboardVisible = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final routerDelegate = GoRouter.of(context).routerDelegate;
+    if (!identical(_routerDelegate, routerDelegate)) {
+      _routerDelegate?.removeListener(_handleNavigationChanged);
+      _routerDelegate = routerDelegate..addListener(_handleNavigationChanged);
+    }
+
+    final keyboardVisible = MediaQuery.viewInsetsOf(context).bottom > 0;
+    if (_keyboardVisible == keyboardVisible) return;
+    _keyboardVisible = keyboardVisible;
+    _bottomBarVisibility.updateKeyboardVisibility(
+      isVisible: keyboardVisible,
+    );
+  }
 
   @override
   void didUpdateWidget(covariant AppShell oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.navigationShell.currentIndex !=
         widget.navigationShell.currentIndex) {
-      setState(() => _navBarVisible = true);
+      _bottomBarVisibility.reset();
     }
   }
 
-  bool _handleScrollNotification(ScrollNotification notification) {
-    // Swiping a horizontal PageView/TabBarView is not "scrolling the page".
-    if (notification.metrics.axis != Axis.vertical) return false;
+  @override
+  void dispose() {
+    _routerDelegate?.removeListener(_handleNavigationChanged);
+    _bottomBarVisibility.dispose();
+    super.dispose();
+  }
 
-    if (notification is UserScrollNotification) {
-      switch (notification.direction) {
-        case ScrollDirection.reverse:
-          if (_navBarVisible) setState(() => _navBarVisible = false);
-        case ScrollDirection.forward:
-          if (!_navBarVisible) setState(() => _navBarVisible = true);
-        case ScrollDirection.idle:
-          break;
-      }
-    }
-    return false;
+  void _handleNavigationChanged() {
+    if (_navigationRefreshScheduled) return;
+    _navigationRefreshScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _navigationRefreshScheduled = false;
+      if (mounted) setState(() {});
+    });
   }
 
   @override
@@ -88,78 +105,105 @@ class _AppShellState extends ConsumerState<AppShell> {
       child: Scaffold(
         key: _scaffoldKey,
         drawer: const SlideOutMenu(),
-        drawerEnableOpenDragGesture: false,
+        // A child route's page transition owns the edge while it can pop. At
+        // a branch root the same drag is available to open the menu instead.
+        drawerEnableOpenDragGesture: !GoRouter.of(context).canPop(),
         drawerScrimColor: Colors.black.withValues(alpha: 0.6),
-        body: NotificationListener<ScrollNotification>(
+        body: NotificationListener<ScrollMetricsNotification>(
           onNotification: shouldKeepBottomBarVisible
               ? (_) => false
-              : _handleScrollNotification,
-          child: widget.navigationShell,
+              : _bottomBarVisibility.handleMetricsNotification,
+          child: NotificationListener<ScrollNotification>(
+            onNotification: shouldKeepBottomBarVisible
+                ? (_) => false
+                : _bottomBarVisibility.handleScrollNotification,
+            child: widget.navigationShell,
+          ),
         ),
         bottomNavigationBar: isSignedIn && !shouldHideBottomBar
-            ? ClipRect(
-                child: AnimatedAlign(
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeOutCubic,
-                  alignment: Alignment.topCenter,
-                  heightFactor: shouldKeepBottomBarVisible || _navBarVisible
-                      ? 1
-                      : 0,
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: DecoratedBox(
-                      key: const Key('app-bottom-navigation-surface'),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surface,
-                        border: Border(
-                          top: BorderSide(color: palette.border),
+            ? ValueListenableBuilder<bool>(
+                valueListenable: _bottomBarVisibility,
+                builder: (context, scrollWantsBarVisible, child) {
+                  final visible =
+                      shouldKeepBottomBarVisible || scrollWantsBarVisible;
+                  final duration = _keyboardVisible
+                      ? Duration.zero
+                      : const Duration(milliseconds: 220);
+                  return ClipRect(
+                    child: AnimatedAlign(
+                      key: const Key('app-bottom-navigation-reveal'),
+                      duration: duration,
+                      curve: Curves.easeOutCubic,
+                      alignment: Alignment.topCenter,
+                      heightFactor: visible ? 1 : 0,
+                      child: AnimatedSlide(
+                        duration: duration,
+                        curve: Curves.easeOutCubic,
+                        offset: visible ? Offset.zero : const Offset(0, 1),
+                        child: AnimatedOpacity(
+                          duration: duration,
+                          curve: Curves.easeOutCubic,
+                          opacity: visible ? 1 : 0,
+                          child: child,
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: theme.colorScheme.shadow.withValues(
-                              alpha: theme.brightness == Brightness.light
-                                  ? 0.08
-                                  : 0.24,
-                            ),
-                            blurRadius: 8,
-                            offset: const Offset(0, -2),
-                          ),
-                        ],
                       ),
-                      child: NavigationBar(
-                        maintainBottomViewPadding: true,
-                        selectedIndex: widget.navigationShell.currentIndex,
-                        onDestinationSelected: _onDestinationSelected,
-                        destinations: [
-                          NavigationDestination(
-                            icon: const Icon(AppIcons.home),
-                            label: l10n.navHome,
-                          ),
-                          NavigationDestination(
-                            icon: const Icon(AppIcons.sessions),
-                            label: l10n.navSessions,
-                          ),
-                          NavigationDestination(
-                            icon: NewsfeedBadgeIcon(
-                              icon: AppIcons.feed,
-                              semanticLabel: l10n.navFeed,
-                            ),
-                            selectedIcon: NewsfeedBadgeIcon(
-                              icon: AppIcons.feed,
-                              semanticLabel: l10n.navFeed,
-                            ),
-                            label: l10n.navFeed,
-                          ),
-                          NavigationDestination(
-                            icon: const Icon(AppIcons.favorite),
-                            label: l10n.navFavorites,
-                          ),
-                          NavigationDestination(
-                            icon: const Icon(AppIcons.profile),
-                            label: l10n.navProfile,
-                          ),
-                        ],
+                    ),
+                  );
+                },
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 4),
+                  child: DecoratedBox(
+                    key: const Key('app-bottom-navigation-surface'),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surface,
+                      border: Border(
+                        top: BorderSide(color: palette.border),
                       ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: theme.colorScheme.shadow.withValues(
+                            alpha: theme.brightness == Brightness.light
+                                ? 0.08
+                                : 0.24,
+                          ),
+                          blurRadius: 8,
+                          offset: const Offset(0, -2),
+                        ),
+                      ],
+                    ),
+                    child: NavigationBar(
+                      maintainBottomViewPadding: true,
+                      selectedIndex: widget.navigationShell.currentIndex,
+                      onDestinationSelected: _onDestinationSelected,
+                      destinations: [
+                        NavigationDestination(
+                          icon: const Icon(AppIcons.home),
+                          label: l10n.navHome,
+                        ),
+                        NavigationDestination(
+                          icon: const Icon(AppIcons.sessions),
+                          label: l10n.navSessions,
+                        ),
+                        NavigationDestination(
+                          icon: NewsfeedBadgeIcon(
+                            icon: AppIcons.feed,
+                            semanticLabel: l10n.navFeed,
+                          ),
+                          selectedIcon: NewsfeedBadgeIcon(
+                            icon: AppIcons.feed,
+                            semanticLabel: l10n.navFeed,
+                          ),
+                          label: l10n.navFeed,
+                        ),
+                        NavigationDestination(
+                          icon: const Icon(AppIcons.favorite),
+                          label: l10n.navFavorites,
+                        ),
+                        NavigationDestination(
+                          icon: const Icon(AppIcons.profile),
+                          label: l10n.navProfile,
+                        ),
+                      ],
                     ),
                   ),
                 ),

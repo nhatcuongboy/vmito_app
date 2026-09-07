@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
+import 'package:vmito_app/core/location/google_places_attribution.dart';
 import 'package:vmito_app/core/location/google_places_service.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -15,6 +15,7 @@ import 'package:vmito_app/features/social/domain/post_composer_draft.dart';
 import 'package:vmito_app/features/social/presentation/widgets/post_avatar.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 
 const _maxPostImages = 5;
 
@@ -348,6 +349,7 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
             },
           ),
         ),
+        if (_locationSuggestions.isNotEmpty) const GooglePlacesAttribution(),
       ],
     );
   }

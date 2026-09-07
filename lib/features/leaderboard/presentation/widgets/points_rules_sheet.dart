@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/leaderboard/domain/leaderboard.dart';
 import 'package:vmito_app/features/leaderboard/presentation/widgets/tier_badge.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 
 const _sessionRules = <int>[10, 5, 2, 5];
 const _tournamentRules = <int>[20, 10, 5, 100, 60, 30];
@@ -49,28 +51,9 @@ class _PointsRulesSheet extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                0,
-                AppSpacing.sm,
-                AppSpacing.sm,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      l10n.leaderboardRulesTitle,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    tooltip: l10n.commonClose,
-                    icon: const Icon(Icons.close),
-                  ),
-                ],
-              ),
+            AppSheetHeader(
+              title: l10n.leaderboardRulesTitle,
+              leadingIcon: AppIcons.trophy,
             ),
             Expanded(
               child: ListView(

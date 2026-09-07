@@ -61,6 +61,20 @@ extension LocalizedValues on AppLocalizations {
     _ => '$level',
   };
 
+  String levelFullName(int level) => switch (level) {
+    1 => level1Full,
+    2 => level2Full,
+    3 => level3Full,
+    4 => level4Full,
+    5 => level5Full,
+    6 => level6Full,
+    7 => level7Full,
+    8 => level8Full,
+    9 => level9Full,
+    10 => level10Full,
+    _ => '$level',
+  };
+
   String courtPair(int pairNumber) => switch (pairNumber) {
     1 => courtPair1,
     2 => courtPair2,

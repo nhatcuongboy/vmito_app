@@ -12,6 +12,8 @@ import 'package:vmito_app/features/session/application/player/my_sessions_contro
 import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_loading_view.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_grabber.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 
 class PendingRequestsState {
   const PendingRequestsState({
@@ -204,6 +206,7 @@ class _PendingRequestsSheetState extends ConsumerState<PendingRequestsSheet> {
           ),
           child: Column(
             children: [
+              const AppSheetGrabber(),
               _PendingRequestsSheetHeader(
                 title: l10n.mySessionsPendingRequests,
               ),
@@ -233,32 +236,9 @@ class _PendingRequestsSheetHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        AppSpacing.md,
-        AppSpacing.sm,
-        AppSpacing.sm,
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              title,
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          IconButton(
-            key: const Key('pending-requests-close'),
-            tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-            icon: const Icon(AppIcons.close),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-      ),
+    return AppSheetHeader(
+      title: title,
+      closeButtonKey: const Key('pending-requests-close'),
     );
   }
 }

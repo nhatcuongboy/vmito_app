@@ -2,8 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_lucide/flutter_lucide.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:vmito_app/core/device/app_version_provider.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_logo.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -17,7 +19,7 @@ Future<void> showAboutVmitoDialog(BuildContext context) {
   );
 }
 
-class _AboutVmitoDialog extends StatelessWidget {
+class _AboutVmitoDialog extends ConsumerWidget {
   const _AboutVmitoDialog();
 
   static const String _phone = '0914810765';
@@ -32,16 +34,20 @@ class _AboutVmitoDialog extends StatelessWidget {
   }) async {
     try {
       await launchUrl(uri, mode: mode);
-    } catch (_) {
+    } on Object catch (_) {
       // Ignore launch errors gracefully.
     }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final version = switch (ref.watch(appVersionProvider)) {
+      AsyncData(:final value) => value,
+      _ => null,
+    };
 
     final cardBg = isDark
         ? theme.colorScheme.surfaceContainerHighest
@@ -81,6 +87,15 @@ class _AboutVmitoDialog extends StatelessWidget {
                   fontWeight: FontWeight.w500,
                 ),
               ),
+              if (version != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  l10n.settingsVersion(version),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
               const SizedBox(height: AppSpacing.lg),
 
               // Contact Info Section

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/widgets/app_tab_bar.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 enum LegalDocument { terms, privacy }
@@ -20,7 +21,7 @@ class LegalScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.settingsTermsPrivacy),
-          bottom: TabBar(
+          bottom: AppTabBar(
             onTap: (index) {
               final path = index == LegalDocument.terms.index
                   ? AppRoutes.terms

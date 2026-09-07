@@ -1,8 +1,7 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:vmito_app/core/constants/api_endpoints.dart';
-import 'package:vmito_app/core/network/api_client.dart';
-import 'package:vmito_app/core/network/api_options.dart';
-import 'package:vmito_app/core/network/api_response.dart';
+import 'package:google_places_sdk_plus/google_places_sdk_plus.dart';
+import 'package:vmito_app/core/config/app_config.dart';
 import 'package:vmito_app/core/utils/logger.dart';
 
 class PlaceSuggestion {
@@ -35,31 +34,42 @@ class PlaceDetails {
   final String? city;
 }
 
-/// Address autocomplete via Vmito's backend proxy.
+/// Address autocomplete backed by the native Places SDK on Android and iOS.
 ///
-/// The proxy owns the Google Places credential so the mobile binary never
-/// contains a third-party secret.
+/// Each platform build receives its own application-restricted key through
+/// `GOOGLE_PLACES_API_KEY`; no Places credential or proxy is owned by Vmito's
+/// backend.
 class GooglePlacesService {
-  const GooglePlacesService(this._client);
+  GooglePlacesService({
+    required String apiKey,
+    FlutterGooglePlacesSdk? sdk,
+  }) : _sdk = sdk ?? (apiKey.isEmpty ? null : FlutterGooglePlacesSdk(apiKey));
 
-  final ApiClient _client;
+  final FlutterGooglePlacesSdk? _sdk;
 
   Future<List<PlaceSuggestion>> autocomplete({
     required String input,
     required String language,
   }) async {
-    if (input.trim().length < 2) return const [];
+    final sdk = _sdk;
+    final query = input.trim();
+    if (sdk == null || query.length < 2) return const [];
 
     try {
-      final response = await _client.post<Map<String, dynamic>>(
-        ApiEndpoints.placesAutocomplete,
-        data: {'input': input.trim(), 'language': language},
-        options: apiOptions(skipGlobalError: true),
+      await _setLanguage(sdk, language);
+      final response = await sdk.findAutocompletePredictions(
+        query,
+        countries: const ['vn'],
       );
-      return unwrapList(
-        response.data,
-        _suggestionFromJson,
-      ).where((item) => item.placeId.isNotEmpty).toList(growable: false);
+      return [
+        for (final prediction in response.predictions)
+          if (prediction.placeId?.isNotEmpty ?? false)
+            PlaceSuggestion(
+              placeId: prediction.placeId!,
+              primaryText: prediction.primaryText ?? '',
+              secondaryText: prediction.secondaryText ?? '',
+            ),
+      ];
     } on Object catch (error, stackTrace) {
       AppLogger.error(
         'GooglePlacesService.autocomplete failed',
@@ -74,13 +84,51 @@ class GooglePlacesService {
     required String placeId,
     required String language,
   }) async {
-    try {
-      final response = await _client.get<Map<String, dynamic>>(
-        ApiEndpoints.placesDetails,
-        queryParameters: {'placeId': placeId, 'language': language},
-        options: apiOptions(skipGlobalError: true),
+    final sdk = _sdk;
+    if (sdk == null) {
+      throw StateError(
+        'GOOGLE_PLACES_API_KEY is missing for this platform build.',
       );
-      return unwrap(response.data, _detailsFromJson);
+    }
+
+    try {
+      await _setLanguage(sdk, language);
+      final response = await sdk.fetchPlace(
+        placeId,
+        fields: const [
+          PlaceField.Id,
+          PlaceField.FormattedAddress,
+          PlaceField.AddressComponents,
+          PlaceField.Location,
+        ],
+      );
+      final place = response.place;
+      if (place == null) {
+        throw StateError('Places SDK returned no details for $placeId.');
+      }
+
+      final components = place.addressComponents ?? const [];
+      String? component(Set<String> types) {
+        for (final item in components) {
+          if ((item.types ?? const []).toSet().intersection(types).isNotEmpty) {
+            return item.name;
+          }
+        }
+        return null;
+      }
+
+      return PlaceDetails(
+        placeId: place.id ?? placeId,
+        address: place.address ?? '',
+        latitude: place.latLng?.lat,
+        longitude: place.latLng?.lng,
+        district: component({
+          'administrative_area_level_2',
+          'sublocality',
+          'sublocality_level_1',
+        }),
+        city: component({'administrative_area_level_1'}),
+      );
     } on Object catch (error, stackTrace) {
       AppLogger.error(
         'GooglePlacesService.details failed',
@@ -91,24 +139,12 @@ class GooglePlacesService {
     }
   }
 
-  static PlaceSuggestion _suggestionFromJson(Map<String, dynamic> json) =>
-      PlaceSuggestion(
-        placeId: json['placeId'] as String? ?? '',
-        primaryText: json['primaryText'] as String? ?? '',
-        secondaryText: json['secondaryText'] as String? ?? '',
-      );
-
-  static PlaceDetails _detailsFromJson(Map<String, dynamic> json) =>
-      PlaceDetails(
-        placeId: json['placeId'] as String? ?? '',
-        address: json['address'] as String? ?? '',
-        latitude: (json['latitude'] as num?)?.toDouble(),
-        longitude: (json['longitude'] as num?)?.toDouble(),
-        district: json['district'] as String?,
-        city: json['city'] as String?,
-      );
+  Future<void> _setLanguage(
+    FlutterGooglePlacesSdk sdk,
+    String language,
+  ) => sdk.updateSettings(locale: Locale(language));
 }
 
 final googlePlacesServiceProvider = Provider<GooglePlacesService>(
-  (ref) => GooglePlacesService(ref.watch(apiClientProvider)),
+  (ref) => GooglePlacesService(apiKey: AppConfig.googlePlacesApiKey),
 );

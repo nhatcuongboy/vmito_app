@@ -5,7 +5,7 @@ publish_to: 'none'
 # version: <build-name>+<build-number>
 # Android: build-name -> versionName, build-number -> versionCode
 # iOS: build-name -> CFBundleShortVersionString, build-number -> CFBundleVersion
-version: 1.0.0+1
+version: 1.0.0+2
 
 environment:
   sdk: ^3.12.2
@@ -44,7 +44,10 @@ dependencies:
   connectivity_plus: ^7.3.1
 
   # --- Routing --------------------------------------------------------------
-  go_router: ^18.0.1
+  # 18.x builds pages through the separate material_ui package, while this app
+  # still uses Flutter's MaterialApp. That mismatch falls back to
+  # NoTransitionPage and disables interactive edge-back gestures.
+  go_router: ^17.4.0
 
   # --- Storage --------------------------------------------------------------
   # Tokens go in flutter_secure_storage (Keychain/Keystore) — never in prefs.
@@ -96,6 +99,7 @@ dependencies:
   geolocator: ^14.0.2
   geocoding: ^5.0.0
   google_maps_flutter: ^2.18.0
+  google_places_sdk_plus: ^1.1.0
   package_info_plus: ^10.2.1
   device_info_plus: ^13.2.0
 
@@ -107,7 +111,6 @@ dependencies:
   # --- Push notifications --------------------------------------------------
   firebase_core: ^4.14.0
   firebase_messaging: ^16.1.1
-
   riverpod: any
 dev_dependencies:
   flutter_test:

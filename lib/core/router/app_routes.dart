@@ -117,6 +117,7 @@ abstract final class AppRoutes {
         path != mySessionsSearch;
     return path == homeSearch ||
         path == mySessionsSearch ||
+        path == settings ||
         RegExp(r'^/tournaments/[^/]+$').hasMatch(path) ||
         RegExp(r'^/tournaments/[^/]+/manage$').hasMatch(path) ||
         isSessionDetail ||

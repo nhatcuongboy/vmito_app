@@ -150,6 +150,13 @@ void main() {
     expect(selectedText.style?.height, closeTo(20 / 15, 0.0001));
     expect(selectedText.style?.fontWeight, FontWeight.w600);
     expect(unselectedText.style?.fontWeight, FontWeight.w500);
+    final sessionsTab = tester.widget<AnimatedContainer>(
+      find.byKey(const Key('home-discovery-indicator-sessions')),
+    );
+    expect(
+      sessionsTab.padding,
+      const EdgeInsetsDirectional.fromSTEB(16, 10, 8, 10),
+    );
     final sessionFlame = tester.widget<Icon>(
       find.byIcon(AppIcons.flameFilled),
     );
@@ -206,6 +213,13 @@ void main() {
 
     expect(_FakeSessionsController.loads, 1);
     expect(find.byKey(const Key('home-sign-in-button')), findsOneWidget);
+    final signInButton = tester.widget<OutlinedButton>(
+      find.byKey(const Key('home-sign-in-button')),
+    );
+    expect(
+      signInButton.style?.side?.resolve({})?.color,
+      AppTheme.light.colorScheme.primary.withValues(alpha: 0.32),
+    );
     expect(
       tester.getSize(find.byKey(const Key('home-sign-in-button'))).height,
       48,

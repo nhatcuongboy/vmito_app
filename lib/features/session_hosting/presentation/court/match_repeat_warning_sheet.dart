@@ -3,6 +3,7 @@ import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 import 'package:vmito_domain/vmito_domain.dart';
 
 /// Explains which pairings on this court have already happened too often.
@@ -33,57 +34,59 @@ class MatchRepeatWarningSheet extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AppSheetHeader(
+            title: l10n.matchRepeatTitle,
+            leadingIcon: AppIcons.warning,
+            leadingIconColor: palette.warning,
+            showCloseButton: false,
+          ),
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(AppIcons.warning, color: palette.warning),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(
-                    l10n.matchRepeatTitle,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
+                Text(
+                  l10n.matchRepeatDescription,
+                  style: theme.textTheme.bodySmall,
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  l10n.matchRepeatHostNote,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: palette.mutedForeground,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                _Section(
+                  title: l10n.matchRepeatTeammatesTitle,
+                  emptyText: l10n.matchRepeatNoTeammates,
+                  items: warning.repeatedTeammates,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                _Section(
+                  title: l10n.matchRepeatOpponentsTitle,
+                  emptyText: l10n.matchRepeatNoOpponents,
+                  items: warning.repeatedOpponents,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      MaterialLocalizations.of(context).closeButtonLabel,
                     ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: AppSpacing.sm),
-            Text(l10n.matchRepeatDescription, style: theme.textTheme.bodySmall),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              l10n.matchRepeatHostNote,
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: palette.mutedForeground,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            _Section(
-              title: l10n.matchRepeatTeammatesTitle,
-              emptyText: l10n.matchRepeatNoTeammates,
-              items: warning.repeatedTeammates,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            _Section(
-              title: l10n.matchRepeatOpponentsTitle,
-              emptyText: l10n.matchRepeatNoOpponents,
-              items: warning.repeatedOpponents,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: Text(MaterialLocalizations.of(context).closeButtonLabel),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

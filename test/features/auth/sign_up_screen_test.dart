@@ -60,6 +60,19 @@ Future<void> _pumpSignUp(
 }
 
 void main() {
+  testWidgets('groups optional sign-up fields under a single hint', (
+    tester,
+  ) async {
+    final service = _MockAuthService();
+    await _pumpSignUp(tester, service: service);
+
+    expect(find.text('Thông tin bổ sung (tùy chọn)'), findsOneWidget);
+    expect(find.text('Số điện thoại'), findsWidgets);
+    expect(find.text('Giới tính'), findsWidgets);
+    expect(find.textContaining('Số điện thoại (Tùy chọn)'), findsNothing);
+    expect(find.textContaining('Giới tính (Tùy chọn)'), findsNothing);
+  });
+
   testWidgets('rejects a weak password and mismatched confirmation', (
     tester,
   ) async {

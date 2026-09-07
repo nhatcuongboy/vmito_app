@@ -13,6 +13,7 @@ import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/city_selector_results.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 
 class CitySelection {
   const CitySelection(this.city);
@@ -73,7 +74,7 @@ class _CitySelectorSheetState extends ConsumerState<CitySelectorSheet> {
     );
 
     final colorScheme = Theme.of(context).colorScheme;
-    return AppReactiveForm(
+    return AppReactiveForm<void>(
       formGroup: _form,
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -88,30 +89,9 @@ class _CitySelectorSheetState extends ConsumerState<CitySelectorSheet> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.md,
-                        0,
-                        AppSpacing.sm,
-                        AppSpacing.xs,
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              l10n.citySelectorTitle,
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w700),
-                            ),
-                          ),
-                          IconButton(
-                            key: const Key('city-selector-close'),
-                            tooltip: l10n.commonClose,
-                            onPressed: () => Navigator.of(context).pop(),
-                            icon: const Icon(AppIcons.close),
-                          ),
-                        ],
-                      ),
+                    AppSheetHeader(
+                      title: l10n.citySelectorTitle,
+                      closeButtonKey: const Key('city-selector-close'),
                     ),
                     Padding(
                       padding: const EdgeInsets.symmetric(

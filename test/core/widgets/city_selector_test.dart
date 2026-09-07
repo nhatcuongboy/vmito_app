@@ -6,6 +6,7 @@ import 'package:vmito_app/core/location/device_location_service.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/location/new_admin_units.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
+import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/core/widgets/city_selector.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
@@ -56,6 +57,7 @@ Widget _app({
       deviceReverseGeocoderProvider.overrideWithValue(geocoder),
   ],
   child: MaterialApp(
+    theme: AppTheme.light,
     locale: const Locale('vi'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,

@@ -55,9 +55,13 @@ class HomeDiscoveryTabs extends StatelessWidget {
                         ? Key('home-discovery-indicator-${tab.name}')
                         : null,
                     duration: const Duration(milliseconds: 180),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.sm + 2,
+                    padding: EdgeInsetsDirectional.fromSTEB(
+                      AppSpacing.md,
+                      AppSpacing.sm + 2,
+                      tab == HomeDiscoveryTab.sessions
+                          ? AppSpacing.sm
+                          : AppSpacing.md,
+                      AppSpacing.sm + 2,
                     ),
                     decoration: BoxDecoration(
                       border: Border(
@@ -88,7 +92,7 @@ class HomeDiscoveryTabs extends StatelessWidget {
                         // A filled flame keeps the accent colour inside the
                         // glyph, without a separate circular background.
                         if (tab == HomeDiscoveryTab.sessions) ...[
-                          const SizedBox(width: 6),
+                          const SizedBox(width: AppSpacing.xs),
                           const Icon(
                             AppIcons.flameFilled,
                             size: 16,

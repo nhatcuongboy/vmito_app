@@ -114,7 +114,7 @@ void main() {
     expect(find.text('Chưa có yêu cầu tham gia'), findsOneWidget);
   });
 
-  testWidgets('uses the web typography hierarchy', (tester) async {
+  testWidgets('uses the shared bottom sheet header style', (tester) async {
     final repository = _MockRegistrationRepository();
     when(
       () => repository.myJoinRequests(
@@ -128,8 +128,11 @@ void main() {
     double fontSize(Key key) =>
         tester.widget<Text>(find.byKey(key)).style!.fontSize!;
 
-    expect(fontSize(const Key('my-join-requests-title')), 24);
-    expect(fontSize(const Key('my-join-requests-description')), 16);
+    final context = tester.element(find.byKey(const Key('my-join-requests-close')));
+    expect(
+      find.text(AppLocalizations.of(context).myJoinRequestsTitle),
+      findsOneWidget,
+    );
     expect(fontSize(const ValueKey('my-join-request-title-s1')), 18);
     expect(fontSize(const ValueKey('my-join-request-date-s1')), 12);
     expect(fontSize(const ValueKey('my-join-request-player-p1')), 14);

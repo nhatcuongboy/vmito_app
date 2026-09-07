@@ -180,8 +180,12 @@ void main() {
     expect(service.calls, greaterThanOrEqualTo(2));
   });
 
-  testWidgets('opens the leaderboard route', (tester) async {
-    await _pump(tester, service: _FakeService(_achievements), isOwner: false);
+  testWidgets('switches to the leaderboard route', (tester) async {
+    final router = await _pump(
+      tester,
+      service: _FakeService(_achievements),
+      isOwner: false,
+    );
     await tester.pump();
     await tester.ensureVisible(
       find.byKey(const ValueKey('achievement-view-leaderboard-button')),
@@ -193,6 +197,11 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Leaderboard route'), findsOneWidget);
+    expect(router.state.uri.path, AppRoutes.leaderboard);
+    expect(
+      router.routerDelegate.currentConfiguration.matches.last,
+      isNot(isA<ImperativeRouteMatch>()),
+    );
   });
 
   testWidgets('captures and shares the achievement PNG', (tester) async {
@@ -230,7 +239,7 @@ void main() {
   });
 }
 
-Future<void> _pump(
+Future<GoRouter> _pump(
   WidgetTester tester, {
   required ProfileTabsService service,
   required bool isOwner,
@@ -277,6 +286,7 @@ Future<void> _pump(
     ),
   );
   await tester.pump();
+  return router;
 }
 
 class _FakeService implements ProfileTabsService {

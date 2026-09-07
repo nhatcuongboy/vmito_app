@@ -58,8 +58,13 @@ class SlideOutMenu extends ConsumerWidget {
     final canViewHostFinance =
         (user?.isHost ?? false) || (user?.isAdmin ?? false);
 
+    // Leaves at least 56dp of the underlying screen visible (Material spec)
+    // instead of a fixed 320 that swallows nearly all of a small phone.
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final drawerWidth = (screenWidth - 56).clamp(200.0, 320.0);
+
     return Drawer(
-      width: 320,
+      width: drawerWidth,
       child: SafeArea(
         top: !isSignedIn,
         child: Column(
@@ -118,12 +123,13 @@ class SlideOutMenu extends ConsumerWidget {
                           AppRoutes.homeForDiscoveryTab('tournaments'),
                         ),
                       ),
-                      _MenuItem(
-                        icon: AppIcons.award,
-                        label: l10n.navLeaderboard,
-                        isActive: isActive(AppRoutes.leaderboard),
-                        onTap: () => pushTo(AppRoutes.leaderboard),
-                      ),
+                      if (isSignedIn)
+                        _MenuItem(
+                          icon: AppIcons.award,
+                          label: l10n.navLeaderboard,
+                          isActive: isActive(AppRoutes.leaderboard),
+                          onTap: () => pushTo(AppRoutes.leaderboard),
+                        ),
                     ],
                   ),
                   if (isSignedIn) ...[

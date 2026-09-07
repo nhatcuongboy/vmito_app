@@ -16,6 +16,8 @@ import 'package:vmito_app/shared/models/session_player.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
 import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/shared/widgets/app_required_label.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_action_bar.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 import 'package:vmito_domain/vmito_domain.dart';
 
 Future<bool?> showHostAddPlayersSheet(
@@ -232,48 +234,20 @@ class _HostAddPlayersSheetState extends ConsumerState<_HostAddPlayersSheet> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.lg,
-                AppSpacing.sm,
-                AppSpacing.sm,
-                AppSpacing.sm,
-              ),
-              child: Row(
-                children: [
-                  if (pickerForm == null)
-                    const Icon(AppIcons.userPlus, size: 20)
-                  else
-                    IconButton(
-                      key: const Key('host-user-picker-back'),
-                      tooltip: MaterialLocalizations.of(
-                        context,
-                      ).backButtonTooltip,
-                      onPressed: _hideUserPicker,
-                      icon: const Icon(AppIcons.arrowBack, size: 20),
-                    ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Text(
-                      pickerForm == null
-                          ? l10n.hostAddPlayerAddAnother
-                          : l10n.hostAddPlayerSelectExisting,
-                      style: Theme.of(context).textTheme.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w600),
-                    ),
-                  ),
-                  IconButton(
-                    key: const Key('host-add-players-close'),
-                    tooltip: l10n.commonClose,
-                    onPressed: state.submitting
-                        ? null
-                        : () => Navigator.pop(context, false),
-                    icon: const Icon(AppIcons.close, size: 20),
-                  ),
-                ],
-              ),
+            AppSheetHeader(
+              title: pickerForm == null
+                  ? l10n.hostAddPlayerAddAnother
+                  : l10n.hostAddPlayerSelectExisting,
+              leadingIcon: pickerForm == null ? null : AppIcons.arrowBack,
+              leadingButtonKey: const Key('host-user-picker-back'),
+              leadingTooltip: MaterialLocalizations.of(
+                context,
+              ).backButtonTooltip,
+              onLeadingPressed: pickerForm == null ? null : _hideUserPicker,
+              closeButtonKey: const Key('host-add-players-close'),
+              closeButtonEnabled: !state.submitting,
+              onClose: () => Navigator.pop(context, false),
             ),
-            const Divider(height: 1),
             Expanded(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 180),
@@ -336,10 +310,8 @@ class _HostAddPlayersSheetState extends ConsumerState<_HostAddPlayersSheet> {
                       ),
               ),
             ),
-            if (pickerForm == null) ...[
-              const Divider(height: 1),
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
+            if (pickerForm == null)
+              AppSheetActionBar(
                 child: Row(
                   children: [
                     Expanded(
@@ -372,7 +344,6 @@ class _HostAddPlayersSheetState extends ConsumerState<_HostAddPlayersSheet> {
                   ],
                 ),
               ),
-            ],
           ],
         ),
       ),
@@ -516,7 +487,9 @@ class _PlayerFormCard extends StatelessWidget {
                           value: level,
                           child: Text(
                             l10n.levelName(level),
-                            style: const TextStyle(fontWeight: FontWeight.normal),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.normal,
+                            ),
                           ),
                         ),
                     ],

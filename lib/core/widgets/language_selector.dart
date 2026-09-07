@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/localization/locale_controller.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 
 class LanguageButton extends StatelessWidget {
   const LanguageButton({super.key});
@@ -47,12 +48,9 @@ class _LanguageSelectorSheet extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
-              child: Text(
-                l10n.languageTitle,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
+            AppSheetHeader(
+              title: l10n.languageTitle,
+              showCloseButton: false,
             ),
             for (final (code, label, flag) in options)
               ListTile(

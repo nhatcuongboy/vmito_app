@@ -7,6 +7,8 @@ import 'package:vmito_app/features/payment/application/payment_reminders_control
 import 'package:vmito_app/features/payment/domain/form/reminder_forms.dart';
 import 'package:vmito_app/features/payment/domain/payment.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_action_bar.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 
 class RejectReminderSheet extends ConsumerStatefulWidget {
   const RejectReminderSheet({
@@ -72,25 +74,18 @@ class _RejectReminderSheetState extends ConsumerState<RejectReminderSheet> {
         AppSpacing.md,
         MediaQuery.viewInsetsOf(context).bottom + AppSpacing.md,
       ),
-      child: AppReactiveForm(
+      child: AppReactiveForm<void>(
         formGroup: _form,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                l10n.reminderRejectTitle,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                l10n.reminderRejectDescription,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.outline,
-                ),
+              AppSheetHeader(
+                title: l10n.reminderRejectTitle,
+                subtitle: l10n.reminderRejectDescription,
+                showCloseButton: false,
+                padding: EdgeInsets.zero,
               ),
               const SizedBox(height: AppSpacing.md),
               ReactiveTextField<String>(
@@ -103,34 +98,41 @@ class _RejectReminderSheetState extends ConsumerState<RejectReminderSheet> {
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: isBusy
-                        ? null
-                        : () => Navigator.of(context).pop(),
-                    child: Text(l10n.commonCancel),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  FilledButton(
-                    style: FilledButton.styleFrom(
-                      backgroundColor: theme.colorScheme.error,
-                      foregroundColor: theme.colorScheme.onError,
+              AppSheetActionBar(
+                padding: const EdgeInsets.only(top: AppSpacing.md),
+                applySafeArea: false,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: isBusy
+                            ? null
+                            : () => Navigator.of(context).pop(),
+                        child: Text(l10n.commonCancel),
+                      ),
                     ),
-                    onPressed: isBusy ? null : _submit,
-                    child: isBusy
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : Text(l10n.reminderReject),
-                  ),
-                ],
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          backgroundColor: theme.colorScheme.error,
+                          foregroundColor: theme.colorScheme.onError,
+                        ),
+                        onPressed: isBusy ? null : _submit,
+                        child: isBusy
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text(l10n.reminderReject),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

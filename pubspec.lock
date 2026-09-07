@@ -907,10 +907,10 @@ packages:
     dependency: "direct main"
     description:
       name: go_router
-      sha256: "008ab21d89d0de8ccd79586838f7533f126c2d894f50bf25f2947888d3c225b5"
+      sha256: d7a3576cb312649eaa51f2356450aed686085fb58fcdebda5b359aa951eef7ea
       url: "https://pub.dev"
     source: hosted
-    version: "18.0.1"
+    version: "17.5.0"
   google_maps:
     dependency: transitive
     description:
@@ -959,6 +959,78 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.6.3"
+  google_places_sdk_plus:
+    dependency: "direct main"
+    description:
+      name: google_places_sdk_plus
+      sha256: d6d4a39243a1474d9876d96878485c353a7baef72c4f4215cc3470f51473daad
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
+  google_places_sdk_plus_android:
+    dependency: transitive
+    description:
+      name: google_places_sdk_plus_android
+      sha256: "8eeaafd81ce3928cf8942907b624ff091141625e1808d7bd50b7f2674f996878"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.4"
+  google_places_sdk_plus_http:
+    dependency: transitive
+    description:
+      name: google_places_sdk_plus_http
+      sha256: bf2359fbecd6f147f9ee324ee381dccdf63d800734faa75894805d9741760085
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
+  google_places_sdk_plus_ios:
+    dependency: transitive
+    description:
+      name: google_places_sdk_plus_ios
+      sha256: b696dd8a05897afb511c448f1841c6bff3da30ed1aaa83f08266c96591911d7f
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
+  google_places_sdk_plus_linux:
+    dependency: transitive
+    description:
+      name: google_places_sdk_plus_linux
+      sha256: "6ed17407ab7878581ce5c0ce98892c9f07034cf1a7baa2cb4f3b7ed9758958d6"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
+  google_places_sdk_plus_macos:
+    dependency: transitive
+    description:
+      name: google_places_sdk_plus_macos
+      sha256: c62b4b0991336d40ad23b28951e00d0f3f36048718c596b2464a3537e63b0d19
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
+  google_places_sdk_plus_platform_interface:
+    dependency: transitive
+    description:
+      name: google_places_sdk_plus_platform_interface
+      sha256: a57ab91cde17bf12a036ed391169d9d8cab4c536cc874ff75214c479badd2263
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
+  google_places_sdk_plus_web:
+    dependency: transitive
+    description:
+      name: google_places_sdk_plus_web
+      sha256: "3fd369b2b31c7ea0a06477837cfa91949eb275c4381532fe412ef8ea327d0142"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.1"
+  google_places_sdk_plus_windows:
+    dependency: transitive
+    description:
+      name: google_places_sdk_plus_windows
+      sha256: e3dc0da95171b09a2f002771cb26e5e706c42288f7cf7f5a70b24d0f36353d39
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   graphs:
     dependency: transitive
     description:
@@ -1148,6 +1220,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.14.1"
+  latlong2:
+    dependency: transitive
+    description:
+      name: latlong2
+      sha256: "98227922caf49e6056f91b6c56945ea1c7b166f28ffcd5fb8e72fc0b453cc8fe"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.9.1"
   leak_tracker:
     dependency: transitive
     description:

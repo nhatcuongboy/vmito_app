@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/core/widgets/app_tab_bar.dart';
 import 'package:vmito_app/features/social/application/club_management_controller.dart';
 import 'package:vmito_app/features/social/presentation/widgets/club_announcements_tab.dart';
 import 'package:vmito_app/features/social/presentation/widgets/club_members_tab.dart';
@@ -38,7 +39,7 @@ class ClubManagementDetailScreen extends ConsumerWidget {
                 icon: const Icon(AppIcons.edit),
               ),
             ],
-            bottom: TabBar(
+            bottom: AppTabBar(
               tabs: [
                 Tab(text: l10n.clubMembers),
                 Tab(text: l10n.clubRequests),

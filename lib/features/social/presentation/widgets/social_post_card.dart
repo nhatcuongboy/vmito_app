@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -14,17 +15,26 @@ import 'package:vmito_app/features/social/domain/social_post.dart';
 import 'package:vmito_app/features/social/presentation/widgets/activity_post_content.dart';
 import 'package:vmito_app/features/social/presentation/widgets/post_avatar.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_lightbox.dart';
 
 // ---------------------------------------------------------------------------
 // Public entry point
 // ---------------------------------------------------------------------------
 
 class SocialPostCard extends ConsumerWidget {
-  SocialPostCard({required this.post, this.onOpen, super.key})
-    : _shareCardKey = GlobalKey();
+  SocialPostCard({
+    required this.post,
+    this.onOpen,
+    this.onPostChanged,
+    super.key,
+  }) : _shareCardKey = GlobalKey();
 
   final SocialPost post;
   final VoidCallback? onOpen;
+
+  /// Notifies an owner of an optimistic like update (e.g. a profile tab whose
+  /// posts are local state rather than part of [feedControllerProvider]).
+  final ValueChanged<SocialPost>? onPostChanged;
   final GlobalKey _shareCardKey;
 
   @override
@@ -92,6 +102,7 @@ class SocialPostCard extends ConsumerWidget {
               l10n: l10n,
               ref: ref,
               shareCardKey: _shareCardKey,
+              onPostChanged: onPostChanged,
             ),
 
             // Accessibility label
@@ -365,12 +376,15 @@ class _SingleImage extends StatelessWidget {
   const _SingleImage({required this.url});
   final String url;
   @override
-  Widget build(BuildContext context) => CachedNetworkImage(
-    imageUrl: url,
-    height: 320,
-    width: double.infinity,
-    fit: BoxFit.cover,
-    errorWidget: (_, _, _) => const _ImgError(),
+  Widget build(BuildContext context) => GestureDetector(
+    onTap: () => unawaited(showAppLightbox(context, images: [url])),
+    child: CachedNetworkImage(
+      imageUrl: url,
+      height: 320,
+      width: double.infinity,
+      fit: BoxFit.cover,
+      errorWidget: (_, _, _) => const _ImgError(),
+    ),
   );
 }
 
@@ -379,6 +393,7 @@ class _MultiImageGrid extends StatelessWidget {
   final List<SocialPostImage> images;
   @override
   Widget build(BuildContext context) {
+    final imageUrls = images.map((image) => image.url).toList(growable: false);
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -390,29 +405,38 @@ class _MultiImageGrid extends StatelessWidget {
       itemCount: images.length > 4 ? 4 : images.length,
       itemBuilder: (_, index) {
         final isLast = index == 3 && images.length > 4;
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            CachedNetworkImage(
-              imageUrl: images[index].url,
-              fit: BoxFit.cover,
-              errorWidget: (_, _, _) => const _ImgError(),
+        return GestureDetector(
+          onTap: () => unawaited(
+            showAppLightbox(
+              context,
+              images: imageUrls,
+              initialIndex: index,
             ),
-            if (isLast)
-              ColoredBox(
-                color: Colors.black54,
-                child: Center(
-                  child: Text(
-                    '+${images.length - 4}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
+          ),
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              CachedNetworkImage(
+                imageUrl: images[index].url,
+                fit: BoxFit.cover,
+                errorWidget: (_, _, _) => const _ImgError(),
+              ),
+              if (isLast)
+                ColoredBox(
+                  color: Colors.black54,
+                  child: Center(
+                    child: Text(
+                      '+${images.length - 4}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
-              ),
-          ],
+            ],
+          ),
         );
       },
     );
@@ -613,6 +637,7 @@ class _ActionBar extends StatelessWidget {
     required this.l10n,
     required this.ref,
     required this.shareCardKey,
+    this.onPostChanged,
   });
 
   final SocialPost post;
@@ -620,6 +645,7 @@ class _ActionBar extends StatelessWidget {
   final AppLocalizations l10n;
   final WidgetRef ref;
   final GlobalKey shareCardKey;
+  final ValueChanged<SocialPost>? onPostChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -702,9 +728,15 @@ class _ActionBar extends StatelessWidget {
   }
 
   Future<void> _toggleLike(BuildContext context) async {
+    final updated = post.copyWith(
+      isLiked: !post.isLiked,
+      likeCount: post.likeCount + (post.isLiked ? -1 : 1),
+    );
+    onPostChanged?.call(updated);
     try {
       await ref.read(feedControllerProvider.notifier).toggleLike(post.id);
     } on Object catch (error) {
+      onPostChanged?.call(post);
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(error.toString())),

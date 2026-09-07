@@ -7,6 +7,7 @@ import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/web/app_web_view.dart';
+import 'package:vmito_app/core/widgets/app_tab_bar.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/notification/application/notification_controller.dart';
 import 'package:vmito_app/features/notification/domain/app_notification.dart';
@@ -106,10 +107,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             ),
             const SizedBox(width: AppSpacing.xs),
           ],
-          bottom: TabBar(
-            indicatorColor: Theme.of(context).colorScheme.primary.withValues(
-              alpha: 0.45,
-            ),
+          bottom: AppTabBar(
             onTap: (index) => setState(
               () => _selectedTab = _NotificationPanelTab.values[index],
             ),

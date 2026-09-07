@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/domain/social_post.dart';
 import 'package:vmito_app/features/social/presentation/widgets/social_post_card.dart';
@@ -43,6 +43,33 @@ class _Harness extends ConsumerWidget {
   }
 }
 
+class _ProfilePostHarness extends StatefulWidget {
+  const _ProfilePostHarness();
+
+  @override
+  State<_ProfilePostHarness> createState() => _ProfilePostHarnessState();
+}
+
+class _ProfilePostHarnessState extends State<_ProfilePostHarness> {
+  SocialPost post = _post;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    body: SocialPostCard(
+      post: post,
+      onPostChanged: (updated) => setState(() => post = updated),
+    ),
+  );
+}
+
+class _EmptyFeedController extends FeedController {
+  @override
+  FeedState build() => const FeedState();
+
+  @override
+  Future<void> toggleLike(String postId) async {}
+}
+
 void main() {
   setUpAll(initializeDateFormatting);
 
@@ -72,6 +99,29 @@ void main() {
     await tester.pump();
 
     expect(find.text('3'), findsOneWidget);
-    expect(find.byIcon(AppIcons.favorite), findsOneWidget);
+    expect(find.byIcon(AppIcons.favoriteFilled), findsWidgets);
+  });
+
+  testWidgets('updates a profile post immediately when liked', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          feedControllerProvider.overrideWith(_EmptyFeedController.new),
+        ],
+        child: const MaterialApp(
+          locale: Locale('vi'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: _ProfilePostHarness(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.byKey(const Key('like-p1')));
+    await tester.pump();
+
+    expect(find.text('3'), findsOneWidget);
+    expect(find.text('Đã thích'), findsOneWidget);
   });
 }

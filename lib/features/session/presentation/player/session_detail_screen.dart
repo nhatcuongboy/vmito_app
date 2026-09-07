@@ -20,6 +20,7 @@ import 'package:vmito_app/features/session/presentation/player/detail/session_de
 import 'package:vmito_app/features/session/presentation/player/detail/session_detail_hero.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_detail_info.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_detail_stats.dart';
+import 'package:vmito_app/features/session/presentation/player/detail/session_host_detail_sheet.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_recommendations.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_reference_video.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -256,10 +257,9 @@ class _BodyState extends State<_Body> {
                             : () => _openZalo(widget.session),
                         onOpenHost: widget.session.hostAccountId == null
                             ? null
-                            : () => context.push(
-                                AppRoutes.publicProfile(
-                                  widget.session.hostAccountId!,
-                                ),
+                            : () => showSessionHostDetailSheet(
+                                context,
+                                session: widget.session,
                               ),
                         onOpenOriginalPost:
                             widget.session.isCrawled &&

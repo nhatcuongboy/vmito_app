@@ -15,6 +15,8 @@ import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
 import 'package:vmito_app/shared/widgets/app_loading_view.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_grabber.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 import 'package:vmito_domain/vmito_domain.dart';
 
 Future<void> showMyJoinRequestsSheet(
@@ -81,6 +83,7 @@ class _MyJoinRequestsSheetState extends ConsumerState<MyJoinRequestsSheet> {
           ),
           child: Column(
             children: [
+              const AppSheetGrabber(),
               _SheetHeader(total: state.total),
               Expanded(
                 child: _RequestsBody(
@@ -144,49 +147,10 @@ class _SheetHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.lg,
-        AppSpacing.md,
-        AppSpacing.sm,
-        AppSpacing.sm,
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.myJoinRequestsTitle,
-                  key: const Key('my-join-requests-title'),
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  l10n.myJoinRequestsDescription(total),
-                  key: const Key('my-join-requests-description'),
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontSize: 16,
-                    color: theme.extension<AppPalette>()!.mutedForeground,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            key: const Key('my-join-requests-close'),
-            tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-            icon: const Icon(AppIcons.close),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
-      ),
+    return AppSheetHeader(
+      title: l10n.myJoinRequestsTitle,
+      subtitle: l10n.myJoinRequestsDescription(total),
+      closeButtonKey: const Key('my-join-requests-close'),
     );
   }
 }

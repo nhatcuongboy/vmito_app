@@ -355,12 +355,7 @@ class _RosterListTile extends StatelessWidget {
       key: ValueKey('host-roster-player-${player.id}'),
       clipBehavior: Clip.antiAlias,
       elevation: 0,
-      color: dark
-          ? scheme.surface
-          : Color.alphaBlend(
-              colors.background.withValues(alpha: .35),
-              const Color(0xFFF8FAFC),
-            ),
+      color: dark ? scheme.surface : Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(AppRadius.lg),
         side: BorderSide(
@@ -381,125 +376,106 @@ class _RosterListTile extends StatelessWidget {
             ),
             Expanded(
               child: Container(
-                color: dark
-                    ? scheme.surfaceContainerLow
-                    : Color.alphaBlend(
-                        colors.border.withValues(alpha: .08),
-                        const Color(0xFFF1F5F9).withValues(alpha: .6),
-                      ),
+                color: dark ? scheme.surfaceContainerLow : Colors.white,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(
-                          AppSpacing.sm,
-                          4,
-                          AppSpacing.xxs,
-                          4,
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              AppSpacing.sm,
+                              0,
+                              AppSpacing.xxs,
+                              0,
+                            ),
+                            child: Row(
+                              // Avatar and text must be direct siblings so
+                              // CrossAxisAlignment.center aligns their true
+                              // vertical centers, whether the name wraps to
+                              // one or two lines.
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
-                                _NumberBadge(
-                                  number: player.playerNumber,
-                                  compact: true,
-                                ),
-                                const SizedBox(height: 4),
                                 _PlayerAvatar(
                                   player: player,
                                   statusColor: colors.dot,
                                   radius: 19,
                                 ),
+                                const SizedBox(width: AppSpacing.sm),
+                                Expanded(
+                                  child: Text(
+                                    key: ValueKey(
+                                      'host-roster-name-${player.id}',
+                                    ),
+                                    player.displayName ??
+                                        l10n.playerName(player),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(
+                                          height: 1.15,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: -.2,
+                                        ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 32,
+                                  height: 32,
+                                  child: _ActionMenu(
+                                    player: player,
+                                    onAction: onAction,
+                                  ),
+                                ),
                               ],
                             ),
-                            const SizedBox(width: AppSpacing.sm),
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.only(top: 22),
-                                child: Text(
-                                  key: ValueKey(
-                                    'host-roster-name-${player.id}',
-                                  ),
-                                  player.displayName ?? l10n.playerName(player),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.titleMedium
-                                      ?.copyWith(
-                                        height: 1.15,
-                                        fontWeight: FontWeight.w700,
-                                        letterSpacing: -.2,
-                                      ),
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 22),
-                              child: SizedBox(
-                                width: 32,
-                                height: 32,
-                                child: _ActionMenu(
-                                  player: player,
-                                  onAction: onAction,
-                                ),
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ),
-                    Divider(
-                      height: 1,
-                      thickness: 1,
-                      color: dark
-                          ? scheme.outlineVariant.withValues(alpha: .2)
-                          : const Color(0xFFF1F5F9),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.sm,
-                        vertical: 4,
-                      ),
-                      child: Wrap(
-                        spacing: 5,
-                        runSpacing: 4,
-                        crossAxisAlignment: WrapCrossAlignment.center,
-                        children: [
-                          _LevelBadge(
-                            key: ValueKey('host-roster-level-${player.id}'),
-                            label: _levelLabel(l10n, player.level),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.sm,
+                            2,
+                            AppSpacing.sm,
+                            8,
                           ),
-                          _GenderBadge(
-                            key: ValueKey('host-roster-gender-${player.id}'),
-                            gender: player.gender,
-                          ),
-                          if (player.isClubMember &&
-                              player.clubName?.isNotEmpty == true)
-                            _ClubBadge(
-                              key: ValueKey('host-roster-club-${player.id}'),
-                              label: player.clubName!,
-                            ),
-                          Text(
-                            l10n.playerMatchesCount(player.matchesPlayed),
-                            style: Theme.of(context).textTheme.labelSmall
-                                ?.copyWith(
-                                  color: dark
-                                      ? const Color(0xFF94A3B8)
-                                      : const Color(0xFF64748B),
-                                  fontWeight: FontWeight.w500,
+                          child: Wrap(
+                            spacing: 5,
+                            runSpacing: 4,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              _NumberBadge(
+                                number: player.playerNumber,
+                                compact: true,
+                              ),
+                              _GenderBadge(
+                                key: ValueKey(
+                                  'host-roster-gender-${player.id}',
                                 ),
+                                gender: player.gender,
+                              ),
+                              _LevelBadge(
+                                key: ValueKey(
+                                  'host-roster-level-${player.id}',
+                                ),
+                                label: _levelLabel(l10n, player.level),
+                              ),
+                              if (player.isClubMember &&
+                                  player.clubName?.isNotEmpty == true)
+                                _ClubBadge(
+                                  key: ValueKey(
+                                    'host-roster-club-${player.id}',
+                                  ),
+                                  label: player.clubName!,
+                                ),
+                            ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ),
-          ],
+              ],
         ),
       ),
     );
@@ -630,25 +606,54 @@ class _ActionMenu extends StatelessWidget {
     itemBuilder: (context) => [
       PopupMenuItem(
         value: _RosterAction.view,
-        child: Text(AppLocalizations.of(context).hostRosterViewPlayer),
+        child: Row(
+          children: [
+            Icon(AppIcons.eye, size: 20),
+            const SizedBox(width: 12),
+            Text(AppLocalizations.of(context).hostRosterViewPlayer),
+          ],
+        ),
       ),
       PopupMenuItem(
         value: _RosterAction.edit,
-        child: Text(AppLocalizations.of(context).hostRosterEditPlayer),
+        child: Row(
+          children: [
+            Icon(AppIcons.edit, size: 20),
+            const SizedBox(width: 12),
+            Text(AppLocalizations.of(context).hostRosterEditPlayer),
+          ],
+        ),
       ),
       PopupMenuItem(
         value: _RosterAction.toggleCheckIn,
         enabled: !player.isOnCourt,
-        child: Text(
-          player.status == PlayerStatus.inactive
-              ? AppLocalizations.of(context).hostRosterContinuePlayer
-              : AppLocalizations.of(context).hostRosterPausePlayer,
+        child: Row(
+          children: [
+            Icon(
+              player.status == PlayerStatus.inactive
+                  ? AppIcons.play
+                  : AppIcons.pause,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              player.status == PlayerStatus.inactive
+                  ? AppLocalizations.of(context).hostRosterContinuePlayer
+                  : AppLocalizations.of(context).hostRosterPausePlayer,
+            ),
+          ],
         ),
       ),
       PopupMenuItem(
         value: _RosterAction.remove,
         enabled: !player.isOnCourt,
-        child: Text(AppLocalizations.of(context).hostRosterDeletePlayer),
+        child: Row(
+          children: [
+            Icon(AppIcons.delete, size: 20),
+            const SizedBox(width: 12),
+            Text(AppLocalizations.of(context).hostRosterDeletePlayer),
+          ],
+        ),
       ),
     ],
   );

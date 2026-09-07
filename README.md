@@ -28,8 +28,29 @@ Google Maps uses native SDK keys, so these two values are configured outside
 
 Enable **Maps SDK for Android** and **Maps SDK for iOS** in Google Cloud. Use
 separate keys restricted to Android package `com.vmito.app` (plus signing
-certificate SHA-1) and iOS bundle id `com.vmito.app`. Address autocomplete is
-served through the Vmito backend, which keeps its Google Places key server-side.
+certificate SHA-1) and iOS bundle id `com.vmito.app`.
+
+Address autocomplete uses the native Places SDK. Enable **Places API (New)**
+and create another pair of platform-restricted keys:
+
+- Android Places key: Android restriction for `com.vmito.app` plus every
+  signing SHA-1 used to distribute that build.
+- iOS Places key: iOS restriction for bundle id `com.vmito.app`.
+
+Copy the matching example to a git-ignored local file and insert only that
+platform's key:
+
+```sh
+cp env/production.android.example.json env/production.android.local.json
+cp env/production.ios.example.json env/production.ios.local.json
+```
+
+Do not put both Places keys in one define file. Each APK/IPA must contain only
+the key restricted to that operating system. The Vmito backend does not own a
+Google Places credential or expose a Places proxy.
+
+The maintained native Places dependency currently requires iOS 16 or later;
+the Runner deployment target is therefore 16.0.
 
 ## Running
 
@@ -39,6 +60,11 @@ Configuration is compile-time via `--dart-define-from-file`. There is no `.env`.
 flutter run --dart-define-from-file=env/dev.json          # iOS sim / device
 flutter run --dart-define-from-file=env/dev.android.json  # Android emulator
 flutter run --dart-define-from-file=env/staging.json      # staging API
+
+flutter build apk --release \
+  --dart-define-from-file=env/production.android.local.json
+flutter build ipa --release \
+  --dart-define-from-file=env/production.ios.local.json
 ```
 
 `env/dev.json` targets the staging API. `env/dev.android.json` targets a

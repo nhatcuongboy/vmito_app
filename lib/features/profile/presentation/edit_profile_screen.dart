@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
-import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
@@ -147,6 +146,7 @@ class _EditProfileFormState extends ConsumerState<_EditProfileForm> {
                       formControlName: ProfileFormControl.level,
                       readOnly: saving,
                       isExpanded: true,
+                      style: Theme.of(context).textTheme.bodyLarge,
                       decoration: InputDecoration(
                         labelText: l10n.profileLevel,
                       ),
@@ -176,17 +176,6 @@ class _EditProfileFormState extends ConsumerState<_EditProfileForm> {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.lg),
-                    OutlinedButton.icon(
-                      key: const ValueKey('profile-change-password-button'),
-                      onPressed: saving
-                          ? null
-                          : () => context.pushNamed(
-                              AppRoutes.nameChangePassword,
-                            ),
-                      icon: const Icon(AppIcons.lock),
-                      label: Text(l10n.profileChangePassword),
-                    ),
-                    const SizedBox(height: AppSpacing.md),
                     FilledButton(
                       key: const ValueKey('profile-save-button'),
                       onPressed: saving ? null : _submit,
@@ -224,6 +213,7 @@ class _EditProfileFormState extends ConsumerState<_EditProfileForm> {
         formControlName: ProfileFormControl.gender,
         readOnly: saving,
         isExpanded: true,
+        style: Theme.of(context).textTheme.bodyLarge,
         decoration: InputDecoration(labelText: l10n.profileGender),
         items: [
           DropdownMenuItem<String>(child: Text(l10n.profileSelectGender)),

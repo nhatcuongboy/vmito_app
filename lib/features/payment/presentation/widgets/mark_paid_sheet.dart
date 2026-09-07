@@ -10,6 +10,8 @@ import 'package:vmito_app/features/payment/application/payment_reminders_control
 import 'package:vmito_app/features/payment/domain/form/reminder_forms.dart';
 import 'package:vmito_app/features/payment/domain/payment.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_action_bar.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 
 class MarkPaidSheet extends ConsumerStatefulWidget {
   const MarkPaidSheet({
@@ -120,18 +122,17 @@ class _MarkPaidSheetState extends ConsumerState<MarkPaidSheet> {
         AppSpacing.md,
         MediaQuery.viewInsetsOf(context).bottom + AppSpacing.md,
       ),
-      child: AppReactiveForm(
+      child: AppReactiveForm<void>(
         formGroup: _form,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(
-                l10n.reminderMarkPaid,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+              AppSheetHeader(
+                title: l10n.reminderMarkPaid,
+                showCloseButton: false,
+                padding: EdgeInsets.zero,
               ),
               const SizedBox(height: AppSpacing.md),
 
@@ -368,30 +369,37 @@ class _MarkPaidSheetState extends ConsumerState<MarkPaidSheet> {
               const SizedBox(height: AppSpacing.lg),
 
               // Action buttons
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: (isBusy || _isUploading)
-                        ? null
-                        : () => Navigator.of(context).pop(),
-                    child: Text(l10n.commonCancel),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  FilledButton(
-                    onPressed: (isBusy || _isUploading) ? null : _submit,
-                    child: isBusy
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : Text(l10n.commonSubmit),
-                  ),
-                ],
+              AppSheetActionBar(
+                padding: const EdgeInsets.only(top: AppSpacing.md),
+                applySafeArea: false,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: (isBusy || _isUploading)
+                            ? null
+                            : () => Navigator.of(context).pop(),
+                        child: Text(l10n.commonCancel),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: (isBusy || _isUploading) ? null : _submit,
+                        child: isBusy
+                            ? const SizedBox(
+                                width: 16,
+                                height: 16,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text(l10n.commonSubmit),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

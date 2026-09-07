@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
+import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -267,6 +269,7 @@ class _LocationRow extends ConsumerWidget {
       venue?.newDistrict,
       venue?.newCity,
     ].any((value) => value?.trim().isNotEmpty ?? false);
+    final venueId = venue?.id;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -280,12 +283,18 @@ class _LocationRow extends ConsumerWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      key: const Key('session-detail-venue-name'),
-                      title,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.primary,
-                        fontWeight: FontWeight.w600,
+                    child: GestureDetector(
+                      key: const Key('session-detail-venue-name-button'),
+                      onTap: venueId == null
+                          ? null
+                          : () => context.push(AppRoutes.venueDetail(venueId)),
+                      child: Text(
+                        key: const Key('session-detail-venue-name'),
+                        title,
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ),

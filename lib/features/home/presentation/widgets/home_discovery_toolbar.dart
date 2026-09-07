@@ -3,6 +3,7 @@ import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/city_selector.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 
 class DiscoverySortOption<T> {
   const DiscoverySortOption({required this.value, required this.label});
@@ -114,14 +115,7 @@ Future<T?> showDiscoverySortSheet<T>(
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        ListTile(
-          title: Text(
-            title,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
+        AppSheetHeader(title: title, showCloseButton: false),
         for (final option in options)
           ListTile(
             key: ValueKey('home-sort-${option.value}'),

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/security/app_lock_controller.dart';
 import 'package:vmito_app/core/security/biometric_authenticator.dart';
 import 'package:vmito_app/core/security/biometric_lock_storage.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/profile/presentation/account_security_screen.dart';
+import 'package:vmito_app/features/profile/presentation/change_password_screen.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 import '../../support/fake_secure_storage.dart';
@@ -45,20 +48,57 @@ Future<ProviderContainer> _pumpScreen(
   container
       .read(appLockControllerProvider.notifier)
       .bootstrap(enabled: false, hasSession: false);
+  final rootNavigatorKey = GlobalKey<NavigatorState>();
+  final router = GoRouter(
+    navigatorKey: rootNavigatorKey,
+    initialLocation: AppRoutes.accountSecurity,
+    routes: [
+      StatefulShellRoute.indexedStack(
+        builder: (_, _, navigationShell) => Scaffold(body: navigationShell),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.settings,
+                builder: (_, _) => const Scaffold(),
+                routes: [
+                  GoRoute(
+                    path: 'account-security',
+                    name: AppRoutes.nameAccountSecurity,
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (_, _) => const AccountSecurityScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'change-password',
+                        name: AppRoutes.nameChangePassword,
+                        parentNavigatorKey: rootNavigatorKey,
+                        builder: (_, _) => const ChangePasswordScreen(),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    ],
+  );
+  addTearDown(router.dispose);
 
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,
-      child: MaterialApp(
+      child: MaterialApp.router(
         locale: const Locale('vi'),
         theme: brightness == Brightness.light ? AppTheme.light : AppTheme.dark,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
+        routerConfig: router,
         builder: (context, child) => MediaQuery(
           data: MediaQuery.of(context).copyWith(textScaler: textScaler),
           child: child!,
         ),
-        home: const AccountSecurityScreen(),
       ),
     ),
   );
@@ -67,6 +107,30 @@ Future<ProviderContainer> _pumpScreen(
 }
 
 void main() {
+  testWidgets('opens the change-password form from account security', (
+    tester,
+  ) async {
+    await _pumpScreen(
+      tester,
+      _FakeAuthenticator(
+        capabilityValue: const BiometricCapability.unavailable(),
+      ),
+    );
+
+    await tester.tap(find.text('Đổi mật khẩu'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byKey(const ValueKey('current-password-field')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('new-password-field')), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('confirm-password-field')),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('shows Face ID label and enables the lock after authentication', (
     tester,
   ) async {

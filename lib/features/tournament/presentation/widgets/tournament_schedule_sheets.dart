@@ -9,6 +9,8 @@ import 'package:vmito_app/features/tournament/domain/form/tournament_schedule_fo
 import 'package:vmito_app/features/tournament/domain/tournament_detail.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_schedule.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_action_bar.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 import 'package:vmito_domain/vmito_domain.dart' as scoring;
 
 enum TournamentMatchAction {
@@ -186,7 +188,7 @@ class _TournamentFilterSheetState extends State<_TournamentFilterSheet> {
         if (registration != null) registrations[registration.id] = registration;
       }
     }
-    return AppReactiveForm(
+    return AppReactiveForm<void>(
       formGroup: form,
       child: Column(
         children: [
@@ -607,7 +609,7 @@ class _TournamentScheduleEditFormState
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return AppReactiveForm(
+    return AppReactiveForm<void>(
       formGroup: form,
       child: Column(
         children: [
@@ -821,7 +823,7 @@ class _TournamentResultFormState extends State<_TournamentResultForm> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final allowManual = widget.category?.pointsEarning != 'match_results';
-    return AppReactiveForm(
+    return AppReactiveForm<void>(
       formGroup: form,
       child: Column(
         children: [
@@ -969,7 +971,7 @@ class _SetEditor extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           for (final (index, control) in array.controls.indexed)
-            AppReactiveForm(
+            AppReactiveForm<void>(
               formGroup: control as FormGroup,
               child: Padding(
                 padding: const EdgeInsets.only(bottom: 10),
@@ -1273,20 +1275,10 @@ class _SheetHeader extends StatelessWidget {
   final VoidCallback? onClose;
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
-    child: Row(
-      children: [
-        Expanded(
-          child: Text(title, style: Theme.of(context).textTheme.titleLarge),
-        ),
-        IconButton(
-          onPressed: onClose,
-          icon: const Icon(Icons.close),
-          tooltip: AppLocalizations.of(context).commonClose,
-        ),
-      ],
-    ),
+  Widget build(BuildContext context) => AppSheetHeader(
+    title: title,
+    closeButtonEnabled: onClose != null,
+    onClose: onClose,
   );
 }
 
@@ -1304,34 +1296,30 @@ class _FormActions extends StatelessWidget {
   final VoidCallback? onSecondary;
 
   @override
-  Widget build(BuildContext context) => SafeArea(
-    top: false,
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          if (secondaryLabel != null) ...[
-            Expanded(
-              child: OutlinedButton(
-                onPressed: submitting ? null : onSecondary,
-                child: Text(secondaryLabel!),
-              ),
-            ),
-            const SizedBox(width: 12),
-          ],
+  Widget build(BuildContext context) => AppSheetActionBar(
+    child: Row(
+      children: [
+        if (secondaryLabel != null) ...[
           Expanded(
-            child: FilledButton(
-              onPressed: submitting ? null : onSubmit,
-              child: submitting
-                  ? const SizedBox.square(
-                      dimension: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(AppLocalizations.of(context).commonSave),
+            child: OutlinedButton(
+              onPressed: submitting ? null : onSecondary,
+              child: Text(secondaryLabel!),
             ),
           ),
+          const SizedBox(width: 12),
         ],
-      ),
+        Expanded(
+          child: FilledButton(
+            onPressed: submitting ? null : onSubmit,
+            child: submitting
+                ? const SizedBox.square(
+                    dimension: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(AppLocalizations.of(context).commonSave),
+          ),
+        ),
+      ],
     ),
   );
 }

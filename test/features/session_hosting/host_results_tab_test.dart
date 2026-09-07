@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/court/application/live_session_controller.dart';
 import 'package:vmito_app/features/court/application/match_history_provider.dart';
 import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
@@ -19,6 +20,7 @@ class _Repository extends Mock implements SessionRepository {}
 class _DraftFake extends Fake implements MatchUpdateDraft {}
 
 Widget _app(Widget child) => MaterialApp(
+  theme: AppTheme.light,
   locale: const Locale('vi'),
   localizationsDelegates: AppLocalizations.localizationsDelegates,
   supportedLocales: AppLocalizations.supportedLocales,

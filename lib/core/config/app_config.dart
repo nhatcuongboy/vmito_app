@@ -68,6 +68,17 @@ abstract final class AppConfig {
     defaultValue: 'https://vmito.com',
   );
 
+  /// Native Google Places SDK key for the platform being built.
+  ///
+  /// Android and iOS builds must use different define files so each artifact
+  /// contains only its own restricted key. Android restricts the key by
+  /// package name + signing SHA-1; iOS restricts it by bundle identifier.
+  static const String googlePlacesApiKey = String.fromEnvironment(
+    'GOOGLE_PLACES_API_KEY',
+  );
+
+  static bool get hasGooglePlaces => googlePlacesApiKey.isNotEmpty;
+
   static const Duration connectTimeout = Duration(seconds: 15);
   static const Duration receiveTimeout = Duration(seconds: 30);
 

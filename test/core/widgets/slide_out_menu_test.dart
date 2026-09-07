@@ -148,7 +148,7 @@ void main() {
     expect(find.text('Tìm sân'), findsOneWidget);
     expect(find.text('Tìm nhóm'), findsOneWidget);
     expect(find.text('Tìm giải'), findsOneWidget);
-    expect(find.text('Bảng xếp hạng'), findsOneWidget);
+    expect(find.text('Bảng xếp hạng'), findsNothing);
     expect(find.text('Bảng tin'), findsNothing);
     expect(find.text('ADMIN'), findsNothing);
     expect(find.text('QUẢN LÝ'), findsNothing);
@@ -212,6 +212,7 @@ void main() {
     await _openDrawer(tester);
 
     expect(find.text('Cá nhân'), findsNothing);
+    expect(find.text('Bảng xếp hạng'), findsNothing);
     expect(find.text('QUẢN LÝ'), findsNothing);
     expect(find.text('ADMIN'), findsNothing);
     expect(find.text('Đăng nhập'), findsOneWidget);

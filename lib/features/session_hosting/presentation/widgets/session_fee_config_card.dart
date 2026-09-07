@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -12,6 +11,7 @@ import 'package:vmito_app/features/payment/domain/form/host_payment_forms.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 import 'package:vmito_app/features/session_hosting/application/host_session_management_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 
 class SessionFeeConfigCard extends ConsumerWidget {
   const SessionFeeConfigCard({required this.sessionId, super.key});
@@ -94,58 +94,30 @@ class _ConfiguredFeeCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              children: [
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: success.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(AppRadius.md),
+            _FeeConfigHeader(
+              title: l10n.hostManageFeeConfig,
+              feeType: config.isSplitEvenly
+                  ? l10n.hostManageSplitEvenly
+                  : l10n.hostManageFixedFee,
+              accentColor: success,
+              editTooltip: l10n.commonEdit,
+              recalculateTooltip: l10n.hostManageRecalculate,
+              onEdit: () => _showFeeSheet(context, sessionId, config),
+              onRecalculate: () async {
+                final updated = await ref
+                    .read(
+                      hostSessionManagementControllerProvider(
+                        sessionId,
+                      ).notifier,
+                    )
+                    .recalculatePayments();
+                if (updated == null || !context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(l10n.hostManageRecalculated(updated)),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.sm),
-                    child: Icon(AppIcons.calculator, color: success, size: 18),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(
-                    l10n.hostManageFeeConfig,
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                ),
-                Chip(
-                  visualDensity: VisualDensity.compact,
-                  label: Text(
-                    config.isSplitEvenly
-                        ? l10n.hostManageSplitEvenly
-                        : l10n.hostManageFixedFee,
-                  ),
-                ),
-                IconButton(
-                  tooltip: l10n.commonEdit,
-                  onPressed: () => _showFeeSheet(context, sessionId, config),
-                  icon: const Icon(AppIcons.edit),
-                ),
-                IconButton(
-                  tooltip: l10n.hostManageRecalculate,
-                  onPressed: () async {
-                    final updated = await ref
-                        .read(
-                          hostSessionManagementControllerProvider(
-                            sessionId,
-                          ).notifier,
-                        )
-                        .recalculatePayments();
-                    if (updated == null || !context.mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(l10n.hostManageRecalculated(updated)),
-                      ),
-                    );
-                  },
-                  icon: const Icon(AppIcons.refresh),
-                ),
-              ],
+                );
+              },
             ),
             if (!config.isSplitEvenly) ...[
               if (config.maleFee != null)
@@ -168,6 +140,114 @@ class _ConfiguredFeeCard extends ConsumerWidget {
       ),
     );
   }
+}
+
+class _FeeConfigHeader extends StatelessWidget {
+  const _FeeConfigHeader({
+    required this.title,
+    required this.feeType,
+    required this.accentColor,
+    required this.editTooltip,
+    required this.recalculateTooltip,
+    required this.onEdit,
+    required this.onRecalculate,
+  });
+
+  final String title;
+  final String feeType;
+  final Color accentColor;
+  final String editTooltip;
+  final String recalculateTooltip;
+  final VoidCallback onEdit;
+  final VoidCallback onRecalculate;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final titleRow = Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.sm),
+              child: Icon(AppIcons.calculator, color: accentColor, size: 18),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(title, style: Theme.of(context).textTheme.titleSmall),
+          ),
+        ],
+      );
+      final feeTypeChip = Chip(
+        visualDensity: VisualDensity.compact,
+        label: Text(feeType, maxLines: 1, overflow: TextOverflow.ellipsis),
+      );
+      final actions = Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            tooltip: editTooltip,
+            onPressed: onEdit,
+            icon: const Icon(AppIcons.edit),
+          ),
+          IconButton(
+            tooltip: recalculateTooltip,
+            onPressed: onRecalculate,
+            icon: const Icon(AppIcons.refresh),
+          ),
+        ],
+      );
+
+      if (constraints.maxWidth < 360) {
+        return Column(
+          key: const Key('fee-config-header-compact'),
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            titleRow,
+            const SizedBox(height: AppSpacing.xs),
+            Row(
+              children: [
+                Expanded(
+                  child: Align(
+                    alignment: AlignmentDirectional.centerStart,
+                    child: feeTypeChip,
+                  ),
+                ),
+                actions,
+              ],
+            ),
+          ],
+        );
+      }
+
+      return Row(
+        key: const Key('fee-config-header-wide'),
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                titleRow,
+                const SizedBox(height: AppSpacing.xs),
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: feeTypeChip,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          actions,
+        ],
+      );
+    },
+  );
 }
 
 class _FeeLine extends StatelessWidget {
@@ -231,7 +311,7 @@ class _FeeConfigSheetState extends ConsumerState<_FeeConfigSheet> {
           AppSpacing.md,
           MediaQuery.viewInsetsOf(context).bottom + AppSpacing.md,
         ),
-        child: AppReactiveForm(
+        child: AppReactiveForm<void>(
           formGroup: _form,
           child: SingleChildScrollView(
             child: Column(

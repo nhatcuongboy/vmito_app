@@ -101,6 +101,7 @@ class RegistrationPlayerCard extends StatelessWidget {
                 child: DropdownButtonFormField<Gender>(
                   initialValue: draft.gender,
                   isExpanded: true,
+                  style: theme.textTheme.bodyLarge,
                   decoration: InputDecoration(
                     labelText: l10n.authSignUpGender,
                     isDense: true,
@@ -122,6 +123,7 @@ class RegistrationPlayerCard extends StatelessWidget {
                 child: DropdownButtonFormField<int>(
                   initialValue: draft.level,
                   isExpanded: true,
+                  style: theme.textTheme.bodyLarge,
                   decoration: InputDecoration(
                     labelText: l10n.registrationLevel,
                     hintText: l10n.registrationLevelHint,

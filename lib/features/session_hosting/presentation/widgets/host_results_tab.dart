@@ -17,6 +17,8 @@ import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/court.dart';
 import 'package:vmito_app/shared/models/match.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_action_bar.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 
 export 'package:vmito_app/features/session/domain/match_result_summary.dart'
     show MatchResultSummary, matchResult;
@@ -637,15 +639,15 @@ class _ResultsFilterSheetState extends State<_ResultsFilterSheet> {
         AppSpacing.md,
         AppSpacing.md,
       ),
-      child: AppReactiveForm(
+      child: AppReactiveForm<void>(
         formGroup: _form,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Bộ lọc kết quả',
-              style: Theme.of(context).textTheme.titleLarge,
+            AppSheetHeader(
+              title: 'Bộ lọc kết quả',
+              padding: EdgeInsets.zero,
             ),
             const SizedBox(height: AppSpacing.md),
             Text('Sân', style: Theme.of(context).textTheme.titleSmall),
@@ -742,24 +744,28 @@ class _ResultsFilterSheetState extends State<_ResultsFilterSheet> {
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
-            Row(
-              children: [
-                Expanded(
-                  child: FilledButton(
-                    key: const Key('host-results-filter-apply'),
-                    onPressed: _apply,
-                    child: const Text('Áp dụng'),
+            AppSheetActionBar(
+              padding: const EdgeInsets.only(top: AppSpacing.md),
+              applySafeArea: false,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: FilledButton(
+                      key: const Key('host-results-filter-apply'),
+                      onPressed: _apply,
+                      child: const Text('Áp dụng'),
+                    ),
                   ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: FilledButton.tonal(
-                    key: const Key('host-results-filter-reset'),
-                    onPressed: _reset,
-                    child: const Text('Xóa lọc'),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: FilledButton.tonal(
+                      key: const Key('host-results-filter-reset'),
+                      onPressed: _reset,
+                      child: const Text('Xóa lọc'),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),

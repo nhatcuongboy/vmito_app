@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/widgets/app_tab_bar.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/payment/application/payment_reminders_controller.dart';
 import 'package:vmito_app/features/payment/domain/payment.dart';
@@ -123,7 +124,7 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen>
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.reminderTitle),
-        bottom: TabBar(
+        bottom: AppTabBar(
           controller: _tabController,
           tabs: [
             Tab(text: l10n.reminderTabToCollect),

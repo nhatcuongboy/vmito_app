@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/theme_mode_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 
 /// An [IconButton] that reflects the active [ThemeMode] and opens the
 /// theme-mode selector sheet on tap.
@@ -55,12 +56,9 @@ class _ThemeModeSelectorSheet extends ConsumerWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 8, 24, 8),
-              child: Text(
-                l10n.themeTitle,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
+            AppSheetHeader(
+              title: l10n.themeTitle,
+              showCloseButton: false,
             ),
             for (final (mode, label, icon) in options)
               ListTile(

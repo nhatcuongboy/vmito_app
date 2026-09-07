@@ -57,8 +57,18 @@ class _Participants extends StatefulWidget {
 }
 
 class _ParticipantsState extends State<_Participants> {
-  static const _maxVisibleSlots = 10;
+  // Matches _PlayerAvatarTile/_EmptySlotTile's fixed width.
+  static const _tileWidth = 56.0;
+  static const _collapsedRows = 2;
   bool _expanded = false;
+
+  /// Number of tiles that fit on one row of the given width, so the
+  /// collapsed view can fill whole rows instead of cutting one off midway.
+  int _tilesPerRow(double maxWidth) {
+    const spacing = AppSpacing.sm;
+    final perRow = ((maxWidth + spacing) / (_tileWidth + spacing)).floor();
+    return perRow < 1 ? 1 : perRow;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,84 +80,99 @@ class _ParticipantsState extends State<_Participants> {
     final availableSlots = capacity > players.length
         ? capacity - players.length
         : 0;
-    final totalSlots = players.length + availableSlots;
-    final hasMore = totalSlots > _maxVisibleSlots;
 
-    final visiblePlayers = _expanded
-        ? players
-        : players.take(_maxVisibleSlots).toList();
-    final visibleEmptySlots = _expanded
-        ? availableSlots
-        : availableSlots.clamp(
-            0,
-            _maxVisibleSlots - visiblePlayers.length,
-          );
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxVisibleSlots =
+            _tilesPerRow(constraints.maxWidth) * _collapsedRows;
+        final totalSlots = players.length + availableSlots;
+        final hasMore = totalSlots > maxVisibleSlots;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
+        final visiblePlayers = _expanded
+            ? players
+            : players.take(maxVisibleSlots).toList();
+        final visibleEmptySlots = _expanded
+            ? availableSlots
+            : availableSlots.clamp(
+                0,
+                maxVisibleSlots - visiblePlayers.length,
+              );
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Icon(AppIcons.clubs, size: 22, color: theme.colorScheme.primary),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: Text(
-                l10n.sessionParticipantsQuestion,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
+            Row(
+              children: [
+                Icon(
+                  AppIcons.clubs,
+                  size: 22,
+                  color: theme.colorScheme.primary,
                 ),
-              ),
-            ),
-            Text(
-              '${players.length}/${capacity > 0 ? capacity : players.length}',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: palette.mutedForeground,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.sm + 4),
-        if (players.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-            child: Text(
-              l10n.sessionNoPlayersYet,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: palette.mutedForeground,
-              ),
-            ),
-          )
-        else ...[
-          Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
-            children: [
-              for (final player in visiblePlayers)
-                _PlayerAvatarTile(player: player),
-              for (var i = 0; i < visibleEmptySlots; i++)
-                _EmptySlotTile(key: ValueKey('empty-slot-$i')),
-            ],
-          ),
-          if (hasMore)
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton(
-                style: TextButton.styleFrom(
-                  visualDensity: VisualDensity.compact,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xs,
-                    vertical: AppSpacing.xs,
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    l10n.sessionParticipantsQuestion,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
-                onPressed: () => setState(() => _expanded = !_expanded),
-                child: Text(
-                  _expanded ? l10n.sessionShowLess : l10n.sessionViewAllPlayers,
+                Text(
+                  '${players.length}/${capacity > 0 ? capacity : players.length}',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: palette.mutedForeground,
+                  ),
                 ),
-              ),
+              ],
             ),
-        ],
-      ],
+            const SizedBox(height: AppSpacing.sm + 4),
+            if (players.isEmpty)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: AppSpacing.xs,
+                ),
+                child: Text(
+                  l10n.sessionNoPlayersYet,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: palette.mutedForeground,
+                  ),
+                ),
+              )
+            else ...[
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: [
+                  for (final player in visiblePlayers)
+                    _PlayerAvatarTile(player: player),
+                  for (var i = 0; i < visibleEmptySlots; i++)
+                    _EmptySlotTile(key: ValueKey('empty-slot-$i')),
+                ],
+              ),
+              if (hasMore)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      visualDensity: VisualDensity.compact,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.xs,
+                        vertical: AppSpacing.xs,
+                      ),
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    onPressed: () => setState(() => _expanded = !_expanded),
+                    child: Text(
+                      _expanded
+                          ? l10n.sessionShowLess
+                          : l10n.sessionViewAllPlayers,
+                    ),
+                  ),
+                ),
+            ],
+          ],
+        );
+      },
     );
   }
 }
@@ -487,7 +512,7 @@ class _ManagedClubFact extends ConsumerWidget {
       loading: () => _Fact(
         icon: AppIcons.building,
         label: '',
-        detail: Text('...', style: theme.textTheme.bodySmall),
+        detail: Text('...', style: theme.textTheme.bodyMedium),
         hideLabel: true,
       ),
       error: (_, _) => const SizedBox.shrink(),
@@ -498,7 +523,7 @@ class _ManagedClubFact extends ConsumerWidget {
           club.name,
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.bodySmall?.copyWith(
+          style: theme.textTheme.bodyMedium?.copyWith(
             color: theme.colorScheme.primary,
             fontWeight: FontWeight.w600,
           ),

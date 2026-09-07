@@ -7,6 +7,7 @@ import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
+import 'package:vmito_app/core/widgets/app_tab_bar.dart';
 import 'package:vmito_app/features/feedback/application/feedback_controller.dart';
 import 'package:vmito_app/features/feedback/data/feedback_image_picker.dart';
 import 'package:vmito_app/features/feedback/domain/feedback.dart';
@@ -99,7 +100,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.feedbackPageTitle),
-          bottom: TabBar(
+          bottom: AppTabBar(
             tabs: [
               Tab(
                 text: l10n.feedbackContactTab,

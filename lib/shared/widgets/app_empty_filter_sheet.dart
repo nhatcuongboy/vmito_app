@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 
 /// Temporary empty filter bottom sheet for tabs without active filters.
 class AppEmptyFilterSheet extends StatelessWidget {
@@ -23,34 +24,44 @@ class AppEmptyFilterSheet extends StatelessWidget {
     return SafeArea(
       child: Padding(
         padding: EdgeInsets.fromLTRB(
-          AppSpacing.md,
-          AppSpacing.sm,
-          AppSpacing.md,
-          AppSpacing.md + MediaQuery.viewInsetsOf(context).bottom,
+          0,
+          0,
+          0,
+          MediaQuery.viewInsetsOf(context).bottom,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
+            AppSheetHeader(title: title),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.md,
               ),
-            ),
-            const SizedBox(height: AppSpacing.xl),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xl),
-                child: Text(
-                  'Chưa có bộ lọc',
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppSpacing.xl,
+                      ),
+                      child: Text(
+                        'Chưa có bộ lọc',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: AppSpacing.xl),
+                ],
               ),
             ),
-            const SizedBox(height: AppSpacing.xl),
           ],
         ),
       ),

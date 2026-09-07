@@ -11,7 +11,6 @@ import 'package:vmito_app/features/auth/application/registration_controller.dart
 import 'package:vmito_app/features/auth/presentation/widgets/auth_status_panel.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
-import 'package:vmito_app/shared/widgets/app_required_label.dart';
 
 abstract final class SignUpFormControl {
   static const name = 'name';
@@ -208,6 +207,16 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                     },
                   ),
                   const SizedBox(height: AppSpacing.md),
+                  Semantics(
+                    header: true,
+                    child: Text(
+                      l10n.authSignUpOptionalDetails,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: palette.mutedForeground,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
                   LayoutBuilder(
                     builder: (context, constraints) {
                       final stacked = constraints.maxWidth < 360;
@@ -222,10 +231,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         maxLength: 10,
                         readOnly: state.isLoading,
                         decoration: InputDecoration(
-                          label: AppOptionalLabel(
-                            l10n.authSignUpPhone,
-                            optionalText: l10n.formOptional,
-                          ),
+                          labelText: l10n.authSignUpPhone,
                           hintText: l10n.authSignUpPhonePlaceholder,
                           counterText: '',
                         ),
@@ -239,10 +245,7 @@ class _SignUpScreenState extends ConsumerState<SignUpScreen> {
                         formControlName: SignUpFormControl.gender,
                         readOnly: state.isLoading,
                         decoration: InputDecoration(
-                          label: AppOptionalLabel(
-                            l10n.authSignUpGender,
-                            optionalText: l10n.formOptional,
-                          ),
+                          labelText: l10n.authSignUpGender,
                         ),
                         items: [
                           DropdownMenuItem(

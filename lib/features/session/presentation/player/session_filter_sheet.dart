@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/location/device_location_service.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
@@ -13,6 +12,9 @@ import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/session/domain/browse_session_filters.dart';
 import 'package:vmito_app/features/session/domain/form/browse_session_filter_form.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_action_bar.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 
 class SessionFilterSheet extends ConsumerStatefulWidget {
   const SessionFilterSheet({required this.initial, super.key});
@@ -175,36 +177,15 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
     return SafeArea(
       child: SizedBox(
         height: MediaQuery.sizeOf(context).height * .9,
-        child: AppReactiveForm(
+        child: AppReactiveForm<void>(
           formGroup: _form,
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.md,
-                  AppSpacing.sm,
-                  AppSpacing.xs,
-                  AppSpacing.sm,
-                ),
-                child: Row(
-                  children: [
-                    const Icon(AppIcons.filter),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Text(
-                        l10n.sessionFiltersTitle,
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                    ),
-                    IconButton(
-                      key: const Key('session-filter-close'),
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(AppIcons.close),
-                    ),
-                  ],
-                ),
+              AppSheetHeader(
+                title: l10n.sessionFiltersTitle,
+                closeButtonKey: const Key('session-filter-close'),
+                onClose: () => Navigator.of(context).pop(),
               ),
-              const Divider(height: 1),
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.all(AppSpacing.md),
@@ -471,26 +452,24 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                   ),
                 ),
               ),
-              const Divider(height: 1),
-              Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
+              AppSheetActionBar(
                 child: Row(
                   children: [
-                    Expanded(
-                      child: FilledButton.icon(
-                        key: const Key('session-filter-apply'),
-                        onPressed: _apply,
-                        icon: const Icon(AppIcons.check),
-                        label: Text(l10n.sessionFiltersSearch),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: FilledButton.tonalIcon(
                         key: const Key('session-filter-reset'),
                         onPressed: _reset,
                         icon: const Icon(AppIcons.close),
                         label: Text(l10n.sessionFiltersReset),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: FilledButton.icon(
+                        key: const Key('session-filter-apply'),
+                        onPressed: _apply,
+                        icon: const Icon(AppIcons.check),
+                        label: Text(l10n.sessionFiltersSearch),
                       ),
                     ),
                   ],

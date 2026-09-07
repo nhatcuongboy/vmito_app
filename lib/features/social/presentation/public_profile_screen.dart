@@ -813,6 +813,10 @@ class _PostsTabState extends ConsumerState<_PostsTab> {
               }
               return SocialPostCard(
                 post: _posts[index],
+                onPostChanged: (updated) {
+                  if (!mounted) return;
+                  setState(() => _posts[index] = updated);
+                },
                 onOpen: () =>
                     context.push(AppRoutes.socialPost(_posts[index].id)),
               );

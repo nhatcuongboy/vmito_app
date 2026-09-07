@@ -17,6 +17,8 @@ import 'package:vmito_app/features/payment/domain/form/transaction_forms.dart';
 import 'package:vmito_app/features/payment/domain/payment.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_lightbox.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_grabber.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 
 class PlayerPaymentDetailSheet extends ConsumerWidget {
   const PlayerPaymentDetailSheet({
@@ -46,40 +48,11 @@ class PlayerPaymentDetailSheet extends ConsumerWidget {
         top: false,
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                AppSpacing.sm,
-                AppSpacing.sm,
-                AppSpacing.sm,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          summary.userName,
-                          style: Theme.of(context).textTheme.titleLarge,
-                        ),
-                        Text(
-                          '${l10n.transactionTotal}: '
-                          '${Money.vnd(summary.totalAmount, locale: locale)}',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: MaterialLocalizations.of(
-                      context,
-                    ).closeButtonTooltip,
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(AppIcons.close),
-                  ),
-                ],
-              ),
+            const AppSheetGrabber(),
+            AppSheetHeader(
+              title: summary.userName,
+              subtitle: '${l10n.transactionTotal}: '
+                  '${Money.vnd(summary.totalAmount, locale: locale)}',
             ),
             Expanded(
               child: payments.when(
@@ -471,7 +444,7 @@ class _PaymentReviewSheetState extends ConsumerState<PaymentReviewSheet> {
           AppSpacing.md,
           MediaQuery.viewInsetsOf(context).bottom + AppSpacing.md,
         ),
-        child: AppReactiveForm(
+        child: AppReactiveForm<void>(
           formGroup: _form,
           child: SingleChildScrollView(
             child: Column(

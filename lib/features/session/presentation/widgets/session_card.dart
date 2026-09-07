@@ -343,9 +343,9 @@ class _SlotsBadge extends StatelessWidget {
     if (session.status == SessionStatus.finished) {
       return Container(
         key: const Key('session-finished-badge'),
-        padding: EdgeInsets.symmetric(
-          horizontal: compact ? 5 : 6,
-          vertical: compact ? 1 : 2,
+        padding: const EdgeInsets.symmetric(
+          horizontal: 6,
+          vertical: 2,
         ),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -356,15 +356,10 @@ class _SlotsBadge extends StatelessWidget {
         ),
         child: Text(
           l10n.mySessionsEnded,
-          style:
-              (compact
-                      ? theme.textTheme.labelSmall
-                      : theme.textTheme.labelMedium)
-                  ?.copyWith(
-                    fontSize: compact ? 10 : null,
-                    color: const Color(0xFF1E293B),
-                    fontWeight: compact ? FontWeight.w600 : FontWeight.w700,
-                  ),
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: const Color(0xFF1E293B),
+            fontWeight: FontWeight.w700,
+          ),
         ),
       );
     }
@@ -380,9 +375,9 @@ class _SlotsBadge extends StatelessWidget {
     final color = closed || full ? palette.mutedForeground : palette.success;
     return Container(
       key: const Key('session-slots-badge'),
-      padding: EdgeInsets.symmetric(
-        horizontal: compact ? 5 : 6,
-        vertical: compact ? 1 : 2,
+      padding: const EdgeInsets.symmetric(
+        horizontal: 6,
+        vertical: 2,
       ),
       decoration: BoxDecoration(
         color: color,
@@ -393,13 +388,10 @@ class _SlotsBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style:
-            (compact ? theme.textTheme.labelSmall : theme.textTheme.labelMedium)
-                ?.copyWith(
-                  fontSize: compact ? 10 : null,
-                  color: Colors.white,
-                  fontWeight: compact ? FontWeight.w600 : FontWeight.w700,
-                ),
+        style: theme.textTheme.labelMedium?.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }

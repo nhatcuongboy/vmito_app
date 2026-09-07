@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:vmito_app/core/location/google_places_attribution.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/logger.dart';
@@ -195,6 +196,7 @@ class _TournamentLocationPickerSheetState
                   ],
                 ),
               ),
+              if (_suggestions.isNotEmpty) const GooglePlacesAttribution(),
             ],
           ),
         ),

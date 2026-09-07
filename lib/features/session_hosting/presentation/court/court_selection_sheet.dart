@@ -11,6 +11,9 @@ import 'package:vmito_app/features/session_hosting/presentation/court/court_sele
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/court.dart';
 import 'package:vmito_app/shared/models/match.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_action_bar.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_grabber.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 
 /// Opens the assign sheet and resolves to the seats the host confirmed.
 ///
@@ -55,8 +58,6 @@ class CourtSelectionSheet extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final palette = theme.extension<AppPalette>()!;
     final l10n = AppLocalizations.of(context);
     final state = ref.watch(courtSelectionControllerProvider(selectionKey));
     final controller = ref.read(
@@ -74,35 +75,12 @@ class CourtSelectionSheet extends ConsumerWidget {
         length: 2,
         child: Column(
           children: [
-            const _Grabber(),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                ).copyWith(bottom: AppSpacing.sm),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      selectionKey.preSelect
-                          ? l10n.courtPreSelectNext
-                          : l10n.courtSelectionTitle(court.courtNumber),
-                      textAlign: TextAlign.start,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    Text(
-                      l10n.courtSelectionDescription,
-                      textAlign: TextAlign.start,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: palette.mutedForeground,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+            const AppSheetGrabber(),
+            AppSheetHeader(
+              title: selectionKey.preSelect
+                  ? l10n.courtPreSelectNext
+                  : l10n.courtSelectionTitle(court.courtNumber),
+              subtitle: l10n.courtSelectionDescription,
             ),
             _MatchTypeToggle(
               matchType: state.matchType,
@@ -211,67 +189,40 @@ class _Footer extends StatelessWidget {
     final palette = theme.extension<AppPalette>()!;
     final l10n = AppLocalizations.of(context);
     final remaining = state.requiredCount - state.selectedIds.length;
-    final content = Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        // Say what is missing rather than leaving a dead button.
-        if (state.mode == CourtSelectionMode.manual && remaining > 0)
-          Padding(
-            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-            child: Text(
-              l10n.courtSelectRequiredPlayers(state.requiredCount),
-              style: theme.textTheme.labelSmall?.copyWith(
-                color: palette.mutedForeground,
+    return AppSheetActionBar(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Say what is missing rather than leaving a dead button.
+          if (state.mode == CourtSelectionMode.manual && remaining > 0)
+            Padding(
+              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+              child: Text(
+                l10n.courtSelectRequiredPlayers(state.requiredCount),
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: palette.mutedForeground,
+                ),
               ),
             ),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: onCancel,
+                  child: Text(l10n.courtCancelSelection),
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: FilledButton(
+                  key: const ValueKey('confirm-player-selection'),
+                  onPressed: state.isComplete ? onConfirm : null,
+                  child: Text(l10n.courtConfirmMatch),
+                ),
+              ),
+            ],
           ),
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: onCancel,
-                child: Text(l10n.courtCancelSelection),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: FilledButton(
-                key: const ValueKey('confirm-player-selection'),
-                onPressed: state.isComplete ? onConfirm : null,
-                child: Text(l10n.courtConfirmMatch),
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-    final keyboardIsOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
-
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        border: Border(top: BorderSide(color: palette.border)),
-      ),
-      child: keyboardIsOpen ? content : SafeArea(top: false, child: content),
-    );
-  }
-}
-
-class _Grabber extends StatelessWidget {
-  const _Grabber();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-      child: Container(
-        width: 36,
-        height: 4,
-        decoration: BoxDecoration(
-          color: Theme.of(context).extension<AppPalette>()!.border,
-          borderRadius: BorderRadius.circular(AppRadius.pill),
-        ),
+        ],
       ),
     );
   }
