@@ -232,6 +232,11 @@ void main() {
     await tester.tap(find.byKey(const Key('host-roster-add')));
     await tester.pumpAndSettle();
 
+    final sheet = tester.getRect(find.byType(BottomSheet));
+    final header = tester.getRect(
+      find.byKey(const Key('host-add-players-header')),
+    );
+    expect(header.top - sheet.top, lessThanOrEqualTo(8));
     expect(find.text('Thêm khách'), findsNothing);
     await tester.scrollUntilVisible(
       find.byKey(const Key('host-add-player-row')),

@@ -50,8 +50,7 @@ class LevelBadgePicker extends StatelessWidget {
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 4,
             crossAxisSpacing: 6,
-            mainAxisSpacing: 2,
-            mainAxisExtent: AppSizes.minTapTarget,
+            mainAxisExtent: 40,
           ),
           itemBuilder: (context, index) {
             final definition = levelDefinitions[index];

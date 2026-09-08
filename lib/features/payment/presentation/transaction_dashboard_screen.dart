@@ -783,7 +783,10 @@ class _BySessionTabState extends State<_BySessionTab> {
                         for (final sort in SessionFinanceSort.values)
                           DropdownMenuItem(
                             value: sort,
-                            child: Text(_sessionSortLabel(l10n, sort)),
+                            child: Text(
+                              _sessionSortLabel(l10n, sort),
+                              style: const TextStyle(fontWeight: FontWeight.normal),
+                            ),
                           ),
                       ],
                     ),
@@ -987,15 +990,24 @@ class _PlayerFilters extends StatelessWidget {
             items: [
               DropdownMenuItem(
                 value: PlayerPaymentStatusFilter.all,
-                child: Text(l10n.transactionFilterAll),
+                child: Text(
+                  l10n.transactionFilterAll,
+                  style: const TextStyle(fontWeight: FontWeight.normal),
+                ),
               ),
               DropdownMenuItem(
                 value: PlayerPaymentStatusFilter.pending,
-                child: Text(l10n.transactionFilterPending),
+                child: Text(
+                  l10n.transactionFilterPending,
+                  style: const TextStyle(fontWeight: FontWeight.normal),
+                ),
               ),
               DropdownMenuItem(
                 value: PlayerPaymentStatusFilter.paid,
-                child: Text(l10n.transactionFilterPaid),
+                child: Text(
+                  l10n.transactionFilterPaid,
+                  style: const TextStyle(fontWeight: FontWeight.normal),
+                ),
               ),
             ],
           ),
@@ -1006,19 +1018,31 @@ class _PlayerFilters extends StatelessWidget {
             items: [
               DropdownMenuItem(
                 value: PlayerFinanceSort.totalAmount,
-                child: Text(l10n.transactionSortTotal),
+                child: Text(
+                  l10n.transactionSortTotal,
+                  style: const TextStyle(fontWeight: FontWeight.normal),
+                ),
               ),
               DropdownMenuItem(
                 value: PlayerFinanceSort.pendingAmount,
-                child: Text(l10n.transactionSortOutstanding),
+                child: Text(
+                  l10n.transactionSortOutstanding,
+                  style: const TextStyle(fontWeight: FontWeight.normal),
+                ),
               ),
               DropdownMenuItem(
                 value: PlayerFinanceSort.name,
-                child: Text(l10n.transactionSortName),
+                child: Text(
+                  l10n.transactionSortName,
+                  style: const TextStyle(fontWeight: FontWeight.normal),
+                ),
               ),
               DropdownMenuItem(
                 value: PlayerFinanceSort.sessions,
-                child: Text(l10n.transactionSortSessions),
+                child: Text(
+                  l10n.transactionSortSessions,
+                  style: const TextStyle(fontWeight: FontWeight.normal),
+                ),
               ),
             ],
           ),

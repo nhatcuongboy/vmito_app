@@ -11,6 +11,7 @@ import 'package:vmito_app/features/tournament/domain/tournament_schedule.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_sheet_action_bar.dart';
 import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
+import 'package:vmito_app/shared/widgets/app_time_picker.dart';
 import 'package:vmito_domain/vmito_domain.dart' as scoring;
 
 enum TournamentMatchAction {
@@ -684,6 +685,7 @@ class _TournamentScheduleEditFormState
                           value: value,
                           child: Text(
                             '$value ${l10n.tournamentScheduleMinutes}',
+                            style: const TextStyle(fontWeight: FontWeight.normal),
                           ),
                         ),
                     ],
@@ -699,13 +701,17 @@ class _TournamentScheduleEditFormState
                     items: [
                       DropdownMenuItem(
                         value: '',
-                        child: Text(l10n.tournamentScheduleUnscheduled),
+                        child: Text(
+                          l10n.tournamentScheduleUnscheduled,
+                          style: const TextStyle(fontWeight: FontWeight.normal),
+                        ),
                       ),
                       for (final court in widget.courts)
                         DropdownMenuItem(
                           value: court.id,
                           child: Text(
                             court.label(l10n.tournamentScheduleCourt),
+                            style: const TextStyle(fontWeight: FontWeight.normal),
                           ),
                         ),
                     ],
@@ -721,12 +727,18 @@ class _TournamentScheduleEditFormState
                     items: [
                       DropdownMenuItem(
                         value: '',
-                        child: Text(l10n.tournamentScheduleTbd),
+                        child: Text(
+                          l10n.tournamentScheduleTbd,
+                          style: const TextStyle(fontWeight: FontWeight.normal),
+                        ),
                       ),
                       for (final umpire in widget.umpires)
                         DropdownMenuItem(
                           value: umpire.id,
-                          child: Text(umpire.name),
+                          child: Text(
+                            umpire.name,
+                            style: const TextStyle(fontWeight: FontWeight.normal),
+                          ),
                         ),
                     ],
                   ),
@@ -1059,11 +1071,17 @@ class _ForfeitEditor extends StatelessWidget {
       items: [
         DropdownMenuItem(
           value: 1,
-          child: Text(match.side(1)?.teamLabel ?? l10n.tournamentScheduleTbd),
+          child: Text(
+            match.side(1)?.teamLabel ?? l10n.tournamentScheduleTbd,
+            style: const TextStyle(fontWeight: FontWeight.normal),
+          ),
         ),
         DropdownMenuItem(
           value: 2,
-          child: Text(match.side(2)?.teamLabel ?? l10n.tournamentScheduleTbd),
+          child: Text(
+            match.side(2)?.teamLabel ?? l10n.tournamentScheduleTbd,
+            style: const TextStyle(fontWeight: FontWeight.normal),
+          ),
         ),
       ],
       onChanged: (_) => form.updateValueAndValidity(),
@@ -1237,7 +1255,7 @@ class _ReactiveTimeButton extends StatelessWidget {
         builder: (context, control, _) => OutlinedButton.icon(
           onPressed: () async {
             final value = control.value;
-            final selected = await showTimePicker(
+            final selected = await showAppTimePicker(
               context: context,
               initialTime: value == null
                   ? TimeOfDay.now()

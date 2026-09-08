@@ -18,6 +18,7 @@ import 'package:vmito_app/features/social/domain/club.dart';
 import 'package:vmito_app/features/social/presentation/club_schedule_formatter.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_empty_filter_sheet.dart';
+import 'package:vmito_app/shared/widgets/app_paginated_list_view.dart';
 import 'package:vmito_app/shared/widgets/discovery_entity_map_view.dart';
 import 'package:vmito_app/shared/widgets/discovery_map_toggle.dart';
 
@@ -148,60 +149,48 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
                       : Center(
                           child: ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 720),
-                            child: ListView.separated(
-                              controller: _scroll,
-                              padding: const EdgeInsets.all(
-                                AppSpacing.screenPadding,
-                              ),
-                              itemCount: state.clubs.length + 1,
-                              separatorBuilder: (_, _) =>
-                                  const SizedBox(height: AppSpacing.md),
-                              itemBuilder: (context, index) {
-                                if (index == state.clubs.length) {
-                                  if (state.isLoading && state.clubs.isEmpty) {
-                                    return const Padding(
-                                      padding: EdgeInsets.all(32),
-                                      child: Center(
-                                        child: CircularProgressIndicator(),
-                                      ),
-                                    );
-                                  }
-                                  if (state.error != null &&
-                                      state.clubs.isEmpty) {
-                                    return AppErrorView(
-                                      error: state.error!,
-                                      onRetry: () => ref
-                                          .read(
-                                            clubsControllerProvider.notifier,
-                                          )
-                                          .load(search: state.search),
-                                    );
-                                  }
-                                  if (state.clubs.isEmpty) {
-                                    return const Padding(
-                                      padding: EdgeInsets.all(32),
-                                      child: Center(
-                                        child: Text(
-                                          'Không tìm thấy câu lạc bộ.',
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                  return state.isLoading &&
-                                          state.clubs.isNotEmpty
-                                      ? const Padding(
-                                          padding: EdgeInsets.all(16),
-                                          child: Center(
-                                            child: CircularProgressIndicator(),
-                                          ),
+                            child: switch (state) {
+                              _ when state.isLoading && state.clubs.isEmpty =>
+                                const _ClubListStatus(
+                                  child: CircularProgressIndicator(),
+                                ),
+                              _
+                                  when state.error != null &&
+                                      state.clubs.isEmpty =>
+                                _ClubListStatus(
+                                  child: AppErrorView(
+                                    error: state.error!,
+                                    onRetry: () => ref
+                                        .read(
+                                          clubsControllerProvider.notifier,
                                         )
-                                      : const SizedBox.shrink();
-                                }
-                                return _ClubBrowseCard(
-                                  club: state.clubs[index],
-                                );
-                              },
-                            ),
+                                        .load(search: state.search),
+                                  ),
+                                ),
+                              _ when state.clubs.isEmpty =>
+                                const _ClubListStatus(
+                                  child: Text(
+                                    'Không tìm thấy câu lạc bộ.',
+                                  ),
+                                ),
+                              _ => AppPaginatedListView.separated(
+                                controller: _scroll,
+                                padding: const EdgeInsets.all(
+                                  AppSpacing.screenPadding,
+                                ),
+                                itemCount: state.clubs.length,
+                                hasMore: state.hasMore,
+                                isLoading: state.isLoading,
+                                isLoadingMore:
+                                    state.isLoading && state.page > 0,
+                                separatorBuilder: (_, _) =>
+                                    const SizedBox(height: AppSpacing.md),
+                                itemBuilder: (context, index) =>
+                                    _ClubBrowseCard(
+                                      club: state.clubs[index],
+                                    ),
+                              ),
+                            },
                           ),
                         ),
                 ),
@@ -289,6 +278,19 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
         },
       )
       .toList(growable: false);
+}
+
+class _ClubListStatus extends StatelessWidget {
+  const _ClubListStatus({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => ListView(
+    physics: const AlwaysScrollableScrollPhysics(),
+    padding: const EdgeInsets.all(AppSpacing.xl),
+    children: [Center(child: child)],
+  );
 }
 
 class _ClubBrowseCard extends StatelessWidget {

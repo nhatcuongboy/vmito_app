@@ -48,7 +48,6 @@ class _MatchResultSheetState extends State<MatchResultSheet> {
   final _pair1Score = TextEditingController();
   final _pair2Score = TextEditingController();
   final _notes = TextEditingController();
-  final _shuttlecocks = TextEditingController();
 
   /// 1, 2, or null. Set from the scores as they are typed, and overridden by
   /// tapping a team — a host who enters no score can still name a winner.
@@ -67,7 +66,6 @@ class _MatchResultSheetState extends State<MatchResultSheet> {
     _pair1Score.dispose();
     _pair2Score.dispose();
     _notes.dispose();
-    _shuttlecocks.dispose();
     super.dispose();
   }
 
@@ -119,7 +117,9 @@ class _MatchResultSheetState extends State<MatchResultSheet> {
 
     return DraggableScrollableSheet(
       expand: false,
-      initialChildSize: 0.85,
+      initialChildSize: 0.68,
+      minChildSize: 0.55,
+      maxChildSize: 0.92,
       builder: (context, scrollController) => SafeArea(
         child: Column(
           children: [
@@ -131,92 +131,96 @@ class _MatchResultSheetState extends State<MatchResultSheet> {
             Expanded(
               child: ListView(
                 controller: scrollController,
-                padding: const EdgeInsets.all(AppSpacing.md),
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
+                padding: const EdgeInsets.fromLTRB(
+                  AppSpacing.md,
+                  AppSpacing.xs,
+                  AppSpacing.md,
+                  AppSpacing.md,
+                ),
                 children: [
                   Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: MatchResultTeamCard(
-                    key: const ValueKey('match-result-pair-1'),
-                    label: l10n.courtPair1,
-                    players: pair1,
-                    controller: _pair1Score,
-                    isWinner: !_isDraw && _winningPair == 1,
-                    onTap: () => _pickWinner(1),
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: MatchResultTeamCard(
+                          key: const ValueKey('match-result-pair-1'),
+                          label: l10n.courtPair1,
+                          players: pair1,
+                          controller: _pair1Score,
+                          isWinner: !_isDraw && _winningPair == 1,
+                          onTap: () => _pickWinner(1),
+                        ),
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: MatchResultTeamCard(
+                          key: const ValueKey('match-result-pair-2'),
+                          label: l10n.courtPair2,
+                          players: pair2,
+                          controller: _pair2Score,
+                          isWinner: !_isDraw && _winningPair == 2,
+                          onTap: () => _pickWinner(2),
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: MatchResultTeamCard(
-                    key: const ValueKey('match-result-pair-2'),
-                    label: l10n.courtPair2,
-                    players: pair2,
-                    controller: _pair2Score,
-                    isWinner: !_isDraw && _winningPair == 2,
-                    onTap: () => _pickWinner(2),
+                  const SizedBox(height: AppSpacing.sm),
+                  Align(
+                    child: ChoiceChip(
+                      key: const ValueKey('match-result-draw'),
+                      label: Text(l10n.matchResultIsDraw),
+                      selected: _isDraw,
+                      showCheckmark: true,
+                      onSelected: (value) => setState(() {
+                        _isDraw = value;
+                        // A draw has no winner; keeping one would send both.
+                        if (value) _winningPair = null;
+                      }),
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            SwitchListTile(
-              key: const ValueKey('match-result-draw'),
-              contentPadding: EdgeInsets.zero,
-              title: Text(l10n.matchResultIsDraw),
-              value: _isDraw,
-              onChanged: (value) => setState(() {
-                _isDraw = value;
-                // A draw has no winner; keeping one would send both.
-                if (value) _winningPair = null;
-              }),
-            ),
-            // Ẩn field số lượng cầu
-            // TextField(
-            //   key: const ValueKey('match-result-shuttlecocks'),
-            //   controller: _shuttlecocks,
-            //   keyboardType: const TextInputType.numberWithOptions(
-            //     decimal: true,
-            //   ),
-            //   decoration: InputDecoration(
-            //     isDense: true,
-            //     labelText: l10n.matchResultShuttlecockCount,
-            //     hintText: l10n.matchResultShuttlecockPlaceholder,
-            //     border: const OutlineInputBorder(),
-            //   ),
-            // ),
-            // const SizedBox(height: AppSpacing.sm),
-            TextField(
-              key: const ValueKey('match-result-notes'),
-              controller: _notes,
-              minLines: 2,
-              maxLines: 4,
-              decoration: InputDecoration(
-                labelText: l10n.matchResultNotes,
-                hintText: l10n.matchResultNotesPlaceholder,
-                border: const OutlineInputBorder(),
-              ),
-            ),
+                  const SizedBox(height: AppSpacing.sm),
+                  TextField(
+                    key: const ValueKey('match-result-notes'),
+                    controller: _notes,
+                    maxLines: 3,
+                    textInputAction: TextInputAction.done,
+                    decoration: InputDecoration(
+                      isDense: true,
+                      labelText: l10n.matchResultNotes,
+                      hintText: l10n.matchResultNotesPlaceholder,
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
                 ],
               ),
             ),
             AppSheetActionBar(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.sm,
+                AppSpacing.md,
+                AppSpacing.sm,
+              ),
+              child: Row(
                 children: [
-                  FilledButton(
-                    key: const ValueKey('submit-match-result'),
-                    onPressed: () => Navigator.pop(context, _draft(pair1, pair2)),
-                    child: Text(l10n.matchResultSubmit),
+                  Expanded(
+                    child: TextButton(
+                      key: const ValueKey('skip-match-result'),
+                      onPressed: () =>
+                          Navigator.pop(context, const MatchResultDraft()),
+                      child: Text(l10n.matchResultSkip),
+                    ),
                   ),
-                  const SizedBox(height: AppSpacing.xs),
-                  // Ending without a result is a legitimate choice, not a
-                  // mistake: most sessions never score their matches.
-                  TextButton(
-                    key: const ValueKey('skip-match-result'),
-                    onPressed: () =>
-                        Navigator.pop(context, const MatchResultDraft()),
-                    child: Text(l10n.matchResultSkip),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: FilledButton(
+                      key: const ValueKey('submit-match-result'),
+                      onPressed: () =>
+                          Navigator.pop(context, _draft(pair1, pair2)),
+                      child: Text(l10n.matchResultSubmit),
+                    ),
                   ),
                 ],
               ),
@@ -245,6 +249,5 @@ class _MatchResultSheetState extends State<MatchResultSheet> {
     winningPair: _winningPair,
     isDraw: _isDraw,
     notes: _notes.text,
-    shuttlecockCount: double.tryParse(_shuttlecocks.text.trim()),
   );
 }

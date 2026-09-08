@@ -50,7 +50,7 @@
   "authSignUpPhonePlaceholder": "手机号码",
   "authSignUpPhoneInvalid": "手机号码必须正好为 10 位数字",
   "authSignUpGender": "性别",
-  "authSignUpOptionalDetails": "补充信息（选填）",
+  "authSignUpAdditionalDetails": "补充信息",
   "authSignUpMale": "男",
   "authSignUpFemale": "女",
   "authSignUpPassword": "密码",
@@ -348,6 +348,7 @@
   "homeDiscoveryVenues": "找场馆",
   "homeDiscoveryClubs": "找群组",
   "homeDiscoveryTournaments": "找赛事",
+  "commonEndOfResults": "您已查看所有结果。",
   "homeDiscoverySortBy": "排序方式",
   "homeDiscoverySortDateNearest": "日期最近",
   "homeDiscoverySortDateFurthest": "日期最远",
@@ -1677,6 +1678,7 @@
   "courtMatchTypeSingles": "单打",
   "courtManualSelection": "手动选择",
   "courtAutoAssign": "自动配对",
+  "courtAutoAssignDescription": "查看此场地的自动配对建议。",
   "courtAiPoweredMatching": "AI 配对",
   "courtAiMatchingHint": "按水平自动配对",
   "courtAiAnalyzing": "AI 分析中…",
@@ -1695,8 +1697,12 @@
   "courtPair1": "第一对",
   "courtPair2": "第二对",
   "courtPairGapLabel": "差距：",
+  "courtPairDetails": "配对详情",
+  "courtPairTotal": "总分",
+  "courtPairEmptySlot": "尚未选择球员",
+  "courtPairBalanceUnavailable": "请选择所有球员后计算差距。",
   "courtConfirmMatch": "确认",
-  "courtSelectRequiredPlayers": "请选满 {total} 人以确认",
+  "courtSelectRequiredPlayers": "请选择 {total} 名球员分配到此场地",
   "@courtSelectRequiredPlayers": {
     "placeholders": {
       "total": {

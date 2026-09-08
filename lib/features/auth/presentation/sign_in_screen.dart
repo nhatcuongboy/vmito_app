@@ -58,8 +58,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   bool get _isBusy =>
       _isSubmitting || _oauthProvider != null || _isBiometricSigningIn;
 
-  static final _phoneNumber = RegExp(r'^\+?[0-9][0-9 .-]{7,}$');
-
   static Map<String, dynamic>? _requiredTrimmed(
     AbstractControl<dynamic> control,
   ) {
@@ -77,25 +75,13 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       SignInFormControl.identifier: FormControl<String>(
         validators: [
           Validators.delegate(_requiredTrimmed),
-          Validators.delegate(_emailOrPhone),
+          Validators.email,
         ],
       ),
       SignInFormControl.password: FormControl<String>(
         validators: [Validators.delegate(_requiredTrimmed)],
       ),
     });
-  }
-
-  static Map<String, dynamic>? _emailOrPhone(
-    AbstractControl<dynamic> control,
-  ) {
-    final value = (control.value as String?)?.trim() ?? '';
-    if (value.isEmpty ||
-        Validators.email(control) == null ||
-        _phoneNumber.hasMatch(value)) {
-      return null;
-    }
-    return {'emailOrPhone': true};
   }
 
   @override
@@ -273,7 +259,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
-              child: AppReactiveForm(
+              child: AppReactiveForm<Object>(
                 formGroup: _form,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -299,21 +285,17 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                     ReactiveTextField<String>(
                       key: const ValueKey('signin-identifier-field'),
                       formControlName: SignInFormControl.identifier,
-                      keyboardType: TextInputType.text,
-                      autofillHints: const [
-                        AutofillHints.email,
-                        AutofillHints.telephoneNumber,
-                      ],
+                      keyboardType: TextInputType.emailAddress,
+                      autofillHints: const [AutofillHints.email],
                       textInputAction: TextInputAction.next,
                       readOnly: _isBusy,
                       decoration: InputDecoration(
-                        labelText: l10n.authEmailOrPhone,
-                        floatingLabelBehavior: FloatingLabelBehavior.auto,
+                        labelText: l10n.authEmail,
                       ),
                       validationMessages: {
                         ValidationMessage.required: (_) =>
-                            l10n.authEmailOrPhoneRequired,
-                        'emailOrPhone': (_) => l10n.authEmailOrPhoneInvalid,
+                            l10n.authEmailRequired,
+                        ValidationMessage.email: (_) => l10n.authEmailInvalid,
                       },
                     ),
                     const SizedBox(height: AppSpacing.md),
@@ -333,7 +315,6 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                       readOnly: _isBusy,
                       decoration: InputDecoration(
                         labelText: l10n.authPassword,
-                        floatingLabelBehavior: FloatingLabelBehavior.auto,
                         suffixIcon: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [

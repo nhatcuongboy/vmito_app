@@ -10,6 +10,7 @@ import 'package:vmito_app/features/payment/application/payment_providers.dart';
 import 'package:vmito_app/features/payment/domain/form/host_payment_forms.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 import 'package:vmito_app/features/session_hosting/application/host_session_management_controller.dart';
+import 'package:vmito_app/features/session_hosting/presentation/widgets/payment_section_header_style.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 
@@ -23,7 +24,7 @@ class SessionFeeConfigCard extends ConsumerWidget {
     return value.when(
       loading: () => const Card(
         child: Padding(
-          padding: EdgeInsets.all(AppSpacing.lg),
+          padding: EdgeInsets.all(AppSpacing.md),
           child: LinearProgressIndicator(),
         ),
       ),
@@ -53,7 +54,7 @@ class _EmptyFeeCard extends StatelessWidget {
         side: BorderSide(color: Theme.of(context).dividerColor),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -99,7 +100,6 @@ class _ConfiguredFeeCard extends ConsumerWidget {
               feeType: config.isSplitEvenly
                   ? l10n.hostManageSplitEvenly
                   : l10n.hostManageFixedFee,
-              accentColor: success,
               editTooltip: l10n.commonEdit,
               recalculateTooltip: l10n.hostManageRecalculate,
               onEdit: () => _showFeeSheet(context, sessionId, config),
@@ -146,7 +146,6 @@ class _FeeConfigHeader extends StatelessWidget {
   const _FeeConfigHeader({
     required this.title,
     required this.feeType,
-    required this.accentColor,
     required this.editTooltip,
     required this.recalculateTooltip,
     required this.onEdit,
@@ -155,7 +154,6 @@ class _FeeConfigHeader extends StatelessWidget {
 
   final String title;
   final String feeType;
-  final Color accentColor;
   final String editTooltip;
   final String recalculateTooltip;
   final VoidCallback onEdit;
@@ -164,24 +162,9 @@ class _FeeConfigHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, constraints) {
-      final titleRow = Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          DecoratedBox(
-            decoration: BoxDecoration(
-              color: accentColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(AppRadius.md),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              child: Icon(AppIcons.calculator, color: accentColor, size: 18),
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Text(title, style: Theme.of(context).textTheme.titleSmall),
-          ),
-        ],
+      final titleRow = Text(
+        title,
+        style: Theme.of(context).textTheme.titleMedium,
       );
       final feeTypeChip = Chip(
         visualDensity: VisualDensity.compact,
@@ -193,11 +176,15 @@ class _FeeConfigHeader extends StatelessWidget {
           IconButton(
             tooltip: editTooltip,
             onPressed: onEdit,
+            constraints: PaymentSectionHeaderStyle.actionIconButtonConstraints,
+            iconSize: PaymentSectionHeaderStyle.actionIconSize,
             icon: const Icon(AppIcons.edit),
           ),
           IconButton(
             tooltip: recalculateTooltip,
             onPressed: onRecalculate,
+            constraints: PaymentSectionHeaderStyle.actionIconButtonConstraints,
+            iconSize: PaymentSectionHeaderStyle.actionIconSize,
             icon: const Icon(AppIcons.refresh),
           ),
         ],
@@ -336,11 +323,17 @@ class _FeeConfigSheetState extends ConsumerState<_FeeConfigSheet> {
                   items: [
                     DropdownMenuItem(
                       value: FeeType.fixed,
-                      child: Text(l10n.hostManageFixedFee),
+                      child: Text(
+                        l10n.hostManageFixedFee,
+                        style: const TextStyle(fontWeight: FontWeight.normal),
+                      ),
                     ),
                     DropdownMenuItem(
                       value: FeeType.splitEvenly,
-                      child: Text(l10n.hostManageSplitEvenly),
+                      child: Text(
+                        l10n.hostManageSplitEvenly,
+                        style: const TextStyle(fontWeight: FontWeight.normal),
+                      ),
                     ),
                   ],
                 ),

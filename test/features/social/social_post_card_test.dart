@@ -124,4 +124,57 @@ void main() {
     expect(find.text('3'), findsOneWidget);
     expect(find.text('Đã thích'), findsOneWidget);
   });
+
+  testWidgets('opens every image from a shared post in the lightbox', (
+    tester,
+  ) async {
+    final sharedPost = SocialPost(
+      id: 'shared-1',
+      content: 'Chia sẻ bài viết',
+      author: const SocialPostAuthor(id: 'user-1', name: 'An'),
+      images: const [],
+      likeCount: 0,
+      commentCount: 0,
+      shareCount: 0,
+      isLiked: false,
+      createdAt: DateTime(2026, 7, 30, 19),
+      originalPost: SocialPost(
+        id: 'original-1',
+        content: 'Bài viết gốc',
+        author: const SocialPostAuthor(id: 'user-2', name: 'Bình'),
+        images: const [
+          SocialPostImage(id: 'image-1', url: 'https://image/1.jpg'),
+          SocialPostImage(id: 'image-2', url: 'https://image/2.jpg'),
+        ],
+        likeCount: 0,
+        commentCount: 0,
+        shareCount: 0,
+        isLiked: false,
+        createdAt: DateTime(2026, 7, 30, 18),
+      ),
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          feedControllerProvider.overrideWith(_EmptyFeedController.new),
+        ],
+        child: MaterialApp(
+          locale: const Locale('vi'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: SocialPostCard(post: sharedPost)),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('shared-post-image-original-1')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.text('1/2'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('lightbox-next-button')));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('2/2'), findsOneWidget);
+  });
 }

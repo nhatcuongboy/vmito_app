@@ -37,22 +37,29 @@ class MatchResultTeamCard extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(AppRadius.xl),
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.sm),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.sm,
+            AppSpacing.sm,
+            AppSpacing.sm,
+            AppSpacing.md,
+          ),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(AppRadius.xl),
             color: isWinner
                 ? palette.success.withValues(alpha: 0.10)
-                : theme.colorScheme.surface,
+                : palette.muted.withValues(alpha: 0.45),
             border: Border.all(
               color: isWinner ? palette.success : palette.border,
               width: isWinner ? 2 : 1,
             ),
           ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     label,
@@ -60,21 +67,31 @@ class MatchResultTeamCard extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const Spacer(),
                   // Icon plus border, never colour alone.
-                  if (isWinner)
+                  if (isWinner) ...[
+                    const SizedBox(width: AppSpacing.xs),
                     Icon(
                       AppIcons.trophy,
-                      size: 18,
+                      size: 16,
                       color: palette.success,
                     ),
+                  ],
                 ],
               ),
               const SizedBox(height: AppSpacing.xs),
-              Text(
-                players.map(l10n.playerName).join(' • '),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: palette.mutedForeground,
+              SizedBox(
+                height: 36,
+                child: Center(
+                  child: Text(
+                    players.map(l10n.playerName).join('\n'),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: palette.mutedForeground,
+                      height: 1.25,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
@@ -82,9 +99,14 @@ class MatchResultTeamCard extends StatelessWidget {
                 controller: controller,
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.center,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
                 decoration: InputDecoration(
                   isDense: true,
                   labelText: l10n.matchResultScore,
+                  hintText: '0',
+                  floatingLabelAlignment: FloatingLabelAlignment.center,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadius.lg),
                   ),

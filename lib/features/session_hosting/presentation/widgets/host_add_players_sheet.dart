@@ -14,6 +14,7 @@ import 'package:vmito_app/features/session_hosting/application/host_add_players_
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
+import 'package:vmito_app/shared/widgets/app_full_height_modal.dart';
 import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/shared/widgets/app_required_label.dart';
 import 'package:vmito_app/shared/widgets/app_sheet_action_bar.dart';
@@ -33,11 +34,11 @@ Future<bool?> showHostAddPlayersSheet(
     );
     if (!proceed || !context.mounted) return false;
   }
-  return showModalBottomSheet<bool>(
-    context: context,
-    isScrollControlled: true,
-    useSafeArea: true,
-    showDragHandle: true,
+  return showAppFullHeightModal<bool>(
+    context,
+    // The sheet remains draggable without a visible handle. Material reserves
+    // a separate 48dp row for that handle, which makes AppSheetHeader look
+    // noticeably looser than the other hosting sheets.
     builder: (context) => FractionallySizedBox(
       // `useSafeArea` already leaves room for the status bar. Filling the
       // remaining height avoids adding a second, visible gap above the sheet.
@@ -235,6 +236,7 @@ class _HostAddPlayersSheetState extends ConsumerState<_HostAddPlayersSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             AppSheetHeader(
+              key: const Key('host-add-players-header'),
               title: pickerForm == null
                   ? l10n.hostAddPlayerAddAnother
                   : l10n.hostAddPlayerSelectExisting,

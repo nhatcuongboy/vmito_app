@@ -51,7 +51,7 @@ void main() {
       await tester.pump();
 
       expect(
-        find.text('Vui lòng nhập email hoặc số điện thoại'),
+        find.text('Vui lòng nhập email'),
         findsOneWidget,
       );
       expect(find.text('Vui lòng nhập mật khẩu'), findsOneWidget);
@@ -76,7 +76,7 @@ void main() {
       await tester.pump();
 
       expect(
-        find.text('Please enter your email or phone number'),
+        find.text('Please enter your email'),
         findsOneWidget,
       );
       expect(find.text('Please enter your password'), findsOneWidget);

@@ -37,7 +37,7 @@ Future<MatchResultDraft?> pumpAndSubmit(
   ValueKey<String> submit = const ValueKey('submit-match-result'),
 }) async {
   tester.view
-    ..physicalSize = const Size(1200, 2400)
+    ..physicalSize = const Size(390, 844)
     ..devicePixelRatio = 1;
   addTearDown(tester.view.reset);
 
@@ -144,12 +144,24 @@ void main() {
     expect(draft!.toRequestBody(), isEmpty);
   });
 
-  testWidgets('notes and shuttlecocks reach the request body', (tester) async {
-    final draft = await pumpAndSubmit(tester, (tester) async {
-      await tester.enterText(
-        find.byKey(const ValueKey('match-result-shuttlecocks')),
-        '2.5',
+  testWidgets('compact controls fit a phone viewport', (tester) async {
+    await pumpAndSubmit(tester, (tester) async {
+      expect(find.byType(ChoiceChip), findsOneWidget);
+      expect(find.byType(SwitchListTile), findsNothing);
+
+      final skip = tester.getCenter(
+        find.byKey(const ValueKey('skip-match-result')),
       );
+      final submit = tester.getCenter(
+        find.byKey(const ValueKey('submit-match-result')),
+      );
+      expect(skip.dy, submit.dy);
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  testWidgets('notes reach the request body', (tester) async {
+    final draft = await pumpAndSubmit(tester, (tester) async {
       await tester.enterText(
         find.byKey(const ValueKey('match-result-notes')),
         '  Sân trơn  ',
@@ -158,7 +170,6 @@ void main() {
     });
 
     final body = draft!.toRequestBody();
-    expect(body['shuttlecockCount'], 2.5);
     expect(body['notes'], 'Sân trơn');
   });
 

@@ -48,6 +48,13 @@ class AppSheetHeader extends StatelessWidget {
   final Key? closeButtonKey;
   final EdgeInsetsGeometry padding;
 
+  /// Shared title treatment for sheet headers, including headers hosted by an
+  /// [AppBar] inside a full-height modal.
+  static TextStyle? titleTextStyle(BuildContext context) =>
+      Theme.of(context).textTheme.titleMedium?.copyWith(
+        fontWeight: FontWeight.w700,
+      );
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -58,7 +65,6 @@ class AppSheetHeader extends StatelessWidget {
         Padding(
           padding: padding,
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (leadingIcon != null) ...[
                 if (onLeadingPressed case final onPressed?)
@@ -90,9 +96,7 @@ class AppSheetHeader extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                      style: titleTextStyle(context),
                     ),
                     if (subtitle case final subtitle?)
                       Padding(

@@ -386,6 +386,7 @@ class _TeamPlayersEditor extends StatelessWidget {
                                   l10n.hostResultsSelectPlayer)
                             : '#${player.playerNumber} ${player.displayName ?? ''}',
                         overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.normal),
                       ),
                     ),
                 ],

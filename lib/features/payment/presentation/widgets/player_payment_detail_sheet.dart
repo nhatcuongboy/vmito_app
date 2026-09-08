@@ -482,11 +482,17 @@ class _PaymentReviewSheetState extends ConsumerState<PaymentReviewSheet> {
                   items: [
                     DropdownMenuItem(
                       value: PaymentMethod.bankTransfer,
-                      child: Text(l10n.transactionBankTransfer),
+                      child: Text(
+                        l10n.transactionBankTransfer,
+                        style: const TextStyle(fontWeight: FontWeight.normal),
+                      ),
                     ),
                     DropdownMenuItem(
                       value: PaymentMethod.cash,
-                      child: Text(l10n.transactionCash),
+                      child: Text(
+                        l10n.transactionCash,
+                        style: const TextStyle(fontWeight: FontWeight.normal),
+                      ),
                     ),
                   ],
                 ),

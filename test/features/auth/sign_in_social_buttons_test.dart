@@ -84,7 +84,7 @@ void main() {
     expect(container.read(authControllerProvider).user?.id, 'user-1');
   });
 
-  testWidgets('validates the email-or-phone field before submitting', (
+  testWidgets('validates the email field before submitting', (
     tester,
   ) async {
     final service = _MockAuthService();
@@ -114,72 +114,12 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('signin-submit-button')));
     await tester.pump();
 
-    expect(find.text('Email hoặc số điện thoại không hợp lệ'), findsOneWidget);
+    expect(find.text('Email không hợp lệ'), findsOneWidget);
     verifyNever(
       () => service.login(
         email: any(named: 'email'),
         password: any(named: 'password'),
       ),
     );
-  });
-
-  testWidgets('submits a valid phone number as the login identifier', (
-    tester,
-  ) async {
-    final service = _MockAuthService();
-    when(
-      () => service.login(email: '0912345678', password: 'Secret1!'),
-    ).thenAnswer(
-      (_) async => const LoginResponse(
-        accessToken: 'access',
-        refreshToken: 'refresh',
-        user: User(
-          id: 'user-1',
-          email: 'player@example.com',
-          role: UserRole.player,
-        ),
-      ),
-    );
-    final container = ProviderContainer(
-      overrides: [
-        authServiceProvider.overrideWithValue(service),
-        tokenStorageProvider.overrideWithValue(
-          TokenStorage(FakeSecureStorage()),
-        ),
-        biometricLockStorageProvider.overrideWithValue(
-          BiometricLockStorage(FakeSecureStorage()),
-        ),
-      ],
-    );
-    addTearDown(container.dispose);
-
-    await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
-        child: MaterialApp(
-          theme: AppTheme.light,
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          locale: const Locale('vi'),
-          home: const SignInScreen(),
-        ),
-      ),
-    );
-    await tester.pumpAndSettle();
-
-    await tester.enterText(
-      find.byKey(const ValueKey('signin-identifier-field')),
-      '0912345678',
-    );
-    await tester.enterText(
-      find.byKey(const ValueKey('signin-password-field')),
-      'Secret1!',
-    );
-    await tester.tap(find.byKey(const ValueKey('signin-submit-button')));
-    await tester.pumpAndSettle();
-
-    verify(
-      () => service.login(email: '0912345678', password: 'Secret1!'),
-    ).called(1);
   });
 }

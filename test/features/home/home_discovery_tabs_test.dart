@@ -29,6 +29,7 @@ import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/features/venue/presentation/browse_venues_screen.dart';
 import 'package:vmito_app/features/venue/presentation/venue_filter_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_paginated_list_view.dart';
 
 void main() {
   for (final entry in <String, ThemeData>{
@@ -305,7 +306,18 @@ void main() {
     );
 
     final toolbarY = tester.getTopLeft(filter).dy;
-    await tester.drag(find.byType(ListView).last, const Offset(0, -500));
+    expect(find.byType(AppPaginatedListView), findsOneWidget);
+    final paginatedList = tester.widget<AppPaginatedListView>(
+      find.byType(AppPaginatedListView),
+    );
+    expect(paginatedList.itemCount, 20);
+    expect(paginatedList.hasMore, isFalse);
+    expect(paginatedList.isLoading, isFalse);
+    expect(paginatedList.isLoadingMore, isFalse);
+    await tester.drag(
+      find.byType(CustomScrollView).last,
+      const Offset(0, -500),
+    );
     await tester.pumpAndSettle();
     expect(tester.getTopLeft(filter).dy, toolbarY);
 

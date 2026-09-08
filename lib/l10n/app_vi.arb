@@ -56,7 +56,7 @@
   "authSignUpPhonePlaceholder": "Số điện thoại",
   "authSignUpPhoneInvalid": "Số điện thoại phải gồm đúng 10 chữ số",
   "authSignUpGender": "Giới tính",
-  "authSignUpOptionalDetails": "Thông tin bổ sung (tùy chọn)",
+  "authSignUpAdditionalDetails": "Thông tin bổ sung",
   "authSignUpMale": "Nam",
   "authSignUpFemale": "Nữ",
   "authSignUpPassword": "Mật khẩu",
@@ -355,6 +355,7 @@
   "homeDiscoveryVenues": "Tìm sân",
   "homeDiscoveryClubs": "Tìm nhóm",
   "homeDiscoveryTournaments": "Tìm giải",
+  "commonEndOfResults": "Bạn đã xem hết kết quả.",
   "homeDiscoverySortBy": "Sắp xếp theo",
   "homeDiscoverySortDateNearest": "Ngày gần nhất",
   "homeDiscoverySortDateFurthest": "Ngày xa nhất",
@@ -1684,6 +1685,7 @@
   "courtMatchTypeSingles": "Đánh đơn",
   "courtManualSelection": "Chọn thủ công",
   "courtAutoAssign": "Tự động ghép đôi",
+  "courtAutoAssignDescription": "Xem gợi ý ghép đôi tự động cho sân này.",
   "courtAiPoweredMatching": "Ghép đôi bằng AI",
   "courtAiMatchingHint": "Ghép cặp tự động theo trình độ",
   "courtAiAnalyzing": "AI đang phân tích...",
@@ -1702,8 +1704,12 @@
   "courtPair1": "Cặp 1",
   "courtPair2": "Cặp 2",
   "courtPairGapLabel": "Lệch:",
+  "courtPairDetails": "Chi tiết cặp đấu",
+  "courtPairTotal": "Tổng điểm",
+  "courtPairEmptySlot": "Chưa có người chơi",
+  "courtPairBalanceUnavailable": "Chọn đủ người chơi để tính độ lệch.",
   "courtConfirmMatch": "Xác nhận",
-  "courtSelectRequiredPlayers": "Chọn đủ {total} người để xác nhận",
+  "courtSelectRequiredPlayers": "Chọn đủ {total} người chơi để phân bổ vào sân này",
   "@courtSelectRequiredPlayers": {
     "placeholders": {
       "total": {

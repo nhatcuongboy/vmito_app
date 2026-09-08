@@ -23,6 +23,7 @@ import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/shared/widgets/app_required_label.dart';
+import 'package:vmito_app/shared/widgets/app_time_picker.dart';
 import 'package:vmito_app/shared/widgets/level_badge_picker.dart';
 
 class ClubFormScreen extends ConsumerWidget {
@@ -531,7 +532,7 @@ class _ClubFormState extends ConsumerState<_ClubForm> {
     var endTime = current.endTime;
     if (changes.containsKey('startTime') || changes.containsKey('endTime')) {
       final isStart = changes.containsKey('startTime');
-      final selected = await showTimePicker(
+      final selected = await showAppTimePicker(
         context: context,
         initialTime: _parseTime(isStart ? startTime : endTime),
       );
@@ -1375,7 +1376,13 @@ class _ScheduleRow extends StatelessWidget {
       decoration: InputDecoration(labelText: l10n.clubDayOfWeek),
       items: [
         for (var index = 0; index < days.length; index++)
-          DropdownMenuItem(value: index, child: Text(days[index])),
+          DropdownMenuItem(
+            value: index,
+            child: Text(
+              days[index],
+              style: const TextStyle(fontWeight: FontWeight.normal),
+            ),
+          ),
       ],
       onChanged: (value) => onUpdate({'dayOfWeek': value}),
     );
@@ -1455,7 +1462,7 @@ class _TimeButton extends StatelessWidget {
   Widget build(BuildContext context) => OutlinedButton(
     onPressed: () async {
       final parts = value.split(':');
-      final time = await showTimePicker(
+      final time = await showAppTimePicker(
         context: context,
         initialTime: TimeOfDay(
           hour: int.tryParse(parts.first) ?? 19,

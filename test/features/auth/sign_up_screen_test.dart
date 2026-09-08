@@ -18,8 +18,9 @@ Future<void> _pumpSignUp(
   WidgetTester tester, {
   required AuthService service,
   Locale locale = const Locale('vi'),
+  Size surfaceSize = const Size(800, 1200),
 }) async {
-  await tester.binding.setSurfaceSize(const Size(800, 1200));
+  await tester.binding.setSurfaceSize(surfaceSize);
   addTearDown(() => tester.binding.setSurfaceSize(null));
 
   final container = ProviderContainer(
@@ -60,17 +61,79 @@ Future<void> _pumpSignUp(
 }
 
 void main() {
-  testWidgets('groups optional sign-up fields under a single hint', (
+  testWidgets('displays optional fields stacked vertically', (
+    tester,
+  ) async {
+    final service = _MockAuthService();
+    await _pumpSignUp(
+      tester,
+      service: service,
+      surfaceSize: const Size(430, 1200),
+    );
+
+    final phoneTop = tester.getTopLeft(
+      find.byKey(const ValueKey('signup-phone-field')),
+    );
+    final genderTop = tester.getTopLeft(
+      find.byKey(const ValueKey('signup-gender-field')),
+    );
+
+    // Both fields should be full width and stacked vertically
+    expect(genderTop.dx, phoneTop.dx);
+    expect(genderTop.dy, greaterThan(phoneTop.dy));
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('keeps required passwords outside the optional section', (
     tester,
   ) async {
     final service = _MockAuthService();
     await _pumpSignUp(tester, service: service);
 
-    expect(find.text('Thông tin bổ sung (tùy chọn)'), findsOneWidget);
-    expect(find.text('Số điện thoại'), findsWidgets);
-    expect(find.text('Giới tính'), findsWidgets);
-    expect(find.textContaining('Số điện thoại (Tùy chọn)'), findsNothing);
-    expect(find.textContaining('Giới tính (Tùy chọn)'), findsNothing);
+    expect(find.text('Thông tin bổ sung'), findsOneWidget);
+    expect(find.text('Tùy chọn'), findsOneWidget);
+    expect(
+      find.bySemanticsLabel('Thông tin bổ sung, Tùy chọn'),
+      findsOneWidget,
+    );
+    expect(find.bySemanticsLabel('Số điện thoại, Tùy chọn'), findsNothing);
+    expect(find.bySemanticsLabel('Giới tính, Tùy chọn'), findsNothing);
+    expect(
+      find.text(
+        'Ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt.',
+      ),
+      findsOneWidget,
+    );
+
+    final optionalHeading = find.byKey(
+      const ValueKey('signup-optional-details-heading'),
+    );
+    final headingTop = tester.getTopLeft(optionalHeading).dy;
+
+    expect(
+      tester
+          .getTopLeft(
+            find.byKey(const ValueKey('signup-password-field')),
+          )
+          .dy,
+      lessThan(headingTop),
+    );
+    expect(
+      tester
+          .getTopLeft(
+            find.byKey(const ValueKey('signup-confirm-field')),
+          )
+          .dy,
+      lessThan(headingTop),
+    );
+    expect(
+      tester.getTopLeft(find.byKey(const ValueKey('signup-phone-field'))).dy,
+      greaterThan(headingTop),
+    );
+    expect(
+      tester.getTopLeft(find.byKey(const ValueKey('signup-gender-field'))).dy,
+      greaterThan(headingTop),
+    );
   });
 
   testWidgets('rejects a weak password and mismatched confirmation', (
@@ -175,7 +238,7 @@ void main() {
       tester,
     ) async {
       final service = _MockAuthService();
-      await _pumpSignUp(tester, service: service, locale: const Locale('vi'));
+      await _pumpSignUp(tester, service: service);
 
       final submit = find.byKey(const ValueKey('signup-submit-button'));
       await tester.ensureVisible(submit);
@@ -228,7 +291,7 @@ void main() {
       ),
     );
 
-    await _pumpSignUp(tester, service: service, locale: const Locale('vi'));
+    await _pumpSignUp(tester, service: service);
 
     await tester.enterText(
       find.byKey(const ValueKey('signup-name-field')),

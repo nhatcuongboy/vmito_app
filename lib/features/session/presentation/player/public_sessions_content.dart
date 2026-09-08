@@ -17,6 +17,7 @@ import 'package:vmito_app/features/session/presentation/player/session_map_view.
 import 'package:vmito_app/features/session/presentation/widgets/session_card.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_loading_view.dart';
+import 'package:vmito_app/shared/widgets/app_paginated_list_view.dart';
 import 'package:vmito_app/shared/widgets/discovery_map_toggle.dart';
 
 /// Public-session browser embedded in Home discovery.
@@ -252,26 +253,21 @@ class _SessionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.separated(
+    return AppPaginatedListView.separated(
       controller: controller,
-      // Always scrollable, or RefreshIndicator cannot be pulled on a short list.
-      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.fromLTRB(
         AppSpacing.md,
         AppSpacing.md,
         AppSpacing.md,
         88,
       ),
-      itemCount: state.sessions.length + (state.isLoadingMore ? 1 : 0),
+      itemCount: state.sessions.length,
+      hasMore: state.hasMore,
+      isLoading: state.isLoading,
+      isLoadingMore: state.isLoadingMore,
       separatorBuilder: (context, index) =>
           const SizedBox(height: AppSpacing.md),
       itemBuilder: (context, index) {
-        if (index >= state.sessions.length) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: AppSpacing.md),
-            child: AppLoadingView(),
-          );
-        }
         final session = state.sessions[index];
         return SessionCard(
           session: session,

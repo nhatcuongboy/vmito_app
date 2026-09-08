@@ -10,6 +10,7 @@ import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/payment/application/payment_providers.dart';
 import 'package:vmito_app/features/payment/domain/payment.dart';
 import 'package:vmito_app/features/session_hosting/application/host_session_management_controller.dart';
+import 'package:vmito_app/features/session_hosting/presentation/widgets/payment_section_header_style.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/payment_settings_dialog.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
@@ -65,7 +66,7 @@ class _EmptySettingsCard extends StatelessWidget {
         side: BorderSide(color: warning.withValues(alpha: 0.35)),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -127,7 +128,7 @@ class _ConfiguredSettingsCard extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     l10n.hostManageCurrentSettings,
-                    style: Theme.of(context).textTheme.titleSmall,
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ),
                 IconButton(
@@ -139,12 +140,18 @@ class _ConfiguredSettingsCard extends ConsumerWidget {
                     sessionId,
                     items,
                   ),
+                  constraints:
+                      PaymentSectionHeaderStyle.actionIconButtonConstraints,
+                  iconSize: PaymentSectionHeaderStyle.actionIconSize,
                   icon: const Icon(AppIcons.settings),
                 ),
                 IconButton(
                   tooltip: l10n.commonEdit,
                   onPressed: () =>
                       _showSettingsSheet(context, sessionId, current),
+                  constraints:
+                      PaymentSectionHeaderStyle.actionIconButtonConstraints,
+                  iconSize: PaymentSectionHeaderStyle.actionIconSize,
                   icon: const Icon(AppIcons.edit),
                 ),
               ],
@@ -163,6 +170,7 @@ class _ConfiguredSettingsCard extends ConsumerWidget {
                         '${item.bankName ?? '—'} · '
                         '${item.bankAccountNumber ?? '—'}',
                         overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.normal),
                       ),
                     ),
                 ],
@@ -296,7 +304,7 @@ class _SettingsSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Card(
     child: Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

@@ -324,7 +324,13 @@ class _ClubFeeScreenState extends ConsumerState<ClubFeeScreen> {
       ),
       items: [
         for (final member in available)
-          DropdownMenuItem(value: member.userId, child: Text(member.name)),
+          DropdownMenuItem(
+            value: member.userId,
+            child: Text(
+              member.name,
+              style: const TextStyle(fontWeight: FontWeight.normal),
+            ),
+          ),
       ],
     );
   }
@@ -349,7 +355,13 @@ class _ClubFeeScreenState extends ConsumerState<ClubFeeScreen> {
           ),
           items: [
             for (var month = 1; month <= 12; month++)
-              DropdownMenuItem(value: month, child: Text('$month')),
+              DropdownMenuItem(
+                value: month,
+                child: Text(
+                  '$month',
+                  style: const TextStyle(fontWeight: FontWeight.normal),
+                ),
+              ),
           ],
           onChanged: (value) {
             if (value == null) return;

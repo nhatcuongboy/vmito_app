@@ -19,6 +19,7 @@ import 'package:vmito_app/features/session/domain/session_location_payload.dart'
 import 'package:vmito_app/features/session/presentation/player/create_session_screen.dart';
 import 'package:vmito_app/features/session/presentation/player/session_edit_modal.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 
 class _MockSessionFormService extends Mock implements SessionFormService {}
 
@@ -191,6 +192,27 @@ void main() {
     expect(start.dx, lessThan(end.dx));
   });
 
+  testWidgets('single-day time field opens the app wheel picker', (
+    tester,
+  ) async {
+    _setSize(tester, const Size(390, 844));
+    await tester.pumpWidget(_app());
+    await tester.pump(const Duration(milliseconds: 100));
+
+    final startPicker = find.byKey(const Key('session-start-picker'));
+    await tester.scrollUntilVisible(
+      startPicker,
+      400,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(startPicker);
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('app-time-picker-sheet')), findsOneWidget);
+    expect(find.byKey(const Key('app-time-picker-wheel')), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('custom location switch hides and restores the venue picker', (
     tester,
   ) async {
@@ -308,6 +330,10 @@ void main() {
       lessThanOrEqualTo(844),
     );
     expect(find.text('Chỉnh sửa kèo'), findsOneWidget);
+    expect(
+      tester.widget<Text>(find.text('Chỉnh sửa kèo')).style,
+      AppSheetHeader.titleTextStyle(tester.element(find.text('Chỉnh sửa kèo'))),
+    );
     expect(find.text('Kèo modal'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('create-session-submit')));

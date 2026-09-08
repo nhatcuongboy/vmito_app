@@ -20,6 +20,7 @@ import 'package:vmito_app/features/venue/data/venue_service.dart';
 import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/features/venue/presentation/venue_filter_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_paginated_list_view.dart';
 import 'package:vmito_app/shared/widgets/discovery_entity_map_view.dart';
 import 'package:vmito_app/shared/widgets/discovery_map_toggle.dart';
 
@@ -270,55 +271,40 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
                         onRefresh: () => ref
                             .read(venueBrowseControllerProvider.notifier)
                             .load(),
-                        child: ListView.separated(
-                          controller: _scroll,
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: const EdgeInsets.all(
-                            AppSpacing.screenPadding,
-                          ),
-                          itemCount: state.venues.length + 1,
-                          separatorBuilder: (_, _) =>
-                              const SizedBox(height: AppSpacing.md),
-                          itemBuilder: (context, index) {
-                            if (index == state.venues.length) {
-                              if (state.isLoading && state.venues.isEmpty) {
-                                return const Padding(
-                                  padding: EdgeInsets.all(32),
-                                  child: Center(
-                                    child: CircularProgressIndicator(),
-                                  ),
-                                );
-                              }
-                              if (state.error != null && state.venues.isEmpty) {
-                                return AppErrorView(
-                                  error: state.error!,
-                                  onRetry: () => ref
-                                      .read(
-                                        venueBrowseControllerProvider.notifier,
-                                      )
-                                      .load(),
-                                );
-                              }
-                              if (state.venues.isEmpty) {
-                                return const Padding(
-                                  padding: EdgeInsets.all(32),
-                                  child: Center(
-                                    child: Text('Không tìm thấy sân phù hợp.'),
-                                  ),
-                                );
-                              }
-                              return state.isLoadingMore
-                                  ? const Padding(
-                                      padding: EdgeInsets.all(16),
-                                      child: Center(
-                                        child: CircularProgressIndicator(),
-                                      ),
+                        child: switch (state) {
+                          _ when state.isLoading && state.venues.isEmpty =>
+                            const _VenueListStatus(
+                              child: CircularProgressIndicator(),
+                            ),
+                          _ when state.error != null && state.venues.isEmpty =>
+                            _VenueListStatus(
+                              child: AppErrorView(
+                                error: state.error!,
+                                onRetry: () => ref
+                                    .read(
+                                      venueBrowseControllerProvider.notifier,
                                     )
-                                  : const SizedBox(height: 8);
-                            }
-                            return VenueCard(venue: state.venues[index]);
-                          },
-                        ),
+                                    .load(),
+                              ),
+                            ),
+                          _ when state.venues.isEmpty => const _VenueListStatus(
+                            child: Text('Không tìm thấy sân phù hợp.'),
+                          ),
+                          _ => AppPaginatedListView.separated(
+                            controller: _scroll,
+                            padding: const EdgeInsets.all(
+                              AppSpacing.screenPadding,
+                            ),
+                            itemCount: state.venues.length,
+                            hasMore: state.hasMore,
+                            isLoading: state.isLoading,
+                            isLoadingMore: state.isLoadingMore,
+                            separatorBuilder: (_, _) =>
+                                const SizedBox(height: AppSpacing.md),
+                            itemBuilder: (context, index) =>
+                                VenueCard(venue: state.venues[index]),
+                          ),
+                        },
                       ),
               ),
               if (widget.embedded && widget.showMapToggle)
@@ -368,6 +354,19 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
         ),
       )
       .toList(growable: false);
+}
+
+class _VenueListStatus extends StatelessWidget {
+  const _VenueListStatus({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => ListView(
+    physics: const AlwaysScrollableScrollPhysics(),
+    padding: const EdgeInsets.all(AppSpacing.xl),
+    children: [Center(child: child)],
+  );
 }
 
 class _VenueFilterSummary extends StatelessWidget {

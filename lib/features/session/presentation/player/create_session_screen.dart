@@ -40,6 +40,7 @@ import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/shared/widgets/app_required_label.dart';
 import 'package:vmito_app/shared/widgets/app_sheet_action_bar.dart';
 import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
+import 'package:vmito_app/shared/widgets/app_time_picker.dart';
 import 'package:vmito_app/shared/widgets/level_badge_picker.dart';
 
 const _wideFormBreakpoint = 768.0;
@@ -818,6 +819,9 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
                   : widget.isClone
                   ? l10n.cloneSessionTitle
                   : l10n.createSessionTitle,
+              style: widget.modalPresentation
+                  ? AppSheetHeader.titleTextStyle(context)
+                  : null,
             ),
             actions: [
               if (!_isEditing && !widget.modalPresentation)
@@ -1590,7 +1594,7 @@ class _TimeSection extends StatelessWidget {
       );
 
   Future<Duration?> _pickTime(BuildContext context, Duration? initial) async {
-    final value = await showTimePicker(
+    final value = await showAppTimePicker(
       context: context,
       initialTime: TimeOfDay(
         hour: initial?.inHours ?? TimeOfDay.now().hour,

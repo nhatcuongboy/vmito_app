@@ -14,6 +14,7 @@ import 'package:vmito_app/features/payment/domain/form/transaction_forms.dart';
 import 'package:vmito_app/features/payment/domain/payment.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session_hosting/application/host_session_management_controller.dart';
+import 'package:vmito_app/features/session_hosting/presentation/widgets/payment_section_header_style.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_lightbox.dart';
 import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
@@ -108,7 +109,11 @@ class _PaymentLedgerViewState extends ConsumerState<PaymentLedgerView> {
                         OutlinedButton.icon(
                           key: const Key('payment-filter-button'),
                           onPressed: _showFilters,
-                          icon: const Icon(AppIcons.filter, size: 18),
+                          style: PaymentSectionHeaderStyle.actionButtonStyle,
+                          icon: const Icon(
+                            AppIcons.filter,
+                            size: PaymentSectionHeaderStyle.actionIconSize,
+                          ),
                           label: Text(l10n.transactionStatusFilter),
                         ),
                         if (submitted.isNotEmpty) ...[
@@ -121,7 +126,11 @@ class _PaymentLedgerViewState extends ConsumerState<PaymentLedgerView> {
                                   ).notifier,
                                 )
                                 .bulkApprove(submitted),
-                            icon: const Icon(AppIcons.checkAll, size: 18),
+                            style: PaymentSectionHeaderStyle.actionButtonStyle,
+                            icon: const Icon(
+                              AppIcons.checkAll,
+                              size: PaymentSectionHeaderStyle.actionIconSize,
+                            ),
                             label: Text(
                               '${l10n.hostManageApprove} (${submitted.length})',
                             ),
@@ -271,11 +280,9 @@ class _SplitAmountCardState extends State<_SplitAmountCard> {
               children: [
                 Row(
                   children: [
-                    const Icon(AppIcons.calculator, color: purple),
-                    const SizedBox(width: AppSpacing.sm),
                     Text(
                       l10n.setSplitAmount,
-                      style: Theme.of(context).textTheme.titleSmall,
+                      style: Theme.of(context).textTheme.titleMedium,
                     ),
                   ],
                 ),
@@ -859,12 +866,18 @@ class _PaymentFilterSheetState extends State<_PaymentFilterSheet> {
             ),
             items: [
               DropdownMenuItem(
-                child: Text(l10n.transactionFilterAll),
+                child: Text(
+                  l10n.transactionFilterAll,
+                  style: const TextStyle(fontWeight: FontWeight.normal),
+                ),
               ),
               for (final status in PaymentStatus.values)
                 DropdownMenuItem(
                   value: status,
-                  child: Text(_statusLabel(l10n, status)),
+                  child: Text(
+                    _statusLabel(l10n, status),
+                    style: const TextStyle(fontWeight: FontWeight.normal),
+                  ),
                 ),
             ],
             onChanged: (value) => setState(() => _status = value),
@@ -876,20 +889,32 @@ class _PaymentFilterSheetState extends State<_PaymentFilterSheet> {
             items: [
               DropdownMenuItem(
                 value: 'all',
-                child: Text(l10n.transactionFilterAll),
+                child: Text(
+                  l10n.transactionFilterAll,
+                  style: const TextStyle(fontWeight: FontWeight.normal),
+                ),
               ),
               DropdownMenuItem(
                 value: 'fixed',
-                child: Text(l10n.hostManageFixedMembers),
+                child: Text(
+                  l10n.hostManageFixedMembers,
+                  style: const TextStyle(fontWeight: FontWeight.normal),
+                ),
               ),
               DropdownMenuItem(
                 value: 'regular',
-                child: Text(l10n.hostManageRegularMembers),
+                child: Text(
+                  l10n.hostManageRegularMembers,
+                  style: const TextStyle(fontWeight: FontWeight.normal),
+                ),
               ),
               for (final club in clubs.entries)
                 DropdownMenuItem(
                   value: 'club:${club.key}',
-                  child: Text(club.value),
+                  child: Text(
+                    club.value,
+                    style: const TextStyle(fontWeight: FontWeight.normal),
+                  ),
                 ),
             ],
             onChanged: (value) => setState(() => _member = value ?? 'all'),
@@ -1020,11 +1045,17 @@ class _SessionPaymentReviewSheetState
                   items: [
                     DropdownMenuItem(
                       value: PaymentMethod.bankTransfer,
-                      child: Text(l10n.transactionBankTransfer),
+                      child: Text(
+                        l10n.transactionBankTransfer,
+                        style: const TextStyle(fontWeight: FontWeight.normal),
+                      ),
                     ),
                     DropdownMenuItem(
                       value: PaymentMethod.cash,
-                      child: Text(l10n.transactionCash),
+                      child: Text(
+                        l10n.transactionCash,
+                        style: const TextStyle(fontWeight: FontWeight.normal),
+                      ),
                     ),
                   ],
                 ),

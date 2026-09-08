@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/color_parsing.dart';
 import 'package:vmito_app/features/court/application/court_display_mode_controller.dart';
@@ -12,9 +13,11 @@ import 'package:vmito_app/features/court/presentation/widgets/badminton_court_vi
 import 'package:vmito_app/features/court/presentation/widgets/court/court_view_mode.dart';
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
 import 'package:vmito_app/features/session_hosting/presentation/court/ai_toggle_card.dart';
-import 'package:vmito_app/features/session_hosting/presentation/court/match_pair_stats.dart';
+import 'package:vmito_app/features/session_hosting/presentation/court/match_pair_details_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/court.dart';
+import 'package:vmito_app/shared/models/match.dart';
+import 'package:vmito_app/shared/models/session_player.dart';
 
 /// Let the server pick the line-up.
 ///
@@ -110,11 +113,20 @@ class CourtSelectionAutoTab extends ConsumerWidget {
               matchType: state.matchType,
               direction: court.direction,
             ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          MatchPairStats(
-            seats: [...suggestion.pair1.players, ...suggestion.pair2.players],
-            matchType: state.matchType,
+            overlays: [
+              if (state.isComplete)
+                Positioned(
+                  left: AppSpacing.sm,
+                  bottom: AppSpacing.sm,
+                  child: _PairDetailsButton(
+                    seats: [
+                      ...suggestion.pair1.players,
+                      ...suggestion.pair2.players,
+                    ],
+                    matchType: state.matchType,
+                  ),
+                ),
+            ],
           ),
           if (suggestion.aiReason case final reason?) ...[
             const SizedBox(height: AppSpacing.md),
@@ -123,6 +135,39 @@ class CourtSelectionAutoTab extends ConsumerWidget {
         ],
         const SizedBox(height: AppSpacing.md),
       ],
+    );
+  }
+}
+
+class _PairDetailsButton extends StatelessWidget {
+  const _PairDetailsButton({required this.seats, required this.matchType});
+
+  final List<SessionPlayer?> seats;
+  final MatchType matchType;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Semantics(
+      button: true,
+      label: l10n.courtPairDetails,
+      child: Tooltip(
+        message: l10n.courtPairDetails,
+        child: IconButton.filledTonal(
+          key: const ValueKey('court-pair-details-button'),
+          style: IconButton.styleFrom(
+            minimumSize: const Size(32, 32),
+            padding: const EdgeInsets.all(AppSpacing.xs),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          icon: const Icon(AppIcons.info, size: 16),
+          onPressed: () => showMatchPairDetailsSheet(
+            context,
+            seats: seats,
+            matchType: matchType,
+          ),
+        ),
+      ),
     );
   }
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/core/localization/localized_values.dart';
+import 'package:vmito_app/core/network/api_exception.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/color_parsing.dart';
 import 'package:vmito_app/features/court/application/court_display_mode_controller.dart';
@@ -14,6 +16,7 @@ import 'package:vmito_app/features/session_hosting/presentation/court/match_resu
 import 'package:vmito_app/features/session_hosting/presentation/court/pre_select_preview_sheet.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/court/host_court_actions.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/court/host_court_card_header.dart';
+import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/court.dart';
 
 /// One court on the host's board: status header, the court itself, actions.
@@ -33,6 +36,28 @@ class HostCourtCard extends ConsumerWidget {
     );
     final displayMode = ref.watch(courtDisplayModeControllerProvider);
     final shadowColor = Theme.of(context).shadowColor;
+
+    ref.listen(hostCourtActionsControllerProvider(session.id), (
+      previous,
+      next,
+    ) {
+      final failure = next.failure;
+      if (failure == null ||
+          failure.courtId != court.id ||
+          failure == previous?.failure) {
+        return;
+      }
+      final l10n = AppLocalizations.of(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            failure.error is ApiException
+                ? l10n.apiError(failure.error as ApiException)
+                : l10n.errorUnknown,
+          ),
+        ),
+      );
+    });
 
     return DecoratedBox(
       key: ValueKey('host-court-card-surface-${court.id}'),
@@ -82,6 +107,7 @@ class HostCourtCard extends ConsumerWidget {
                 isSessionLive: session.status.isLive,
                 waitingCount: session.waitingQueue.length,
                 isBusy: actions.isBusy(court.id),
+                activeAction: actions.activeActionFor(court.id),
                 onAssign: () => _assign(context, controller),
                 onClear: () => controller.deselectPlayers(court.id),
                 onStart: () => controller.startMatch(court.id),

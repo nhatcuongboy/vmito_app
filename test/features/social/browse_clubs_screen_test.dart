@@ -10,6 +10,7 @@ import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
 import 'package:vmito_app/features/social/presentation/browse_clubs_screen.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_paginated_list_view.dart';
 
 class _TestClubsController extends ClubsController {
   _TestClubsController(this.initialState);
@@ -96,6 +97,13 @@ void main() {
     expect(find.textContaining('thành viên'), findsNothing);
     expect(find.text('Thứ 2 – Thứ 6 · 19:00–21:00'), findsOneWidget);
     expect(find.text('Sân Trung tâm'), findsOneWidget);
+    expect(find.byType(AppPaginatedListView), findsOneWidget);
+    final paginatedList = tester.widget<AppPaginatedListView>(
+      find.byType(AppPaginatedListView),
+    );
+    expect(paginatedList.itemCount, 1);
+    expect(paginatedList.hasMore, isFalse);
+    expect(paginatedList.isLoadingMore, isFalse);
     expect(find.byIcon(AppIcons.clock), findsOneWidget);
     expect(find.byIcon(AppIcons.location), findsOneWidget);
 

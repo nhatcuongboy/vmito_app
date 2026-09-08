@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/widgets/app_tab_bar.dart';
 import 'package:vmito_app/features/court/application/court_selection_controller.dart';
 import 'package:vmito_app/features/court/application/court_selection_state.dart';
 import 'package:vmito_app/features/court/domain/player_position.dart';
@@ -80,13 +80,15 @@ class CourtSelectionSheet extends ConsumerWidget {
               title: selectionKey.preSelect
                   ? l10n.courtPreSelectNext
                   : l10n.courtSelectionTitle(court.courtNumber),
-              subtitle: l10n.courtSelectionDescription,
+              subtitle: state.mode == CourtSelectionMode.manual
+                  ? l10n.courtSelectRequiredPlayers(state.requiredCount)
+                  : l10n.courtAutoAssignDescription,
             ),
             _MatchTypeToggle(
               matchType: state.matchType,
               onChanged: controller.setMatchType,
             ),
-            TabBar(
+            AppTabBar(
               onTap: (index) => controller.setMode(
                 index == 0
                     ? CourtSelectionMode.manual
@@ -185,42 +187,23 @@ class _Footer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final palette = theme.extension<AppPalette>()!;
     final l10n = AppLocalizations.of(context);
-    final remaining = state.requiredCount - state.selectedIds.length;
     return AppSheetActionBar(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      child: Row(
         children: [
-          // Say what is missing rather than leaving a dead button.
-          if (state.mode == CourtSelectionMode.manual && remaining > 0)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: Text(
-                l10n.courtSelectRequiredPlayers(state.requiredCount),
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: palette.mutedForeground,
-                ),
-              ),
+          Expanded(
+            child: OutlinedButton(
+              onPressed: onCancel,
+              child: Text(l10n.courtCancelSelection),
             ),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: onCancel,
-                  child: Text(l10n.courtCancelSelection),
-                ),
-              ),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: FilledButton(
-                  key: const ValueKey('confirm-player-selection'),
-                  onPressed: state.isComplete ? onConfirm : null,
-                  child: Text(l10n.courtConfirmMatch),
-                ),
-              ),
-            ],
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: FilledButton(
+              key: const ValueKey('confirm-player-selection'),
+              onPressed: state.isComplete ? onConfirm : null,
+              child: Text(l10n.courtConfirmMatch),
+            ),
           ),
         ],
       ),

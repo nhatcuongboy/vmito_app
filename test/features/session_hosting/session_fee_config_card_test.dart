@@ -45,6 +45,21 @@ void main() {
     await _pumpCard(tester, width: 600);
 
     expect(find.byKey(const Key('fee-config-header-wide')), findsOneWidget);
+    expect(find.byIcon(AppIcons.calculator), findsNothing);
+    expect(
+      tester.widget<Text>(find.text('Cấu hình phí buổi chơi')).style?.fontSize,
+      16,
+    );
+    for (final icon in [AppIcons.edit, AppIcons.refresh]) {
+      final button = tester.widget<IconButton>(
+        find.widgetWithIcon(IconButton, icon),
+      );
+      expect(button.iconSize, 18);
+      expect(
+        tester.getSize(find.widgetWithIcon(IconButton, icon)).height,
+        greaterThanOrEqualTo(48),
+      );
+    }
     expect(
       tester.getTopLeft(find.byIcon(AppIcons.edit)).dy,
       lessThan(tester.getTopLeft(find.byType(Chip)).dy),

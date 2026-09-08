@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/payment/domain/payment.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
@@ -52,6 +53,51 @@ void main() {
     expect(find.text('Người chơi thường'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'uses compact, accessible actions in the payment section header',
+    (
+      tester,
+    ) async {
+      await tester.pumpWidget(_app(_ledger));
+      await tester.pumpAndSettle();
+
+      expect(
+        tester.widget<Text>(find.text('Thống kê thanh toán')).style?.fontSize,
+        16,
+      );
+      expect(
+        tester
+            .widget<Icon>(
+              find.descendant(
+                of: find.byKey(const Key('payment-filter-button')),
+                matching: find.byIcon(AppIcons.filter),
+              ),
+            )
+            .size,
+        18,
+      );
+      expect(
+        tester
+            .widget<Icon>(
+              find.descendant(
+                of: find.byKey(const Key('payment-bulk-approve')),
+                matching: find.byIcon(AppIcons.checkAll),
+              ),
+            )
+            .size,
+        18,
+      );
+      expect(
+        tester.getSize(find.byKey(const Key('payment-filter-button'))).height,
+        greaterThanOrEqualTo(48),
+      );
+      expect(
+        tester.getSize(find.byKey(const Key('payment-bulk-approve'))).height,
+        greaterThanOrEqualTo(48),
+      );
+    },
+  );
 }
 
 Widget _app(PaymentLedger ledger) => ProviderScope(

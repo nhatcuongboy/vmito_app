@@ -8,6 +8,7 @@ import 'package:vmito_app/features/payment/application/payment_providers.dart';
 import 'package:vmito_app/features/payment/domain/payment.dart';
 import 'package:vmito_app/features/session_hosting/application/host_session_management_controller.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/expense_dialog.dart';
+import 'package:vmito_app/features/session_hosting/presentation/widgets/payment_section_header_style.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
 
@@ -57,7 +58,11 @@ class SessionExpensesCard extends ConsumerWidget {
                       useSafeArea: true,
                       builder: (_) => ExpenseBatchSheet(sessionId: sessionId),
                     ),
-                    icon: const Icon(AppIcons.add, size: 18),
+                    style: PaymentSectionHeaderStyle.actionButtonStyle,
+                    icon: const Icon(
+                      AppIcons.add,
+                      size: PaymentSectionHeaderStyle.actionIconSize,
+                    ),
                     label: Text(l10n.sessionExpenseAdd),
                   ),
                 ],

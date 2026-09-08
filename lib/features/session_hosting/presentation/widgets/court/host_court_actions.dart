@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/features/session_hosting/application/host_court_actions_state.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/court.dart';
 
@@ -16,6 +17,7 @@ class HostCourtActions extends StatelessWidget {
     required this.isSessionLive,
     required this.waitingCount,
     required this.isBusy,
+    required this.activeAction,
     required this.onAssign,
     required this.onClear,
     required this.onStart,
@@ -34,6 +36,7 @@ class HostCourtActions extends StatelessWidget {
   final int waitingCount;
 
   final bool isBusy;
+  final HostCourtAction? activeAction;
 
   final VoidCallback onAssign;
   final VoidCallback onClear;
@@ -65,7 +68,11 @@ class HostCourtActions extends StatelessWidget {
           key: ValueKey('assign-${court.id}'),
           style: _solid(palette.success),
           onPressed: isBusy || !hasEnoughWaiting ? null : onAssign,
-          icon: const Icon(AppIcons.shuffle, size: 16),
+          icon: _actionIcon(
+            AppIcons.shuffle,
+            isLoading: activeAction == HostCourtAction.assign,
+            loadingColor: Colors.white,
+          ),
           label: Text(l10n.courtAssignPlayers),
         ),
       // Thay đổi thứ tự: nút "Hủy" trước, nút "Bắt đầu" sau
@@ -74,7 +81,11 @@ class HostCourtActions extends StatelessWidget {
           key: ValueKey('clear-${court.id}'),
           style: _outline(theme.colorScheme.error),
           onPressed: isBusy ? null : onClear,
-          icon: const Icon(AppIcons.close, size: 16),
+          icon: _actionIcon(
+            AppIcons.close,
+            isLoading: activeAction == HostCourtAction.clear,
+            loadingColor: theme.colorScheme.error,
+          ),
           label: Text(l10n.courtCancelSelection),
         ),
       if (isReady && !isRunning)
@@ -82,7 +93,11 @@ class HostCourtActions extends StatelessWidget {
           key: ValueKey('start-${court.id}'),
           style: _solid(palette.success),
           onPressed: isBusy ? null : onStart,
-          icon: const Icon(AppIcons.play, size: 16),
+          icon: _actionIcon(
+            AppIcons.play,
+            isLoading: activeAction == HostCourtAction.start,
+            loadingColor: Colors.white,
+          ),
           label: Text(l10n.courtStartMatch),
         ),
       if (isPlaying && !court.hasPreSelection)
@@ -90,7 +105,11 @@ class HostCourtActions extends StatelessWidget {
           key: ValueKey('pre-select-${court.id}'),
           style: _outline(palette.success),
           onPressed: isBusy || !hasEnoughWaiting ? null : onPreSelect,
-          icon: const Icon(AppIcons.userPlus, size: 16),
+          icon: _actionIcon(
+            AppIcons.userPlus,
+            isLoading: activeAction == HostCourtAction.preSelect,
+            loadingColor: palette.success,
+          ),
           label: Text(l10n.courtPreSelectShort),
         ),
       if (isPlaying && court.hasPreSelection)
@@ -98,7 +117,11 @@ class HostCourtActions extends StatelessWidget {
           key: ValueKey('view-next-${court.id}'),
           style: _outline(_purple),
           onPressed: isBusy ? null : onViewNextMatch,
-          icon: const Icon(AppIcons.eye, size: 16),
+          icon: _actionIcon(
+            AppIcons.eye,
+            isLoading: activeAction == HostCourtAction.cancelPreSelect,
+            loadingColor: _purple,
+          ),
           label: Text(l10n.courtViewNextMatch),
         ),
       if (isPlaying)
@@ -106,7 +129,11 @@ class HostCourtActions extends StatelessWidget {
           key: ValueKey('end-${court.id}'),
           style: _solid(theme.colorScheme.error),
           onPressed: isBusy ? null : onEnd,
-          icon: const Icon(AppIcons.stop, size: 16),
+          icon: _actionIcon(
+            AppIcons.stop,
+            isLoading: activeAction == HostCourtAction.end,
+            loadingColor: Colors.white,
+          ),
           label: Text(l10n.courtEndMatch),
         ),
     ];
@@ -139,6 +166,17 @@ class HostCourtActions extends StatelessWidget {
     );
   }
 }
+
+Widget _actionIcon(
+  IconData icon, {
+  required bool isLoading,
+  required Color loadingColor,
+}) => isLoading
+    ? SizedBox.square(
+        dimension: 16,
+        child: CircularProgressIndicator(strokeWidth: 2, color: loadingColor),
+      )
+    : Icon(icon, size: 16);
 
 /// Web's `colorPalette="green"`/`"red"` solid buttons (size="sm").
 ButtonStyle _solid(Color color) => FilledButton.styleFrom(

@@ -163,12 +163,7 @@ class SessionRepositoryImpl implements SessionRepository {
       ApiEndpoints.availableSessions,
       queryParameters: {'hostId': hostId, 'page': 1, 'limit': 1},
     );
-    // This endpoint alone nests its totals under `pagination`, which
-    // `unwrapPage` does not read.
-    return unwrap(response.data, (json) {
-      final pagination = json['pagination'] as Map<String, dynamic>?;
-      return (pagination?['total'] as num?)?.toInt() ?? 0;
-    });
+    return unwrapPage(response.data, Session.fromJson).total;
   }
 
   @override

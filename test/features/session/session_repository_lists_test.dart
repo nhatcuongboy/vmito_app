@@ -112,6 +112,32 @@ void main() {
     },
   );
 
+  test(
+    'browseAvailable reads pagination nested under `pagination`, enabling '
+    'load-more',
+    () async {
+      final adapter = _RecordingAdapter(
+        responseBody:
+            '{"success":true,"data":{"data":[],'
+            '"pagination":{"page":1,"limit":12,"total":609,"totalPages":51}}}',
+      );
+
+      final page = await _repository(adapter).browseAvailable(
+        limit: 12,
+        timeRanges: const {},
+        levels: const {},
+        sports: const {},
+        districts: const {},
+        splitEvenly: false,
+        sortByDistance: false,
+      );
+
+      expect(page.total, 609);
+      expect(page.totalPages, 51);
+      expect(page.hasMore, isTrue);
+    },
+  );
+
   test('available sessions serializes the complete filter contract', () async {
     final adapter = _RecordingAdapter();
     final repository = _repository(adapter);

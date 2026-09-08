@@ -222,7 +222,10 @@ class _StandingsToolbar extends StatelessWidget {
             ),
             items: [
               DropdownMenuItem<String?>(
-                child: Text(l10n.tournamentStandingsAllCategories),
+                child: Text(
+                  l10n.tournamentStandingsAllCategories,
+                  style: const TextStyle(fontWeight: FontWeight.normal),
+                ),
               ),
               for (final category in categories)
                 DropdownMenuItem<String?>(
@@ -230,6 +233,7 @@ class _StandingsToolbar extends StatelessWidget {
                   child: Text(
                     category.name.isEmpty ? category.type : category.name,
                     overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.normal),
                   ),
                 ),
             ],
@@ -268,11 +272,17 @@ class _StandingsToolbar extends StatelessWidget {
               items: [
                 DropdownMenuItem(
                   value: TournamentStandingsView.pools,
-                  child: Text(l10n.tournamentStandingsPools),
+                  child: Text(
+                    l10n.tournamentStandingsPools,
+                    style: const TextStyle(fontWeight: FontWeight.normal),
+                  ),
                 ),
                 DropdownMenuItem(
                   value: TournamentStandingsView.overall,
-                  child: Text(l10n.tournamentStandingsOverall),
+                  child: Text(
+                    l10n.tournamentStandingsOverall,
+                    style: const TextStyle(fontWeight: FontWeight.normal),
+                  ),
                 ),
               ],
               onChanged: (value) {

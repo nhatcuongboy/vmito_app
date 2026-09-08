@@ -68,6 +68,24 @@ void main() {
       await tester.tap(find.byType(IconButton));
       expect(closed, isTrue);
     });
+
+    testWidgets('vertically centers the title with the close button', (
+      tester,
+    ) async {
+      const closeButtonKey = Key('sheet-close');
+      await tester.pumpWidget(
+        buildSubject(
+          const AppSheetHeader(
+            title: 'Bộ lọc',
+            closeButtonKey: closeButtonKey,
+          ),
+        ),
+      );
+
+      final titleCenter = tester.getCenter(find.text('Bộ lọc'));
+      final closeButtonCenter = tester.getCenter(find.byKey(closeButtonKey));
+      expect(titleCenter.dy, closeTo(closeButtonCenter.dy, 0.01));
+    });
   });
 
   testWidgets('AppSheetGrabber renders a pill-shaped handle', (tester) async {

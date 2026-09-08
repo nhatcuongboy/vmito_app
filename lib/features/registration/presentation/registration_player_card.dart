@@ -110,7 +110,10 @@ class RegistrationPlayerCard extends StatelessWidget {
                     for (final gender in genderOptions)
                       DropdownMenuItem(
                         value: gender,
-                        child: Text(_genderLabel(l10n, gender)),
+                        child: Text(
+                          _genderLabel(l10n, gender),
+                          style: const TextStyle(fontWeight: FontWeight.normal),
+                        ),
                       ),
                   ],
                   onChanged: (value) => value == null
@@ -133,7 +136,10 @@ class RegistrationPlayerCard extends StatelessWidget {
                     for (final level in levelOptions)
                       DropdownMenuItem(
                         value: level,
-                        child: Text(l10n.levelName(level)),
+                        child: Text(
+                          l10n.levelName(level),
+                          style: const TextStyle(fontWeight: FontWeight.normal),
+                        ),
                       ),
                   ],
                   validator: (value) =>

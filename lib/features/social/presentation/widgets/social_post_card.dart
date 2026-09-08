@@ -366,26 +366,32 @@ class _ImageGrid extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: isSingle
-          ? _SingleImage(url: images.first.url)
+          ? _SingleImage(images: images)
           : _MultiImageGrid(images: images),
     );
   }
 }
 
 class _SingleImage extends StatelessWidget {
-  const _SingleImage({required this.url});
-  final String url;
+  const _SingleImage({required this.images});
+
+  final List<SocialPostImage> images;
+
   @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: () => unawaited(showAppLightbox(context, images: [url])),
-    child: CachedNetworkImage(
-      imageUrl: url,
-      height: 320,
-      width: double.infinity,
-      fit: BoxFit.cover,
-      errorWidget: (_, _, _) => const _ImgError(),
-    ),
-  );
+  Widget build(BuildContext context) {
+    final imageUrls = images.map((image) => image.url).toList(growable: false);
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => unawaited(showAppLightbox(context, images: imageUrls)),
+      child: CachedNetworkImage(
+        imageUrl: images.first.url,
+        height: 320,
+        width: double.infinity,
+        fit: BoxFit.cover,
+        errorWidget: (_, _, _) => const _ImgError(),
+      ),
+    );
+  }
 }
 
 class _MultiImageGrid extends StatelessWidget {
@@ -406,6 +412,7 @@ class _MultiImageGrid extends StatelessWidget {
       itemBuilder: (_, index) {
         final isLast = index == 3 && images.length > 4;
         return GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: () => unawaited(
             showAppLightbox(
               context,
@@ -536,12 +543,24 @@ class _OriginalPostCard extends StatelessWidget {
               const SizedBox(height: 8),
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: CachedNetworkImage(
-                  imageUrl: post.images.first.url,
-                  height: 160,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorWidget: (_, _, _) => const _ImgError(),
+                child: GestureDetector(
+                  key: Key('shared-post-image-${post.id}'),
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => unawaited(
+                    showAppLightbox(
+                      context,
+                      images: post.images
+                          .map((image) => image.url)
+                          .toList(growable: false),
+                    ),
+                  ),
+                  child: CachedNetworkImage(
+                    imageUrl: post.images.first.url,
+                    height: 160,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorWidget: (_, _, _) => const _ImgError(),
+                  ),
                 ),
               ),
             ],

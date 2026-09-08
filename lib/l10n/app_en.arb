@@ -50,7 +50,7 @@
   "authSignUpPhonePlaceholder": "Phone number",
   "authSignUpPhoneInvalid": "Phone number must contain exactly 10 digits",
   "authSignUpGender": "Gender",
-  "authSignUpOptionalDetails": "Additional details (optional)",
+  "authSignUpAdditionalDetails": "Additional details",
   "authSignUpMale": "Male",
   "authSignUpFemale": "Female",
   "authSignUpPassword": "Password",
@@ -348,6 +348,7 @@
   "homeDiscoveryVenues": "Find venues",
   "homeDiscoveryClubs": "Find groups",
   "homeDiscoveryTournaments": "Find tournaments",
+  "commonEndOfResults": "You’ve reached the end of the results.",
   "homeDiscoverySortBy": "Sort by",
   "homeDiscoverySortDateNearest": "Soonest date",
   "homeDiscoverySortDateFurthest": "Latest date",
@@ -1677,6 +1678,7 @@
   "courtMatchTypeSingles": "Singles",
   "courtManualSelection": "Manual",
   "courtAutoAssign": "Auto-assign",
+  "courtAutoAssignDescription": "View the automatic pairing suggestion for this court.",
   "courtAiPoweredMatching": "AI matching",
   "courtAiMatchingHint": "Pairs players by skill level",
   "courtAiAnalyzing": "AI is analysing…",
@@ -1695,8 +1697,12 @@
   "courtPair1": "Pair 1",
   "courtPair2": "Pair 2",
   "courtPairGapLabel": "Gap:",
+  "courtPairDetails": "Pair details",
+  "courtPairTotal": "Total score",
+  "courtPairEmptySlot": "No player selected",
+  "courtPairBalanceUnavailable": "Select all players to calculate the gap.",
   "courtConfirmMatch": "Confirm",
-  "courtSelectRequiredPlayers": "Select {total} players to confirm",
+  "courtSelectRequiredPlayers": "Select {total} players to assign to this court",
   "@courtSelectRequiredPlayers": {
     "placeholders": {
       "total": {

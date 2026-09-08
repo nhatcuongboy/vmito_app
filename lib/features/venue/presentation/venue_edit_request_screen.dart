@@ -12,6 +12,7 @@ import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/shared/widgets/app_required_label.dart';
+import 'package:vmito_app/shared/widgets/app_time_picker.dart';
 
 class VenueEditRequestScreen extends ConsumerStatefulWidget {
   const VenueEditRequestScreen({required this.venue, super.key});
@@ -516,7 +517,7 @@ class _TimeField extends StatelessWidget {
                 '${value.inMinutes.remainder(60).toString().padLeft(2, '0')}';
       return OutlinedButton(
         onPressed: () async {
-          final selected = await showTimePicker(
+          final selected = await showAppTimePicker(
             context: context,
             initialTime: TimeOfDay(
               hour: value?.inHours ?? TimeOfDay.now().hour,

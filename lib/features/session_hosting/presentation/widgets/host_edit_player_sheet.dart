@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
@@ -15,7 +14,10 @@ import 'package:vmito_app/features/session_hosting/application/host_add_players_
 import 'package:vmito_app/features/session_hosting/application/host_session_management_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/shared/widgets/app_required_label.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_action_bar.dart';
+import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 import 'package:vmito_domain/vmito_domain.dart';
 
 Future<bool?> showHostEditPlayerSheet(
@@ -121,31 +123,16 @@ class _HostEditPlayerSheetState extends ConsumerState<_HostEditPlayerSheet> {
     final addState = ref.watch(
       hostAddPlayersControllerProvider(widget.session.id),
     );
-    return AppReactiveForm(
+    return AppReactiveForm<void>(
       formGroup: _form,
       child: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 12, 12, 12),
-            child: Row(
-              children: [
-                const Icon(AppIcons.edit),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Text(
-                    l10n.hostPlayerEditTitle(widget.player.playerNumber ?? 0),
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ),
-                IconButton(
-                  tooltip: l10n.commonCancel,
-                  onPressed: _submitting ? null : () => Navigator.pop(context),
-                  icon: const Icon(AppIcons.close),
-                ),
-              ],
-            ),
+          AppSheetHeader(
+            title: l10n.hostPlayerEditTitle(widget.player.playerNumber ?? 0),
+            leadingIcon: AppIcons.edit,
+            closeButtonEnabled: !_submitting,
+            onClose: () => Navigator.pop(context),
           ),
-          const Divider(height: 1),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(AppSpacing.md),
@@ -178,11 +165,17 @@ class _HostEditPlayerSheetState extends ConsumerState<_HostEditPlayerSheet> {
                         items: [
                           DropdownMenuItem(
                             value: Gender.male,
-                            child: Text(l10n.genderMale),
+                            child: Text(
+                              l10n.genderMale,
+                              style: const TextStyle(fontWeight: FontWeight.normal),
+                            ),
                           ),
                           DropdownMenuItem(
                             value: Gender.female,
-                            child: Text(l10n.genderFemale),
+                            child: Text(
+                              l10n.genderFemale,
+                              style: const TextStyle(fontWeight: FontWeight.normal),
+                            ),
                           ),
                         ],
                       ),
@@ -202,7 +195,10 @@ class _HostEditPlayerSheetState extends ConsumerState<_HostEditPlayerSheet> {
                           for (final level in _levels)
                             DropdownMenuItem(
                               value: level,
-                              child: Text(l10n.levelName(level)),
+                              child: Text(
+                                l10n.levelName(level),
+                                style: const TextStyle(fontWeight: FontWeight.normal),
+                              ),
                             ),
                         ],
                       ),
@@ -223,9 +219,7 @@ class _HostEditPlayerSheetState extends ConsumerState<_HostEditPlayerSheet> {
               ],
             ),
           ),
-          const Divider(height: 1),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
+          AppSheetActionBar(
             child: Row(
               children: [
                 Expanded(
@@ -302,7 +296,10 @@ class _ClubFeeEditor extends StatelessWidget {
                       for (final club in state.clubs)
                         DropdownMenuItem(
                           value: club.id,
-                          child: Text(club.name),
+                          child: Text(
+                            club.name,
+                            style: const TextStyle(fontWeight: FontWeight.normal),
+                          ),
                         ),
                     ],
                   ),

@@ -11,6 +11,7 @@ import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/features/venue/presentation/browse_venues_screen.dart';
 import 'package:vmito_app/features/venue/presentation/venue_filter_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_paginated_list_view.dart';
 
 void main() {
   Widget buildApp(
@@ -131,6 +132,13 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byKey(const Key('venue-sort-button')), findsNothing);
+      expect(find.byType(AppPaginatedListView), findsOneWidget);
+      final paginatedList = tester.widget<AppPaginatedListView>(
+        find.byType(AppPaginatedListView),
+      );
+      expect(paginatedList.itemCount, 1);
+      expect(paginatedList.hasMore, isFalse);
+      expect(paginatedList.isLoadingMore, isFalse);
       expect(find.byKey(const Key('venue-filter-summary')), findsOneWidget);
       expect(find.text('Mới nhất'), findsOneWidget);
       expect(find.text('Hà Nội'), findsOneWidget);

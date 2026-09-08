@@ -25,22 +25,38 @@ class HostCourtActionsController extends Notifier<HostCourtActionsState> {
   HostCourtActionsState build() => const HostCourtActionsState();
 
   Future<bool> selectPlayers(String courtId, List<PlayerPosition> players) =>
-      _run(courtId, (repo) => repo.selectPlayers(courtId, players));
+      _run(
+        courtId,
+        HostCourtAction.assign,
+        (repo) => repo.selectPlayers(courtId, players),
+      );
 
-  Future<bool> deselectPlayers(String courtId) =>
-      _run(courtId, (repo) => repo.deselectPlayers(courtId));
+  Future<bool> deselectPlayers(String courtId) => _run(
+    courtId,
+    HostCourtAction.clear,
+    (repo) => repo.deselectPlayers(courtId),
+  );
 
   Future<bool> startMatch(String courtId) =>
-      _run(courtId, (repo) => repo.startMatch(courtId));
+      _run(courtId, HostCourtAction.start, (repo) => repo.startMatch(courtId));
 
-  Future<bool> endMatch(String courtId, MatchResultDraft result) =>
-      _run(courtId, (repo) => repo.endMatch(courtId, result));
+  Future<bool> endMatch(String courtId, MatchResultDraft result) => _run(
+    courtId,
+    HostCourtAction.end,
+    (repo) => repo.endMatch(courtId, result),
+  );
 
-  Future<bool> preSelect(String courtId, List<PlayerPosition> players) =>
-      _run(courtId, (repo) => repo.preSelect(courtId, players));
+  Future<bool> preSelect(String courtId, List<PlayerPosition> players) => _run(
+    courtId,
+    HostCourtAction.preSelect,
+    (repo) => repo.preSelect(courtId, players),
+  );
 
-  Future<bool> cancelPreSelect(String courtId) =>
-      _run(courtId, (repo) => repo.cancelPreSelect(courtId));
+  Future<bool> cancelPreSelect(String courtId) => _run(
+    courtId,
+    HostCourtAction.cancelPreSelect,
+    (repo) => repo.cancelPreSelect(courtId),
+  );
 
   /// Runs [operation] while marking [courtId] busy, then refetches the session.
   ///
@@ -49,12 +65,16 @@ class HostCourtActionsController extends Notifier<HostCourtActionsState> {
   /// did not change, and a refetch would only make the UI flicker.
   Future<bool> _run(
     String courtId,
+    HostCourtAction action,
     Future<void> Function(CourtRepository repo) operation,
   ) async {
     if (state.isBusy(courtId)) return false;
     state = state.copyWith(
-      busyCourtIds: {...state.busyCourtIds, courtId},
-      error: null,
+      activeActionsByCourtId: {
+        ...state.activeActionsByCourtId,
+        courtId: action,
+      },
+      failure: null,
     );
     try {
       await operation(ref.read(courtRepositoryProvider));
@@ -63,11 +83,14 @@ class HostCourtActionsController extends Notifier<HostCourtActionsState> {
         ..invalidate(matchHistoryProvider(sessionId));
       return true;
     } on Object catch (error) {
-      state = state.copyWith(error: error);
+      state = state.copyWith(
+        failure: HostCourtActionFailure(courtId: courtId, error: error),
+      );
       return false;
     } finally {
       state = state.copyWith(
-        busyCourtIds: {...state.busyCourtIds}..remove(courtId),
+        activeActionsByCourtId: {...state.activeActionsByCourtId}
+          ..remove(courtId),
       );
     }
   }

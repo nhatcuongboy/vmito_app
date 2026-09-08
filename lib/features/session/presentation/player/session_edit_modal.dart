@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/player/create_session_screen.dart';
+import 'package:vmito_app/shared/widgets/app_full_height_modal.dart';
 
 const _dialogBreakpoint = 768.0;
 const _dialogWidth = 720.0;
@@ -36,19 +37,14 @@ Future<Session?> showSessionEditModal(
     );
   }
 
-  return showModalBottomSheet<Session>(
-    context: context,
+  return showAppFullHeightModal<Session>(
+    context,
     useRootNavigator: true,
-    useSafeArea: true,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (context) => SizedBox(
+    heightFactor: .96,
+    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+    builder: (context) => SizedBox.expand(
       key: const Key('session-edit-bottom-sheet'),
-      height: MediaQuery.sizeOf(context).height * 0.96,
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-        child: form,
-      ),
+      child: form,
     ),
   );
 }

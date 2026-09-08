@@ -29,9 +29,11 @@ class Page<T> {
 
 /// Reads a paginated body, tolerating a bare list.
 ///
-/// Some endpoints return `{data, total, ...}`; others return a plain array.
-/// Rather than track which is which per endpoint, accept both — the same
-/// tolerance principle as [unwrap].
+/// Some endpoints return `{data, total, page, limit, totalPages}` flat;
+/// others (e.g. `GET /sessions/available`) nest those four fields under a
+/// `pagination` key instead; others return a plain array. Rather than track
+/// which is which per endpoint, accept all of them — the same tolerance
+/// principle as [unwrap].
 Page<T> unwrapPage<T>(
   dynamic body,
   T Function(Map<String, dynamic>) fromJson,
@@ -62,13 +64,14 @@ Page<T> unwrapPage<T>(
 
   final rawItems = (payload['data'] as List<dynamic>? ?? const [])
       .cast<Map<String, dynamic>>();
+  final meta = payload['pagination'] as Map<String, dynamic>? ?? payload;
 
   return Page<T>(
     items: rawItems.map(fromJson).toList(growable: false),
-    total: _int(payload['total']) ?? rawItems.length,
-    page: _int(payload['page']) ?? 1,
-    limit: _int(payload['limit']) ?? rawItems.length,
-    totalPages: _int(payload['totalPages']) ?? 1,
+    total: _int(meta['total']) ?? rawItems.length,
+    page: _int(meta['page']) ?? 1,
+    limit: _int(meta['limit']) ?? rawItems.length,
+    totalPages: _int(meta['totalPages']) ?? 1,
   );
 }
 
