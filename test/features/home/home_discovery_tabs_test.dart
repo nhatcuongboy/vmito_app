@@ -576,6 +576,113 @@ void main() {
   });
 
   testWidgets(
+    'selecting Khác clears city filter on sessions, venues, clubs, and tournaments',
+    (tester) async {
+      _FakeSessionsController.lastFilters = null;
+      _SearchVenuesController.lastFilter = null;
+      _FakeClubsController.lastCity = 'Hồ Chí Minh';
+      _FakeClubsController.lastClearCity = false;
+      _FakeTournamentsController.lastCity = 'Hồ Chí Minh';
+      _FakeTournamentsController.lastClearCity = false;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authControllerProvider.overrideWith(_HostAuthController.new),
+            notificationControllerProvider.overrideWith(
+              _FakeNotificationController.new,
+            ),
+            locationPreferencesControllerProvider.overrideWith(
+              _HomeLocationPreferencesController.new,
+            ),
+            newAdminUnitsProvider.overrideWith(
+              (ref) async => const [
+                NewAdminUnit(city: 'Thành phố Hồ Chí Minh', wards: []),
+                NewAdminUnit(city: 'Thành phố Hà Nội', wards: []),
+              ],
+            ),
+            browseSessionsControllerProvider.overrideWith(
+              _FakeSessionsController.new,
+            ),
+            venueBrowseControllerProvider.overrideWith(
+              _SearchVenuesController.new,
+            ),
+            clubsControllerProvider.overrideWith(_FakeClubsController.new),
+            tournamentBrowseControllerProvider.overrideWith(
+              _FakeTournamentsController.new,
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('vi'),
+            theme: AppTheme.light,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const HomeScreen(),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // 1. Sessions tab (default): select "Khác"
+      await tester.tap(find.byKey(const Key('discovery-city-selector')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('discovery-city-other')));
+      await tester.pumpAndSettle();
+
+      expect(_FakeSessionsController.lastFilters?.city, isNull);
+      expect(_FakeSessionsController.lastFilters?.cityIsDefault, isTrue);
+
+      // 2. Venues tab: switch tab, select Hà Nội, then select "Khác"
+      await tester.tap(find.text('Sân'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('discovery-city-selector')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('discovery-city-Hà Nội')));
+      await tester.pumpAndSettle();
+      expect(_SearchVenuesController.lastFilter?.city, 'Hà Nội');
+
+      await tester.tap(find.byKey(const Key('discovery-city-selector')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('discovery-city-other')));
+      await tester.pumpAndSettle();
+      expect(_SearchVenuesController.lastFilter?.city, isNull);
+      expect(_SearchVenuesController.lastFilter?.cityIsDefault, isTrue);
+
+      // 3. Clubs tab: switch tab, select Hà Nội, then select "Khác"
+      await tester.tap(find.text('Câu lạc bộ'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('discovery-city-selector')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('discovery-city-Hà Nội')));
+      await tester.pumpAndSettle();
+      expect(_FakeClubsController.lastCity, 'Hà Nội');
+
+      await tester.tap(find.byKey(const Key('discovery-city-selector')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('discovery-city-other')));
+      await tester.pumpAndSettle();
+      expect(_FakeClubsController.lastCity, isNull);
+      expect(_FakeClubsController.lastClearCity, isTrue);
+
+      // 4. Tournaments tab: switch tab, select Hà Nội, then select "Khác"
+      await tester.tap(find.text('Giải đấu'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('discovery-city-selector')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('discovery-city-Hà Nội')));
+      await tester.pumpAndSettle();
+      expect(_FakeTournamentsController.lastCity, 'Hà Nội');
+
+      await tester.tap(find.byKey(const Key('discovery-city-selector')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('discovery-city-other')));
+      await tester.pumpAndSettle();
+      expect(_FakeTournamentsController.lastCity, isNull);
+      expect(_FakeTournamentsController.lastClearCity, isTrue);
+    },
+  );
+
+  testWidgets(
     'map toggle shows only the destination view',
     (
       tester,
@@ -931,6 +1038,7 @@ class _HomeLocationPreferencesController extends LocationPreferencesController {
   @override
   LocationPreferences build() => const LocationPreferences(
     preferredCity: 'Hồ Chí Minh',
+    selectionType: LocationSelectionType.city,
     onboardingCompleted: true,
     isRestored: true,
   );
@@ -940,6 +1048,25 @@ class _HomeLocationPreferencesController extends LocationPreferencesController {
     state = state.copyWith(
       preferredCity: city,
       clearPreferredCity: city == null,
+      selectionType: city == null ? LocationSelectionType.all : LocationSelectionType.city,
+      onboardingCompleted: true,
+    );
+  }
+
+  @override
+  Future<void> selectAll() async {
+    state = state.copyWith(
+      clearPreferredCity: true,
+      selectionType: LocationSelectionType.all,
+      onboardingCompleted: true,
+    );
+  }
+
+  @override
+  Future<void> selectOther() async {
+    state = state.copyWith(
+      clearPreferredCity: true,
+      selectionType: LocationSelectionType.other,
       onboardingCompleted: true,
     );
   }
@@ -955,9 +1082,13 @@ class _FakeVenuesController extends VenueBrowseController {
 }
 
 class _SearchVenuesController extends VenueBrowseController {
+  static VenueFilter? lastFilter;
+
   @override
   Future<void> load({VenueFilter? filter}) async {
-    state = VenueBrowseState(filter: filter ?? state.filter);
+    final next = filter ?? state.filter;
+    lastFilter = next;
+    state = VenueBrowseState(filter: next);
   }
 }
 
@@ -974,6 +1105,8 @@ class _VenueFilterSessionsController extends BrowseSessionsController {
 
 class _FakeClubsController extends ClubsController {
   static int loads = 0;
+  static String? lastCity;
+  static bool? lastClearCity;
 
   @override
   Future<void> load({
@@ -988,11 +1121,15 @@ class _FakeClubsController extends ClubsController {
     bool clearDistrict = false,
   }) async {
     loads++;
+    lastCity = city;
+    lastClearCity = clearCity;
   }
 }
 
 class _FakeTournamentsController extends TournamentBrowseController {
   static int loads = 0;
+  static String? lastCity;
+  static bool? lastClearCity;
 
   @override
   Future<void> load({
@@ -1005,6 +1142,8 @@ class _FakeTournamentsController extends TournamentBrowseController {
     TournamentBrowseSort? sort,
   }) async {
     loads++;
+    lastCity = city;
+    lastClearCity = clearCity;
   }
 }
 

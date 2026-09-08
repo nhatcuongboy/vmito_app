@@ -10,6 +10,7 @@ import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
+import 'package:vmito_app/core/utils/input_formatters.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/payment/application/payment_providers.dart';
 import 'package:vmito_app/features/payment/application/transaction_dashboard_controller.dart';
@@ -51,7 +52,8 @@ class PlayerPaymentDetailSheet extends ConsumerWidget {
             const AppSheetGrabber(),
             AppSheetHeader(
               title: summary.userName,
-              subtitle: '${l10n.transactionTotal}: '
+              subtitle:
+                  '${l10n.transactionTotal}: '
                   '${Money.vnd(summary.totalAmount, locale: locale)}',
             ),
             Expanded(
@@ -460,6 +462,8 @@ class _PaymentReviewSheetState extends ConsumerState<PaymentReviewSheet> {
                 const SizedBox(height: AppSpacing.md),
                 ReactiveTextField<int>(
                   formControlName: PaymentReviewControl.amount,
+                  valueAccessor: CurrencyValueAccessor(),
+                  inputFormatters: [ThousandsSeparatorFormatter()],
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: l10n.transactionAmount,

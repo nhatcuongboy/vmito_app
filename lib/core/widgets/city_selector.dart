@@ -25,7 +25,14 @@ class CitySelector extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final city = ref.watch(locationPreferencesControllerProvider).preferredCity;
+    final preference = ref.watch(locationPreferencesControllerProvider);
+    final city = preference.preferredCity;
+    final String labelText = switch (preference.selectionType) {
+      LocationSelectionType.other => l10n.citySelectorOther,
+      LocationSelectionType.city =>
+        (city?.trim().isNotEmpty ?? false) ? city! : l10n.citySelectorAll,
+      _ => (city?.trim().isNotEmpty ?? false) ? city! : l10n.citySelectorAll,
+    };
     void onPressed() => unawaited(_showSelector(context, ref));
     if (!showLabel) {
       return IconButton(
@@ -47,7 +54,7 @@ class CitySelector extends ConsumerWidget {
       label: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: labelMaxWidth),
         child: Text(
-          city?.trim().isNotEmpty ?? false ? city! : l10n.citySelectorAll,
+          labelText,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
@@ -59,10 +66,18 @@ class CitySelector extends ConsumerWidget {
     final result = await showCitySelectorSheet(context);
     if (result == null || !context.mounted) return;
     final before = ref.read(locationPreferencesControllerProvider);
-    await ref
-        .read(locationPreferencesControllerProvider.notifier)
-        .selectCity(result.city);
-    if (before.onboardingCompleted && before.preferredCity == result.city) {
+    final notifier = ref.read(locationPreferencesControllerProvider.notifier);
+    switch (result.type) {
+      case LocationSelectionType.city:
+        await notifier.selectCity(result.city);
+      case LocationSelectionType.all:
+        await notifier.selectAll();
+      case LocationSelectionType.other:
+        await notifier.selectOther();
+    }
+    if (before.onboardingCompleted &&
+        before.selectionType == result.type &&
+        before.preferredCity == result.city) {
       return;
     }
     onChanged?.call(result.city);

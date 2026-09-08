@@ -95,6 +95,31 @@ class ApiClient {
     );
   }
 
+  /// POST whose body is delivered incrementally instead of being buffered.
+  ///
+  /// It deliberately uses the same Dio instance as ordinary API requests, so
+  /// bearer-token attachment, refresh, and typed errors remain consistent.
+  Future<Response<ResponseBody>> postStream(
+    String path, {
+    Object? data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+    CancelToken? cancelToken,
+  }) {
+    final streamOptions = (options ?? Options()).copyWith(
+      responseType: ResponseType.stream,
+    );
+    return _guard(
+      () => _dio.post<ResponseBody>(
+        path,
+        data: data,
+        queryParameters: queryParameters,
+        options: streamOptions,
+        cancelToken: cancelToken,
+      ),
+    );
+  }
+
   Future<Response<T>> put<T>(
     String path, {
     Object? data,

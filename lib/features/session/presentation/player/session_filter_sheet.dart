@@ -9,6 +9,7 @@ import 'package:vmito_app/core/location/new_admin_units.dart';
 import 'package:vmito_app/core/location/vietnam_locations.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/utils/input_formatters.dart';
 import 'package:vmito_app/features/session/domain/browse_session_filters.dart';
 import 'package:vmito_app/features/session/domain/form/browse_session_filter_form.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -64,13 +65,13 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
         BrowseFilterControl.levels: FormControl<Set<int>>(
           value: {...initial.levels},
         ),
-        BrowseFilterControl.minFee: FormControl<String>(
-          value: '${initial.minFee}',
-          validators: [Validators.required, Validators.number()],
+        BrowseFilterControl.minFee: FormControl<int>(
+          value: initial.minFee,
+          validators: [Validators.required, Validators.min(0)],
         ),
-        BrowseFilterControl.maxFee: FormControl<String>(
-          value: '${initial.maxFee}',
-          validators: [Validators.required, Validators.number()],
+        BrowseFilterControl.maxFee: FormControl<int>(
+          value: initial.maxFee,
+          validators: [Validators.required, Validators.min(0)],
         ),
         BrowseFilterControl.splitEvenly: FormControl<bool>(
           value: initial.splitEvenly,
@@ -150,8 +151,8 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
         sports:
             _value<Set<SessionSport>>(BrowseFilterControl.sports) ?? const {},
         levels: _value<Set<int>>(BrowseFilterControl.levels) ?? const {},
-        minFee: int.parse(_value<String>(BrowseFilterControl.minFee)!),
-        maxFee: int.parse(_value<String>(BrowseFilterControl.maxFee)!),
+        minFee: _value<int>(BrowseFilterControl.minFee)!,
+        maxFee: _value<int>(BrowseFilterControl.maxFee)!,
         splitEvenly: _value<bool>(BrowseFilterControl.splitEvenly) ?? false,
         latitude: _coordinates?.latitude,
         longitude: _coordinates?.longitude,
@@ -396,9 +397,11 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                       Row(
                         children: [
                           Expanded(
-                            child: ReactiveTextField<String>(
+                            child: ReactiveTextField<int>(
                               key: const Key('session-filter-min-fee'),
                               formControlName: BrowseFilterControl.minFee,
+                              valueAccessor: CurrencyValueAccessor(),
+                              inputFormatters: [ThousandsSeparatorFormatter()],
                               keyboardType: TextInputType.number,
                               decoration: InputDecoration(
                                 labelText: l10n.sessionFilterMinFee,
@@ -412,9 +415,11 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                             child: Text('→'),
                           ),
                           Expanded(
-                            child: ReactiveTextField<String>(
+                            child: ReactiveTextField<int>(
                               key: const Key('session-filter-max-fee'),
                               formControlName: BrowseFilterControl.maxFee,
+                              valueAccessor: CurrencyValueAccessor(),
+                              inputFormatters: [ThousandsSeparatorFormatter()],
                               keyboardType: TextInputType.number,
                               decoration: InputDecoration(
                                 labelText: l10n.sessionFilterMaxFee,

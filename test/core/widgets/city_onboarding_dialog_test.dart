@@ -1,67 +1,84 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vmito_app/core/location/location_preferences_controller.dart';
+import 'package:vmito_app/core/location/new_admin_units.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/core/widgets/city_selector.dart';
+import 'package:vmito_app/core/widgets/city_selector_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
-void main() {
-  testWidgets('lays out the city grid with a finite height', (tester) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        child: MaterialApp(
-          locale: const Locale('vi'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: Builder(
-            builder: (context) => Scaffold(
-              body: Center(
-                child: FilledButton(
-                  onPressed: () => showDialog<void>(
-                    context: context,
-                    builder: (_) => const CityOnboardingDialog(),
-                  ),
-                  child: const Text('Open'),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
+class _PreferencesController extends LocationPreferencesController {
+  _PreferencesController(this.initial);
+
+  final LocationPreferences initial;
+
+  @override
+  LocationPreferences build() => initial;
+
+  @override
+  Future<void> selectCity(String? city) async {
+    state = state.copyWith(
+      preferredCity: city,
+      clearPreferredCity: city == null,
+      selectionType: city == null ? LocationSelectionType.all : LocationSelectionType.city,
+      onboardingCompleted: true,
     );
+  }
 
-    await tester.tap(find.text('Open'));
-    await tester.pumpAndSettle();
+  @override
+  Future<void> selectAll() async {
+    state = state.copyWith(
+      clearPreferredCity: true,
+      selectionType: LocationSelectionType.all,
+      onboardingCompleted: true,
+    );
+  }
 
-    final grid = find.byType(GridView);
-    expect(grid, findsOneWidget);
-    expect(tester.getSize(grid).height, greaterThan(0));
-  });
+  @override
+  Future<void> selectOther() async {
+    state = state.copyWith(
+      clearPreferredCity: true,
+      selectionType: LocationSelectionType.other,
+      onboardingCompleted: true,
+    );
+  }
+}
 
-  testWidgets('uses one column and keeps long city names intact on phones', (
+void main() {
+  testWidgets('onboarding uses selector content, hides close button, and removes default Ho Chi Minh', (
     tester,
   ) async {
-    tester.view
-      ..physicalSize = const Size(320, 640)
-      ..devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
-
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [
+          locationPreferencesControllerProvider.overrideWith(
+            () => _PreferencesController(
+              const LocationPreferences(
+                isRestored: true,
+                onboardingCompleted: false,
+              ),
+            ),
+          ),
+          newAdminUnitsProvider.overrideWith(
+            (ref) async => const [
+              NewAdminUnit(city: 'Thành phố Hồ Chí Minh', wards: []),
+              NewAdminUnit(city: 'Thành phố Hà Nội', wards: []),
+              NewAdminUnit(city: 'Thành phố Đà Nẵng', wards: []),
+            ],
+          ),
+        ],
         child: MaterialApp(
-          theme: AppTheme.light,
           locale: const Locale('vi'),
+          theme: AppTheme.light,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: Builder(
-            builder: (context) => Scaffold(
+          home: Consumer(
+            builder: (context, ref, _) => Scaffold(
               body: Center(
                 child: FilledButton(
-                  onPressed: () => showDialog<void>(
-                    context: context,
-                    builder: (_) => const CityOnboardingDialog(),
-                  ),
-                  child: const Text('Open'),
+                  onPressed: () => CityOnboardingDialog.maybeShow(context, ref),
+                  child: const Text('Open Onboarding'),
                 ),
               ),
             ),
@@ -70,17 +87,145 @@ void main() {
       ),
     );
 
-    await tester.tap(find.text('Open'));
+    await tester.tap(find.text('Open Onboarding'));
     await tester.pumpAndSettle();
 
-    final grid = tester.widget<GridView>(find.byType(GridView));
-    final delegate =
-        grid.gridDelegate as SliverGridDelegateWithFixedCrossAxisCount;
-    expect(delegate.crossAxisCount, 1);
+    // Uses onboarding title and subtitle
+    expect(find.text('Bạn đang ở đâu?'), findsOneWidget);
     expect(
-      tester.widget<Text>(find.text('Hồ Chí Minh')).overflow,
-      isNull,
+      find.text('Chọn thành phố để xem các kèo và sân gần bạn nhất.'),
+      findsOneWidget,
     );
-    expect(tester.takeException(), isNull);
+
+    // No close button in sheet header
+    expect(find.byKey(const Key('city-selector-close')), findsNothing);
+
+    // No skip button defaulting to Ho Chi Minh
+    expect(find.text('Bỏ qua, dùng TP. Hồ Chí Minh'), findsNothing);
+
+    // Has search and current location
+    expect(find.byKey(const Key('city-selector-search')), findsOneWidget);
+    expect(find.byKey(const Key('city-selector-current-location')), findsOneWidget);
+
+    // Has "Tất cả" and "Khác"
+    expect(find.byKey(const Key('discovery-city-all')), findsOneWidget);
+    expect(find.byKey(const Key('discovery-city-other')), findsOneWidget);
+  });
+
+  testWidgets('selecting Khác completes onboarding with Other selection', (tester) async {
+    CitySelection? result;
+    late WidgetRef capturedRef;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          locationPreferencesControllerProvider.overrideWith(
+            () => _PreferencesController(
+              const LocationPreferences(
+                isRestored: true,
+                onboardingCompleted: false,
+              ),
+            ),
+          ),
+        ],
+        child: MaterialApp(
+          locale: const Locale('vi'),
+          theme: AppTheme.light,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Consumer(
+            builder: (context, ref, _) {
+              capturedRef = ref;
+              return Scaffold(
+                body: Center(
+                  child: FilledButton(
+                    onPressed: () async {
+                      result = await CityOnboardingDialog.maybeShow(context, ref);
+                    },
+                    child: const Text('Open Onboarding'),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open Onboarding'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('discovery-city-other')));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result?.type, LocationSelectionType.other);
+    expect(result?.city, isNull);
+
+    final pref = capturedRef.read(locationPreferencesControllerProvider);
+    expect(pref.onboardingCompleted, isTrue);
+    expect(pref.selectionType, LocationSelectionType.other);
+    expect(pref.preferredCity, isNull);
+  });
+
+  testWidgets('selecting a city completes onboarding with city selection', (tester) async {
+    CitySelection? result;
+    late WidgetRef capturedRef;
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          locationPreferencesControllerProvider.overrideWith(
+            () => _PreferencesController(
+              const LocationPreferences(
+                isRestored: true,
+                onboardingCompleted: false,
+              ),
+            ),
+          ),
+          newAdminUnitsProvider.overrideWith(
+            (ref) async => const [
+              NewAdminUnit(city: 'Thành phố Đà Nẵng', wards: []),
+            ],
+          ),
+        ],
+        child: MaterialApp(
+          locale: const Locale('vi'),
+          theme: AppTheme.light,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Consumer(
+            builder: (context, ref, _) {
+              capturedRef = ref;
+              return Scaffold(
+                body: Center(
+                  child: FilledButton(
+                    onPressed: () async {
+                      result = await CityOnboardingDialog.maybeShow(context, ref);
+                    },
+                    child: const Text('Open Onboarding'),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('Open Onboarding'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Đà Nẵng'));
+    await tester.pumpAndSettle();
+
+    expect(result, isNotNull);
+    expect(result?.type, LocationSelectionType.city);
+    expect(result?.city, 'Đà Nẵng');
+
+    final pref = capturedRef.read(locationPreferencesControllerProvider);
+    expect(pref.onboardingCompleted, isTrue);
+    expect(pref.selectionType, LocationSelectionType.city);
+    expect(pref.preferredCity, 'Đà Nẵng');
   });
 }

@@ -31,6 +31,21 @@ void main() {
       expect(find.byType(IconButton), findsNothing);
     });
 
+    testWidgets('renders bottom border when showDivider is true', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildSubject(
+          const AppSheetHeader(
+            title: 'Bộ lọc',
+            showDivider: true,
+          ),
+        ),
+      );
+
+      expect(find.byType(Divider), findsOneWidget);
+    });
+
     testWidgets('close button pops the route by default', (tester) async {
       await tester.pumpWidget(
         buildSubject(

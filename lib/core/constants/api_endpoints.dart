@@ -296,4 +296,8 @@ abstract final class ApiEndpoints {
   /// Turns a pasted recruitment post into a session draft. Body:
   /// `{articleContent, language}` where language is `vi | en | cn`.
   static const aiExtractSession = '/ai/extract-session';
+
+  /// Streams the AI assistant's plain-text response. Body carries the prior
+  /// `messages`, optional `pageContext`, and the selected `language`.
+  static const aiChat = '/ai/chat';
 }

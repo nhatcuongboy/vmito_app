@@ -16,23 +16,56 @@ import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 
 class CitySelection {
-  const CitySelection(this.city);
+  const CitySelection(this.city, {LocationSelectionType? type})
+      : type = type ??
+            (city != null
+                ? LocationSelectionType.city
+                : LocationSelectionType.all);
+
+  const CitySelection.city(String this.city) : type = LocationSelectionType.city;
+  const CitySelection.all() : city = null, type = LocationSelectionType.all;
+  const CitySelection.other() : city = null, type = LocationSelectionType.other;
 
   final String? city;
+  final LocationSelectionType type;
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is CitySelection &&
+          runtimeType == other.runtimeType &&
+          city == other.city &&
+          type == other.type;
+
+  @override
+  int get hashCode => city.hashCode ^ type.hashCode;
 }
 
-Future<CitySelection?> showCitySelectorSheet(BuildContext context) =>
+Future<CitySelection?> showCitySelectorSheet(
+  BuildContext context, {
+  bool isOnboarding = false,
+}) =>
     showModalBottomSheet<CitySelection>(
       context: context,
       useRootNavigator: true,
       isScrollControlled: true,
-      showDragHandle: true,
+      showDragHandle: !isOnboarding,
+      isDismissible: !isOnboarding,
+      enableDrag: !isOnboarding,
       useSafeArea: true,
-      builder: (_) => const CitySelectorSheet(),
+      builder: (_) => PopScope(
+        canPop: !isOnboarding,
+        child: CitySelectorSheet(isOnboarding: isOnboarding),
+      ),
     );
 
 class CitySelectorSheet extends ConsumerStatefulWidget {
-  const CitySelectorSheet({super.key});
+  const CitySelectorSheet({
+    this.isOnboarding = false,
+    super.key,
+  });
+
+  final bool isOnboarding;
 
   @override
   ConsumerState<CitySelectorSheet> createState() => _CitySelectorSheetState();
@@ -90,69 +123,104 @@ class _CitySelectorSheetState extends ConsumerState<CitySelectorSheet> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     AppSheetHeader(
-                      title: l10n.citySelectorTitle,
+                      title: widget.isOnboarding
+                          ? l10n.cityOnboardingTitle
+                          : l10n.citySelectorTitle,
+                      subtitle: widget.isOnboarding
+                          ? l10n.cityOnboardingDescription
+                          : null,
+                      showCloseButton: !widget.isOnboarding,
                       closeButtonKey: const Key('city-selector-close'),
                     ),
+                    // Search bar + location chip on the same horizontal row
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.md,
+                        0,
+                        AppSpacing.md,
+                        AppSpacing.xs,
                       ),
-                      child: Material(
-                        color: colorScheme.primary.withValues(alpha: .08),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.lg),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: InkWell(
-                          key: const Key('city-selector-current-location'),
-                          onTap: _isLocating
-                              ? null
-                              : () => unawaited(_useCurrentLocation(cities)),
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(minHeight: 48),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: AppSpacing.sm,
-                              ),
-                              child: Row(
-                                children: [
-                                  if (_isLocating)
-                                    const SizedBox.square(
-                                      dimension: 20,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  else
-                                    Icon(
-                                      AppIcons.myLocation,
-                                      color: colorScheme.primary,
-                                      size: 20,
-                                    ),
-                                  const SizedBox(width: AppSpacing.sm),
-                                  Expanded(
-                                    child: Text(
-                                      _isLocating
-                                          ? l10n.citySelectorLocating
-                                          : l10n.citySelectorUseCurrentLocation,
-                                      style: TextStyle(
-                                        color: colorScheme.primary,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
-                                  if (!_isLocating)
-                                    Icon(
-                                      AppIcons.chevronRight,
-                                      color: colorScheme.primary,
-                                      size: 18,
-                                    ),
-                                ],
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: ReactiveTextField<String>(
+                              key: const Key('city-selector-search'),
+                              formControlName: _searchControl,
+                              textInputAction: TextInputAction.search,
+                              decoration: InputDecoration(
+                                hintText: l10n.citySelectorSearchHint,
+                                prefixIcon: const Icon(
+                                  AppIcons.search,
+                                  size: 20,
+                                ),
+                                prefixIconConstraints: const BoxConstraints(
+                                  minWidth: 44,
+                                  minHeight: 44,
+                                ),
+                                isDense: true,
+                                contentPadding: const EdgeInsets.symmetric(
+                                  vertical: 12,
+                                ),
+                                filled: true,
+                                fillColor: colorScheme.surfaceContainerHighest
+                                    .withValues(alpha: .55),
+                                border: OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.circular(AppRadius.lg),
+                                  borderSide: BorderSide.none,
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius:
+                                      BorderRadius.circular(AppRadius.lg),
+                                  borderSide: BorderSide.none,
+                                ),
                               ),
                             ),
                           ),
-                        ),
+                          const SizedBox(width: AppSpacing.sm),
+                          // Compact location chip
+                          Tooltip(
+                            message: _isLocating
+                                ? l10n.citySelectorLocating
+                                : l10n.citySelectorUseCurrentLocation,
+                            child: InkWell(
+                              key: const Key('city-selector-current-location'),
+                              onTap: _isLocating
+                                  ? null
+                                  : () =>
+                                      unawaited(_useCurrentLocation(cities)),
+                              borderRadius:
+                                  BorderRadius.circular(AppRadius.pill),
+                              child: Container(
+                                height: 40,
+                                width: 40,
+                                decoration: BoxDecoration(
+                                  color:
+                                      colorScheme.primary.withValues(alpha: .1),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.pill,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: _isLocating
+                                      ? SizedBox.square(
+                                          dimension: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: colorScheme.primary,
+                                          ),
+                                        )
+                                      : Icon(
+                                          AppIcons.myLocation,
+                                          color: colorScheme.primary,
+                                          size: 20,
+                                        ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     if (_hasLocationError)
@@ -160,11 +228,14 @@ class _CitySelectorSheetState extends ConsumerState<CitySelectorSheet> {
                         key: const Key('city-selector-location-error'),
                         margin: const EdgeInsets.fromLTRB(
                           AppSpacing.md,
-                          AppSpacing.sm,
-                          AppSpacing.md,
                           0,
+                          AppSpacing.md,
+                          AppSpacing.xs,
                         ),
-                        padding: const EdgeInsets.all(AppSpacing.sm),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.sm,
+                          vertical: AppSpacing.xs,
+                        ),
                         decoration: BoxDecoration(
                           color: colorScheme.errorContainer,
                           borderRadius: BorderRadius.circular(AppRadius.lg),
@@ -174,56 +245,21 @@ class _CitySelectorSheetState extends ConsumerState<CitySelectorSheet> {
                             Icon(
                               AppIcons.warning,
                               color: colorScheme.onErrorContainer,
-                              size: 18,
+                              size: 16,
                             ),
-                            const SizedBox(width: AppSpacing.sm),
+                            const SizedBox(width: AppSpacing.xs),
                             Expanded(
                               child: Text(
                                 l10n.citySelectorLocationError,
-                                style: TextStyle(
-                                  color: colorScheme.onErrorContainer,
-                                ),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(
+                                      color: colorScheme.onErrorContainer,
+                                    ),
                               ),
                             ),
                           ],
                         ),
                       ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.md,
-                        AppSpacing.sm,
-                        AppSpacing.md,
-                        AppSpacing.xs,
-                      ),
-                      child: ReactiveTextField<String>(
-                        key: const Key('city-selector-search'),
-                        formControlName: _searchControl,
-                        textInputAction: TextInputAction.search,
-                        decoration: InputDecoration(
-                          hintText: l10n.citySelectorSearchHint,
-                          prefixIcon: const Icon(AppIcons.search, size: 20),
-                          prefixIconConstraints: const BoxConstraints(
-                            minWidth: 44,
-                            minHeight: 44,
-                          ),
-                          isDense: true,
-                          contentPadding: const EdgeInsets.symmetric(
-                            vertical: 12,
-                          ),
-                          filled: true,
-                          fillColor: colorScheme.surfaceContainerHighest
-                              .withValues(alpha: .55),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppRadius.lg),
-                            borderSide: BorderSide.none,
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(AppRadius.lg),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                      ),
-                    ),
                     if (preference.showNewAddress && units.isLoading)
                       const Padding(
                         padding: EdgeInsets.symmetric(
@@ -237,7 +273,7 @@ class _CitySelectorSheetState extends ConsumerState<CitySelectorSheet> {
                           AppSpacing.md,
                           0,
                           AppSpacing.md,
-                          AppSpacing.sm,
+                          AppSpacing.xs,
                         ),
                         child: Text(
                           l10n.citySelectorUsingFallback,
@@ -250,6 +286,7 @@ class _CitySelectorSheetState extends ConsumerState<CitySelectorSheet> {
                         searchControlName: _searchControl,
                         cities: cities,
                         selectedCity: preference.preferredCity,
+                        selectionType: preference.selectionType,
                         onSelected: _select,
                       ),
                     ),
@@ -263,7 +300,7 @@ class _CitySelectorSheetState extends ConsumerState<CitySelectorSheet> {
     );
   }
 
-  void _select(String? city) => Navigator.of(context).pop(CitySelection(city));
+  void _select(CitySelection selection) => Navigator.of(context).pop(selection);
 
   Future<void> _useCurrentLocation(List<String> cities) async {
     setState(() {
@@ -279,8 +316,11 @@ class _CitySelectorSheetState extends ConsumerState<CitySelectorSheet> {
         cities: cities,
         addressParts: placemark.parts,
       );
-      if (city == null) throw const DeviceGeocodingException();
-      if (mounted) _select(city);
+      if (city != null) {
+        if (mounted) _select(CitySelection.city(city));
+      } else {
+        if (mounted) _select(const CitySelection.other());
+      }
     } on Object {
       if (mounted) setState(() => _hasLocationError = true);
     } finally {

@@ -165,7 +165,7 @@ void main() {
     expect(find.text('Kèo tham gia'), findsOneWidget);
     expect(
       tester.getSize(find.byKey(const Key('my-sessions-scope'))).height,
-      40,
+      kTextTabBarHeight,
     );
     expect(find.byType(SearchBar), findsNothing);
     expect(find.byKey(const Key('my-sessions-search-button')), findsOneWidget);

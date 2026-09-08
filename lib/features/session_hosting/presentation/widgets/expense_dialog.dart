@@ -4,6 +4,7 @@ import 'package:reactive_forms/reactive_forms.dart';
 import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/utils/input_formatters.dart';
 import 'package:vmito_app/features/payment/domain/form/host_payment_forms.dart';
 import 'package:vmito_app/features/payment/domain/payment.dart';
 import 'package:vmito_app/features/session_hosting/application/host_session_management_controller.dart';
@@ -63,6 +64,8 @@ class _ExpenseDialogState extends ConsumerState<ExpenseDialog> {
               ReactiveTextField<int>(
                 key: const ValueKey('expense-amount'),
                 formControlName: ExpenseControl.amount,
+                valueAccessor: CurrencyValueAccessor(),
+                inputFormatters: [ThousandsSeparatorFormatter()],
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: l10n.sessionExpenseAmount,
@@ -171,6 +174,8 @@ class _ExpenseBatchSheetState extends ConsumerState<ExpenseBatchSheet> {
                         width: 120,
                         child: ReactiveTextField<int>(
                           formControlName: ExpenseControl.amount,
+                          valueAccessor: CurrencyValueAccessor(),
+                          inputFormatters: [ThousandsSeparatorFormatter()],
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
                             labelText: l10n.sessionExpenseAmount,

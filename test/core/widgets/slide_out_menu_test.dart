@@ -6,6 +6,7 @@ import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/core/widgets/slide_out_menu.dart';
+import 'package:vmito_app/features/ai/application/ai_assistant_controller.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/features/social/application/newsfeed_badge_controller.dart';
@@ -75,12 +76,14 @@ Widget _harness(
   GoRouter router, {
   Locale locale = const Locale('vi'),
   double safeAreaTop = 0,
+  bool aiAssistantEnabled = true,
 }) => ProviderScope(
   overrides: [
     authControllerProvider.overrideWith(() => _TestAuthController(state)),
     newsfeedBadgeControllerProvider.overrideWith(
       _TestNewsfeedBadgeController.new,
     ),
+    aiAssistantFeatureEnabledProvider.overrideWithValue(aiAssistantEnabled),
   ],
   child: MaterialApp.router(
     locale: locale,
@@ -337,6 +340,10 @@ void main() {
     expect(find.text('Nhật Cường'), findsOneWidget);
     expect(find.text('Chủ kèo'), findsOneWidget);
     expect(find.text('QUẢN LÝ'), findsOneWidget);
+    expect(
+      find.byKey(const Key('menu-explore-manage-divider')),
+      findsOneWidget,
+    );
     expect(find.text('Kèo'), findsOneWidget);
     expect(find.text('Nhóm'), findsOneWidget);
     expect(find.text('Giao dịch'), findsOneWidget);
@@ -345,12 +352,55 @@ void main() {
     expect(find.text('Yêu thích'), findsNothing);
     expect(find.text('Đăng xuất'), findsNothing);
     await tester.scrollUntilVisible(
+      find.byKey(const Key('menu-ai-assistant')),
+      240,
+      scrollable: find.byType(Scrollable),
+    );
+    expect(find.text('Cài đặt'), findsOneWidget);
+    expect(find.text('Trợ lý AI'), findsOneWidget);
+    expect(find.byKey(const Key('menu-ai-assistant')), findsOneWidget);
+    await tester.scrollUntilVisible(
       find.text('Trợ giúp & phản hồi'),
       240,
       scrollable: find.byType(Scrollable),
     );
     expect(find.text('Trợ giúp & phản hồi'), findsOneWidget);
     expect(find.text('Đăng nhập'), findsNothing);
+  });
+
+  testWidgets('AI menu item closes the drawer and opens the assistant', (
+    tester,
+  ) async {
+    final router = _buildRouter();
+    await tester.pumpWidget(
+      _harness(
+        const AuthState(status: AuthStatus.authenticated, user: host),
+        router,
+      ),
+    );
+    await _openDrawer(tester);
+
+    await _tapMenuItem(tester, 'Trợ lý AI');
+
+    expect(find.byType(SlideOutMenu), findsNothing);
+    expect(find.byKey(const Key('ai-assistant-composer')), findsOneWidget);
+    expect(find.text('Trợ lý AI'), findsOneWidget);
+  });
+
+  testWidgets('AI menu item is hidden when the feature flag is disabled', (
+    tester,
+  ) async {
+    final router = _buildRouter();
+    await tester.pumpWidget(
+      _harness(
+        const AuthState(status: AuthStatus.authenticated, user: host),
+        router,
+        aiAssistantEnabled: false,
+      ),
+    );
+    await _openDrawer(tester);
+
+    expect(find.byKey(const Key('menu-ai-assistant')), findsNothing);
   });
 
   testWidgets('administrator sees every embedded admin destination', (

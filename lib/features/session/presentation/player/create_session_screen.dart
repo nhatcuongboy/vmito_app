@@ -13,6 +13,7 @@ import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/utils/input_formatters.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/features/reference/presentation/level_descriptions_sheet.dart';
@@ -564,11 +565,13 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
     setState(() {});
   }
 
-  Future<void> _showAiDialog() async {
-    final data = await showDialog<ExtractedSessionData>(
+  Future<void> _showAiSheet() async {
+    final data = await showModalBottomSheet<ExtractedSessionData>(
       context: context,
-      barrierDismissible: false,
-      builder: (context) => const _AiSessionDialog(),
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (context) => const _AiSessionSheet(),
     );
     if (data == null || !mounted) return;
     _applyAiData(data);
@@ -813,6 +816,7 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
         return Scaffold(
           appBar: AppBar(
             automaticallyImplyLeading: !widget.modalPresentation,
+            titleSpacing: widget.modalPresentation ? AppSpacing.md : null,
             title: Text(
               _isEditing
                   ? l10n.editSessionTitle
@@ -827,7 +831,7 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
               if (!_isEditing && !widget.modalPresentation)
                 _AiAppBarAction(
                   label: l10n.sessionFormCreateByAi,
-                  onPressed: _showAiDialog,
+                  onPressed: _showAiSheet,
                 ),
               if (widget.modalPresentation)
                 IconButton(
@@ -2302,7 +2306,8 @@ class _FeeInput extends StatelessWidget {
         Expanded(
           child: ReactiveTextField<int>(
             formControlName: formControlName,
-            valueAccessor: IntValueAccessor(),
+            valueAccessor: CurrencyValueAccessor(),
+            inputFormatters: [ThousandsSeparatorFormatter()],
             keyboardType: TextInputType.number,
             decoration: const InputDecoration(hintText: '0'),
           ),
@@ -3445,81 +3450,108 @@ class _SubmitBar extends StatelessWidget {
   );
 }
 
-class _AiSessionDialog extends ConsumerStatefulWidget {
-  const _AiSessionDialog();
+class _AiSessionSheet extends ConsumerStatefulWidget {
+  const _AiSessionSheet();
   @override
-  ConsumerState<_AiSessionDialog> createState() => _AiSessionDialogState();
+  ConsumerState<_AiSessionSheet> createState() => _AiSessionSheetState();
 }
 
-class _AiSessionDialogState extends ConsumerState<_AiSessionDialog> {
+class _AiSessionSheetState extends ConsumerState<_AiSessionSheet> {
   final _controller = TextEditingController();
+  final _focusNode = FocusNode();
   bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _focusNode.requestFocus();
+    });
+  }
+
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return AlertDialog(
-      title: Row(
+    return SizedBox(
+      key: const Key('create-session-ai-sheet'),
+      height: MediaQuery.sizeOf(context).height * .9,
+      child: Column(
         children: [
-          const Icon(Icons.auto_awesome, color: Colors.deepPurple),
-          const SizedBox(width: 8),
-          Expanded(child: Text(l10n.sessionFormAiTitle)),
-        ],
-      ),
-      content: SizedBox(
-        width: 560,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l10n.sessionFormAiDescription),
-            const SizedBox(height: AppSpacing.md),
-            TextField(
-              controller: _controller,
-              minLines: 8,
-              maxLines: 12,
-              enabled: !_loading,
-              decoration: InputDecoration(
-                labelText: l10n.sessionFormAiInput,
-                alignLabelWithHint: true,
+          AppSheetHeader(
+            title: l10n.sessionFormAiTitle,
+            showCloseButton: false,
+            leadingIcon: Icons.auto_awesome,
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.sessionFormAiDescription),
+                  const SizedBox(height: AppSpacing.md),
+                  TextField(
+                    controller: _controller,
+                    focusNode: _focusNode,
+                    autofocus: true,
+                    minLines: 8,
+                    maxLines: 12,
+                    enabled: !_loading,
+                    decoration: InputDecoration(
+                      labelText: l10n.sessionFormAiInput,
+                      alignLabelWithHint: true,
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: _loading
+                        ? null
+                        : () => _controller.text =
+                              'Tên kèo: \nMô tả: \nHost: \nSĐT: \nTên sân: \nĐịa chỉ: \nNgày: \nThời gian: \nSố lượng sân: \nTrình độ: \nPhí: ',
+                    icon: const Icon(Icons.description_outlined),
+                    label: Text(l10n.sessionFormAiTemplate),
+                  ),
+                ],
               ),
             ),
-            TextButton.icon(
-              onPressed: _loading
-                  ? null
-                  : () => _controller.text =
-                        'Tên kèo: \nMô tả: \nHost: \nSĐT: \nTên sân: \nĐịa chỉ: \nNgày: \nThời gian: \nSố lượng sân: \nTrình độ: \nPhí: ',
-              icon: const Icon(Icons.description_outlined),
-              label: Text(l10n.sessionFormAiTemplate),
-            ),
-          ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: _loading ? null : () => Navigator.pop(context),
-          child: Text(l10n.sessionFormCancel),
-        ),
-        FilledButton.icon(
-          onPressed: _loading ? null : _generate,
-          icon: _loading
-              ? const SizedBox.square(
-                  dimension: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Icon(Icons.auto_awesome),
-          label: Text(
-            _loading
-                ? l10n.sessionFormAiGenerating
-                : l10n.sessionFormAiGenerate,
           ),
-        ),
-      ],
+          AppSheetActionBar(
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _loading ? null : () => Navigator.pop(context),
+                    child: Text(l10n.sessionFormCancel),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: _loading ? null : _generate,
+                    icon: _loading
+                        ? const SizedBox.square(
+                            dimension: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.auto_awesome),
+                    label: Text(
+                      _loading
+                          ? l10n.sessionFormAiGenerating
+                          : l10n.sessionFormAiGenerate,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 

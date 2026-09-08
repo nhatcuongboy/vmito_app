@@ -8,6 +8,7 @@ import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
+import 'package:vmito_app/core/utils/input_formatters.dart';
 import 'package:vmito_app/core/widgets/user_avatar.dart';
 import 'package:vmito_app/features/payment/domain/form/host_payment_forms.dart';
 import 'package:vmito_app/features/payment/domain/form/transaction_forms.dart';
@@ -293,6 +294,8 @@ class _SplitAmountCardState extends State<_SplitAmountCard> {
                   builder: (context, constraints) {
                     final field = ReactiveTextField<int>(
                       formControlName: SplitAmountControl.total,
+                      valueAccessor: CurrencyValueAccessor(),
+                      inputFormatters: [ThousandsSeparatorFormatter()],
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
                         labelText: l10n.hostManagePaymentTotal,
@@ -722,8 +725,9 @@ class _PlayerAvatar extends StatelessWidget {
   final PaymentRecord payment;
   @override
   Widget build(BuildContext context) {
-    final name = payment.player?.displayName ?? 
-                 AppLocalizations.of(context).hostManageUnknownPlayer;
+    final name =
+        payment.player?.displayName ??
+        AppLocalizations.of(context).hostManageUnknownPlayer;
     final image = payment.player?.userImage;
     return UserAvatar(
       name: name,
@@ -1025,6 +1029,8 @@ class _SessionPaymentReviewSheetState
                 const SizedBox(height: AppSpacing.sm),
                 ReactiveTextField<int>(
                   formControlName: PaymentReviewControl.amount,
+                  valueAccessor: CurrencyValueAccessor(),
+                  inputFormatters: [ThousandsSeparatorFormatter()],
                   keyboardType: TextInputType.number,
                   decoration: InputDecoration(
                     labelText: l10n.transactionAmount,

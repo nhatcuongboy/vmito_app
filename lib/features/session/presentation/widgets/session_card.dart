@@ -170,7 +170,7 @@ class SessionCard extends ConsumerWidget {
                         ],
                       ),
                       if (showActions) ...[
-                        const SizedBox(height: AppSpacing.xs),
+                        const SizedBox(height: AppSpacing.sm),
                         Container(
                           padding: const EdgeInsets.only(top: AppSpacing.xs),
                           decoration: BoxDecoration(

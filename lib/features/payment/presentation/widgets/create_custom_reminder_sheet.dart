@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/utils/input_formatters.dart';
 import 'package:vmito_app/core/widgets/user_avatar.dart';
 import 'package:vmito_app/features/payment/application/payment_reminders_controller.dart';
 import 'package:vmito_app/features/payment/domain/form/reminder_forms.dart';
@@ -295,6 +296,8 @@ class _CreateCustomReminderSheetState
               const SizedBox(height: AppSpacing.xs),
               ReactiveTextField<int>(
                 formControlName: CreateCustomReminderControl.amount,
+                valueAccessor: CurrencyValueAccessor(),
+                inputFormatters: [ThousandsSeparatorFormatter()],
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),

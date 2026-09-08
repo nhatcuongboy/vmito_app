@@ -26,10 +26,8 @@ void main() {
       findsOneWidget,
     );
     expect(
-      tester.getTopLeft(find.byType(Chip)).dy,
-      greaterThanOrEqualTo(
-        tester.getBottomLeft(find.text('Cấu hình phí buổi chơi')).dy,
-      ),
+      tester.getCenter(find.byType(Chip)).dy,
+      closeTo(tester.getCenter(find.text('Cấu hình phí')).dy, 1),
     );
     expect(tester.takeException(), isNull);
   });
@@ -47,7 +45,7 @@ void main() {
     expect(find.byKey(const Key('fee-config-header-wide')), findsOneWidget);
     expect(find.byIcon(AppIcons.calculator), findsNothing);
     expect(
-      tester.widget<Text>(find.text('Cấu hình phí buổi chơi')).style?.fontSize,
+      tester.widget<Text>(find.text('Cấu hình phí')).style?.fontSize,
       16,
     );
     for (final icon in [AppIcons.edit, AppIcons.refresh]) {
@@ -61,8 +59,12 @@ void main() {
       );
     }
     expect(
-      tester.getTopLeft(find.byIcon(AppIcons.edit)).dy,
-      lessThan(tester.getTopLeft(find.byType(Chip)).dy),
+      tester.getCenter(find.byIcon(AppIcons.edit)).dy,
+      closeTo(tester.getCenter(find.byType(Chip)).dy, 1),
+    );
+    expect(
+      tester.getBottomRight(find.textContaining('85.000')).dx,
+      closeTo(tester.getBottomRight(find.textContaining('70.000')).dx, 1),
     );
     expect(tester.takeException(), isNull);
   });

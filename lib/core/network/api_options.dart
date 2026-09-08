@@ -36,8 +36,10 @@ extension ApiRequestOptions on RequestOptions {
 Options apiOptions({
   bool skipGlobalError = false,
   Map<String, dynamic>? extra,
+  ResponseType? responseType,
 }) {
   return Options(
+    responseType: responseType,
     extra: {
       if (skipGlobalError) ApiOptionKeys.skipGlobalError: true,
       ...?extra,

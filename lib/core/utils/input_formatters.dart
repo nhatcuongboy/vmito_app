@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:reactive_forms/reactive_forms.dart';
 
 /// Groups digits as the user types: `50000` → `50.000`.
 ///
@@ -28,7 +29,8 @@ class ThousandsSeparatorFormatter extends TextInputFormatter {
     if (digits.isEmpty) return newValue.copyWith(text: '');
 
     // Leading zeros are never meaningful in a price and confuse the parse.
-    final value = int.tryParse(digits);
+    final isNegative = newValue.text.trimLeft().startsWith('-');
+    final value = int.tryParse(isNegative ? '-$digits' : digits);
     if (value == null) return oldValue;
 
     final formatted = _format.format(value);
@@ -66,12 +68,25 @@ class ThousandsSeparatorFormatter extends TextInputFormatter {
   /// different from zero — a fee of 0 is free, no fee at all is unpriced.
   static int? parse(String text) {
     final digits = text.replaceAll(_nonDigit, '');
-    return digits.isEmpty ? null : int.tryParse(digits);
+    if (digits.isEmpty) return null;
+    final isNegative = text.trimLeft().startsWith('-');
+    return int.tryParse(isNegative ? '-$digits' : digits);
   }
 
   /// Formats an int for seeding a controller from existing state.
   static String display(int? value) =>
       value == null ? '' : NumberFormat.decimalPattern('vi_VN').format(value);
+}
+
+/// Converts between integer VND form values and grouped money text.
+class CurrencyValueAccessor extends ControlValueAccessor<int, String> {
+  @override
+  String modelToViewValue(int? modelValue) =>
+      ThousandsSeparatorFormatter.display(modelValue);
+
+  @override
+  int? viewToModelValue(String? viewValue) =>
+      viewValue == null ? null : ThousandsSeparatorFormatter.parse(viewValue);
 }
 
 /// Clamps a whole-number field to `[min, max]` while it is being typed.

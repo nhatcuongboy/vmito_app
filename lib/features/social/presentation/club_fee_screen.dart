@@ -4,6 +4,7 @@ import 'package:reactive_forms/reactive_forms.dart';
 import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/utils/input_formatters.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/social/application/club_management_controller.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
@@ -425,6 +426,8 @@ class _ClubFeeScreenState extends ConsumerState<ClubFeeScreen> {
     return ReactiveTextField<int>(
       key: Key('club-fee-$name'),
       formControlName: name,
+      valueAccessor: CurrencyValueAccessor(),
+      inputFormatters: [ThousandsSeparatorFormatter()],
       keyboardType: TextInputType.number,
       decoration: InputDecoration(
         labelText: label,

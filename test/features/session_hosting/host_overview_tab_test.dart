@@ -64,6 +64,30 @@ void main() {
     expect(find.text('3/8'), findsOneWidget);
   });
 
+  testWidgets('expands long descriptions and hides the toggle for short ones', (
+    tester,
+  ) async {
+    final short = session.copyWith(description: 'Mô tả ngắn');
+    await tester.pumpWidget(app(short));
+    expect(
+      find.byKey(const Key('host-overview-description-toggle')),
+      findsNothing,
+    );
+
+    final long = session.copyWith(
+      description: List.filled(
+        12,
+        'Nội dung mô tả dài của buổi chơi.',
+      ).join(' '),
+    );
+    await tester.pumpWidget(app(long));
+    expect(find.text('Mở rộng'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('host-overview-description-toggle')));
+    await tester.pumpAndSettle();
+    expect(find.text('Thu gọn'), findsOneWidget);
+  });
+
   testWidgets('uses a clear card title and a low-emphasis edit action', (
     tester,
   ) async {

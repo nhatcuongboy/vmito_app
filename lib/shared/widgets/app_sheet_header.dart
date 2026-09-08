@@ -3,8 +3,8 @@ import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 
-/// Standard bottom sheet header: title (+ optional subtitle/leading icon) and
-/// an optional close button.
+/// Standard bottom sheet header: title (+ optional subtitle/leading icon),
+/// an optional close button, and a divider separating it from the body.
 ///
 /// Reused across full-screen and `DraggableScrollableSheet`-based sheets so
 /// every sheet reads the same way. See docs/DESIGN_SYSTEM.md.
@@ -14,13 +14,14 @@ class AppSheetHeader extends StatelessWidget {
     this.subtitle,
     this.leadingIcon,
     this.leadingIconColor,
-    this.onLeadingPressed,
     this.leadingButtonKey,
     this.leadingTooltip,
+    this.onLeadingPressed,
     this.showCloseButton = true,
     this.closeButtonEnabled = true,
     this.onClose,
     this.closeButtonKey,
+    this.showDivider = false,
     this.padding = const EdgeInsets.fromLTRB(
       AppSpacing.md,
       AppSpacing.sm,
@@ -34,9 +35,9 @@ class AppSheetHeader extends StatelessWidget {
   final String? subtitle;
   final IconData? leadingIcon;
   final Color? leadingIconColor;
-  final VoidCallback? onLeadingPressed;
   final Key? leadingButtonKey;
   final String? leadingTooltip;
+  final VoidCallback? onLeadingPressed;
   final bool showCloseButton;
 
   /// Disables the close button (e.g. while a submit is in flight) instead of
@@ -46,10 +47,13 @@ class AppSheetHeader extends StatelessWidget {
   /// Defaults to a plain pop when omitted.
   final VoidCallback? onClose;
   final Key? closeButtonKey;
+
+  /// Whether to show a divider line separating the header from the body.
+  /// Defaults to `false` so sheets maintain a clean header without a bottom
+  /// border (consistent with modal forms like Edit Session).
+  final bool showDivider;
   final EdgeInsetsGeometry padding;
 
-  /// Shared title treatment for sheet headers, including headers hosted by an
-  /// [AppBar] inside a full-height modal.
   static TextStyle? titleTextStyle(BuildContext context) =>
       Theme.of(context).textTheme.titleMedium?.copyWith(
         fontWeight: FontWeight.w700,
@@ -65,20 +69,26 @@ class AppSheetHeader extends StatelessWidget {
         Padding(
           padding: padding,
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               if (leadingIcon != null) ...[
-                if (onLeadingPressed case final onPressed?)
+                if (onLeadingPressed != null)
                   IconButton(
                     key: leadingButtonKey,
                     tooltip: leadingTooltip,
-                    onPressed: onPressed,
+                    onPressed: onLeadingPressed,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
                     icon: Icon(
                       leadingIcon,
                       size: 20,
                       color: leadingIconColor,
                     ),
                   )
-                else ...[
+                else
                   Padding(
                     padding: const EdgeInsets.only(top: AppSpacing.xxs),
                     child: Icon(
@@ -87,8 +97,7 @@ class AppSheetHeader extends StatelessWidget {
                       color: leadingIconColor,
                     ),
                   ),
-                  const SizedBox(width: AppSpacing.sm),
-                ],
+                const SizedBox(width: AppSpacing.sm),
               ],
               Expanded(
                 child: Column(
@@ -125,6 +134,7 @@ class AppSheetHeader extends StatelessWidget {
             ],
           ),
         ),
+        if (showDivider) Divider(height: 1, color: palette.border),
       ],
     );
   }

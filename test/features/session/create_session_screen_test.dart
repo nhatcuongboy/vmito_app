@@ -135,6 +135,26 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
+  testWidgets('AI sheet fits when the keyboard is open', (tester) async {
+    _setSize(tester, const Size(390, 844));
+    tester.view.viewInsets = const FakeViewPadding(bottom: 300);
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(_app());
+    await tester.pump(const Duration(milliseconds: 100));
+    await tester.tap(find.byKey(const Key('create-session-ai')));
+    await tester.pump();
+
+    final sheetInput = find.descendant(
+      of: find.byKey(const Key('create-session-ai-sheet')),
+      matching: find.byType(TextField),
+    );
+    await tester.pump();
+
+    expect(tester.widget<TextField>(sheetInput).focusNode!.hasFocus, isTrue);
+    expect(tester.takeException(), isNull);
+  });
+
   testWidgets('selected badminton keeps its shuttlecock artwork visible', (
     tester,
   ) async {
@@ -477,7 +497,7 @@ void main() {
     );
     expect(
       tester.widget<EditableText>(maleInput).controller.text,
-      '120000',
+      '120.000',
     );
 
     await tester.scrollUntilVisible(
@@ -497,7 +517,7 @@ void main() {
     );
     expect(
       tester.widget<EditableText>(maleInput).controller.text,
-      '120000',
+      '120.000',
     );
     expect(tester.takeException(), isNull);
   });

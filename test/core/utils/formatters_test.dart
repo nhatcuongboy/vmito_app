@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
+import 'package:vmito_app/core/utils/input_formatters.dart';
 
 void main() {
   setUpAll(initializeDateFormatting);
@@ -28,6 +29,31 @@ void main() {
     test('handles zero and small amounts', () {
       expect(Money.vnd(0), contains('0'));
       expect(Money.vndPlain(5000), '5.000');
+    });
+  });
+
+  group('CurrencyValueAccessor', () {
+    final accessor = CurrencyValueAccessor();
+
+    test('formats and parses grouped integer VND values', () {
+      expect(accessor.modelToViewValue(1500000), '1.500.000');
+      expect(accessor.viewToModelValue('1.500.000'), 1500000);
+      expect(accessor.viewToModelValue('1500000'), 1500000);
+    });
+
+    test('maps empty input to null', () {
+      expect(accessor.modelToViewValue(null), '');
+      expect(accessor.viewToModelValue(''), isNull);
+      expect(accessor.viewToModelValue(null), isNull);
+    });
+
+    test('ignores non-digit grouping characters', () {
+      expect(accessor.viewToModelValue('1,500,000'), 1500000);
+    });
+
+    test('preserves negative values for non-negative validation', () {
+      expect(accessor.modelToViewValue(-1500000), '-1.500.000');
+      expect(accessor.viewToModelValue('-1.500.000'), -1500000);
     });
   });
 

@@ -19,14 +19,18 @@ Map<String, dynamic>? validateBrowseFeeRange(
   AbstractControl<dynamic> control,
 ) {
   final group = control as FormGroup;
-  final min = int.tryParse(
-    (group.control(BrowseFilterControl.minFee).value as String? ?? '').trim(),
-  );
-  final max = int.tryParse(
-    (group.control(BrowseFilterControl.maxFee).value as String? ?? '').trim(),
-  );
+  final min = _feeValue(group.control(BrowseFilterControl.minFee).value);
+  final max = _feeValue(group.control(BrowseFilterControl.maxFee).value);
   if (min == null || max == null || min < 0 || max < 0) {
     return {'invalidFee': true};
   }
   return min <= max ? null : {'feeRange': true};
 }
+
+int? _feeValue(Object? value) => switch (value) {
+  int value => value,
+  String value =>
+    int.tryParse(value.trim()) ??
+        int.tryParse(value.replaceAll(RegExp('[^0-9]'), '')),
+  _ => null,
+};

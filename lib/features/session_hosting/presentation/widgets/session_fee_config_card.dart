@@ -5,6 +5,7 @@ import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
+import 'package:vmito_app/core/utils/input_formatters.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/payment/application/payment_providers.dart';
 import 'package:vmito_app/features/payment/domain/form/host_payment_forms.dart';
@@ -122,11 +123,13 @@ class _ConfiguredFeeCard extends ConsumerWidget {
             if (!config.isSplitEvenly) ...[
               if (config.maleFee != null)
                 _FeeLine(
+                  icon: AppIcons.male,
                   label: l10n.createSessionFeeMale,
                   amount: Money.vnd(config.maleFee!, locale: locale),
                 ),
               if (config.femaleFee != null)
                 _FeeLine(
+                  icon: AppIcons.female,
                   label: l10n.createSessionFeeFemale,
                   amount: Money.vnd(config.femaleFee!, locale: locale),
                 ),
@@ -164,10 +167,15 @@ class _FeeConfigHeader extends StatelessWidget {
     builder: (context, constraints) {
       final titleRow = Text(
         title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
         style: Theme.of(context).textTheme.titleMedium,
       );
       final feeTypeChip = Chip(
         visualDensity: VisualDensity.compact,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+        labelStyle: Theme.of(context).textTheme.labelSmall,
         label: Text(feeType, maxLines: 1, overflow: TextOverflow.ellipsis),
       );
       final actions = Row(
@@ -195,41 +203,28 @@ class _FeeConfigHeader extends StatelessWidget {
           key: const Key('fee-config-header-compact'),
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            titleRow,
-            const SizedBox(height: AppSpacing.xs),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Expanded(
-                  child: Align(
-                    alignment: AlignmentDirectional.centerStart,
-                    child: feeTypeChip,
-                  ),
-                ),
-                actions,
+                Expanded(child: titleRow),
+                const SizedBox(width: AppSpacing.xs),
+                Flexible(child: feeTypeChip),
               ],
             ),
+            const SizedBox(height: AppSpacing.xs),
+            Align(alignment: AlignmentDirectional.centerEnd, child: actions),
           ],
         );
       }
 
       return Row(
         key: const Key('fee-config-header-wide'),
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                titleRow,
-                const SizedBox(height: AppSpacing.xs),
-                Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: feeTypeChip,
-                ),
-              ],
-            ),
-          ),
+          Expanded(child: titleRow),
           const SizedBox(width: AppSpacing.sm),
+          feeTypeChip,
+          const SizedBox(width: AppSpacing.xs),
           actions,
         ],
       );
@@ -238,7 +233,12 @@ class _FeeConfigHeader extends StatelessWidget {
 }
 
 class _FeeLine extends StatelessWidget {
-  const _FeeLine({required this.label, required this.amount});
+  const _FeeLine({
+    required this.icon,
+    required this.label,
+    required this.amount,
+  });
+  final IconData icon;
   final String label;
   final String amount;
   @override
@@ -246,8 +246,21 @@ class _FeeLine extends StatelessWidget {
     padding: const EdgeInsets.only(top: AppSpacing.sm),
     child: Row(
       children: [
-        Expanded(child: Text(label)),
-        Text(amount, style: const TextStyle(fontWeight: FontWeight.bold)),
+        Icon(icon, size: 18),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(child: Text(label, overflow: TextOverflow.ellipsis)),
+        const SizedBox(width: AppSpacing.sm),
+        SizedBox(
+          width: 120,
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerEnd,
+            child: Text(
+              amount,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ),
       ],
     ),
   );
@@ -347,6 +360,10 @@ class _FeeConfigSheetState extends ConsumerState<_FeeConfigSheet> {
                             Expanded(
                               child: ReactiveTextField<int>(
                                 formControlName: SessionFeeControl.maleFee,
+                                valueAccessor: CurrencyValueAccessor(),
+                                inputFormatters: [
+                                  ThousandsSeparatorFormatter(),
+                                ],
                                 keyboardType: TextInputType.number,
                                 decoration: InputDecoration(
                                   labelText: l10n.createSessionFeeMale,
@@ -358,6 +375,10 @@ class _FeeConfigSheetState extends ConsumerState<_FeeConfigSheet> {
                             Expanded(
                               child: ReactiveTextField<int>(
                                 formControlName: SessionFeeControl.femaleFee,
+                                valueAccessor: CurrencyValueAccessor(),
+                                inputFormatters: [
+                                  ThousandsSeparatorFormatter(),
+                                ],
                                 keyboardType: TextInputType.number,
                                 decoration: InputDecoration(
                                   labelText: l10n.createSessionFeeFemale,

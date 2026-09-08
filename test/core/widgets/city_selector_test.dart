@@ -23,6 +23,25 @@ class _PreferencesController extends LocationPreferencesController {
     state = state.copyWith(
       preferredCity: city,
       clearPreferredCity: city == null,
+      selectionType: city == null ? LocationSelectionType.all : LocationSelectionType.city,
+      onboardingCompleted: true,
+    );
+  }
+
+  @override
+  Future<void> selectAll() async {
+    state = state.copyWith(
+      clearPreferredCity: true,
+      selectionType: LocationSelectionType.all,
+      onboardingCompleted: true,
+    );
+  }
+
+  @override
+  Future<void> selectOther() async {
+    state = state.copyWith(
+      clearPreferredCity: true,
+      selectionType: LocationSelectionType.other,
       onboardingCompleted: true,
     );
   }
@@ -31,16 +50,17 @@ class _PreferencesController extends LocationPreferencesController {
 Widget _app({
   required ValueChanged<String?> onChanged,
   DeviceReverseGeocoder? geocoder,
+  LocationPreferences initialPreferences = const LocationPreferences(
+    preferredCity: 'Hồ Chí Minh',
+    selectionType: LocationSelectionType.city,
+    onboardingCompleted: true,
+    isRestored: true,
+  ),
+  bool showLabel = false,
 }) => ProviderScope(
   overrides: [
     locationPreferencesControllerProvider.overrideWith(
-      () => _PreferencesController(
-        const LocationPreferences(
-          preferredCity: 'Hồ Chí Minh',
-          onboardingCompleted: true,
-          isRestored: true,
-        ),
-      ),
+      () => _PreferencesController(initialPreferences),
     ),
     newAdminUnitsProvider.overrideWith(
       (ref) async => const [
@@ -62,7 +82,7 @@ Widget _app({
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(
-      appBar: AppBar(title: CitySelector(onChanged: onChanged)),
+      appBar: AppBar(title: CitySelector(onChanged: onChanged, showLabel: showLabel)),
     ),
   ),
 );
@@ -208,5 +228,118 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(const Key('city-selector-results')), findsOneWidget);
+  });
+
+  testWidgets('selecting Other reports an intentional null city and updates label', (tester) async {
+    var wasCalled = false;
+    String? changed = 'not-null';
+    await tester.pumpWidget(
+      _app(
+        showLabel: true,
+        onChanged: (city) {
+          wasCalled = true;
+          changed = city;
+        },
+      ),
+    );
+
+    expect(find.text('Hồ Chí Minh'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('discovery-city-selector')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('discovery-city-other')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('discovery-city-other')));
+    await tester.pumpAndSettle();
+
+    expect(wasCalled, isTrue);
+    expect(changed, isNull);
+    expect(find.text('Khác'), findsOneWidget);
+  });
+
+  testWidgets('displays Other as selected when preference is other', (tester) async {
+    await tester.pumpWidget(
+      _app(
+        initialPreferences: const LocationPreferences(
+          selectionType: LocationSelectionType.other,
+          onboardingCompleted: true,
+          isRestored: true,
+        ),
+        showLabel: true,
+        onChanged: (_) {},
+      ),
+    );
+
+    expect(find.text('Khác'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('discovery-city-selector')));
+    await tester.pumpAndSettle();
+
+    final otherRow = find.byKey(const Key('discovery-city-other'));
+    expect(otherRow, findsOneWidget);
+    expect(
+      find.descendant(of: otherRow, matching: find.byIcon(AppIcons.checkCircle)),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('search with no results provides a button to select Other', (tester) async {
+    var wasCalled = false;
+    String? changed = 'not-null';
+    await tester.pumpWidget(
+      _app(
+        onChanged: (city) {
+          wasCalled = true;
+          changed = city;
+        },
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('discovery-city-selector')));
+    await tester.pumpAndSettle();
+
+    await tester.enterText(
+      find.descendant(
+        of: find.byKey(const Key('city-selector-search')),
+        matching: find.byType(TextField),
+      ),
+      'UnknownCityxyz',
+    );
+    await tester.pump();
+
+    expect(find.text('Không tìm thấy kết quả'), findsOneWidget);
+    expect(find.byKey(const Key('discovery-city-empty-other')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('discovery-city-empty-other')));
+    await tester.pumpAndSettle();
+
+    expect(wasCalled, isTrue);
+    expect(changed, isNull);
+  });
+
+  testWidgets('GPS abroad outside supported list automatically selects Other', (tester) async {
+    var wasCalled = false;
+    String? changed = 'not-null';
+    await tester.pumpWidget(
+      _app(
+        onChanged: (city) {
+          wasCalled = true;
+          changed = city;
+        },
+        geocoder: (_) async => const DevicePlacemark([
+          'Tokyo',
+          'Japan',
+        ]),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('discovery-city-selector')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('city-selector-current-location')));
+    await tester.pumpAndSettle();
+
+    expect(wasCalled, isTrue);
+    expect(changed, isNull);
+    expect(find.byKey(const Key('city-selector-location-error')), findsNothing);
   });
 }

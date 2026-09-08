@@ -14,6 +14,8 @@ import 'package:vmito_app/core/theme/theme_mode_controller.dart';
 import 'package:vmito_app/core/web/admin_web_destination.dart';
 import 'package:vmito_app/core/widgets/language_selector.dart';
 import 'package:vmito_app/core/widgets/theme_mode_selector.dart';
+import 'package:vmito_app/features/ai/application/ai_assistant_controller.dart';
+import 'package:vmito_app/features/ai/presentation/ai_assistant_sheet.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/features/home/presentation/widgets/home_header_backdrop.dart';
@@ -55,8 +57,28 @@ class SlideOutMenu extends ConsumerWidget {
     }
 
     final isSignedIn = isAuthenticated && user != null;
+    final isAiAssistantEnabled =
+        isSignedIn && ref.watch(aiAssistantFeatureEnabledProvider);
     final canViewHostFinance =
         (user?.isHost ?? false) || (user?.isAdmin ?? false);
+
+    void openAiAssistant() {
+      final rootNavigator = Navigator.of(context, rootNavigator: true);
+      final onClosed = ref
+          .read(aiAssistantControllerProvider.notifier)
+          .stopStreaming;
+      closeDrawer();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!rootNavigator.mounted) return;
+        unawaited(
+          showAiAssistantSheet(
+            rootNavigator.context,
+            routePath: location,
+            onClosed: onClosed,
+          ),
+        );
+      });
+    }
 
     // Leaves at least 56dp of the underlying screen visible (Material spec)
     // instead of a fixed 320 that swallows nearly all of a small phone.
@@ -73,14 +95,20 @@ class SlideOutMenu extends ConsumerWidget {
               child: ListView(
                 padding: EdgeInsets.zero,
                 children: [
-                  if (isSignedIn)
+                  if (isSignedIn) ...[
                     _ProfileHeader(
                       user: user,
                       roleLabel: _roleLabel(l10n, user.role),
                       onTap: () => goTo(AppRoutes.profile),
                     ),
+                    const _MenuDivider(
+                      key: Key('menu-profile-explore-divider'),
+                    ),
+                  ],
                   _MenuSection(
                     title: l10n.menuExplore,
+                    compactTop: isSignedIn,
+                    compactBottom: isSignedIn,
                     children: [
                       _MenuItem(
                         icon: AppIcons.searchSessions,
@@ -133,8 +161,12 @@ class SlideOutMenu extends ConsumerWidget {
                     ],
                   ),
                   if (isSignedIn) ...[
+                    const _MenuDivider(
+                      key: Key('menu-explore-manage-divider'),
+                    ),
                     _MenuSection(
                       title: l10n.menuManage,
+                      compactTop: true,
                       children: [
                         _MenuItem(
                           icon: AppIcons.sessions,
@@ -195,6 +227,14 @@ class SlideOutMenu extends ConsumerWidget {
                           isActive: isActive(AppRoutes.settings),
                           onTap: () => pushTo(AppRoutes.settings),
                         ),
+                        if (isAiAssistantEnabled)
+                          _MenuItem(
+                            itemKey: const Key('menu-ai-assistant'),
+                            icon: AppIcons.sparkles,
+                            label: l10n.aiAssistantTitle,
+                            isFeatured: true,
+                            onTap: openAiAssistant,
+                          ),
                         _MenuItem(
                           icon: AppIcons.help,
                           label: l10n.menuHelpFeedback,
@@ -359,22 +399,32 @@ class _ProfileHeader extends StatelessWidget {
 }
 
 class _MenuSection extends StatelessWidget {
-  const _MenuSection({this.title, required this.children});
+  const _MenuSection({
+    this.title,
+    this.compactTop = false,
+    this.compactBottom = false,
+    required this.children,
+  });
 
   final String? title;
+  final bool compactTop;
+  final bool compactBottom;
   final List<Widget> children;
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+    padding: EdgeInsets.only(
+      top: AppSpacing.sm,
+      bottom: compactBottom ? AppSpacing.xs : AppSpacing.sm,
+    ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (title != null)
           Padding(
-            padding: const EdgeInsets.fromLTRB(
+            padding: EdgeInsets.fromLTRB(
               AppSpacing.lg,
-              AppSpacing.md,
+              compactTop ? AppSpacing.sm : AppSpacing.md,
               AppSpacing.lg,
               AppSpacing.xs,
             ),
@@ -402,58 +452,85 @@ class _MenuSection extends StatelessWidget {
 class _MenuItem extends StatelessWidget {
   const _MenuItem({
     required this.label,
+    this.itemKey,
     this.icon,
     this.leading,
     this.isActive = false,
+    this.isFeatured = false,
     this.onTap,
   }) : assert(
          icon != null || leading != null,
          'A menu item needs either an icon or a leading widget.',
        );
 
+  final Key? itemKey;
   final IconData? icon;
   final Widget? leading;
   final String label;
   final bool isActive;
+  final bool isFeatured;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = isActive
+    final featuredColor = theme.brightness == Brightness.dark
+        ? const Color(0xFFE9D5FF)
+        : const Color(0xFF6D28D9);
+    final color = isFeatured
+        ? featuredColor
+        : isActive
         ? theme.colorScheme.primary
         : theme.colorScheme.onSurface;
 
-    return Material(
-      color: isActive
-          ? theme.colorScheme.primary.withValues(alpha: 0.1)
-          : Colors.transparent,
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-        minTileHeight: 48,
-        leading: IconTheme.merge(
-          data: IconThemeData(color: color, size: 22),
-          child: leading ?? Icon(icon),
-        ),
-        title: Text(
-          label,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            fontSize: 15,
-            height: 20 / 15,
-            color: color,
-            fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+    return Padding(
+      padding: isFeatured
+          ? const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm,
+              vertical: AppSpacing.xxs,
+            )
+          : EdgeInsets.zero,
+      child: Material(
+        key: itemKey,
+        borderRadius: BorderRadius.circular(AppRadius.xl),
+        color: isFeatured
+            ? Colors.transparent
+            : isActive
+            ? theme.colorScheme.primary.withValues(alpha: 0.1)
+            : Colors.transparent,
+        child: ListTile(
+          contentPadding: EdgeInsets.symmetric(
+            horizontal: isFeatured ? AppSpacing.md : AppSpacing.lg,
           ),
+          minTileHeight: 48,
+          leading: IconTheme.merge(
+            data: IconThemeData(color: color, size: 22),
+            child: isFeatured
+                ? Icon(AppIcons.sparkles, color: color, size: 22)
+                : leading ?? Icon(icon),
+          ),
+          title: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontSize: 15,
+              height: 20 / 15,
+              color: color,
+              fontWeight: isFeatured || isActive
+                  ? FontWeight.w700
+                  : FontWeight.w500,
+            ),
+          ),
+          onTap: onTap,
         ),
-        onTap: onTap,
       ),
     );
   }
 }
 
 class _MenuDivider extends StatelessWidget {
-  const _MenuDivider();
+  const _MenuDivider({super.key});
 
   @override
   Widget build(BuildContext context) => Divider(

@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:vmito_app/core/location/city_names.dart';
+import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/widgets/city_selector_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 class CitySelectorResults extends StatelessWidget {
@@ -11,13 +13,15 @@ class CitySelectorResults extends StatelessWidget {
     required this.cities,
     required this.selectedCity,
     required this.onSelected,
+    this.selectionType,
     super.key,
   });
 
   final String searchControlName;
   final List<String> cities;
   final String? selectedCity;
-  final ValueChanged<String?> onSelected;
+  final LocationSelectionType? selectionType;
+  final ValueChanged<CitySelection> onSelected;
 
   @override
   Widget build(BuildContext context) => ReactiveValueListenableBuilder<String>(
@@ -30,7 +34,10 @@ class CitySelectorResults extends StatelessWidget {
           : cities
                 .where((city) => citySearchKey(city).contains(query))
                 .toList(growable: false);
-      if (visible.isEmpty) {
+      final matchesOther = query.isNotEmpty &&
+          citySearchKey(l10n.citySelectorOther).contains(query);
+
+      if (visible.isEmpty && !matchesOther) {
         return Center(
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.lg),
@@ -49,6 +56,13 @@ class CitySelectorResults extends StatelessWidget {
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
                 ),
+                const SizedBox(height: AppSpacing.md),
+                OutlinedButton.icon(
+                  key: const Key('discovery-city-empty-other'),
+                  onPressed: () => onSelected(const CitySelection.other()),
+                  icon: const Icon(AppIcons.location, size: 18),
+                  label: Text(l10n.citySelectorOther),
+                ),
               ],
             ),
           ),
@@ -56,8 +70,14 @@ class CitySelectorResults extends StatelessWidget {
       }
       final entries = query.isEmpty
           ? _groupedEntries(visible, l10n)
-          : visible.map<_ResultEntry>(_CityEntry.new).toList(growable: false);
-      return ListView.separated(
+          : [
+              ...visible.map<_ResultEntry>(_CityEntry.new),
+              if (matchesOther) const _OtherEntry(),
+            ];
+      final isCitySelected = (selectionType == LocationSelectionType.city ||
+              (selectionType == null && selectedCity != null)) &&
+          selectedCity != null;
+      return ListView.builder(
         key: const Key('city-selector-results'),
         padding: const EdgeInsets.fromLTRB(
           AppSpacing.md,
@@ -66,22 +86,32 @@ class CitySelectorResults extends StatelessWidget {
           AppSpacing.md,
         ),
         itemCount: entries.length,
-        separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.xxs),
         itemBuilder: (context, index) {
-          return switch (entries[index]) {
+          final entry = entries[index];
+          return switch (entry) {
             _HeadingEntry(:final label) => _SectionHeading(label: label),
+            _DividerEntry() => const _SectionDivider(),
+            _BottomSpacingEntry() => const SizedBox(height: AppSpacing.xl),
             _AllEntry() => _CityRow(
               key: const Key('discovery-city-all'),
               label: l10n.citySelectorAll,
-              isSelected: selectedCity == null,
+              isSelected: selectionType == LocationSelectionType.all,
               icon: AppIcons.language,
-              onTap: () => onSelected(null),
+              onTap: () => onSelected(const CitySelection.all()),
+            ),
+            _OtherEntry() => _CityRow(
+              key: const Key('discovery-city-other'),
+              label: l10n.citySelectorOther,
+              isSelected: selectionType == LocationSelectionType.other,
+              icon: AppIcons.location,
+              onTap: () => onSelected(const CitySelection.other()),
             ),
             _CityEntry(:final city) => _CityRow(
               key: Key('discovery-city-$city'),
               label: city,
-              isSelected: selectedCity == city,
-              onTap: () => onSelected(city),
+              isSelected: isCitySelected && selectedCity == city,
+              icon: AppIcons.mapPin,
+              onTap: () => onSelected(CitySelection.city(city)),
             ),
           };
         },
@@ -107,6 +137,9 @@ class CitySelectorResults extends StatelessWidget {
         _HeadingEntry(l10n.citySelectorAllPlaces),
         ...remaining.map(_CityEntry.new),
       ],
+      const _DividerEntry(),
+      const _OtherEntry(),
+      const _BottomSpacingEntry(),
     ];
   }
 }
@@ -117,6 +150,18 @@ sealed class _ResultEntry {
 
 class _AllEntry extends _ResultEntry {
   const _AllEntry();
+}
+
+class _OtherEntry extends _ResultEntry {
+  const _OtherEntry();
+}
+
+class _DividerEntry extends _ResultEntry {
+  const _DividerEntry();
+}
+
+class _BottomSpacingEntry extends _ResultEntry {
+  const _BottomSpacingEntry();
 }
 
 class _HeadingEntry extends _ResultEntry {
@@ -140,16 +185,34 @@ class _SectionHeading extends StatelessWidget {
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(
       AppSpacing.sm,
-      AppSpacing.sm,
+      AppSpacing.md,
       AppSpacing.sm,
       AppSpacing.xs,
     ),
     child: Text(
-      label,
-      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+      label.toUpperCase(),
+      style: Theme.of(context).textTheme.labelSmall?.copyWith(
         color: Theme.of(context).colorScheme.onSurfaceVariant,
         fontWeight: FontWeight.w700,
+        letterSpacing: 0.8,
       ),
+    ),
+  );
+}
+
+class _SectionDivider extends StatelessWidget {
+  const _SectionDivider();
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.symmetric(
+      horizontal: AppSpacing.sm,
+      vertical: AppSpacing.md,
+    ),
+    child: Divider(
+      height: 1,
+      thickness: 1,
+      color: Theme.of(context).colorScheme.outlineVariant.withValues(alpha: .3),
     ),
   );
 }

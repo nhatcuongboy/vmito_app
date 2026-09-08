@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
-import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/features/session/domain/host_player.dart';
@@ -129,7 +128,6 @@ class _HostEditPlayerSheetState extends ConsumerState<_HostEditPlayerSheet> {
         children: [
           AppSheetHeader(
             title: l10n.hostPlayerEditTitle(widget.player.playerNumber ?? 0),
-            leadingIcon: AppIcons.edit,
             closeButtonEnabled: !_submitting,
             onClose: () => Navigator.pop(context),
           ),
