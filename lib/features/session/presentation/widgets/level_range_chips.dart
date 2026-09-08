@@ -28,14 +28,14 @@ class LevelRangeChips extends StatelessWidget {
         requiredLevels.isEmpty ||
         validLevels.every(requiredLevels.toSet().contains);
     if (allLevels) {
-      final chipColor = isDark
-          ? const Color(0xFFCBD5E1)
-          : palette.mutedForeground;
+      const lightPurple = Color(0xFF7C3AED);
+      const darkPurple = Color(0xFFC4B5FD);
+      final chipColor = isDark ? darkPurple : lightPurple;
       return _LevelChip(
         key: const Key('session-all-levels-badge'),
         label: AppLocalizations.of(context).sessionAllLevels,
         color: chipColor,
-        border: isDark ? Border.all(color: palette.border) : null,
+        border: Border.all(color: chipColor.withValues(alpha: 0.28)),
       );
     }
 

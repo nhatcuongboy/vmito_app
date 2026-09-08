@@ -853,7 +853,7 @@ class _ClubMemberBadge extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           'Thành viên',
-          style: theme.textTheme.labelSmall?.copyWith(
+          style: theme.textTheme.labelMedium?.copyWith(
             color: color,
             fontWeight: FontWeight.w600,
           ),

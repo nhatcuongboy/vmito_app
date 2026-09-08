@@ -8,8 +8,10 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
 import 'package:vmito_app/features/session/domain/player_detail.dart';
 import 'package:vmito_app/features/session_hosting/application/host_session_management_controller.dart';
+import 'package:vmito_app/features/session_hosting/application/live_wait_time_provider.dart';
 import 'package:vmito_app/features/session_hosting/application/player_statistics_providers.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -204,10 +206,9 @@ class _PlayerDetailContent extends ConsumerWidget {
                   label: l10n.hostPlayerStatsMatches,
                   value: '${player.matchesPlayed}',
                 ),
-                _DetailRow(
-                  icon: AppIcons.hourglass,
-                  label: l10n.hostPlayerDetailCurrentWait,
-                  value: l10n.hostPlayerStatsMinutes(player.currentWaitTime),
+                _CurrentWaitDetailRow(
+                  sessionId: sessionId,
+                  player: player,
                 ),
                 _DetailRow(
                   icon: AppIcons.timer,
@@ -292,6 +293,47 @@ class _PlayerDetailContent extends ConsumerWidget {
     ref
       ..invalidate(playerDetailProvider(player.id))
       ..invalidate(playerStatisticsProvider(sessionId));
+  }
+}
+
+/// Keeps the volatile current wait isolated from the rest of the detail sheet,
+/// so only this row rebuilds at minute boundaries.
+class _CurrentWaitDetailRow extends ConsumerWidget {
+  const _CurrentWaitDetailRow({
+    required this.sessionId,
+    required this.player,
+  });
+
+  final String sessionId;
+  final PlayerDetail player;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final isSessionLive =
+        ref
+            .watch(sessionDetailProvider(sessionId))
+            .asData
+            ?.value
+            .status
+            .isLive ??
+        false;
+    final minutes = ref
+        .watch(
+          liveWaitTimeProvider((
+            playerId: player.id,
+            baselineMinutes: player.currentWaitTime,
+            isRunning: isSessionLive && player.status == PlayerStatus.waiting,
+          )),
+        )
+        .asData
+        ?.value;
+
+    return _DetailRow(
+      icon: AppIcons.hourglass,
+      label: l10n.hostPlayerDetailCurrentWait,
+      value: l10n.hostPlayerStatsMinutes(minutes ?? player.currentWaitTime),
+    );
   }
 }
 

@@ -5,7 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
+import 'package:vmito_app/features/session/presentation/widgets/registration_status_badge.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/models/session_player.dart';
 import 'package:vmito_app/shared/widgets/app_lightbox.dart';
 
 /// Cover carousel and status badges for the session detail flexible space.
@@ -14,9 +16,14 @@ import 'package:vmito_app/shared/widgets/app_lightbox.dart';
 /// committing: whether there is room, and whether the session already
 /// happened.
 class SessionDetailHero extends StatefulWidget {
-  const SessionDetailHero({required this.session, super.key});
+  const SessionDetailHero({
+    required this.session,
+    this.registrationStatus,
+    super.key,
+  });
 
   final Session session;
+  final RegistrationStatus? registrationStatus;
 
   /// Keep the session cover aligned with the venue detail hero.
   static const heroHeight = 220.0;
@@ -91,9 +98,18 @@ class _SessionDetailHeroState extends State<SessionDetailHero> {
         Positioned(
           bottom: AppSpacing.lg,
           left: AppSpacing.md,
-          child: widget.session.isCrawled
-              ? const _CrawledBadge()
-              : _SlotBadge(session: widget.session),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            spacing: AppSpacing.sm,
+            children: [
+              if (widget.session.isCrawled)
+                const _CrawledBadge()
+              else
+                _SlotBadge(session: widget.session),
+              if (widget.registrationStatus != null)
+                RegistrationStatusBadge(status: widget.registrationStatus!),
+            ],
+          ),
         ),
         Positioned(
           bottom: AppSpacing.lg,

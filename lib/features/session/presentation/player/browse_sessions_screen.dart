@@ -18,11 +18,14 @@ import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/registration/application/my_join_requests_controller.dart';
 import 'package:vmito_app/features/registration/domain/pending_join_request.dart';
 import 'package:vmito_app/features/registration/presentation/my_join_requests_sheet.dart';
+import 'package:vmito_app/features/registration/presentation/my_registration_sheet.dart';
+import 'package:vmito_app/features/registration/presentation/register_session_sheet.dart';
 import 'package:vmito_app/features/session/application/player/my_sessions_controller.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/player/pending_requests_screen.dart';
 import 'package:vmito_app/features/session/presentation/widgets/session_card.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/models/session_player.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
 import 'package:vmito_app/shared/widgets/app_loading_view.dart';
 import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
@@ -538,33 +541,33 @@ class _FilterBottomSheet extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 ...filters.map((item) {
-              final filter = item.$1;
-              final label = item.$2;
-              final isSelected = filter == currentFilter;
-              return ListTile(
-                key: ValueKey('my-sessions-filter-${filter.name}'),
-                title: Text(
-                  label,
-                  style: TextStyle(
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
-                    color: isSelected
-                        ? Theme.of(context).colorScheme.primary
+                  final filter = item.$1;
+                  final label = item.$2;
+                  final isSelected = filter == currentFilter;
+                  return ListTile(
+                    key: ValueKey('my-sessions-filter-${filter.name}'),
+                    title: Text(
+                      label,
+                      style: TextStyle(
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.normal,
+                        color: isSelected
+                            ? Theme.of(context).colorScheme.primary
+                            : null,
+                      ),
+                    ),
+                    trailing: isSelected
+                        ? Icon(
+                            AppIcons.check,
+                            color: Theme.of(context).colorScheme.primary,
+                          )
                         : null,
-                  ),
-                ),
-                trailing: isSelected
-                    ? Icon(
-                        AppIcons.check,
-                        color: Theme.of(context).colorScheme.primary,
-                      )
-                    : null,
-                onTap: () {
-                  onFilterSelected(filter);
-                  Navigator.of(context).pop();
-                },
-              );
+                    onTap: () {
+                      onFilterSelected(filter);
+                      Navigator.of(context).pop();
+                    },
+                  );
                 }),
               ],
             ),
@@ -594,6 +597,7 @@ class _SessionsBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     if (state.isLoading && !state.hasLoaded) return const AppLoadingView();
     final isPending = state.filter == MySessionFilter.pending;
     final isEmpty = isPending
@@ -632,7 +636,11 @@ class _SessionsBody extends StatelessWidget {
       itemBuilder: (context, index) {
         if (index == state.sessions.length) return const AppLoadingView();
         final session = state.sessions[index];
+        final registrationStatus = scope == MySessionScope.joined
+            ? _registrationStatus(session)
+            : null;
         final card = SessionCard(
+          key: ValueKey(session.id),
           session: session,
           hideHostInfo: scope == MySessionScope.hosted,
           onTap: () => context.push(AppRoutes.sessionDetail(session.id)),
@@ -652,26 +660,46 @@ class _SessionsBody extends StatelessWidget {
               ? () => _confirmDelete(context, session)
               : null,
           compactStatusBadge: scope == MySessionScope.hosted,
-        );
-        if (scope == MySessionScope.joined && _isPending(session)) {
-          return Stack(
-            clipBehavior: Clip.none,
-            children: [
-              card,
-              Positioned(
-                top: AppSpacing.xs,
-                right: AppSpacing.xs,
-                child: Chip(
-                  key: const Key('joined-session-pending-badge'),
-                  visualDensity: VisualDensity.compact,
-                  label: Text(
-                    AppLocalizations.of(context).mySessionsPendingBadge,
+          showSessionStatusBadge:
+              scope == MySessionScope.hosted || scope == MySessionScope.joined,
+            sessionStatusBadgeAtTop: scope == MySessionScope.hosted,
+          extraTimeTopSpacing: scope == MySessionScope.hosted,
+          registrationStatus: registrationStatus,
+          primaryAction: scope == MySessionScope.joined
+              ? SessionCardAction(
+                  label: l10n.sessionViewBoard,
+                  icon: AppIcons.court,
+                  onPressed: registrationStatus == RegistrationStatus.pending
+                      ? null
+                      : () => context.push(AppRoutes.liveSession(session.id)),
+                )
+              : null,
+          moreActions: scope == MySessionScope.joined
+              ? [
+                  SessionCardAction(
+                    label: l10n.sessionViewMyRegistration,
+                    icon: AppIcons.ticket,
+                    onPressed: () => _showTicket(context, session.id),
                   ),
-                ),
-              ),
-            ],
-          );
-        }
+                  SessionCardAction(
+                    label: l10n.sessionAddGuest,
+                    icon: AppIcons.userPlus,
+                    onPressed: () => unawaited(
+                      showRegisterSessionSheet(
+                        context,
+                        session: session,
+                        asGuest: true,
+                      ),
+                    ),
+                  ),
+                  SessionCardAction(
+                    label: l10n.mySessionsShare,
+                    icon: AppIcons.share,
+                    onPressed: () => _shareSession(context, session),
+                  ),
+                ]
+              : const [],
+        );
         return card;
       },
     );
@@ -704,6 +732,10 @@ class _SessionsBody extends StatelessWidget {
     );
   }
 
+  void _showTicket(BuildContext context, String sessionId) {
+    unawaited(showMyRegistrationSheet(context, sessionId: sessionId));
+  }
+
   void _downloadImage(BuildContext context, Session session) {
     final l10n = AppLocalizations.of(context);
     final imageUrl = session.coverPhoto?.trim().isNotEmpty ?? false
@@ -719,8 +751,8 @@ class _SessionsBody extends StatelessWidget {
     );
   }
 
-  bool _isPending(Session session) =>
-      session.players.any((player) => player.isPendingApproval);
+  RegistrationStatus? _registrationStatus(Session session) =>
+      session.players.isEmpty ? null : session.players.first.registrationStatus;
 }
 
 class _PendingRequestCard extends StatelessWidget {

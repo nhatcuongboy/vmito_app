@@ -35,7 +35,6 @@ class CourtDisplayModeSwitch extends ConsumerWidget {
       onSelectionChanged: (selection) => controller.select(selection.first),
       showSelectedIcon: false,
       style: SegmentedButton.styleFrom(
-        backgroundColor: Colors.white,
         minimumSize: const Size(0, 36),
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm + 2),
         textStyle: theme.textTheme.labelMedium?.copyWith(

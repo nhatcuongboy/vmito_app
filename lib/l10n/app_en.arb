@@ -487,6 +487,7 @@
   },
   "sessionCrawledReadOnly": "Collected from Facebook — view only",
   "sessionCrawledBadge": "Facebook post",
+  "sessionFacebookSource": "Facebook source",
   "sessionClosed": "This session is closed",
   "sessionSlotsLeft": "{count} slots left",
   "@sessionSlotsLeft": {
@@ -497,7 +498,17 @@
     }
   },
   "sessionSlotsFull": "Full",
+  "sessionSlotsLeftUrgent": "Only {count} slots left",
+  "@sessionSlotsLeftUrgent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sessionRegistrationClosed": "Registration closed",
+  "sessionFeeSlotSuffix": "/slot",
+  "sessionFeeSplit": "Split fee",
   "sessionStatusPreparing": "Upcoming",
   "sessionStatusInProgress": "In progress",
   "sessionStatusFinished": "Finished",

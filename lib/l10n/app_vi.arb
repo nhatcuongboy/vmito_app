@@ -494,6 +494,7 @@
   },
   "sessionCrawledReadOnly": "Kèo được sưu tầm từ Facebook — chỉ xem",
   "sessionCrawledBadge": "Bài Facebook",
+  "sessionFacebookSource": "Nguồn Facebook",
   "sessionClosed": "Kèo này đã đóng",
   "sessionSlotsLeft": "Còn {count} slot",
   "@sessionSlotsLeft": {
@@ -504,7 +505,17 @@
     }
   },
   "sessionSlotsFull": "Hết slot",
+  "sessionSlotsLeftUrgent": "Chỉ còn {count} slot",
+  "@sessionSlotsLeftUrgent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sessionRegistrationClosed": "Đã đóng đăng ký",
+  "sessionFeeSlotSuffix": "/slot",
+  "sessionFeeSplit": "Phí chia đều",
   "sessionStatusPreparing": "Sắp diễn ra",
   "sessionStatusInProgress": "Đang diễn ra",
   "sessionStatusFinished": "Đã kết thúc",

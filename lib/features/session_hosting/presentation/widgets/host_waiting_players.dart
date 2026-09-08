@@ -39,7 +39,10 @@ class HostWaitingPlayers extends StatelessWidget {
             ),
           )
         else
-          PlayerSelectGrid(players: waiting),
+          PlayerSelectGrid(
+            players: waiting,
+            updateWaitTime: session.status.isLive,
+          ),
       ],
     );
   }

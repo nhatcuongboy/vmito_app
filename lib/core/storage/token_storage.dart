@@ -11,6 +11,12 @@ class TokenStorage {
     : _storage =
           storage ??
           const FlutterSecureStorage(
+            aOptions: AndroidOptions(
+              // Token writes must survive an app process being killed during
+              // the plugin's cipher migration. The backup is local to the
+              // app's secure preferences and is removed after migration.
+              migrateWithBackup: true,
+            ),
             iOptions: IOSOptions(
               accessibility: KeychainAccessibility.first_unlock,
             ),
@@ -26,29 +32,45 @@ class TokenStorage {
   /// channel round trip per request would be a real cost on a list screen.
   /// Kept in step with the store by every write path below.
   String? _cachedAccessToken;
+  String? _cachedRefreshToken;
 
   String? get accessToken => _cachedAccessToken;
   bool get hasAccessToken => _cachedAccessToken?.isNotEmpty ?? false;
+  bool get hasRefreshToken => _cachedRefreshToken?.isNotEmpty ?? false;
+  bool get hasPersistedSession => hasAccessToken || hasRefreshToken;
 
   /// Must run once at startup, before the first authenticated request.
   Future<void> hydrate() async {
-    _cachedAccessToken = await _storage.read(key: _accessTokenKey);
+    final tokens = await Future.wait([
+      _storage.read(key: _accessTokenKey),
+      _storage.read(key: _refreshTokenKey),
+    ]);
+    _cachedAccessToken = tokens[0];
+    _cachedRefreshToken = tokens[1];
   }
 
-  Future<String?> readRefreshToken() => _storage.read(key: _refreshTokenKey);
+  Future<String?> readRefreshToken() async {
+    final refreshToken = await _storage.read(key: _refreshTokenKey);
+    _cachedRefreshToken = refreshToken;
+    return refreshToken;
+  }
 
   Future<void> save({
     required String accessToken,
     required String refreshToken,
   }) async {
-    _cachedAccessToken = accessToken;
+    // Persist the recovery credential first. If the OS kills the process
+    // between these two native writes, startup can still mint a new access
+    // token from the refresh token instead of losing the session.
+    await _storage.write(key: _refreshTokenKey, value: refreshToken);
     await Future.wait([
       _storage.write(key: _accessTokenKey, value: accessToken),
-      _storage.write(key: _refreshTokenKey, value: refreshToken),
       // A live pair supersedes anything parked for biometrics; the parked one
       // is revoked the moment this pair was minted from it.
       _storage.delete(key: _biometricRefreshTokenKey),
     ]);
+    _cachedAccessToken = accessToken;
+    _cachedRefreshToken = refreshToken;
   }
 
   /// Refresh responses may omit a new refresh token; keep the existing one.
@@ -56,14 +78,15 @@ class TokenStorage {
     String accessToken, [
     String? refreshToken,
   ]) async {
-    _cachedAccessToken = accessToken;
-    await _storage.write(key: _accessTokenKey, value: accessToken);
     if (refreshToken != null) {
       await _storage.write(key: _refreshTokenKey, value: refreshToken);
+      _cachedRefreshToken = refreshToken;
     }
+    await _storage.write(key: _accessTokenKey, value: accessToken);
+    _cachedAccessToken = accessToken;
   }
 
-  /// Ends the session and parks the refresh token where [AuthInterceptor]
+  /// Ends the session and parks the refresh token where the auth interceptor
   /// cannot see it.
   ///
   /// Leaving it under [_refreshTokenKey] would let any 401 on a public screen
@@ -73,6 +96,7 @@ class TokenStorage {
   Future<void> parkRefreshTokenForBiometrics() async {
     final refreshToken = await _storage.read(key: _refreshTokenKey);
     _cachedAccessToken = null;
+    _cachedRefreshToken = null;
     await Future.wait([
       _storage.delete(key: _accessTokenKey),
       _storage.delete(key: _refreshTokenKey),
@@ -81,12 +105,13 @@ class TokenStorage {
     ]);
   }
 
-  /// Only [AuthController.signInWithBiometrics] may read this.
+  /// Only the biometric sign-in flow may read this.
   Future<String?> readBiometricRefreshToken() =>
       _storage.read(key: _biometricRefreshTokenKey);
 
   Future<void> clear() async {
     _cachedAccessToken = null;
+    _cachedRefreshToken = null;
     await Future.wait([
       _storage.delete(key: _accessTokenKey),
       _storage.delete(key: _refreshTokenKey),

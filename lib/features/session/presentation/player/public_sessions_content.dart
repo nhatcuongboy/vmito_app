@@ -11,6 +11,7 @@ import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/features/registration/application/my_registration_controller.dart';
 import 'package:vmito_app/features/session/application/player/browse_sessions_controller.dart';
 import 'package:vmito_app/features/session/domain/session_map_location.dart';
 import 'package:vmito_app/features/session/presentation/player/session_map_view.dart';
@@ -245,14 +246,16 @@ class _SessionMapBody extends StatelessWidget {
   }
 }
 
-class _SessionList extends StatelessWidget {
+class _SessionList extends ConsumerWidget {
   const _SessionList({required this.controller, required this.state});
 
   final ScrollController controller;
   final BrowseSessionsState state;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final registrationStatuses =
+        ref.watch(myRegistrationStatusesProvider).value ?? const {};
     return AppPaginatedListView.separated(
       controller: controller,
       padding: const EdgeInsets.fromLTRB(
@@ -271,7 +274,10 @@ class _SessionList extends StatelessWidget {
         final session = state.sessions[index];
         return SessionCard(
           session: session,
+          variant: SessionCardVariant.browse,
           showFavorite: true,
+          registrationStatus: registrationStatuses[session.id],
+          registrationBadgeAtBottom: true,
           onTap: () => context.push(AppRoutes.sessionDetail(session.id)),
         );
       },

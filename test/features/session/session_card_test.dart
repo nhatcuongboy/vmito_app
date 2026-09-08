@@ -15,6 +15,7 @@ import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 import 'package:vmito_app/features/session/presentation/widgets/session_card.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/models/session_player.dart';
 
 Session _session({
   List<int> requiredLevels = const [],
@@ -52,6 +53,14 @@ Future<void> _pump(
   bool showFavorite = false,
   bool signedIn = false,
   ThemeData? theme,
+  SessionCardVariant variant = SessionCardVariant.standard,
+  RegistrationStatus? registrationStatus,
+  bool showSportBadge = false,
+  bool showSessionStatusBadge = false,
+  bool sessionStatusBadgeAtTop = false,
+  bool registrationBadgeAtBottom = false,
+  SessionCardAction? primaryAction,
+  List<SessionCardAction> moreActions = const [],
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -74,6 +83,14 @@ Future<void> _pump(
           body: SessionCard(
             session: session,
             showFavorite: showFavorite,
+            variant: variant,
+            registrationStatus: registrationStatus,
+            showSportBadge: showSportBadge,
+            showSessionStatusBadge: showSessionStatusBadge,
+            sessionStatusBadgeAtTop: sessionStatusBadgeAtTop,
+            registrationBadgeAtBottom: registrationBadgeAtBottom,
+            primaryAction: primaryAction,
+            moreActions: moreActions,
           ),
         ),
       ),
@@ -185,6 +202,17 @@ void main() {
       final badge = find.byKey(const Key('session-all-levels-badge'));
       final slot = find.ancestor(of: badge, matching: find.byType(Align));
       expect(tester.getSize(badge).width, lessThan(tester.getSize(slot).width));
+      final decoration =
+          tester
+                  .widget<Container>(
+                    find.descendant(
+                      of: badge,
+                      matching: find.byType(Container),
+                    ),
+                  )
+                  .decoration!
+              as BoxDecoration;
+      expect(decoration.color, const Color(0xFF7C3AED).withValues(alpha: 0.14));
       expect(find.text('Yếu'), findsNothing);
       expect(find.text('CN'), findsNothing);
     });
@@ -334,6 +362,7 @@ void main() {
           scheduledEndTime: DateTime(2026, 7, 10, 22, 30),
           location: 'Một địa điểm có tên rất dài',
         ),
+        variant: SessionCardVariant.browse,
       );
 
       expect(tester.takeException(), isNull);
@@ -350,7 +379,437 @@ void main() {
       ),
     );
 
-    expect(find.text('Chia đều'), findsOneWidget);
+    expect(find.text('Phí chia đều'), findsOneWidget);
+  });
+
+  group('browse variant', () {
+    testWidgets('uses a glass sport badge instead of the cover slot badge', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _session().copyWith(
+          numberOfCourts: 2,
+          maxPlayersPerCourt: 4,
+          counts: const SessionCounts(players: 5),
+        ),
+        variant: SessionCardVariant.browse,
+      );
+
+      expect(find.byKey(const Key('session-sport-badge')), findsOneWidget);
+      expect(find.text('🏸 Cầu lông'), findsOneWidget);
+      expect(find.byKey(const Key('session-slots-badge')), findsNothing);
+    });
+
+    testWidgets(
+      'uses a white Vmito surface with a soft green border and shadow',
+      (
+        tester,
+      ) async {
+        await _pump(tester, _session(), variant: SessionCardVariant.browse);
+
+        final card = tester.widget<Card>(find.byType(Card));
+        final shape = card.shape! as RoundedRectangleBorder;
+        expect(card.color, Colors.white);
+        expect(shape.side.color, const Color(0xFF86EFAC));
+        expect(shape.side.width, 1);
+        final shadow =
+            tester
+                    .widget<DecoratedBox>(
+                      find.byKey(const Key('session-browse-vmito-shadow')),
+                    )
+                    .decoration
+                as BoxDecoration;
+        expect(shadow.boxShadow, const [
+          BoxShadow(
+            color: Color(0x1F10B981),
+            blurRadius: 12,
+            offset: Offset(0, 4),
+          ),
+        ]);
+      },
+    );
+
+    testWidgets('labels pickleball in the sport badge', (tester) async {
+      await _pump(
+        tester,
+        _session().copyWith(sportType: SessionSportType.pickleball),
+        variant: SessionCardVariant.browse,
+      );
+
+      expect(find.text('🏓 Pickleball'), findsOneWidget);
+    });
+
+    testWidgets(
+      'places the registration status badge above the session status badge',
+      (
+        tester,
+      ) async {
+        await _pump(
+          tester,
+          _session(),
+          variant: SessionCardVariant.browse,
+          registrationStatus: RegistrationStatus.pending,
+          showSessionStatusBadge: true,
+        );
+
+        final registrationStatus = tester.getTopLeft(
+          find.byKey(const Key('session-registration-status-badge')),
+        );
+        final sessionStatus = tester.getTopLeft(
+          find.byKey(const Key('session-status-badge')),
+        );
+        expect(find.text('Chờ duyệt'), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byKey(const Key('session-registration-status-badge')),
+            matching: find.byIcon(AppIcons.clock),
+          ),
+          findsOneWidget,
+        );
+        expect(registrationStatus.dy, lessThan(sessionStatus.dy));
+
+        await _pump(
+          tester,
+          _session(),
+          variant: SessionCardVariant.browse,
+          registrationStatus: RegistrationStatus.approved,
+          showSessionStatusBadge: true,
+        );
+        expect(find.text('Đã duyệt'), findsOneWidget);
+        expect(
+          find.descendant(
+            of: find.byKey(const Key('session-registration-status-badge')),
+            matching: find.byIcon(AppIcons.check),
+          ),
+          findsOneWidget,
+        );
+      },
+    );
+
+    testWidgets('places a hosted session status badge at the top of the cover', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _session(),
+        showSessionStatusBadge: true,
+        sessionStatusBadgeAtTop: true,
+      );
+
+      final cover = tester.getTopLeft(find.byType(CachedNetworkImage));
+      final status = tester.getTopLeft(
+        find.byKey(const Key('session-status-badge')),
+      );
+      expect(status.dy, closeTo(cover.dy + 4, 0.01));
+    });
+
+    testWidgets(
+      'places a discovery registration status badge at the bottom of the cover',
+      (tester) async {
+        await _pump(
+          tester,
+          _session(),
+          variant: SessionCardVariant.browse,
+          registrationStatus: RegistrationStatus.pending,
+          registrationBadgeAtBottom: true,
+        );
+
+        final sport = tester.getTopLeft(
+          find.byKey(const Key('session-sport-badge')),
+        );
+        final registrationStatus = tester.getTopLeft(
+          find.byKey(const Key('session-registration-status-badge')),
+        );
+
+        expect(registrationStatus.dy, greaterThan(sport.dy));
+      },
+    );
+
+    testWidgets('shows brand availability and fill percentage above urgency', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _session().copyWith(
+          numberOfCourts: 2,
+          maxPlayersPerCourt: 4,
+          counts: const SessionCounts(players: 5),
+        ),
+        variant: SessionCardVariant.browse,
+      );
+
+      expect(find.text('Còn 3 slot'), findsOneWidget);
+      expect(find.text('2 sân'), findsOneWidget);
+      final trackSize = tester.getSize(
+        find.byKey(const Key('session-browse-progress-track')),
+      );
+      final fillFinder = find.byKey(
+        const Key('session-browse-progress-fill'),
+      );
+      final fillSize = tester.getSize(fillFinder);
+      expect(fillSize.width, closeTo((trackSize.width - 2) * 0.625, 0.01));
+      expect(
+        (tester.widget<DecoratedBox>(fillFinder).decoration as BoxDecoration)
+            .color,
+        AppTheme.light.colorScheme.primary,
+      );
+    });
+
+    testWidgets(
+      'keeps a visible proportional fill when only one slot is used',
+      (
+        tester,
+      ) async {
+        await _pump(
+          tester,
+          _session().copyWith(
+            numberOfCourts: 2,
+            maxPlayersPerCourt: 8,
+            counts: const SessionCounts(players: 1),
+          ),
+          variant: SessionCardVariant.browse,
+        );
+
+        expect(find.text('Còn 15 slot'), findsOneWidget);
+        final trackSize = tester.getSize(
+          find.byKey(const Key('session-browse-progress-track')),
+        );
+        final fillFinder = find.byKey(
+          const Key('session-browse-progress-fill'),
+        );
+        expect(
+          tester.getSize(fillFinder).width,
+          closeTo((trackSize.width - 2) / 16, 0.01),
+        );
+        final decoration =
+            tester.widget<DecoratedBox>(fillFinder).decoration as BoxDecoration;
+        expect(decoration.borderRadius, isNotNull);
+      },
+    );
+
+    testWidgets('uses the urgent and full slot labels at their thresholds', (
+      tester,
+    ) async {
+      final almostFull = _session().copyWith(
+        numberOfCourts: 1,
+        maxPlayersPerCourt: 4,
+        counts: const SessionCounts(players: 2),
+      );
+      await _pump(
+        tester,
+        almostFull,
+        variant: SessionCardVariant.browse,
+      );
+      expect(find.text('Chỉ còn 2 slot'), findsOneWidget);
+
+      await _pump(
+        tester,
+        almostFull.copyWith(counts: const SessionCounts(players: 4)),
+        variant: SessionCardVariant.browse,
+      );
+      expect(find.text('Hết slot'), findsOneWidget);
+      final trackSize = tester.getSize(
+        find.byKey(const Key('session-browse-progress-track')),
+      );
+      final fillFinder = find.byKey(
+        const Key('session-browse-progress-fill'),
+      );
+      expect(
+        tester.getSize(fillFinder).width,
+        closeTo(trackSize.width - 2, 0.01),
+      );
+      expect(
+        (tester.widget<DecoratedBox>(fillFinder).decoration as BoxDecoration)
+            .color,
+        const Color(0xFFEF4444),
+      );
+    });
+
+    testWidgets('keeps courts but hides unavailable capacity progress', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _session().copyWith(numberOfCourts: 2),
+        variant: SessionCardVariant.browse,
+      );
+
+      expect(find.text('2 sân'), findsOneWidget);
+      expect(find.byKey(const Key('session-browse-slot-status')), findsNothing);
+      expect(
+        find.byKey(const Key('session-browse-progress-track')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('keeps a closed-registration status neutral', (tester) async {
+      await _pump(
+        tester,
+        _session().copyWith(
+          status: SessionStatus.cancelled,
+          numberOfCourts: 1,
+          maxPlayersPerCourt: 4,
+          counts: const SessionCounts(players: 1),
+        ),
+        variant: SessionCardVariant.browse,
+      );
+
+      expect(find.text('Đã đóng đăng ký'), findsOneWidget);
+    });
+
+    testWidgets('renders Facebook as a quiet source row and surface', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _session(isCrawled: true).copyWith(numberOfCourts: 2),
+        variant: SessionCardVariant.browse,
+      );
+
+      expect(find.text('Nguồn Facebook'), findsOneWidget);
+      expect(find.text('Bài Facebook'), findsNothing);
+      expect(find.text('2 sân'), findsOneWidget);
+      expect(
+        tester.widget<Card>(find.byType(Card)).color,
+        const Color(0xFFF8FAFC),
+      );
+      final shape =
+          tester.widget<Card>(find.byType(Card)).shape!
+              as RoundedRectangleBorder;
+      expect(shape.side.color, const Color(0xFFE5E7EB));
+      expect(
+        find.byKey(const Key('session-browse-vmito-shadow')),
+        findsNothing,
+      );
+    });
+
+    testWidgets('uses the quiet Facebook surface in dark mode', (tester) async {
+      await _pump(
+        tester,
+        _session(isCrawled: true),
+        theme: AppTheme.dark,
+        variant: SessionCardVariant.browse,
+      );
+
+      expect(
+        tester.widget<Card>(find.byType(Card)).color,
+        const Color(0xFF111827),
+      );
+    });
+
+    testWidgets('formats fixed and split fees for browse cards', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        _session(
+          feeConfig: const SessionFeeConfig(maleFee: 60000, femaleFee: 50000),
+        ),
+        variant: SessionCardVariant.browse,
+      );
+      expect(find.text('50k-60k /slot'), findsOneWidget);
+      final price = tester.widget<Text>(
+        find.byKey(const Key('session-price-per-slot')),
+      );
+      final spans = (price.textSpan! as TextSpan).children!;
+      expect((spans[0] as TextSpan).text, '50k-60k');
+      expect((spans[1] as TextSpan).text, ' /slot');
+      expect(
+        (spans[1] as TextSpan).style?.fontSize,
+        lessThan(
+          (spans[0] as TextSpan).style!.fontSize!,
+        ),
+      );
+      expect((spans[1] as TextSpan).style?.color, const Color(0xFF71717A));
+
+      await _pump(
+        tester,
+        _session(
+          feeConfig: const SessionFeeConfig(
+            feeType: FeeType.splitEvenly,
+            splitPerPlayer: 50000,
+          ),
+        ),
+        variant: SessionCardVariant.browse,
+      );
+      expect(find.text('Phí chia đều'), findsOneWidget);
+      expect(find.byKey(const Key('session-price-per-slot')), findsNothing);
+    });
+  });
+
+  testWidgets('standard card can replace its slot badge with the sport badge', (
+    tester,
+  ) async {
+    await _pump(
+      tester,
+      _session().copyWith(
+        numberOfCourts: 2,
+        maxPlayersPerCourt: 4,
+        counts: const SessionCounts(players: 5),
+      ),
+      showSportBadge: true,
+    );
+
+    expect(find.byKey(const Key('session-sport-badge')), findsOneWidget);
+    expect(find.byKey(const Key('session-slots-badge')), findsNothing);
+  });
+
+  testWidgets('uses the supplied action button and overflow actions', (
+    tester,
+  ) async {
+    var enteredCourt = false;
+    var viewedTicket = false;
+    var addedGuest = false;
+    var shared = false;
+    await _pump(
+      tester,
+      _session(),
+      primaryAction: SessionCardAction(
+        label: 'Vào sân',
+        icon: AppIcons.court,
+        onPressed: () => enteredCourt = true,
+      ),
+      moreActions: [
+        SessionCardAction(
+          label: 'Xem vé',
+          icon: AppIcons.ticket,
+          onPressed: () => viewedTicket = true,
+        ),
+        SessionCardAction(
+          label: 'Thêm khách',
+          icon: AppIcons.userPlus,
+          onPressed: () => addedGuest = true,
+        ),
+        SessionCardAction(
+          label: 'Chia sẻ',
+          icon: AppIcons.share,
+          onPressed: () => shared = true,
+        ),
+      ],
+    );
+
+    await tester.tap(find.byKey(const ValueKey('session-primary-button-s1')));
+    expect(enteredCourt, isTrue);
+    await tester.tap(find.byKey(const ValueKey('session-more-button-s1')));
+    await tester.pumpAndSettle();
+    expect(find.text('Xem vé'), findsOneWidget);
+    expect(find.text('Thêm khách'), findsOneWidget);
+    expect(find.text('Chia sẻ'), findsOneWidget);
+
+    await tester.tap(find.text('Xem vé'));
+    await tester.pumpAndSettle();
+    expect(viewedTicket, isTrue);
+    await tester.tap(find.byKey(const ValueKey('session-more-button-s1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Thêm khách'));
+    await tester.pumpAndSettle();
+    expect(addedGuest, isTrue);
+    await tester.tap(find.byKey(const ValueKey('session-more-button-s1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Chia sẻ'));
+    await tester.pumpAndSettle();
+    expect(shared, isTrue);
   });
 
   group('place', () {
@@ -369,7 +828,8 @@ void main() {
         ),
       );
 
-      expect(find.text('Sân Be Badminton • Gò Vấp'), findsOneWidget);
+      expect(find.text('Sân Be Badminton'), findsOneWidget);
+      expect(find.text(' • Gò Vấp'), findsOneWidget);
     });
 
     testWidgets('falls back to the free-text location', (tester) async {
@@ -393,7 +853,8 @@ void main() {
         ),
       );
 
-      expect(find.text('Sân ABC • Tân Phú'), findsOneWidget);
+      expect(find.text('Sân ABC'), findsOneWidget);
+      expect(find.text(' • Tân Phú'), findsOneWidget);
     });
 
     testWidgets('switches compact area with the address setting', (
@@ -409,10 +870,11 @@ void main() {
       );
 
       await _pump(tester, session, showNewAddress: false);
-      expect(find.text('Sân ABC • Quận Cũ'), findsOneWidget);
+      expect(find.text('Sân ABC'), findsOneWidget);
+      expect(find.text(' • Quận Cũ'), findsOneWidget);
 
       await _pump(tester, session);
-      expect(find.text('Sân ABC • Tân Phú'), findsOneWidget);
+      expect(find.text(' • Tân Phú'), findsOneWidget);
     });
   });
 
@@ -474,7 +936,7 @@ void main() {
           of: find.byKey(const Key('session-slots-badge')),
           matching: find.byType(Stack),
         ),
-        findsOneWidget,
+        findsWidgets,
       );
     });
 

@@ -487,6 +487,7 @@
   },
   "sessionCrawledReadOnly": "收集自 Facebook — 仅供查看",
   "sessionCrawledBadge": "Facebook 帖子",
+  "sessionFacebookSource": "Facebook 来源",
   "sessionClosed": "此场次已关闭",
   "sessionSlotsLeft": "剩余 {count} 个名额",
   "@sessionSlotsLeft": {
@@ -497,7 +498,17 @@
     }
   },
   "sessionSlotsFull": "已满",
+  "sessionSlotsLeftUrgent": "仅剩 {count} 个名额",
+  "@sessionSlotsLeftUrgent": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sessionRegistrationClosed": "报名已截止",
+  "sessionFeeSlotSuffix": "/位",
+  "sessionFeeSplit": "费用均摊",
   "sessionStatusPreparing": "即将开始",
   "sessionStatusInProgress": "进行中",
   "sessionStatusFinished": "已结束",

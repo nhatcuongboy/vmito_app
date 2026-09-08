@@ -40,6 +40,85 @@ void main() {
     },
   );
 
+  test(
+    'restores a persisted session after the app process restarts',
+    () async {
+      final secureStorage = FakeSecureStorage();
+      await TokenStorage(
+        secureStorage,
+      ).save(accessToken: 'access', refreshToken: 'refresh');
+      final restartedTokens = TokenStorage(secureStorage);
+      final service = _MockAuthService();
+      when(service.currentUser).thenAnswer(
+        (_) async => const User(
+          id: 'user-1',
+          email: 'player@example.com',
+          name: 'Player',
+          role: UserRole.player,
+        ),
+      );
+      final container = ProviderContainer(
+        overrides: [
+          tokenStorageProvider.overrideWithValue(restartedTokens),
+          authServiceProvider.overrideWithValue(service),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(authControllerProvider.notifier).restoreSession();
+
+      expect(
+        container.read(authControllerProvider).status,
+        AuthStatus.authenticated,
+      );
+      expect(container.read(authControllerProvider).user?.id, 'user-1');
+      expect(restartedTokens.accessToken, 'access');
+    },
+    skip: AppConfig.enableAuthBypass,
+  );
+
+  test(
+    'reconstructs a persisted session when only the refresh token remains',
+    () async {
+      final secureStorage = FakeSecureStorage({
+        'vmito.refresh_token': 'refresh',
+      });
+      final restartedTokens = TokenStorage(secureStorage);
+      final service = _MockAuthService();
+      when(() => service.refreshTokens('refresh')).thenAnswer(
+        (_) async => const AuthTokens(
+          accessToken: 'fresh-access',
+          refreshToken: 'rotated-refresh',
+        ),
+      );
+      when(service.currentUser).thenAnswer(
+        (_) async => const User(
+          id: 'user-1',
+          email: 'player@example.com',
+          name: 'Player',
+          role: UserRole.player,
+        ),
+      );
+      final container = ProviderContainer(
+        overrides: [
+          tokenStorageProvider.overrideWithValue(restartedTokens),
+          authServiceProvider.overrideWithValue(service),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(authControllerProvider.notifier).restoreSession();
+
+      expect(
+        container.read(authControllerProvider).status,
+        AuthStatus.authenticated,
+      );
+      expect(restartedTokens.accessToken, 'fresh-access');
+      expect(await restartedTokens.readRefreshToken(), 'rotated-refresh');
+    },
+    skip: AppConfig.enableAuthBypass,
+  );
+
   test('sign-out clears both tokens and biometric lock preference', () async {
     final secureStorage = FakeSecureStorage();
     final tokens = TokenStorage(secureStorage);

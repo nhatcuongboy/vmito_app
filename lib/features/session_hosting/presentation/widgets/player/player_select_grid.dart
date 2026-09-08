@@ -14,12 +14,14 @@ class PlayerSelectGrid extends StatelessWidget {
   const PlayerSelectGrid({
     required this.players,
     this.selectedIds = const {},
+    this.updateWaitTime = false,
     this.onPlayerTap,
     super.key,
   });
 
   final List<SessionPlayer> players;
   final Set<String> selectedIds;
+  final bool updateWaitTime;
   final ValueChanged<SessionPlayer>? onPlayerTap;
 
   @override
@@ -46,6 +48,7 @@ class PlayerSelectGrid extends StatelessWidget {
               key: ValueKey('player-card-${player.id}'),
               player: player,
               isSelected: selectedIds.contains(player.id),
+              updateWaitTime: updateWaitTime,
               onTap: onPlayerTap == null ? null : () => onPlayerTap!(player),
             );
           },

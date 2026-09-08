@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:vmito_app/core/network/paginated.dart';
+import 'package:vmito_app/features/auth/application/auth_controller.dart';
+import 'package:vmito_app/features/registration/application/my_registration_controller.dart';
 import 'package:vmito_app/features/registration/application/my_join_requests_controller.dart';
 import 'package:vmito_app/features/registration/data/registration_repository.dart';
 import 'package:vmito_app/features/registration/domain/my_join_request.dart';
@@ -100,5 +102,48 @@ void main() {
 
     expect(success, isFalse);
     verifyNever(() => repository.withdrawMyJoinRequest(any()));
+  });
+
+  test('indexes registration statuses across every page', () async {
+    final repository = _MockRegistrationRepository();
+    const approvedRequest = MyJoinRequest(
+      session: MyJoinRequestSession(id: 's2', name: 'Kèo hai'),
+      players: [
+        MyJoinRequestPlayer(
+          id: 'p2',
+          playerNumber: 1,
+          registrationStatus: RegistrationStatus.approved,
+        ),
+      ],
+    );
+    when(
+      () => repository.myJoinRequests(page: 1, limit: 100),
+    ).thenAnswer((_) async => _page([_request], total: 2, totalPages: 2));
+    when(
+      () => repository.myJoinRequests(page: 2, limit: 100),
+    ).thenAnswer(
+      (_) async => _page(
+        [approvedRequest],
+        page: 2,
+        total: 2,
+        totalPages: 2,
+      ),
+    );
+
+    final container = ProviderContainer(
+      overrides: [
+        registrationRepositoryProvider.overrideWithValue(repository),
+        isSignedInProvider.overrideWithValue(true),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    expect(
+      await container.read(myRegistrationStatusesProvider.future),
+      {
+        's1': RegistrationStatus.pending,
+        's2': RegistrationStatus.approved,
+      },
+    );
   });
 }

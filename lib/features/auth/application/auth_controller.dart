@@ -118,12 +118,27 @@ class AuthController extends Notifier<AuthState> {
 
     await _tokens.hydrate();
 
-    if (!_tokens.hasAccessToken) {
+    if (!_tokens.hasPersistedSession) {
       state = const AuthState(status: AuthStatus.unauthenticated);
       return;
     }
 
     try {
+      // The two secure-storage values are separate native writes. If the OS
+      // kills the process between them, a durable refresh token is still
+      // enough to reconstruct the session on the next launch.
+      if (!_tokens.hasAccessToken) {
+        final refreshToken = await _tokens.readRefreshToken();
+        if (refreshToken == null || refreshToken.isEmpty) {
+          state = const AuthState(status: AuthStatus.unauthenticated);
+          return;
+        }
+        final refreshed = await _service.refreshTokens(refreshToken);
+        await _tokens.save(
+          accessToken: refreshed.accessToken,
+          refreshToken: refreshed.refreshToken,
+        );
+      }
       final user = await _service.currentUser();
       state = AuthState(status: AuthStatus.authenticated, user: user);
     } on ApiException catch (error) {

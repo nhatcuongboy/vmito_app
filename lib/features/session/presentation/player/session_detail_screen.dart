@@ -10,8 +10,10 @@ import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
+import 'package:vmito_app/features/registration/application/my_registration_controller.dart';
 import 'package:vmito_app/features/registration/application/registration_realtime_provider.dart';
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
 import 'package:vmito_app/features/session/domain/reference_video.dart';
@@ -24,6 +26,7 @@ import 'package:vmito_app/features/session/presentation/player/detail/session_ho
 import 'package:vmito_app/features/session/presentation/player/detail/session_recommendations.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_reference_video.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/models/session_player.dart';
 import 'package:vmito_app/shared/widgets/app_loading_view.dart';
 import 'package:vmito_app/shared/widgets/detail_hero_header.dart';
 
@@ -45,6 +48,11 @@ class SessionDetailScreen extends ConsumerWidget {
     // Keeps the bar honest while the screen is open: the host approving on
     // another device flips "Xem vé" to "Vào sân" without a manual refresh.
     ref.watch(registrationRealtimeProvider(sessionId));
+
+    final isSignedIn = ref.watch(isSignedInProvider);
+    final registrationStatus = isSignedIn
+        ? ref.watch(myRegistrationStatusProvider(sessionId))
+        : null;
 
     return Scaffold(
       // No AppBar: the hero's floating back button replaces it, so the photo
@@ -77,6 +85,7 @@ class SessionDetailScreen extends ConsumerWidget {
         ),
         data: (session) => _Body(
           session: session,
+          registrationStatus: registrationStatus,
           onRefresh: () => ref.refresh(sessionDetailProvider(sessionId).future),
         ),
       ),
@@ -94,10 +103,12 @@ class SessionDetailScreen extends ConsumerWidget {
 class _Body extends StatefulWidget {
   const _Body({
     required this.session,
+    required this.registrationStatus,
     required this.onRefresh,
   });
 
   final Session session;
+  final RegistrationStatus? registrationStatus;
   final Future<void> Function() onRefresh;
 
   @override
@@ -215,7 +226,10 @@ class _BodyState extends State<_Body> {
               ),
             ],
             flexibleSpace: FlexibleSpaceBar(
-              background: SessionDetailHero(session: widget.session),
+              background: SessionDetailHero(
+                session: widget.session,
+                registrationStatus: widget.registrationStatus,
+              ),
             ),
           ),
           SliverToBoxAdapter(

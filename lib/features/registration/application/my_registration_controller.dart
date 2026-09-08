@@ -87,7 +87,7 @@ class MyRegistrationController extends AsyncNotifier<List<SessionPlayer>> {
 }
 
 final myRegistrationProvider =
-    AsyncNotifierProvider.family<
+    AsyncNotifierProvider.autoDispose.family<
       MyRegistrationController,
       List<SessionPlayer>,
       String
@@ -107,3 +107,31 @@ final myRegistrationStatusProvider =
         return players.first.registrationStatus;
       },
     );
+
+/// Registration statuses indexed by session for public session cards.
+///
+/// The public-session endpoint intentionally omits player rows, so browse
+/// screens load this user-specific projection separately.
+final myRegistrationStatusesProvider =
+    FutureProvider.autoDispose<Map<String, RegistrationStatus>>((ref) async {
+      if (!ref.watch(isSignedInProvider)) return const {};
+
+      final statuses = <String, RegistrationStatus>{};
+      var page = 1;
+      var totalPages = 1;
+      final repository = ref.watch(registrationRepositoryProvider);
+
+      while (page <= totalPages) {
+        final result = await repository.myJoinRequests(page: page, limit: 100);
+        for (final request in result.items) {
+          if (request.players.isNotEmpty) {
+            statuses[request.session.id] =
+                request.players.first.registrationStatus;
+          }
+        }
+        page = result.page + 1;
+        totalPages = result.totalPages;
+      }
+
+      return statuses;
+    });

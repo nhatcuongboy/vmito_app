@@ -154,6 +154,7 @@ class CourtSelectionManualTab extends ConsumerWidget {
                     child: PlayerSelectGrid(
                       players: visible,
                       selectedIds: selectedIds,
+                      updateWaitTime: session?.status.isLive ?? false,
                       onPlayerTap: (player) =>
                           controller.togglePlayer(player.id),
                     ),

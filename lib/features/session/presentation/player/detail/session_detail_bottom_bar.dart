@@ -77,6 +77,7 @@ class SessionDetailBottomBar extends ConsumerWidget {
             children: [
               if (feeLabel != null || session.feeConfig != null)
                 Flexible(
+                  flex: 2,
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -121,10 +122,11 @@ class SessionDetailBottomBar extends ConsumerWidget {
                     ],
                   ),
                 ),
-              // Expanded, not Spacer: the actions must be the side that gives
-              // way when the row is tight, so the price stays readable and the
-              // button labels ellipsize instead of overflowing.
+              // Expanded with a larger flex than the price: 3 action items
+              // (label + two icon buttons) need more room than a one-line
+              // price, so an even 1:1 split starved the label to invisible.
               Expanded(
+                flex: 3,
                 // Not wrapped in an Align: Align takes the largest height its
                 // constraints allow, which inside a bar with no height of its
                 // own is the whole screen. The buttons right-align themselves.

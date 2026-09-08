@@ -57,7 +57,7 @@ Future<void> bootstrap() async {
     biometricLockEnabled = false;
   }
   final shouldLockSavedSession =
-      biometricLockEnabled && tokenStorage.hasAccessToken;
+      biometricLockEnabled && tokenStorage.hasPersistedSession;
 
   // The interceptor needs to sign the user out on a failed refresh, but the
   // container does not exist yet — this late binding closes the cycle.
@@ -111,7 +111,7 @@ Future<void> bootstrap() async {
       .read(appLockControllerProvider.notifier)
       .bootstrap(
         enabled: biometricLockEnabled,
-        hasSession: tokenStorage.hasAccessToken,
+        hasSession: tokenStorage.hasPersistedSession,
       );
 
   // Resolve auth before the first frame so the router never flashes sign-in

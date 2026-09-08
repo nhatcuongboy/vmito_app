@@ -375,26 +375,56 @@ abstract class Session with _$Session {
   /// The web card shows venue plus district rather than the full street
   /// address, which truncates to uselessness at card width.
   String displayPlace({required bool showNewAddress}) {
+    final (main, area) = placeParts(showNewAddress: showNewAddress);
+    return area == null || area.isEmpty ? main : '$main • $area';
+  }
+
+  /// The venue name (or free-text location) and its ward/district, split so
+  /// callers can truncate the name while always keeping the area visible.
+  (String main, String? area) placeParts({required bool showNewAddress}) {
     final venueName = venue?.name?.trim();
-    final area = venue == null
-        ? resolveCompactAddressArea(
-            showNewAddress: showNewAddress,
+    if (venueName != null && venueName.isNotEmpty) {
+      return (
+        venueName,
+        resolveCompactAddressArea(
+          showNewAddress: showNewAddress,
+          district: venue?.district,
+          city: venue?.city,
+          newDistrict: venue?.newDistrict,
+          newCity: venue?.newCity,
+        ),
+      );
+    }
+
+    // A `CUSTOM` session has no [venue]; its name equivalent is
+    // `customLocationName`, not the full street address in `location`.
+    final customName = customLocationName?.trim();
+    final rawAddress = (customLocationAddress?.trim().isNotEmpty ?? false)
+        ? customLocationAddress!.trim()
+        : location?.trim() ?? '';
+    final wardSplit = rawAddress.lastIndexOf(',');
+    final addressWard = wardSplit == -1
+        ? null
+        : rawAddress.substring(wardSplit + 1).trim();
+
+    // `customLocationDistrict`/`City` are the one pre-merger pair this model
+    // stores for custom locations — there's no post-merger counterpart, so
+    // "Show địa chỉ mới" has to read the current ward out of the address
+    // text itself instead of the stale legacy district.
+    final area = showNewAddress && (addressWard?.isNotEmpty ?? false)
+        ? addressWard
+        : resolveCompactAddressArea(
+            showNewAddress: false,
             district: customLocationDistrict,
             city: customLocationCity,
-          )
-        : resolveCompactAddressArea(
-            showNewAddress: showNewAddress,
-            district: venue?.district,
-            city: venue?.city,
-            newDistrict: venue?.newDistrict,
-            newCity: venue?.newCity,
           );
-    if (venueName != null && venueName.isNotEmpty) {
-      return area == null || area.isEmpty ? venueName : '$venueName • $area';
+
+    if (customName != null && customName.isNotEmpty) {
+      return (customName, area);
     }
-    final rawLocation = location?.trim() ?? '';
-    if (rawLocation.isEmpty) return '';
-    return area == null || area.isEmpty ? rawLocation : '$rawLocation • $area';
+    if (rawAddress.isEmpty) return ('', area);
+    if (wardSplit == -1) return (rawAddress, area);
+    return (rawAddress.substring(0, wardSplit).trim(), area);
   }
 
   bool get hasLocation =>

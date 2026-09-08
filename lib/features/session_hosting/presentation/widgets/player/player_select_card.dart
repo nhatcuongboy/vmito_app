@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/features/session_hosting/application/live_wait_time_provider.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 import 'package:vmito_domain/vmito_domain.dart';
@@ -17,12 +19,14 @@ class PlayerSelectCard extends StatelessWidget {
   const PlayerSelectCard({
     required this.player,
     this.isSelected = false,
+    this.updateWaitTime = false,
     this.onTap,
     super.key,
   });
 
   final SessionPlayer player;
   final bool isSelected;
+  final bool updateWaitTime;
   final VoidCallback? onTap;
 
   @override
@@ -50,7 +54,10 @@ class PlayerSelectCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: colors.background,
             borderRadius: BorderRadius.circular(AppRadius.xl),
-            border: Border.all(color: colors.border, width: 2),
+            border: Border.all(
+              color: colors.border.withValues(alpha: 0.3),
+              width: 1,
+            ),
           ),
           child: Stack(
             children: [
@@ -62,7 +69,10 @@ class PlayerSelectCard extends StatelessWidget {
                     children: [
                       _NumberPill(number: player.playerNumber),
                       const Spacer(),
-                      _WaitBadge(player: player),
+                      _WaitBadge(
+                        player: player,
+                        updateWaitTime: updateWaitTime,
+                      ),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.xs),
@@ -174,31 +184,45 @@ class _NumberPill extends StatelessWidget {
 ///
 /// The thresholds match the web's: over 15 minutes is urgent, over 10 is
 /// getting there. Below that it is unremarkable and stays grey.
-class _WaitBadge extends StatelessWidget {
-  const _WaitBadge({required this.player});
+class _WaitBadge extends ConsumerWidget {
+  const _WaitBadge({required this.player, required this.updateWaitTime});
 
   final SessionPlayer player;
+  final bool updateWaitTime;
 
   static const _urgentMinutes = 15;
   static const _warningMinutes = 10;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     if (!player.isWaiting) return const SizedBox.shrink();
 
     final theme = Theme.of(context);
     final palette = theme.extension<AppPalette>()!;
-    final minutes = player.currentWaitTime;
-    final colour = switch (minutes) {
+    final minutes = ref
+        .watch(
+          liveWaitTimeProvider((
+            playerId: player.id,
+            baselineMinutes: player.currentWaitTime,
+            isRunning: updateWaitTime && player.status == PlayerStatus.waiting,
+          )),
+        )
+        .asData
+        ?.value;
+    final displayedMinutes = minutes ?? player.currentWaitTime;
+    final colour = switch (displayedMinutes) {
       > _urgentMinutes => theme.colorScheme.error,
       > _warningMinutes => palette.warning,
       _ => palette.mutedForeground,
     };
 
     final l10n = AppLocalizations.of(context);
-    final label = minutes >= 60
-        ? l10n.playerWaitHoursMinutes(minutes ~/ 60, minutes % 60)
-        : l10n.playerWaitMinutes(minutes);
+    final label = displayedMinutes >= 60
+        ? l10n.playerWaitHoursMinutes(
+            displayedMinutes ~/ 60,
+            displayedMinutes % 60,
+          )
+        : l10n.playerWaitMinutes(displayedMinutes);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),

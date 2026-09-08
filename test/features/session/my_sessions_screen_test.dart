@@ -4,6 +4,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:vmito_app/core/network/paginated.dart' as pagination;
+import 'package:vmito_app/core/theme/app_icons.dart';
+import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
@@ -68,6 +70,7 @@ Future<void> _pump(
     ProviderScope(
       overrides: [
         currentUserProvider.overrideWithValue(_me),
+        isSignedInProvider.overrideWithValue(true),
         sessionRepositoryProvider.overrideWithValue(repository),
         registrationRepositoryProvider.overrideWithValue(
           registrationRepository,
@@ -89,10 +92,13 @@ Future<void> _pump(
 
 Future<void> _pumpWithRouter(
   WidgetTester tester,
-  SessionRepository repository,
-) async {
+  SessionRepository repository, {
+  void Function(_MockRegistrationRepository registrationRepository)?
+  configureRegistration,
+}) async {
   final registrationRepository = _MockRegistrationRepository();
   _stubMyJoinRequests(registrationRepository);
+  configureRegistration?.call(registrationRepository);
   final router = GoRouter(
     initialLocation: '/sessions',
     routes: [
@@ -121,6 +127,11 @@ Future<void> _pumpWithRouter(
                 builder: (_, state) =>
                     Text('manage-${state.pathParameters['id']}'),
               ),
+              GoRoute(
+                path: 'live',
+                builder: (_, state) =>
+                    Text('live-${state.pathParameters['id']}'),
+              ),
             ],
           ),
         ],
@@ -132,6 +143,7 @@ Future<void> _pumpWithRouter(
     ProviderScope(
       overrides: [
         currentUserProvider.overrideWithValue(_me),
+        isSignedInProvider.overrideWithValue(true),
         sessionRepositoryProvider.overrideWithValue(repository),
         registrationRepositoryProvider.overrideWithValue(
           registrationRepository,
@@ -368,15 +380,84 @@ void main() {
     );
     await _pumpWithRouter(tester, repository);
 
+    expect(find.text('Sắp diễn ra'), findsOneWidget);
+    expect(find.byKey(const Key('session-sport-badge')), findsNothing);
+    final card = tester.getTopLeft(find.byType(Card));
+    final sessionStatus = tester.getTopLeft(
+      find.byKey(const Key('session-status-badge')),
+    );
+    expect(sessionStatus.dy, closeTo(card.dy + AppSpacing.xs, 0.01));
+
     await tester.tap(find.byKey(const ValueKey('session-host-button-h1')));
     await tester.pumpAndSettle();
 
     expect(find.text('manage-h1'), findsOneWidget);
   });
 
-  testWidgets('joined card opens detail and marks pending registration', (
-    tester,
-  ) async {
+  testWidgets(
+    'joined card opens detail with its status at the bottom of the cover',
+    (
+      tester,
+    ) async {
+      final repository = _MockSessionRepository();
+      _stubSessionLists(repository);
+      when(() => repository.joinedByCurrentUser(any())).thenAnswer(
+        (_) async => _page([
+          const Session(
+            id: 'j1',
+            name: 'Joined one',
+            status: SessionStatus.preparing,
+            players: [
+              SessionPlayer(
+                id: 'p1',
+                registrationStatus: RegistrationStatus.pending,
+              ),
+            ],
+          ),
+        ]),
+      );
+      await _pumpWithRouter(tester, repository);
+
+      await tester.tap(find.text('Kèo tham gia'));
+      await tester.pumpAndSettle();
+      final sessionStatus = tester.getTopLeft(
+        find.byKey(const Key('session-status-badge')),
+      );
+      final registrationStatus = tester.getTopLeft(
+        find.byKey(const Key('session-registration-status-badge')),
+      );
+      expect(find.text('Sắp diễn ra'), findsOneWidget);
+      expect(find.text('Chờ duyệt'), findsOneWidget);
+      expect(find.byKey(const Key('session-sport-badge')), findsNothing);
+      expect(
+        find.byKey(const Key('session-registration-sport-icon')),
+        findsNothing,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('session-registration-status-badge')),
+          matching: find.byIcon(AppIcons.clock),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('session-slots-badge')), findsNothing);
+      expect(registrationStatus.dy, lessThan(sessionStatus.dy));
+      expect(
+        tester
+            .widget<FilledButton>(
+              find.byKey(const ValueKey('session-primary-button-j1')),
+            )
+            .onPressed,
+        isNull,
+      );
+      await tester.tap(find.text('Joined one'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('detail-j1'), findsOneWidget);
+    },
+  );
+
+  testWidgets('joined card enters the correct court board', (tester) async {
     final repository = _MockSessionRepository();
     _stubSessionLists(repository);
     when(() => repository.joinedByCurrentUser(any())).thenAnswer(
@@ -385,12 +466,6 @@ void main() {
           id: 'j1',
           name: 'Joined one',
           status: SessionStatus.preparing,
-          players: [
-            SessionPlayer(
-              id: 'p1',
-              registrationStatus: RegistrationStatus.pending,
-            ),
-          ],
         ),
       ]),
     );
@@ -398,13 +473,52 @@ void main() {
 
     await tester.tap(find.text('Kèo tham gia'));
     await tester.pumpAndSettle();
-    expect(
-      find.byKey(const Key('joined-session-pending-badge')),
-      findsOneWidget,
-    );
-    await tester.tap(find.text('Joined one'));
+    expect(find.text('Vào sân'), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('session-more-button-j1')));
+    await tester.pumpAndSettle();
+    expect(find.text('Xem vé'), findsOneWidget);
+    expect(find.text('Thêm khách'), findsOneWidget);
+    expect(find.text('Chia sẻ'), findsOneWidget);
+    await tester.tapAt(const Offset(4, 4));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('session-primary-button-j1')));
     await tester.pumpAndSettle();
 
-    expect(find.text('detail-j1'), findsOneWidget);
+    expect(find.text('live-j1'), findsOneWidget);
+  });
+
+  testWidgets('joined card opens the selected session ticket', (tester) async {
+    final repository = _MockSessionRepository();
+    _stubSessionLists(repository);
+    when(() => repository.joinedByCurrentUser(any())).thenAnswer(
+      (_) async => _page([
+        const Session(
+          id: 'j1',
+          name: 'Joined one',
+          status: SessionStatus.preparing,
+        ),
+      ]),
+    );
+    late _MockRegistrationRepository registrationRepository;
+    await _pumpWithRouter(
+      tester,
+      repository,
+      configureRegistration: (repository) {
+        registrationRepository = repository;
+        when(() => repository.myPlayers('j1')).thenAnswer(
+          (_) async => [const SessionPlayer(id: 'ticket-j1', name: 'Vé j1')],
+        );
+      },
+    );
+
+    await tester.tap(find.text('Kèo tham gia'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const ValueKey('session-more-button-j1')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Xem vé'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Vé j1'), findsOneWidget);
+    verify(() => registrationRepository.myPlayers('j1')).called(1);
   });
 }

@@ -5,22 +5,26 @@ import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/court/presentation/widgets/court_display_mode_switch.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session_hosting/application/host_court_actions_state.dart';
+import 'package:vmito_app/features/session_hosting/application/live_wait_time_provider.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/court/host_court_actions.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/court/host_court_card.dart';
+import 'package:vmito_app/features/session_hosting/presentation/widgets/player/player_select_card.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/court.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 
 void main() {
-  Widget app(Widget child) => ProviderScope(
-    child: MaterialApp(
-      theme: AppTheme.light,
-      locale: const Locale('vi'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      home: Scaffold(body: Center(child: child)),
-    ),
-  );
+  Widget app(Widget child, {List<Object> overrides = const []}) =>
+      ProviderScope(
+        overrides: overrides.cast(),
+        child: MaterialApp(
+          theme: AppTheme.light,
+          locale: const Locale('vi'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: Center(child: child)),
+        ),
+      );
 
   testWidgets('display mode switch uses compact visual styling', (
     tester,
@@ -231,5 +235,60 @@ void main() {
       ),
       findsNothing,
     );
+  });
+
+  testWidgets('waiting player badge advances every minute in a live session', (
+    tester,
+  ) async {
+    var now = DateTime(2026, 9, 8, 18);
+    const player = SessionPlayer(
+      id: 'waiting-player',
+      name: 'An',
+      currentWaitTime: 9,
+    );
+
+    await tester.pumpWidget(
+      app(
+        const SizedBox(
+          width: 175,
+          child: PlayerSelectCard(player: player, updateWaitTime: true),
+        ),
+        overrides: [liveWaitTimeClockProvider.overrideWithValue(() => now)],
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('9p'), findsOneWidget);
+
+    now = now.add(const Duration(minutes: 1));
+    await tester.pump(const Duration(minutes: 1));
+    await tester.pump();
+
+    expect(find.text('10p'), findsOneWidget);
+  });
+
+  testWidgets('waiting player badge stays at its snapshot when not live', (
+    tester,
+  ) async {
+    const player = SessionPlayer(
+      id: 'paused-player',
+      name: 'Bình',
+      currentWaitTime: 9,
+    );
+
+    await tester.pumpWidget(
+      app(
+        const SizedBox(
+          width: 175,
+          child: PlayerSelectCard(player: player),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(minutes: 1));
+    await tester.pump();
+
+    expect(find.text('9p'), findsOneWidget);
+    expect(find.text('10p'), findsNothing);
   });
 }
