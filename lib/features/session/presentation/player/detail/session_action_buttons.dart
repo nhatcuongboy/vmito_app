@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
@@ -112,17 +113,15 @@ class SessionActionButtons extends StatelessWidget {
       );
     }
 
-    // 4. Approved: the player is in. Court board first, ticket and add-guest
-    //    beside it.
+    // 4. Approved: keep the quick actions together, then put the court board
+    //    at the outer right edge as the primary next step.
     if (registrationStatus == RegistrationStatus.approved) {
       return _ActionRow(
         children: [
-          Flexible(
-            child: _Primary(
-              label: l10n.sessionViewBoard,
-              icon: AppIcons.court,
-              onPressed: onOpenBoard,
-            ),
+          _Secondary(
+            tooltip: l10n.sessionAddGuest,
+            icon: AppIcons.userPlus,
+            onPressed: session.isFull ? null : onAddGuest,
           ),
           const SizedBox(width: AppSpacing.sm),
           _Secondary(
@@ -131,10 +130,12 @@ class SessionActionButtons extends StatelessWidget {
             onPressed: onViewRegistration,
           ),
           const SizedBox(width: AppSpacing.sm),
-          _Secondary(
-            tooltip: l10n.sessionAddGuest,
-            icon: AppIcons.userPlus,
-            onPressed: session.isFull ? null : onAddGuest,
+          Flexible(
+            child: _Primary(
+              label: l10n.sessionViewBoard,
+              icon: AppIcons.court,
+              onPressed: onOpenBoard,
+            ),
           ),
         ],
       );
@@ -145,19 +146,19 @@ class SessionActionButtons extends StatelessWidget {
     if (registrationStatus != null) {
       return _ActionRow(
         children: [
+          _Secondary(
+            tooltip: l10n.sessionAddGuest,
+            icon: AppIcons.userPlus,
+            onPressed: session.isFull ? null : onAddGuest,
+          ),
+          const SizedBox(width: AppSpacing.sm),
           Flexible(
             child: _Primary(
               label: l10n.sessionViewMyRegistration,
               icon: AppIcons.ticket,
               onPressed: onViewRegistration,
-              tonal: true,
+              ticket: true,
             ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          _Secondary(
-            tooltip: l10n.sessionAddGuest,
-            icon: AppIcons.userPlus,
-            onPressed: session.isFull ? null : onAddGuest,
           ),
         ],
       );
@@ -204,25 +205,32 @@ class _Primary extends StatelessWidget {
     required this.label,
     required this.icon,
     required this.onPressed,
-    this.tonal = false,
+    this.ticket = false,
     this.backgroundColor,
   });
 
   final String label;
   final IconData icon;
   final VoidCallback? onPressed;
-  final bool tonal;
+  final bool ticket;
   final Color? backgroundColor;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
     // The theme stretches filled buttons to full width, which would push the
     // price out of the bar's row.
     final style = FilledButton.styleFrom(
       minimumSize: const Size(0, AppSizes.minTapTarget),
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-      backgroundColor: backgroundColor,
-      foregroundColor: backgroundColor == null ? null : Colors.white,
+      // Matches the pending-registration badge: a ticket is exactly that
+      // status, so the button should read the same way at a glance.
+      backgroundColor: backgroundColor ?? (ticket ? palette.warning : null),
+      foregroundColor: (backgroundColor != null || ticket)
+          ? Colors.white
+          : null,
+      elevation: ticket ? 1 : null,
     );
     // Ellipsize rather than overflow: three buttons plus a price is already
     // tight at phone width, and a longer translation or a large text scale
@@ -231,22 +239,17 @@ class _Primary extends StatelessWidget {
     // same parent data.
     final text = Text(label, maxLines: 1, overflow: TextOverflow.ellipsis);
 
-    return tonal
-        ? FilledButton.tonalIcon(
-            onPressed: onPressed,
-            icon: Icon(icon, size: 18),
-            label: text,
-            style: style,
-          )
-        : FilledButton.icon(
-            onPressed: onPressed,
-            icon: Icon(icon, size: 18),
-            label: text,
-            style: style,
-          );
+    return FilledButton.icon(
+      onPressed: onPressed,
+      icon: Icon(icon, size: 18),
+      label: text,
+      style: style,
+    );
   }
 }
 
+/// A quiet, tonal circular button: it never competes with the row's one
+/// [_Primary] action, which stays the only brand-colored button.
 class _Secondary extends StatelessWidget {
   const _Secondary({
     required this.tooltip,
@@ -259,12 +262,24 @@ class _Secondary extends StatelessWidget {
   final VoidCallback? onPressed;
 
   @override
-  Widget build(BuildContext context) => IconButton.outlined(
-    tooltip: tooltip,
-    icon: Icon(icon, size: 20),
-    onPressed: onPressed,
-    style: IconButton.styleFrom(
-      minimumSize: const Size.square(AppSizes.minTapTarget),
-    ),
-  );
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
+
+    return IconButton(
+      tooltip: tooltip,
+      icon: Icon(icon, size: 20),
+      onPressed: onPressed,
+      style: IconButton.styleFrom(
+        minimumSize: const Size.square(AppSizes.minTapTarget),
+        backgroundColor: palette.muted,
+        foregroundColor: theme.colorScheme.onSurface,
+        disabledForegroundColor: palette.mutedForeground.withValues(
+          alpha: .38,
+        ),
+        side: BorderSide(color: palette.border),
+        shape: const CircleBorder(),
+      ),
+    );
+  }
 }

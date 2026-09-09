@@ -29,6 +29,7 @@ class BadmintonCourtView extends StatefulWidget {
     this.displayMode = CourtDisplayMode.name,
     this.matchType,
     this.courtColor,
+    this.highlightedPlayerId,
     this.selection,
     this.activeSlot,
     this.onSlotTap,
@@ -51,6 +52,9 @@ class BadmintonCourtView extends StatefulWidget {
 
   /// The session's court colour. Only an IN_USE court shows it.
   final Color? courtColor;
+
+  /// Player emphasized in a player-facing court view.
+  final String? highlightedPlayerId;
 
   /// Selection mode only: seat index → player, with gaps for empty seats.
   final List<SessionPlayer?>? selection;
@@ -231,7 +235,9 @@ class _BadmintonCourtViewState extends State<BadmintonCourtView> {
       mode: widget.mode,
       displayMode: widget.displayMode,
       pairNumber: pairNumber,
-      isActive: widget.mode.isSelection && seat == widget.activeSlot,
+      isActive:
+          (widget.mode.isSelection && seat == widget.activeSlot) ||
+          player.id == widget.highlightedPlayerId,
       onTap: () {
         if (widget.mode.isSelection && widget.onSlotTap != null) {
           widget.onSlotTap!(seat);

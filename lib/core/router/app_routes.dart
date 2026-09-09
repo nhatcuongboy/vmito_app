@@ -115,12 +115,14 @@ abstract final class AppRoutes {
         RegExp(r'^/sessions/[^/]+$').hasMatch(path) &&
         path != createSession &&
         path != mySessionsSearch;
+    final isLiveSession = RegExp(r'^/sessions/[^/]+/live$').hasMatch(path);
     return path == homeSearch ||
         path == mySessionsSearch ||
         path == settings ||
         RegExp(r'^/tournaments/[^/]+$').hasMatch(path) ||
         RegExp(r'^/tournaments/[^/]+/manage$').hasMatch(path) ||
         isSessionDetail ||
+        isLiveSession ||
         RegExp(r'^/sessions/[^/]+/manage$').hasMatch(path);
   }
 
@@ -212,9 +214,7 @@ abstract final class AppRoutes {
     if (RegExp(r'^/tournaments/[^/]+/manage(?:/|$)').hasMatch(path)) {
       return false;
     }
-    final publicSession = RegExp(
-      r'^/sessions/([^/]+)(?:/(live))?$',
-    ).firstMatch(path);
+    final publicSession = RegExp(r'^/sessions/([^/]+)$').firstMatch(path);
     if (publicSession != null &&
         publicSession.group(1) != 'create' &&
         publicSession.group(1) != mySessionsSearchPath &&

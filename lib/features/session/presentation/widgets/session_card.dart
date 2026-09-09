@@ -13,6 +13,7 @@ import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/widgets/level_range_chips.dart';
+import 'package:vmito_app/features/social/domain/public_profile.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 
@@ -69,6 +70,7 @@ class SessionCard extends ConsumerWidget {
     this.primaryAction,
     this.moreActions = const [],
     this.extraTimeTopSpacing = false,
+    this.hostRating,
     super.key,
   });
 
@@ -93,6 +95,7 @@ class SessionCard extends ConsumerWidget {
   final SessionCardAction? primaryAction;
   final List<SessionCardAction> moreActions;
   final bool extraTimeTopSpacing;
+  final RatingStats? hostRating;
 
   static const _coverWidth = 108.0;
 
@@ -231,7 +234,7 @@ class SessionCard extends ConsumerWidget {
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       if (!hideHostInfo && session.displayHostName.isNotEmpty)
-                        _HostLine(session: session),
+                        _HostLine(session: session, rating: hostRating),
                       if (extraTimeTopSpacing &&
                           session.displayStartTime != null)
                         const SizedBox(height: AppSpacing.xs),
@@ -624,9 +627,8 @@ Color _crawledCardColor(ThemeData theme) => theme.brightness == Brightness.dark
 
 // Regular (non-crawled) browse cards were hardcoded to white, which stayed
 // white against dark-mode text colors and read as a washed-out card.
-Color _browseCardColor(ThemeData theme) => theme.brightness == Brightness.dark
-    ? AppColors.cardDark
-    : Colors.white;
+Color _browseCardColor(ThemeData theme) =>
+    theme.brightness == Brightness.dark ? AppColors.cardDark : Colors.white;
 
 /// Identifies the sport without competing with the cover itself.
 class _SportBadge extends StatelessWidget {
@@ -985,6 +987,8 @@ class _BrowseMetaRow extends StatelessWidget {
           )
         else
           const Spacer(),
+        if (label != null && courts != null)
+          const SizedBox(width: AppSpacing.sm),
         if (courts != null)
           Text(
             courts!,
@@ -1074,9 +1078,10 @@ class _CrawledBadge extends StatelessWidget {
 }
 
 class _HostLine extends StatelessWidget {
-  const _HostLine({required this.session});
+  const _HostLine({required this.session, this.rating});
 
   final Session session;
+  final RatingStats? rating;
 
   @override
   Widget build(BuildContext context) {
@@ -1097,8 +1102,40 @@ class _HostLine extends StatelessWidget {
           ),
           const SizedBox(width: AppSpacing.xs + 2),
           Expanded(
-            child: Text(
-              session.displayHostName,
+            child: Text.rich(
+              TextSpan(
+                text: session.displayHostName,
+                children: [
+                  if (rating case final value? when value.total > 0)
+                    WidgetSpan(
+                      alignment: PlaceholderAlignment.middle,
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: AppSpacing.xs),
+                        child: Semantics(
+                          label: 'Rating ${value.average.toStringAsFixed(1)}',
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.star,
+                                size: 14,
+                                color: Color(0xFFEAB308),
+                              ),
+                              const SizedBox(width: 2),
+                              Text(
+                                value.average.toStringAsFixed(1),
+                                key: const Key('session-host-rating'),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               key: const Key('session-host-name'),

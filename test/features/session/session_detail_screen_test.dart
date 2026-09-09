@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:vmito_app/core/network/paginated.dart' as pagination;
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -19,6 +22,8 @@ import 'package:vmito_app/features/session/domain/player_detail.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 import 'package:vmito_app/features/session/domain/session_recommendation.dart';
+import 'package:vmito_app/features/session/presentation/player/detail/session_detail_bottom_bar.dart';
+import 'package:vmito_app/features/session/presentation/player/detail/session_detail_skeleton.dart';
 import 'package:vmito_app/features/session/presentation/player/session_detail_screen.dart';
 import 'package:vmito_app/features/session_hosting/application/player_statistics_providers.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
@@ -193,6 +198,40 @@ Future<void> _pump(
 }
 
 void main() {
+  testWidgets('shows the detail skeleton while the initial session loads', (
+    tester,
+  ) async {
+    final pending = Completer<Session>();
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          sessionDetailProvider.overrideWith((ref, id) => pending.future),
+          currentUserProvider.overrideWithValue(null),
+          isSignedInProvider.overrideWithValue(false),
+        ],
+        child: MaterialApp(
+          theme: AppTheme.light,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const SessionDetailScreen(sessionId: 's1'),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byType(SessionDetailSkeleton), findsOneWidget);
+    expect(find.byType(Shimmer), findsOneWidget);
+    expect(find.byType(SessionDetailBottomBar), findsNothing);
+
+    pending.complete(_session());
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SessionDetailSkeleton), findsNothing);
+    expect(find.byKey(const Key('session-detail-content')), findsOneWidget);
+    expect(find.byType(SessionDetailBottomBar), findsOneWidget);
+  });
+
   testWidgets('renders the session as one scroll, not tabs', (tester) async {
     await _pump(
       tester,
@@ -281,7 +320,7 @@ void main() {
         '259 Hòa Bình, Phường Phú Thạnh, Thành phố Hồ Chí Minh',
       ),
     );
-    expect(address.maxLines, isNull);
+    expect(address.maxLines, 2);
     expect(find.text('New'), findsOneWidget);
     expect(
       tester.getSize(find.byKey(const Key('session-get-directions'))).height,

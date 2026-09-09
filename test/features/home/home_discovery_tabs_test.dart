@@ -7,6 +7,7 @@ import 'package:vmito_app/core/location/new_admin_units.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
+import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
@@ -297,9 +298,29 @@ void main() {
     final sort = find.byKey(const Key('home-discovery-sort'));
     final filter = find.byKey(const Key('home-discovery-filter'));
     final tabs = find.byType(HomeDiscoveryTabs);
+    final mutedForeground = AppTheme.light
+        .extension<AppPalette>()!
+        .mutedForeground;
+    final primaryColor = AppTheme.light.colorScheme.primary;
     expect(find.text('Hồ Chí Minh'), findsOneWidget);
+    expect(
+      tester.widget<OutlinedButton>(city).style?.foregroundColor?.resolve({}),
+      primaryColor,
+    );
+    expect(
+      tester.widget<OutlinedButton>(sort).style?.foregroundColor?.resolve({}),
+      mutedForeground,
+    );
+    expect(
+      tester.widget<IconButton>(filter).style?.foregroundColor?.resolve({}),
+      mutedForeground,
+    );
     expect(tester.getCenter(city).dx, lessThan(tester.getCenter(sort).dx));
     expect(tester.getCenter(sort).dx, lessThan(tester.getCenter(filter).dx));
+    expect(
+      tester.getTopRight(filter).dx,
+      tester.view.physicalSize.width - AppSpacing.md,
+    );
     expect(
       tester.getTopLeft(filter).dy,
       greaterThan(tester.getBottomLeft(tabs).dy),
@@ -329,7 +350,7 @@ void main() {
 
     await tester.tap(sort);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Giá thấp nhất'));
+    await tester.tap(find.text('Giá thấp'));
     await tester.pumpAndSettle();
     expect(
       _ScrollableSessionsController.lastFilters?.sort,
@@ -359,7 +380,8 @@ void main() {
           supportedLocales: AppLocalizations.supportedLocales,
           home: Scaffold(
             body: HomeDiscoveryToolbar(
-              sortLabel: 'Ngày gần nhất',
+              sortLabel: 'Gần nhất',
+              sortIcon: AppIcons.calendarClock,
               onSort: () {},
               onFilter: () {},
               onCityChanged: (_) {},
@@ -633,7 +655,7 @@ void main() {
       expect(_FakeSessionsController.lastFilters?.cityIsDefault, isTrue);
 
       // 2. Venues tab: switch tab, select Hà Nội, then select "Khác"
-      await tester.tap(find.text('Sân'));
+      await tester.tap(find.text('Tìm sân'));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('discovery-city-selector')));
       await tester.pumpAndSettle();
@@ -649,7 +671,7 @@ void main() {
       expect(_SearchVenuesController.lastFilter?.cityIsDefault, isTrue);
 
       // 3. Clubs tab: switch tab, select Hà Nội, then select "Khác"
-      await tester.tap(find.text('Câu lạc bộ'));
+      await tester.tap(find.text('Tìm nhóm'));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('discovery-city-selector')));
       await tester.pumpAndSettle();
@@ -665,7 +687,7 @@ void main() {
       expect(_FakeClubsController.lastClearCity, isTrue);
 
       // 4. Tournaments tab: switch tab, select Hà Nội, then select "Khác"
-      await tester.tap(find.text('Giải đấu'));
+      await tester.tap(find.text('Tìm giải'));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('discovery-city-selector')));
       await tester.pumpAndSettle();
@@ -1048,7 +1070,9 @@ class _HomeLocationPreferencesController extends LocationPreferencesController {
     state = state.copyWith(
       preferredCity: city,
       clearPreferredCity: city == null,
-      selectionType: city == null ? LocationSelectionType.all : LocationSelectionType.city,
+      selectionType: city == null
+          ? LocationSelectionType.all
+          : LocationSelectionType.city,
       onboardingCompleted: true,
     );
   }

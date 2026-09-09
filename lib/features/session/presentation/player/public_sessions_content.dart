@@ -16,6 +16,9 @@ import 'package:vmito_app/features/session/application/player/browse_sessions_co
 import 'package:vmito_app/features/session/domain/session_map_location.dart';
 import 'package:vmito_app/features/session/presentation/player/session_map_view.dart';
 import 'package:vmito_app/features/session/presentation/widgets/session_card.dart';
+import 'package:vmito_app/features/session/presentation/widgets/session_card_skeleton.dart';
+import 'package:vmito_app/features/social/application/social_controller.dart';
+import 'package:vmito_app/features/social/domain/public_profile.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_loading_view.dart';
 import 'package:vmito_app/shared/widgets/app_paginated_list_view.dart';
@@ -155,8 +158,10 @@ class _BrowseSessionsContentState extends ConsumerState<BrowseSessionsContent> {
                     : RefreshIndicator(
                         onRefresh: controller.refresh,
                         child: switch (state) {
-                          _ when state.isLoading && state.sessions.isEmpty =>
-                            const AppLoadingView(),
+                          _
+                              when (!_hasLoaded || state.isLoading) &&
+                                  state.sessions.isEmpty =>
+                            const _SessionListSkeleton(),
                           // Only replace the list with a full-screen error when
                           // there is nothing to show; a failed "load more" keeps
                           // the list and reports itself through the app-wide
@@ -256,6 +261,17 @@ class _SessionList extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final registrationStatuses =
         ref.watch(myRegistrationStatusesProvider).value ?? const {};
+    final hostIds =
+        state.sessions
+            .map((session) => session.hostId)
+            .whereType<String>()
+            .toSet()
+            .toList()
+          ..sort();
+    final hostRatings = hostIds.isEmpty
+        ? const <String, RatingStats>{}
+        : ref.watch(batchRatingStatsProvider(hostIds.join(','))).value ??
+              const <String, RatingStats>{};
     return AppPaginatedListView.separated(
       controller: controller,
       padding: const EdgeInsets.fromLTRB(
@@ -276,6 +292,9 @@ class _SessionList extends ConsumerWidget {
           session: session,
           variant: SessionCardVariant.browse,
           showFavorite: true,
+          hostRating: session.hostId == null
+              ? null
+              : hostRatings[session.hostId],
           registrationStatus: registrationStatuses[session.id],
           registrationBadgeAtBottom: true,
           onTap: () => context.push(AppRoutes.sessionDetail(session.id)),
@@ -283,6 +302,28 @@ class _SessionList extends ConsumerWidget {
       },
     );
   }
+}
+
+class _SessionListSkeleton extends StatelessWidget {
+  const _SessionListSkeleton();
+
+  @override
+  Widget build(BuildContext context) => ListView.separated(
+    key: const Key('browse-sessions-skeleton-list'),
+    physics: const AlwaysScrollableScrollPhysics(),
+    padding: const EdgeInsets.fromLTRB(
+      AppSpacing.md,
+      AppSpacing.md,
+      AppSpacing.md,
+      88,
+    ),
+    itemCount: 3,
+    separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+    itemBuilder: (_, _) => const SessionCardSkeleton(
+      variant: SessionCardVariant.browse,
+      showFavorite: true,
+    ),
+  );
 }
 
 class _EmptyView extends StatelessWidget {

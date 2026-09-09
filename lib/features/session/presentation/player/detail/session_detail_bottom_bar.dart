@@ -83,28 +83,35 @@ class SessionDetailBottomBar extends ConsumerWidget {
                     children: [
                       if (feeLabel != null)
                         Flexible(
-                          child: Text.rich(
-                            TextSpan(
-                              text: feeLabel,
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                color: theme.colorScheme.error,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              children: [
-                                TextSpan(
-                                  text:
-                                      session.feeConfig?.feeType ==
-                                          FeeType.splitEvenly
-                                      ? ''
-                                      : l10n.sessionPerSlot,
-                                  style: theme.textTheme.bodySmall?.copyWith(
-                                    color: palette.mutedForeground,
-                                  ),
+                          // The action group deliberately receives more of
+                          // the row on compact phones. Scale the complete fee
+                          // down within its share rather than ellipsizing or
+                          // wrapping the unit (for example "/slot").
+                          child: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            alignment: Alignment.centerLeft,
+                            child: Text.rich(
+                              TextSpan(
+                                text: feeLabel,
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  color: theme.colorScheme.error,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                              ],
+                                children: [
+                                  TextSpan(
+                                    text:
+                                        session.feeConfig?.feeType ==
+                                            FeeType.splitEvenly
+                                        ? ''
+                                        : ' ${l10n.sessionPerSlot}',
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: palette.mutedForeground,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              maxLines: 1,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       if (session.feeConfig case final feeConfig?)

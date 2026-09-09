@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:reactive_forms/reactive_forms.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
@@ -7,6 +8,7 @@ import 'package:vmito_app/features/session/application/player/session_detail_con
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/data/social_service.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 
 class SessionRatingScreen extends ConsumerWidget {
   const SessionRatingScreen({required this.sessionId, super.key});
@@ -127,72 +129,130 @@ Future<void> showRatingDialog(
   required String name,
   required String type,
 }) async {
-  final l10n = AppLocalizations.of(context);
-  final commentController = TextEditingController();
-  var stars = 5;
-  final submitted = await showDialog<bool>(
+  await showDialog<void>(
     context: context,
-    builder: (dialogContext) => StatefulBuilder(
-      builder: (context, setState) => AlertDialog(
-        title: Text(l10n.socialRateName(name)),
-        content: ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 320),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
+    barrierDismissible: false,
+    builder: (_) => _RatingDialog(
+      sessionId: sessionId,
+      userId: userId,
+      name: name,
+      type: type,
+    ),
+  );
+}
+
+class _RatingDialog extends ConsumerStatefulWidget {
+  const _RatingDialog({
+    required this.sessionId,
+    required this.userId,
+    required this.name,
+    required this.type,
+  });
+  final String sessionId;
+  final String userId;
+  final String name;
+  final String type;
+  @override
+  ConsumerState<_RatingDialog> createState() => _RatingDialogState();
+}
+
+class _RatingDialogState extends ConsumerState<_RatingDialog> {
+  late final FormGroup _form = FormGroup({
+    'rating': FormControl<int>(
+      value: 5,
+      validators: [Validators.required, Validators.min(1), Validators.max(5)],
+    ),
+    'comment': FormControl<String>(validators: [Validators.maxLength(500)]),
+  });
+  bool _submitting = false;
+  @override
+  void dispose() {
+    _form.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    _form.markAllAsTouched();
+    if (_form.invalid || _submitting) return;
+    setState(() => _submitting = true);
+    try {
+      await ref
+          .read(socialServiceProvider)
+          .createRating(
+            sessionId: widget.sessionId,
+            ratedUserId: widget.userId,
+            type: widget.type,
+            rating: _form.control('rating').value as int,
+            comment: (_form.control('comment').value as String?) ?? '',
+          );
+      ref.invalidate(ratingEligibilityProvider(widget.sessionId));
+      if (!mounted) return;
+      final message = AppLocalizations.of(context).socialRatingSent;
+      Navigator.pop(context);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return AlertDialog(
+      title: Text(l10n.socialRateName(widget.name)),
+      content: AppReactiveForm<void>(
+        formGroup: _form,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ReactiveValueListenableBuilder<int>(
+              formControlName: 'rating',
+              builder: (context, control, _) => Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(
                   5,
                   (index) => IconButton(
                     key: Key('rating-star-${index + 1}'),
-                    onPressed: () => setState(() => stars = index + 1),
+                    onPressed: _submitting
+                        ? null
+                        : () => control.value = index + 1,
                     icon: Icon(
-                      index < stars ? AppIcons.star : AppIcons.star,
-                      color: Colors.amber.shade700,
+                      AppIcons.star,
+                      color: index < (control.value ?? 5)
+                          ? Colors.amber.shade700
+                          : Theme.of(context).disabledColor,
                     ),
                   ),
                 ),
               ),
-              TextField(
-                controller: commentController,
-                maxLength: 500,
-                minLines: 2,
-                maxLines: 4,
-                decoration: InputDecoration(hintText: l10n.socialRatingComment),
-              ),
-            ],
-          ),
+            ),
+            ReactiveTextField<String>(
+              formControlName: 'comment',
+              maxLength: 500,
+              minLines: 2,
+              maxLines: 4,
+              decoration: InputDecoration(hintText: l10n.socialRatingComment),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(l10n.commonCancel),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(l10n.socialSendRating),
-          ),
-        ],
       ),
-    ),
-  );
-  final comment = commentController.text;
-  commentController.dispose();
-  if (submitted != true || !context.mounted) return;
-  await ref
-      .read(socialServiceProvider)
-      .createRating(
-        sessionId: sessionId,
-        ratedUserId: userId,
-        type: type,
-        rating: stars,
-        comment: comment,
-      );
-  ref.invalidate(ratingEligibilityProvider(sessionId));
-  if (context.mounted) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.socialRatingSent)),
+      actions: [
+        TextButton(
+          onPressed: _submitting ? null : () => Navigator.pop(context),
+          child: Text(l10n.commonCancel),
+        ),
+        FilledButton(
+          onPressed: _submitting ? null : _submit,
+          child: _submitting
+              ? const SizedBox.square(
+                  dimension: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : Text(l10n.socialSendRating),
+        ),
+      ],
     );
   }
 }

@@ -1,36 +1,39 @@
 import 'package:flutter/material.dart';
+import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/city_selector.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
-import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
-
-class DiscoverySortOption<T> {
-  const DiscoverySortOption({required this.value, required this.label});
-
-  final T value;
-  final String label;
-}
+import 'package:vmito_app/shared/widgets/app_sort_selector.dart';
 
 class HomeDiscoveryToolbar extends StatelessWidget {
   const HomeDiscoveryToolbar({
     required this.sortLabel,
+    required this.sortIcon,
     required this.onSort,
     required this.onFilter,
     required this.onCityChanged,
     this.filterCount = 0,
+    this.sortIsActive = false,
     super.key,
   });
 
   final String sortLabel;
+  final IconData sortIcon;
   final VoidCallback onSort;
   final VoidCallback onFilter;
   final ValueChanged<String?> onCityChanged;
   final int filterCount;
+  final bool sortIsActive;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
+    final filterForeground = filterCount > 0
+        ? theme.colorScheme.primary
+        : palette.mutedForeground;
     return DecoratedBox(
       decoration: const BoxDecoration(
         color: Colors.transparent,
@@ -45,42 +48,34 @@ class HomeDiscoveryToolbar extends StatelessWidget {
           ),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final labelMaxWidth = ((constraints.maxWidth - 156) / 2).clamp(
-                56.0,
-                180.0,
-              );
+              final cityMaxWidth = constraints.maxWidth * 0.5;
               return Row(
                 children: [
-                  CitySelector(
-                    showLabel: true,
-                    labelMaxWidth: labelMaxWidth,
-                    onChanged: onCityChanged,
+                  ConstrainedBox(
+                    constraints: BoxConstraints(maxWidth: cityMaxWidth),
+                    child: CitySelector(
+                      showLabel: true,
+                      labelMaxWidth: (cityMaxWidth - 62).clamp(
+                        0.0,
+                        double.infinity,
+                      ),
+                      onChanged: onCityChanged,
+                    ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(
-                      maxWidth: labelMaxWidth + 50,
-                    ),
-                    child: OutlinedButton.icon(
-                      key: const Key('home-discovery-sort'),
-                      onPressed: onSort,
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(0, 40),
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                      icon: const Icon(AppIcons.sortAlpha, size: 18),
-                      label: ConstrainedBox(
-                        constraints: BoxConstraints(maxWidth: labelMaxWidth),
-                        child: Text(
-                          sortLabel,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                  Expanded(
+                    child: Align(
+                      alignment: AlignmentDirectional.centerStart,
+                      child: AppSortSelector(
+                        buttonKey: const Key('home-discovery-sort'),
+                        label: sortLabel,
+                        icon: sortIcon,
+                        isActive: sortIsActive,
+                        onPressed: onSort,
                       ),
                     ),
                   ),
-                  const Spacer(),
+                  const SizedBox(width: AppSpacing.sm),
                   Badge(
                     isLabelVisible: filterCount > 0,
                     label: Text('$filterCount'),
@@ -89,6 +84,9 @@ class HomeDiscoveryToolbar extends StatelessWidget {
                       tooltip: l10n.sessionFiltersTitle,
                       onPressed: onFilter,
                       visualDensity: VisualDensity.compact,
+                      style: IconButton.styleFrom(
+                        foregroundColor: filterForeground,
+                      ),
                       icon: const Icon(AppIcons.tune, size: 20),
                     ),
                   ),
@@ -101,34 +99,3 @@ class HomeDiscoveryToolbar extends StatelessWidget {
     );
   }
 }
-
-Future<T?> showDiscoverySortSheet<T>(
-  BuildContext context, {
-  required String title,
-  required T selected,
-  required List<DiscoverySortOption<T>> options,
-}) => showModalBottomSheet<T>(
-  context: context,
-  useRootNavigator: true,
-  showDragHandle: true,
-  builder: (context) => SafeArea(
-    child: Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        AppSheetHeader(title: title, showCloseButton: false),
-        for (final option in options)
-          ListTile(
-            key: ValueKey('home-sort-${option.value}'),
-            title: Text(option.label),
-            trailing: option.value == selected
-                ? Icon(
-                    AppIcons.check,
-                    color: Theme.of(context).colorScheme.primary,
-                  )
-                : null,
-            onTap: () => Navigator.of(context).pop(option.value),
-          ),
-      ],
-    ),
-  ),
-);

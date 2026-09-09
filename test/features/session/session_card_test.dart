@@ -14,6 +14,7 @@ import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 import 'package:vmito_app/features/session/presentation/widgets/session_card.dart';
+import 'package:vmito_app/features/social/domain/public_profile.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 
@@ -61,6 +62,7 @@ Future<void> _pump(
   bool registrationBadgeAtBottom = false,
   SessionCardAction? primaryAction,
   List<SessionCardAction> moreActions = const [],
+  RatingStats? hostRating,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -82,6 +84,7 @@ Future<void> _pump(
         home: Scaffold(
           body: SessionCard(
             session: session,
+            hostRating: hostRating,
             showFavorite: showFavorite,
             variant: variant,
             registrationStatus: registrationStatus,
@@ -265,6 +268,30 @@ void main() {
   });
 
   group('time', () {
+    testWidgets('shows a rated host after their name', (tester) async {
+      await _pump(
+        tester,
+        _session(hostName: 'Nguyễn Cường'),
+        hostRating: const RatingStats(average: 5, total: 1),
+      );
+
+      expect(find.text(' · '), findsNothing);
+      expect(find.byIcon(Icons.star), findsOneWidget);
+      expect(find.byKey(const Key('session-host-rating')), findsOneWidget);
+      expect(find.text('5.0'), findsOneWidget);
+    });
+
+    testWidgets('hides the host rating without reviews', (tester) async {
+      await _pump(
+        tester,
+        _session(hostName: 'Nguyễn Cường'),
+        hostRating: const RatingStats(average: 0, total: 0),
+      );
+
+      expect(find.byKey(const Key('session-host-rating')), findsNothing);
+      expect(find.byIcon(Icons.star), findsNothing);
+    });
+
     testWidgets('styles host and date/time values for scanability', (
       tester,
     ) async {
@@ -487,22 +514,25 @@ void main() {
       },
     );
 
-    testWidgets('places a hosted session status badge at the top of the cover', (
-      tester,
-    ) async {
-      await _pump(
+    testWidgets(
+      'places a hosted session status badge at the top of the cover',
+      (
         tester,
-        _session(),
-        showSessionStatusBadge: true,
-        sessionStatusBadgeAtTop: true,
-      );
+      ) async {
+        await _pump(
+          tester,
+          _session(),
+          showSessionStatusBadge: true,
+          sessionStatusBadgeAtTop: true,
+        );
 
-      final cover = tester.getTopLeft(find.byType(CachedNetworkImage));
-      final status = tester.getTopLeft(
-        find.byKey(const Key('session-status-badge')),
-      );
-      expect(status.dy, closeTo(cover.dy + 4, 0.01));
-    });
+        final cover = tester.getTopLeft(find.byType(CachedNetworkImage));
+        final status = tester.getTopLeft(
+          find.byKey(const Key('session-status-badge')),
+        );
+        expect(status.dy, closeTo(cover.dy + 4, 0.01));
+      },
+    );
 
     testWidgets(
       'places a discovery registration status badge at the bottom of the cover',

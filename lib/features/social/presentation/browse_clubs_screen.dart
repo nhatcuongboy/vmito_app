@@ -15,6 +15,7 @@ import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
+import 'package:vmito_app/features/social/presentation/club_browse_card_skeleton.dart';
 import 'package:vmito_app/features/social/presentation/club_schedule_formatter.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_empty_filter_sheet.dart';
@@ -151,9 +152,7 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
                             constraints: const BoxConstraints(maxWidth: 720),
                             child: switch (state) {
                               _ when state.isLoading && state.clubs.isEmpty =>
-                                const _ClubListStatus(
-                                  child: CircularProgressIndicator(),
-                                ),
+                                const _ClubListSkeleton(),
                               _
                                   when state.error != null &&
                                       state.clubs.isEmpty =>
@@ -290,6 +289,20 @@ class _ClubListStatus extends StatelessWidget {
     physics: const AlwaysScrollableScrollPhysics(),
     padding: const EdgeInsets.all(AppSpacing.xl),
     children: [Center(child: child)],
+  );
+}
+
+class _ClubListSkeleton extends StatelessWidget {
+  const _ClubListSkeleton();
+
+  @override
+  Widget build(BuildContext context) => ListView.separated(
+    key: const Key('club-skeleton-list'),
+    physics: const AlwaysScrollableScrollPhysics(),
+    padding: const EdgeInsets.all(AppSpacing.screenPadding),
+    itemCount: 3,
+    separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+    itemBuilder: (_, _) => const ClubBrowseCardSkeleton(),
   );
 }
 

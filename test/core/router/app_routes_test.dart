@@ -45,7 +45,7 @@ void main() {
         expect(AppRoutes.isPublic(AppRoutes.home), isTrue);
         expect(AppRoutes.isPublic(AppRoutes.leaderboard), isTrue);
         expect(AppRoutes.isPublic(AppRoutes.sessionDetail('s1')), isTrue);
-        expect(AppRoutes.isPublic(AppRoutes.liveSession('s1')), isTrue);
+        expect(AppRoutes.isPublic(AppRoutes.liveSession('s1')), isFalse);
         expect(AppRoutes.isPublic(AppRoutes.join), isTrue);
         expect(AppRoutes.isPublic(AppRoutes.scanQr), isTrue);
         expect(AppRoutes.isPublic(AppRoutes.publicProfile('u1')), isTrue);
@@ -98,7 +98,7 @@ void main() {
 
       // The sibling detail route is still public.
       expect(AppRoutes.isPublic('/sessions/abc'), isTrue);
-      expect(AppRoutes.isPublic('/sessions/abc/live'), isTrue);
+      expect(AppRoutes.isPublic('/sessions/abc/live'), isFalse);
     });
 
     test('only matches on a segment boundary', () {
@@ -141,6 +141,10 @@ void main() {
     );
     expect(
       AppRoutes.hidesBottomNavigation(AppRoutes.sessionDetail('s1')),
+      isTrue,
+    );
+    expect(
+      AppRoutes.hidesBottomNavigation(AppRoutes.liveSession('s1')),
       isTrue,
     );
     expect(

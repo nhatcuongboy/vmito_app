@@ -61,6 +61,18 @@ class AppTabBar extends StatelessWidget implements PreferredSizeWidget {
           dividerColor: Colors.transparent,
           indicatorColor: theme.colorScheme.primary,
           indicatorSize: TabBarIndicatorSize.tab,
+          labelColor: theme.colorScheme.primary,
+          unselectedLabelColor: theme.extension<AppPalette>()?.mutedForeground,
+          labelStyle: theme.textTheme.bodyMedium?.copyWith(
+            fontSize: 15,
+            height: 20 / 15,
+            fontWeight: FontWeight.w600,
+          ),
+          unselectedLabelStyle: theme.textTheme.bodyMedium?.copyWith(
+            fontSize: 15,
+            height: 20 / 15,
+            fontWeight: FontWeight.w500,
+          ),
           tabs: tabs,
         ),
       ),

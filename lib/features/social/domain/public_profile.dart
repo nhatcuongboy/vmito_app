@@ -38,15 +38,21 @@ class PublicProfile {
 }
 
 class RatingStats {
-  const RatingStats({required this.average, required this.total});
+  const RatingStats({
+    required this.average,
+    required this.total,
+    this.userId,
+  });
 
   factory RatingStats.fromJson(Map<String, dynamic> json) => RatingStats(
     average: (json['averageRating'] as num?)?.toDouble() ?? 0,
     total: (json['totalRatings'] as num?)?.toInt() ?? 0,
+    userId: json['userId'] as String?,
   );
 
   final double average;
   final int total;
+  final String? userId;
 }
 
 class PlayerRating {
@@ -85,6 +91,8 @@ class RatingEligibility {
   const RatingEligibility({
     required this.canRateHost,
     required this.canRatePlayers,
+    this.hasRatedHost = false,
+    this.hostRating,
   });
 
   factory RatingEligibility.fromJson(Map<String, dynamic> json) =>
@@ -93,10 +101,18 @@ class RatingEligibility {
         canRatePlayers: (json['canRatePlayers'] as List<dynamic>? ?? const [])
             .whereType<String>()
             .toList(growable: false),
+        hasRatedHost: json['hasRatedHost'] as bool? ?? false,
+        hostRating: json['hostRating'] is Map
+            ? PlayerRating.fromJson(
+                Map<String, dynamic>.from(json['hostRating'] as Map),
+              )
+            : null,
       );
 
   final bool canRateHost;
   final List<String> canRatePlayers;
+  final bool hasRatedHost;
+  final PlayerRating? hostRating;
 
-  bool get isEmpty => !canRateHost && canRatePlayers.isEmpty;
+  bool get isEmpty => !canRateHost && !hasRatedHost && canRatePlayers.isEmpty;
 }

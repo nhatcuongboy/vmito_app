@@ -25,6 +25,7 @@ import 'package:vmito_app/features/profile/application/profile_controller.dart';
 import 'package:vmito_app/features/profile/data/profile_image_picker.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/widgets/session_card.dart';
+import 'package:vmito_app/features/session/presentation/widgets/session_card_skeleton.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/data/profile_tabs_service.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
@@ -892,7 +893,14 @@ class _HostedTabState extends ConsumerState<_HostedTab> {
               );
             }
             if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
+              return ListView.separated(
+                key: const Key('profile-hosted-skeleton-list'),
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(AppSpacing.screenPadding),
+                itemCount: 3,
+                separatorBuilder: (_, _) => const SizedBox(height: 12),
+                itemBuilder: (_, _) => const SessionCardSkeleton(),
+              );
             }
             final sessions = snapshot.data!.items;
             if (sessions.isEmpty) {

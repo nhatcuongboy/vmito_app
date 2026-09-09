@@ -159,6 +159,14 @@ void main() {
     expect(find.text('Đăng xuất'), findsNothing);
     expect(find.text('Đăng nhập'), findsOneWidget);
     expect(find.text('Đăng ký'), findsOneWidget);
+    final edgeAccent = tester.widget<Container>(
+      find.byKey(const Key('menu-right-edge-accent')),
+    );
+    final edgeGradient =
+        (edgeAccent.decoration! as BoxDecoration).gradient! as LinearGradient;
+    expect(edgeAccent.constraints?.maxWidth, 2);
+    expect(edgeAccent.constraints?.maxHeight, 180);
+    expect(edgeGradient.colors.last, Colors.transparent);
     expect(
       find.descendant(
         of: find.byKey(const Key('menu-sign-in-button')),
@@ -233,10 +241,10 @@ void main() {
     final inactiveItem = tester.widget<Text>(find.text('Tìm sân'));
     final activeTile = find.ancestor(
       of: find.text('Tìm kèo'),
-      matching: find.byType(ListTile),
+      matching: find.byType(AnimatedContainer),
     );
     final activeIcon = find.descendant(
-      of: activeTile,
+      of: find.byKey(const Key('menu-discovery-sessions')),
       matching: find.byIcon(AppIcons.searchSessions),
     );
     final signIn = tester.widget<OutlinedButton>(
@@ -257,7 +265,14 @@ void main() {
     expect(activeItem.overflow, TextOverflow.ellipsis);
     expect(inactiveItem.style?.fontWeight, FontWeight.w500);
     expect(tester.getSize(activeTile).height, 48);
-    expect(IconTheme.of(tester.element(activeIcon)).size, 22);
+    expect(IconTheme.of(tester.element(activeIcon)).size, 20);
+    expect(find.byKey(const Key('menu-active-indicator')), findsOneWidget);
+    final activeDecoration =
+        tester.widget<AnimatedContainer>(activeTile).decoration!
+            as BoxDecoration;
+    expect(activeDecoration.gradient, isA<LinearGradient>());
+    expect(activeDecoration.border, isNotNull);
+    expect(activeDecoration.boxShadow, isNotEmpty);
     expect(
       signIn.style?.textStyle?.resolve(<WidgetState>{})?.fontSize,
       14,

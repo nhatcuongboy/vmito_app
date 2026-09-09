@@ -11,6 +11,17 @@ import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 abstract interface class PaymentRepository {
   Future<PaymentLedger> ledger(String sessionId);
 
+  Future<List<PaymentRecord>> mySessionPayments(String sessionId);
+
+  Future<HostPaymentSettings?> hostSettings(String hostId);
+
+  Future<PaymentRecord> submitPayment(
+    String paymentId, {
+    required PaymentMethod paymentMethod,
+    String? proofImageUrl,
+    String? proofNotes,
+  });
+
   Future<List<HostPaymentSettings>> settings();
 
   Future<void> approve(

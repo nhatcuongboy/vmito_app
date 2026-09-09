@@ -122,7 +122,7 @@ abstract interface class SessionRepository {
   ///
   /// Court *actions* live on `CourtRepository` — courts are their own backend
   /// resource — but match history belongs to the session that owns it.
-  Future<List<Match>> matches(String sessionId);
+  Future<List<Match>> matches(String sessionId, {String? playerId});
 
   Future<void> updateMatch(String matchId, MatchUpdateDraft draft);
 

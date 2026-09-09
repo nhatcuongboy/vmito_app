@@ -16,6 +16,7 @@ import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/tournament/application/tournament_browse_controller.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
+import 'package:vmito_app/features/tournament/presentation/tournament_browse_card_skeleton.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/discovery_entity_map_view.dart';
 import 'package:vmito_app/shared/widgets/discovery_map_toggle.dart';
@@ -95,7 +96,7 @@ class _BrowseTournamentsContentState
                         onRefresh: controller.load,
                         child: switch (state) {
                           _ when state.isLoading && state.tournaments.isEmpty =>
-                            const Center(child: CircularProgressIndicator()),
+                            const _TournamentListSkeleton(),
                           _
                               when state.error != null &&
                                   state.tournaments.isEmpty =>
@@ -174,6 +175,20 @@ class _BrowseTournamentsContentState
             ),
           )
           .toList(growable: false);
+}
+
+class _TournamentListSkeleton extends StatelessWidget {
+  const _TournamentListSkeleton();
+
+  @override
+  Widget build(BuildContext context) => ListView.separated(
+    key: const Key('tournament-skeleton-list'),
+    physics: const AlwaysScrollableScrollPhysics(),
+    padding: const EdgeInsets.all(AppSpacing.md),
+    itemCount: 3,
+    separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+    itemBuilder: (_, _) => const TournamentBrowseCardSkeleton(),
+  );
 }
 
 class TournamentBrowseCard extends ConsumerWidget {

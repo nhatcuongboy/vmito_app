@@ -9,6 +9,7 @@ import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/venue/application/venue_controller.dart';
 import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/features/venue/presentation/browse_venues_screen.dart';
+import 'package:vmito_app/features/venue/presentation/venue_card_skeleton.dart';
 import 'package:vmito_app/features/venue/presentation/venue_filter_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_paginated_list_view.dart';
@@ -34,6 +35,29 @@ void main() {
   );
 
   group('BrowseVenuesScreen', () {
+    testWidgets('shows venue card skeletons during the first load', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        buildApp(
+          const BrowseVenuesScreen(embedded: true, showMapToggle: true),
+          overrides: [
+            venueBrowseControllerProvider.overrideWith(
+              () => _FakeVenueBrowseController(
+                const VenueBrowseState(isLoading: true),
+              ),
+            ),
+          ],
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byKey(const Key('venue-skeleton-list')), findsOneWidget);
+      expect(find.byType(VenueCardSkeleton), findsNWidgets(3));
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.byKey(const Key('venue-map-view-toggle')), findsOneWidget);
+    });
+
     testWidgets('refresh indicator starts below discovery controls', (
       tester,
     ) async {
@@ -140,7 +164,7 @@ void main() {
       expect(paginatedList.hasMore, isFalse);
       expect(paginatedList.isLoadingMore, isFalse);
       expect(find.byKey(const Key('venue-filter-summary')), findsOneWidget);
-      expect(find.text('Mới nhất'), findsOneWidget);
+      expect(find.text('Mới đăng'), findsOneWidget);
       expect(find.text('Hà Nội'), findsOneWidget);
       expect(find.text('Chỉ sân yêu thích'), findsOneWidget);
     });

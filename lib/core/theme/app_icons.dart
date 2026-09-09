@@ -43,6 +43,11 @@ abstract final class AppIcons {
   static const IconData chevronDown = LucideIcons.chevron_down;
   static const IconData chevronUp = LucideIcons.chevron_up;
   static const IconData sortAlpha = LucideIcons.arrow_down_a_z;
+  static const IconData sortAlphaDesc = LucideIcons.arrow_down_z_a;
+  static const IconData sortOrder = LucideIcons.arrow_up_down;
+  static const IconData sortNumberAsc = LucideIcons.arrow_up_0_1;
+  static const IconData sortNumberDesc = LucideIcons.arrow_down_0_1;
+  static const IconData calendarClock = LucideIcons.calendar_clock;
   static const IconData calendarArrowDown = LucideIcons.calendar_arrow_down;
   static const IconData trendingUp = LucideIcons.trending_up;
   static const IconData grid2x2 = LucideIcons.grid_2x2;

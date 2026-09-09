@@ -74,13 +74,22 @@ void main() {
 
   test('rating eligibility keeps only backend-authorized targets', () {
     final eligibility = RatingEligibility.fromJson({
-      'canRateHost': true,
+      'canRateHost': false,
       'canRatePlayers': ['u2', 'u3'],
-      'ratedPlayerIds': ['u4'],
+      'hasRatedHost': true,
+      'hostRating': {
+        'id': 'rating-1',
+        'rating': 5,
+        'comment': 'Great host',
+        'createdAt': '2026-09-09T00:00:00.000Z',
+      },
     });
 
-    expect(eligibility.canRateHost, isTrue);
+    expect(eligibility.canRateHost, isFalse);
     expect(eligibility.canRatePlayers, ['u2', 'u3']);
+    expect(eligibility.hasRatedHost, isTrue);
+    expect(eligibility.hostRating?.rating, 5);
+    expect(eligibility.hostRating?.comment, 'Great host');
     expect(eligibility.isEmpty, isFalse);
   });
 

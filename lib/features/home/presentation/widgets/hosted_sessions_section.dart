@@ -6,6 +6,7 @@ import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/session/presentation/widgets/session_card.dart';
+import 'package:vmito_app/features/session/presentation/widgets/session_card_skeleton.dart';
 import 'package:vmito_app/features/session_hosting/application/hosted_sessions_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
@@ -30,9 +31,14 @@ class HostedSessionsSection extends ConsumerWidget {
         Text(l10n.homeHostedSessions, style: theme.textTheme.titleMedium),
         const SizedBox(height: AppSpacing.sm),
         sessions.when(
-          loading: () => const Padding(
-            padding: EdgeInsets.symmetric(vertical: AppSpacing.lg),
-            child: Center(child: CircularProgressIndicator()),
+          skipLoadingOnReload: true,
+          skipLoadingOnRefresh: true,
+          loading: () => const Column(
+            children: [
+              SessionCardSkeleton(showHostInfo: false),
+              SizedBox(height: AppSpacing.md),
+              SessionCardSkeleton(showHostInfo: false),
+            ],
           ),
           error: (error, _) => AppErrorView(
             error: error,

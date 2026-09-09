@@ -7,8 +7,10 @@ import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
+import 'package:vmito_app/features/tournament/application/tournament_browse_controller.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
 import 'package:vmito_app/features/tournament/presentation/browse_tournaments_content.dart';
+import 'package:vmito_app/features/tournament/presentation/tournament_browse_card_skeleton.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 class _TestLocationPreferencesController extends LocationPreferencesController {
@@ -17,6 +19,38 @@ class _TestLocationPreferencesController extends LocationPreferencesController {
 }
 
 void main() {
+  testWidgets('shows tournament card skeletons during the first load', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          locationPreferencesControllerProvider.overrideWith(
+            _TestLocationPreferencesController.new,
+          ),
+          tournamentBrowseControllerProvider.overrideWith(
+            _LoadingTournamentsController.new,
+          ),
+        ],
+        child: MaterialApp(
+          locale: const Locale('vi'),
+          theme: AppTheme.light,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const Scaffold(
+            body: BrowseTournamentsContent(showMapToggle: true),
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byKey(const Key('tournament-skeleton-list')), findsOneWidget);
+    expect(find.byType(TournamentBrowseCardSkeleton), findsNWidgets(3));
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.byKey(const Key('tournament-map-view-toggle')), findsOneWidget);
+  });
+
   testWidgets(
     'tournament card wires its favorite button and hides it for guests',
     (
@@ -61,4 +95,20 @@ void main() {
       expect(find.byIcon(AppIcons.favoriteFilled), findsNothing);
     },
   );
+}
+
+class _LoadingTournamentsController extends TournamentBrowseController {
+  @override
+  TournamentBrowseState build() => const TournamentBrowseState(isLoading: true);
+
+  @override
+  Future<void> load({
+    String? search,
+    String? city,
+    bool clearCity = false,
+    Set<TournamentStatus>? statuses,
+    Set<String>? sportTypes,
+    bool? favoriteOnly,
+    TournamentBrowseSort? sort,
+  }) async {}
 }

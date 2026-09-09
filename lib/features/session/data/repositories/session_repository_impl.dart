@@ -337,9 +337,10 @@ class SessionRepositoryImpl implements SessionRepository {
   }
 
   @override
-  Future<List<Match>> matches(String sessionId) async {
+  Future<List<Match>> matches(String sessionId, {String? playerId}) async {
     final response = await _client.get<Map<String, dynamic>>(
       ApiEndpoints.sessionMatches(sessionId),
+      queryParameters: playerId == null ? null : {'playerId': playerId},
     );
     final body = response.data ?? const <String, dynamic>{};
     final payload = body.containsKey('success') ? body['data'] : body;

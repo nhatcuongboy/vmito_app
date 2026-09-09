@@ -25,8 +25,15 @@ export 'package:vmito_app/features/session/domain/match_result_summary.dart'
 
 /// Mobile port of the web host's `SessionMatchesTab`.
 class HostResultsTab extends ConsumerStatefulWidget {
-  const HostResultsTab({required this.session, super.key});
+  const HostResultsTab({
+    required this.session,
+    this.playerId,
+    this.readOnly = false,
+    super.key,
+  });
   final Session session;
+  final String? playerId;
+  final bool readOnly;
 
   @override
   ConsumerState<HostResultsTab> createState() => _HostResultsTabState();
@@ -41,7 +48,14 @@ class _HostResultsTabState extends ConsumerState<HostResultsTab> {
   @override
   Widget build(BuildContext context) {
     ref.watch(liveSessionRealtimeProvider(widget.session.id));
-    final history = ref.watch(matchHistoryProvider(widget.session.id));
+    final history = widget.playerId == null
+        ? ref.watch(matchHistoryProvider(widget.session.id))
+        : ref.watch(
+            playerMatchHistoryProvider((
+              sessionId: widget.session.id,
+              playerId: widget.playerId!,
+            )),
+          );
     return history.when(
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (error, _) => Center(
@@ -54,8 +68,7 @@ class _HostResultsTabState extends ConsumerState<HostResultsTab> {
               const SizedBox(height: 10),
               const Text('Không thể tải kết quả trận đấu.'),
               TextButton(
-                onPressed: () =>
-                    ref.invalidate(matchHistoryProvider(widget.session.id)),
+                onPressed: _refreshHistory,
                 child: const Text('Thử lại'),
               ),
             ],
@@ -88,8 +101,7 @@ class _HostResultsTabState extends ConsumerState<HostResultsTab> {
                   : left.compareTo(right);
             });
         return RefreshIndicator(
-          onRefresh: () async =>
-              ref.invalidate(matchHistoryProvider(widget.session.id)),
+          onRefresh: () async => _refreshHistory(),
           child: LayoutBuilder(
             builder: (context, constraints) => Center(
               child: ConstrainedBox(
@@ -120,8 +132,8 @@ class _HostResultsTabState extends ConsumerState<HostResultsTab> {
                         matches: filtered,
                         session: widget.session,
                         maxWidth: constraints.maxWidth,
-                        onEdit: _editMatch,
-                        onDelete: _deleteMatch,
+                        onEdit: widget.readOnly ? null : _editMatch,
+                        onDelete: widget.readOnly ? null : _deleteMatch,
                       ),
                   ],
                 ),
@@ -133,6 +145,19 @@ class _HostResultsTabState extends ConsumerState<HostResultsTab> {
     );
   }
 
+  void _refreshHistory() {
+    if (widget.playerId == null) {
+      ref.invalidate(matchHistoryProvider(widget.session.id));
+    } else {
+      ref.invalidate(
+        playerMatchHistoryProvider((
+          sessionId: widget.session.id,
+          playerId: widget.playerId!,
+        )),
+      );
+    }
+  }
+
   Future<void> _showFilters(BuildContext context) async {
     final selected = await showModalBottomSheet<_ResultsFilterDraft>(
       context: context,
@@ -140,7 +165,7 @@ class _HostResultsTabState extends ConsumerState<HostResultsTab> {
       isScrollControlled: true,
       builder: (context) => _ResultsFilterSheet(
         courts: widget.session.orderedCourts,
-        players: widget.session.players,
+        players: widget.playerId == null ? widget.session.players : const [],
         initial: _ResultsFilterDraft(
           courtId: _courtId,
           playerIds: _playerIds,
@@ -205,8 +230,8 @@ class _ResultsControls extends StatelessWidget {
     // Mirrors the "Quản lý kèo" toolbar (_MySessionsToolbar): sort label
     // button, then a compact outlined icon button for filters.
     return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        const Spacer(),
         OutlinedButton.icon(
           key: const Key('host-results-sort'),
           style: OutlinedButton.styleFrom(
@@ -246,8 +271,8 @@ class _MatchesGrid extends StatelessWidget {
   final List<Match> matches;
   final Session session;
   final double maxWidth;
-  final ValueChanged<Match> onEdit;
-  final ValueChanged<Match> onDelete;
+  final ValueChanged<Match>? onEdit;
+  final ValueChanged<Match>? onDelete;
   @override
   Widget build(BuildContext context) {
     final columns = maxWidth >= 680 ? 2 : 1;
@@ -264,8 +289,8 @@ class _MatchesGrid extends StatelessWidget {
             child: _MatchResultCard(
               match: match,
               session: session,
-              onEdit: () => onEdit(match),
-              onDelete: () => onDelete(match),
+              onEdit: onEdit == null ? null : () => onEdit!(match),
+              onDelete: onDelete == null ? null : () => onDelete!(match),
             ),
           ),
       ],
@@ -282,8 +307,8 @@ class _MatchResultCard extends StatelessWidget {
   });
   final Match match;
   final Session session;
-  final VoidCallback onEdit;
-  final VoidCallback onDelete;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
   @override
   Widget build(BuildContext context) {
     final court = session.courts
@@ -358,18 +383,22 @@ class _MatchResultCard extends StatelessWidget {
                   const SizedBox(width: AppSpacing.sm),
                   const _ExtraMatchBadge(),
                 ],
-                IconButton(
-                  key: Key('host-result-edit-${match.id}'),
-                  tooltip: AppLocalizations.of(context).hostResultsEditAction,
-                  onPressed: onEdit,
-                  icon: const Icon(AppIcons.edit, size: 19),
-                ),
-                IconButton(
-                  key: Key('host-result-delete-${match.id}'),
-                  tooltip: AppLocalizations.of(context).hostResultsDeleteAction,
-                  onPressed: onDelete,
-                  icon: const Icon(AppIcons.delete, size: 19),
-                ),
+                if (onEdit != null)
+                  IconButton(
+                    key: Key('host-result-edit-${match.id}'),
+                    tooltip: AppLocalizations.of(context).hostResultsEditAction,
+                    onPressed: onEdit,
+                    icon: const Icon(AppIcons.edit, size: 19),
+                  ),
+                if (onDelete != null)
+                  IconButton(
+                    key: Key('host-result-delete-${match.id}'),
+                    tooltip: AppLocalizations.of(
+                      context,
+                    ).hostResultsDeleteAction,
+                    onPressed: onDelete,
+                    icon: const Icon(AppIcons.delete, size: 19),
+                  ),
               ],
             ),
 

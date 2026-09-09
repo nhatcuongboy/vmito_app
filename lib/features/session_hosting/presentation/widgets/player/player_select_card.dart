@@ -6,6 +6,7 @@ import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/session_hosting/application/live_wait_time_provider.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
+import 'package:vmito_app/shared/widgets/gender_icon.dart';
 import 'package:vmito_domain/vmito_domain.dart';
 
 /// One player in the assign sheet's list.
@@ -275,12 +276,13 @@ class _GenderChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final (color, icon) = switch (gender) {
-      Gender.male => (const Color(0xFF3182CE), Icons.male),
-      Gender.female => (const Color(0xFFD53F8C), Icons.female),
-      Gender.other => (const Color(0xFF805AD5), Icons.people),
-      null => (const Color(0xFF718096), Icons.person),
+    final color = switch (gender) {
+      Gender.male => const Color(0xFF3182CE),
+      Gender.female => const Color(0xFFD53F8C),
+      Gender.other => const Color(0xFF805AD5),
+      null => const Color(0xFF718096),
     };
+    final icon = genderIcon(gender);
 
     return Container(
       padding: const EdgeInsets.all(3),

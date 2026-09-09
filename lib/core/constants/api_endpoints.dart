@@ -98,6 +98,7 @@ abstract final class ApiEndpoints {
   static String userClubs(String userId) => '/clubs/user/$userId/list';
 
   static String userRatingStats(String userId) => '/ratings/user/$userId/stats';
+  static const userRatingBatchStats = '/ratings/users/batch-stats';
   static String userReceivedRatings(String userId) =>
       '/ratings/user/$userId/received';
   static const ratings = '/ratings';
@@ -189,6 +190,10 @@ abstract final class ApiEndpoints {
   static String paymentSettingDefault(String id) =>
       '/payment-settings/$id/set-default';
   static String sessionPayments(String id) => '/sessions/$id/payments';
+  static String mySessionPayments(String id) => '/sessions/$id/my-payments';
+  static String hostPaymentSettings(String hostId) =>
+      '/hosts/$hostId/payment-settings';
+  static String paymentSubmit(String id) => '/payments/$id/submit';
   static String paymentApprove(String id) => '/payments/$id/approve';
   static String paymentReject(String id) => '/payments/$id/reject';
   static const paymentBulkApprove = '/payments/bulk-approve';

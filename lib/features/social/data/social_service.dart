@@ -564,6 +564,20 @@ class SocialService {
     return RatingStats.fromJson(_mapPayload(response.data));
   }
 
+  Future<List<RatingStats>> batchRatingStats(List<String> userIds) async {
+    if (userIds.isEmpty) return const [];
+    final response = await _client.post<dynamic>(
+      ApiEndpoints.userRatingBatchStats,
+      data: {'userIds': userIds},
+    );
+    final payload = _payload(response.data);
+    final raw = payload as List<dynamic>? ?? const [];
+    return raw
+        .whereType<Map<String, dynamic>>()
+        .map(RatingStats.fromJson)
+        .toList(growable: false);
+  }
+
   Future<List<PlayerRating>> receivedRatings(String userId) async {
     final response = await _client.get<dynamic>(
       ApiEndpoints.userReceivedRatings(userId),

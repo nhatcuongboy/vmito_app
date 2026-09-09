@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
+import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/widgets/city_selector_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -27,7 +28,7 @@ class CitySelector extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final preference = ref.watch(locationPreferencesControllerProvider);
     final city = preference.preferredCity;
-    final String labelText = switch (preference.selectionType) {
+    final labelText = switch (preference.selectionType) {
       LocationSelectionType.other => l10n.citySelectorOther,
       LocationSelectionType.city =>
         (city?.trim().isNotEmpty ?? false) ? city! : l10n.citySelectorAll,
@@ -42,22 +43,39 @@ class CitySelector extends ConsumerWidget {
         icon: const Icon(AppIcons.location),
       );
     }
-    return OutlinedButton.icon(
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
+    final isActive = labelText != l10n.citySelectorAll;
+    final foregroundColor = isActive
+        ? theme.colorScheme.primary
+        : palette.mutedForeground;
+    return OutlinedButton(
       key: const Key('discovery-city-selector'),
       onPressed: onPressed,
       style: OutlinedButton.styleFrom(
         minimumSize: const Size(0, 40),
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         visualDensity: VisualDensity.compact,
+        foregroundColor: foregroundColor,
       ),
-      icon: const Icon(AppIcons.location, size: 18),
-      label: ConstrainedBox(
-        constraints: BoxConstraints(maxWidth: labelMaxWidth),
-        child: Text(
-          labelText,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(AppIcons.location, size: 18, color: foregroundColor),
+          const SizedBox(width: 6),
+          Flexible(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: labelMaxWidth),
+              child: Text(
+                labelText,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          const Icon(AppIcons.chevronDown, size: 14),
+        ],
       ),
     );
   }

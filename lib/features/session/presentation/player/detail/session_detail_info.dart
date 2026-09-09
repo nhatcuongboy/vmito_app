@@ -97,10 +97,10 @@ class SessionDetailInfo extends StatelessWidget {
           const SizedBox(height: AppSpacing.md - AppSpacing.xs),
           _ScheduleRow(time: time, date: date),
         ],
-        const SizedBox(height: AppSpacing.xs),
+        const SizedBox(height: AppSpacing.sm),
         _SportAndMatchTypeRow(session: session),
         if (session.hasLocation) ...[
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.md - AppSpacing.xs),
           _LocationRow(session: session, onOpenMap: onOpenMap),
         ],
         Divider(height: AppSpacing.lg, color: palette.border),
@@ -208,7 +208,6 @@ class _ScheduleRow extends StatelessWidget {
     );
 
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Icon(
           AppIcons.calendarMonth,
@@ -274,7 +273,14 @@ class _LocationRow extends ConsumerWidget {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(AppIcons.location, size: 20, color: theme.colorScheme.primary),
+        Padding(
+          padding: const EdgeInsets.only(top: 2),
+          child: Icon(
+            AppIcons.location,
+            size: 20,
+            color: theme.colorScheme.primary,
+          ),
+        ),
         const SizedBox(width: AppSpacing.sm + 4),
         Expanded(
           child: Column(

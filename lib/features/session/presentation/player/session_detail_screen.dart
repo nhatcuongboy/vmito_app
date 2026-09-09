@@ -21,13 +21,13 @@ import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_detail_bottom_bar.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_detail_hero.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_detail_info.dart';
+import 'package:vmito_app/features/session/presentation/player/detail/session_detail_skeleton.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_detail_stats.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_host_detail_sheet.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_recommendations.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_reference_video.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
-import 'package:vmito_app/shared/widgets/app_loading_view.dart';
 import 'package:vmito_app/shared/widgets/detail_hero_header.dart';
 
 /// Public session detail, ported from the web app's `/sessions/[id]`.
@@ -58,7 +58,7 @@ class SessionDetailScreen extends ConsumerWidget {
       // No AppBar: the hero's floating back button replaces it, so the photo
       // runs under the status bar exactly as it does on web.
       body: session.when(
-        loading: () => const AppLoadingView(),
+        loading: () => const SessionDetailSkeleton(),
         error: (error, _) => SafeArea(
           child: Stack(
             children: [

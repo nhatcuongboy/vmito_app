@@ -177,13 +177,13 @@ void main() {
     expect(find.text('Kèo tham gia'), findsOneWidget);
     expect(
       tester.getSize(find.byKey(const Key('my-sessions-scope'))).height,
-      kTextTabBarHeight,
+      40.0,
     );
     expect(find.byType(SearchBar), findsNothing);
     expect(find.byKey(const Key('my-sessions-search-button')), findsOneWidget);
     expect(find.byKey(const Key('my-sessions-filter-button')), findsOneWidget);
     expect(find.byKey(const Key('my-sessions-sort-button')), findsOneWidget);
-    expect(find.text('Ngày gần nhất'), findsOneWidget);
+    expect(find.text('Gần nhất'), findsOneWidget);
     expect(
       tester.getTopLeft(find.byKey(const Key('my-sessions-sort-button'))).dy,
       greaterThan(
@@ -193,8 +193,8 @@ void main() {
 
     await tester.tap(find.byKey(const Key('my-sessions-sort-button')));
     await tester.pumpAndSettle();
-    expect(find.text('Ngày xa nhất'), findsOneWidget);
-    expect(find.text('Mới nhất'), findsOneWidget);
+    expect(find.text('Xa nhất'), findsOneWidget);
+    expect(find.text('Mới đăng'), findsOneWidget);
     await tester.tap(
       find.byKey(const ValueKey('my-sessions-sort-dateFurthest')),
     );
@@ -212,7 +212,7 @@ void main() {
     // Switch to Kèo tham gia tab
     await tester.tap(find.text('Kèo tham gia'));
     await tester.pumpAndSettle();
-    expect(find.text('Ngày gần nhất'), findsOneWidget);
+    expect(find.text('Gần nhất'), findsOneWidget);
 
     // Pending requests button should only be visible in Quản lý kèo scope
     expect(find.byKey(const Key('pending-requests-button')), findsNothing);
@@ -229,7 +229,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('pending-requests-button')), findsOneWidget);
-    expect(find.text('Ngày xa nhất'), findsOneWidget);
+    expect(find.text('Xa nhất'), findsOneWidget);
 
     final scope = ProviderScope.containerOf(
       tester.element(find.byType(BrowseSessionsScreen)),

@@ -52,6 +52,7 @@ abstract final class SessionEvent {
 abstract final class SocketCommand {
   static const joinSession = 'joinSession';
   static const leaveSession = 'leaveSession';
+  static const joinUserRoom = 'join_user_room';
   static const joinTournament = 'joinTournament';
   static const leaveTournament = 'leaveTournament';
 }

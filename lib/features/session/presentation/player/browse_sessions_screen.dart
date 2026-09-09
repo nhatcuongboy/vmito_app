@@ -24,11 +24,13 @@ import 'package:vmito_app/features/session/application/player/my_sessions_contro
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/player/pending_requests_screen.dart';
 import 'package:vmito_app/features/session/presentation/widgets/session_card.dart';
+import 'package:vmito_app/features/session/presentation/widgets/session_card_skeleton.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
 import 'package:vmito_app/shared/widgets/app_loading_view.dart';
 import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
+import 'package:vmito_app/shared/widgets/app_sort_selector.dart';
 
 /// Authenticated hub for sessions the current user hosts or has joined.
 class BrowseSessionsScreen extends ConsumerStatefulWidget {
@@ -160,7 +162,7 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
                 child: SegmentedButton<MySessionScope>(
                   key: const Key('my-sessions-scope'),
                   style: const ButtonStyle(
-                    minimumSize: WidgetStatePropertyAll(Size(0, 44)),
+                    minimumSize: WidgetStatePropertyAll(Size(0, 40)),
                     visualDensity: VisualDensity.standard,
                   ),
                   segments: [
@@ -197,6 +199,9 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
             ),
             _MySessionsToolbar(
               sortLabel: _sortLabel(l10n, state.sort),
+              sortIcon: _sortIcon(state.sort),
+              sortIsActive: state.sort != MySessionSort.dateNearest,
+              filterIsActive: state.filter != MySessionFilter.active,
               onSort: () => _openSort(state, controller),
               onFilter: () => _openFilters(state, controller),
             ),
@@ -373,38 +378,28 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
         MySessionSort.newest => l10n.homeDiscoverySortNewest,
       };
 
+  IconData _sortIcon(MySessionSort sort) => switch (sort) {
+    MySessionSort.dateNearest => AppIcons.calendarClock,
+    MySessionSort.dateFurthest => AppIcons.calendarArrowDown,
+    MySessionSort.newest => AppIcons.history,
+  };
+
   void _openSort(MySessionsState state, MySessionsController controller) {
     unawaited(
-      showModalBottomSheet<MySessionSort>(
-        context: context,
-        useRootNavigator: true,
-        showDragHandle: true,
-        builder: (context) {
-          final l10n = AppLocalizations.of(context);
-          return SafeArea(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AppSheetHeader(
-                  title: l10n.homeDiscoverySortBy,
-                  showCloseButton: false,
-                ),
-                for (final sort in MySessionSort.values)
-                  ListTile(
-                    key: ValueKey('my-sessions-sort-${sort.name}'),
-                    title: Text(_sortLabel(l10n, sort)),
-                    trailing: sort == state.sort
-                        ? Icon(
-                            AppIcons.check,
-                            color: Theme.of(context).colorScheme.primary,
-                          )
-                        : null,
-                    onTap: () => Navigator.of(context).pop(sort),
-                  ),
-              ],
+      showAppSortSheet<MySessionSort>(
+        context,
+        title: AppLocalizations.of(context).homeDiscoverySortBy,
+        selected: state.sort,
+        keyPrefix: 'my-sessions-sort',
+        options: [
+          for (final sort in MySessionSort.values)
+            AppSortOption(
+              value: sort,
+              keyValue: sort.name,
+              label: _sortLabel(AppLocalizations.of(context), sort),
+              icon: _sortIcon(sort),
             ),
-          );
-        },
+        ],
       ).then((sort) {
         if (sort != null) unawaited(controller.setSort(sort));
       }),
@@ -461,11 +456,17 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
 class _MySessionsToolbar extends StatelessWidget {
   const _MySessionsToolbar({
     required this.sortLabel,
+    required this.sortIcon,
+    required this.sortIsActive,
+    required this.filterIsActive,
     required this.onSort,
     required this.onFilter,
   });
 
   final String sortLabel;
+  final IconData sortIcon;
+  final bool sortIsActive;
+  final bool filterIsActive;
   final VoidCallback onSort;
   final VoidCallback onFilter;
 
@@ -473,39 +474,36 @@ class _MySessionsToolbar extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final palette = Theme.of(context).extension<AppPalette>()!;
-    return Container(
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: palette.border)),
+    final filterForeground = filterIsActive
+        ? Theme.of(context).colorScheme.primary
+        : palette.mutedForeground;
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.md,
+        vertical: AppSpacing.xs,
       ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.xs,
-        ),
-        child: Row(
-          children: [
-            const Spacer(),
-            OutlinedButton.icon(
-              key: const Key('my-sessions-sort-button'),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Flexible(
+            child: AppSortSelector(
+              buttonKey: const Key('my-sessions-sort-button'),
+              label: sortLabel,
+              icon: sortIcon,
+              isActive: sortIsActive,
               onPressed: onSort,
-              style: OutlinedButton.styleFrom(
-                minimumSize: const Size(0, 40),
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                visualDensity: VisualDensity.compact,
-              ),
-              icon: const Icon(AppIcons.sortAlpha, size: 18),
-              label: Text(sortLabel),
             ),
-            const SizedBox(width: AppSpacing.sm),
-            IconButton.outlined(
-              key: const Key('my-sessions-filter-button'),
-              tooltip: l10n.sessionFiltersTitle,
-              onPressed: onFilter,
-              visualDensity: VisualDensity.compact,
-              icon: const Icon(AppIcons.tune, size: 20),
-            ),
-          ],
-        ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          IconButton.outlined(
+            key: const Key('my-sessions-filter-button'),
+            tooltip: l10n.sessionFiltersTitle,
+            onPressed: onFilter,
+            visualDensity: VisualDensity.compact,
+            style: IconButton.styleFrom(foregroundColor: filterForeground),
+            icon: const Icon(AppIcons.tune, size: 20),
+          ),
+        ],
       ),
     );
   }
@@ -598,8 +596,10 @@ class _SessionsBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    if (state.isLoading && !state.hasLoaded) return const AppLoadingView();
     final isPending = state.filter == MySessionFilter.pending;
+    if (state.isLoading && !state.hasLoaded && !isPending) {
+      return _MySessionsSkeleton(scope: scope);
+    }
     final isEmpty = isPending
         ? state.pendingRequests.isEmpty
         : state.sessions.isEmpty;
@@ -662,7 +662,7 @@ class _SessionsBody extends StatelessWidget {
           compactStatusBadge: scope == MySessionScope.hosted,
           showSessionStatusBadge:
               scope == MySessionScope.hosted || scope == MySessionScope.joined,
-            sessionStatusBadgeAtTop: scope == MySessionScope.hosted,
+          sessionStatusBadgeAtTop: scope == MySessionScope.hosted,
           extraTimeTopSpacing: scope == MySessionScope.hosted,
           registrationStatus: registrationStatus,
           primaryAction: scope == MySessionScope.joined
@@ -753,6 +753,25 @@ class _SessionsBody extends StatelessWidget {
 
   RegistrationStatus? _registrationStatus(Session session) =>
       session.players.isEmpty ? null : session.players.first.registrationStatus;
+}
+
+class _MySessionsSkeleton extends StatelessWidget {
+  const _MySessionsSkeleton({required this.scope});
+
+  final MySessionScope scope;
+
+  @override
+  Widget build(BuildContext context) => ListView.separated(
+    key: const Key('my-sessions-skeleton-list'),
+    physics: const AlwaysScrollableScrollPhysics(),
+    padding: const EdgeInsets.all(AppSpacing.md),
+    itemCount: 3,
+    separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+    itemBuilder: (_, _) => SessionCardSkeleton(
+      showHostInfo: scope != MySessionScope.hosted,
+      showActions: true,
+    ),
+  );
 }
 
 class _PendingRequestCard extends StatelessWidget {

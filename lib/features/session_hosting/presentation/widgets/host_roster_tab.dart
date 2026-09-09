@@ -15,6 +15,7 @@ import 'package:vmito_app/features/session_hosting/presentation/widgets/player_d
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
+import 'package:vmito_app/shared/widgets/gender_icon.dart';
 import 'package:vmito_domain/vmito_domain.dart';
 
 /// The host-facing version of the web `SessionPlayersTab`.
@@ -762,26 +763,24 @@ class _GenderBadge extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final dark = Theme.of(context).brightness == Brightness.dark;
 
-    final (bg, border, fg, icon) = switch (gender) {
+    final (bg, border, fg) = switch (gender) {
       Gender.male => (
         dark ? const Color(0xFF172554) : const Color(0xFFEFF6FF),
         dark ? const Color(0xFF1E40AF) : const Color(0xFFBFDBFE),
         dark ? const Color(0xFF60A5FA) : const Color(0xFF1D4ED8),
-        AppIcons.male,
       ),
       Gender.female => (
         dark ? const Color(0xFF4C0519) : const Color(0xFFFDF2F8),
         dark ? const Color(0xFF9D174D) : const Color(0xFFFBCFE8),
         dark ? const Color(0xFFF472B6) : const Color(0xFFBE185D),
-        AppIcons.female,
       ),
       _ => (
         dark ? const Color(0xFF2E1065) : const Color(0xFFFAF5FF),
         dark ? const Color(0xFF581C87) : const Color(0xFFE9D5FF),
         dark ? const Color(0xFFC084FC) : const Color(0xFF7E22CE),
-        AppIcons.user,
       ),
     };
+    final icon = genderIcon(gender);
 
     final label = switch (gender) {
       Gender.male => l10n.genderMale,

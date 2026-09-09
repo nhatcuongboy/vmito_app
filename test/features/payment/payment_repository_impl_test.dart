@@ -51,6 +51,101 @@ void main() {
     ).called(1);
   });
 
+  test('loads all current user payment slots for a session', () async {
+    when(
+      () => client.get<Map<String, dynamic>>(
+        ApiEndpoints.mySessionPayments('s1'),
+      ),
+    ).thenAnswer(
+      (_) async => Response(
+        requestOptions: RequestOptions(),
+        data: {
+          'success': true,
+          'data': [
+            {
+              'id': 'p1',
+              'playerId': 'player-1',
+              'amount': 75000,
+              'status': 'PENDING',
+              'createdAt': '2026-09-09T00:00:00.000Z',
+            },
+            {
+              'id': 'p2',
+              'playerId': 'player-2',
+              'amount': 50000,
+              'status': 'APPROVED',
+              'createdAt': '2026-09-09T00:00:00.000Z',
+            },
+          ],
+        },
+      ),
+    );
+
+    final result = await repository.mySessionPayments('s1');
+
+    expect(result, hasLength(2));
+    expect(result.last.status, PaymentStatus.approved);
+  });
+
+  test('loads nullable host payment settings', () async {
+    when(
+      () => client.get<Map<String, dynamic>>(
+        ApiEndpoints.hostPaymentSettings('host-1'),
+      ),
+    ).thenAnswer(
+      (_) async => Response(
+        requestOptions: RequestOptions(),
+        data: {'success': true, 'data': null},
+      ),
+    );
+
+    expect(await repository.hostSettings('host-1'), isNull);
+  });
+
+  test('submits a rejected payment again using the backend DTO', () async {
+    when(
+      () => client.post<Map<String, dynamic>>(
+        ApiEndpoints.paymentSubmit('p1'),
+        data: any(named: 'data'),
+        options: any(named: 'options'),
+      ),
+    ).thenAnswer(
+      (_) async => Response(
+        requestOptions: RequestOptions(),
+        data: {
+          'success': true,
+          'data': {
+            'id': 'p1',
+            'playerId': 'player-1',
+            'amount': 75000,
+            'status': 'SUBMITTED',
+            'createdAt': '2026-09-09T00:00:00.000Z',
+          },
+        },
+      ),
+    );
+
+    final result = await repository.submitPayment(
+      'p1',
+      paymentMethod: PaymentMethod.bankTransfer,
+      proofImageUrl: ' https://example.com/proof.jpg ',
+      proofNotes: ' paid ',
+    );
+
+    expect(result.status, PaymentStatus.submitted);
+    verify(
+      () => client.post<Map<String, dynamic>>(
+        ApiEndpoints.paymentSubmit('p1'),
+        data: {
+          'paymentMethod': 'BANK_TRANSFER',
+          'proofImageUrl': 'https://example.com/proof.jpg',
+          'proofNotes': 'paid',
+        },
+        options: any(named: 'options'),
+      ),
+    ).called(1);
+  });
+
   test('approve sends optional amount, method and trimmed notes', () async {
     when(
       () => client.post<void>(

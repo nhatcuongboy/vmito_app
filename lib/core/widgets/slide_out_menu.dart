@@ -87,226 +87,239 @@ class SlideOutMenu extends ConsumerWidget {
 
     return Drawer(
       width: drawerWidth,
-      child: SafeArea(
-        top: !isSignedIn,
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: [
-                  if (isSignedIn) ...[
-                    _ProfileHeader(
-                      user: user,
-                      roleLabel: _roleLabel(l10n, user.role),
-                      onTap: () => goTo(AppRoutes.profile),
-                    ),
-                    const _MenuDivider(
-                      key: Key('menu-profile-explore-divider'),
-                    ),
-                  ],
-                  _MenuSection(
-                    title: l10n.menuExplore,
-                    compactTop: isSignedIn,
-                    compactBottom: isSignedIn,
+      child: Stack(
+        children: [
+          SafeArea(
+            top: !isSignedIn,
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    padding: EdgeInsets.zero,
                     children: [
-                      _MenuItem(
-                        icon: AppIcons.searchSessions,
-                        label: l10n.homeDiscoverySessions,
-                        isActive:
-                            isDiscoveryActive('sessions') ||
-                            (location == AppRoutes.home &&
-                                selectedDiscoveryTab == null),
-                        onTap: () => goTo(
-                          AppRoutes.homeForDiscoveryTab('sessions'),
+                      if (isSignedIn) ...[
+                        _ProfileHeader(
+                          user: user,
+                          roleLabel: _roleLabel(l10n, user.role),
+                          onTap: () => goTo(AppRoutes.profile),
                         ),
-                      ),
-                      _MenuItem(
-                        icon: AppIcons.searchVenues,
-                        label: l10n.homeDiscoveryVenues,
-                        isActive:
-                            isDiscoveryActive('venues') ||
-                            isActive(AppRoutes.venues),
-                        onTap: () => goTo(
-                          AppRoutes.homeForDiscoveryTab('venues'),
+                        const _MenuDivider(
+                          key: Key('menu-profile-explore-divider'),
                         ),
+                      ],
+                      _MenuSection(
+                        title: l10n.menuExplore,
+                        compactTop: isSignedIn,
+                        compactBottom: isSignedIn,
+                        children: [
+                          _MenuItem(
+                            itemKey: const Key('menu-discovery-sessions'),
+                            icon: AppIcons.searchSessions,
+                            label: l10n.homeDiscoverySessions,
+                            isActive:
+                                isDiscoveryActive('sessions') ||
+                                (location == AppRoutes.home &&
+                                    selectedDiscoveryTab == null),
+                            onTap: () => goTo(
+                              AppRoutes.homeForDiscoveryTab('sessions'),
+                            ),
+                          ),
+                          _MenuItem(
+                            itemKey: const Key('menu-discovery-venues'),
+                            icon: AppIcons.searchVenues,
+                            label: l10n.homeDiscoveryVenues,
+                            isActive:
+                                isDiscoveryActive('venues') ||
+                                isActive(AppRoutes.venues),
+                            onTap: () => goTo(
+                              AppRoutes.homeForDiscoveryTab('venues'),
+                            ),
+                          ),
+                          _MenuItem(
+                            itemKey: const Key('menu-discovery-clubs'),
+                            icon: AppIcons.searchClubs,
+                            label: l10n.homeDiscoveryClubs,
+                            isActive:
+                                isDiscoveryActive('clubs') ||
+                                isActive(AppRoutes.clubs),
+                            onTap: () => goTo(
+                              AppRoutes.homeForDiscoveryTab('clubs'),
+                            ),
+                          ),
+                          _MenuItem(
+                            icon: AppIcons.trophy,
+                            label: l10n.homeDiscoveryTournaments,
+                            isActive:
+                                isDiscoveryActive('tournaments') ||
+                                isActive(AppRoutes.tournaments),
+                            onTap: () => goTo(
+                              AppRoutes.homeForDiscoveryTab('tournaments'),
+                            ),
+                          ),
+                          if (isSignedIn)
+                            _MenuItem(
+                              icon: AppIcons.award,
+                              label: l10n.navLeaderboard,
+                              isActive: isActive(AppRoutes.leaderboard),
+                              onTap: () => pushTo(AppRoutes.leaderboard),
+                            ),
+                        ],
                       ),
-                      _MenuItem(
-                        icon: AppIcons.searchClubs,
-                        label: l10n.homeDiscoveryClubs,
-                        isActive:
-                            isDiscoveryActive('clubs') ||
-                            isActive(AppRoutes.clubs),
-                        onTap: () => goTo(
-                          AppRoutes.homeForDiscoveryTab('clubs'),
+                      if (isSignedIn) ...[
+                        const _MenuDivider(
+                          key: Key('menu-explore-manage-divider'),
                         ),
-                      ),
-                      _MenuItem(
-                        icon: AppIcons.trophy,
-                        label: l10n.homeDiscoveryTournaments,
-                        isActive:
-                            isDiscoveryActive('tournaments') ||
-                            isActive(AppRoutes.tournaments),
-                        onTap: () => goTo(
-                          AppRoutes.homeForDiscoveryTab('tournaments'),
+                        _MenuSection(
+                          title: l10n.menuManage,
+                          compactTop: true,
+                          children: [
+                            _MenuItem(
+                              icon: AppIcons.sessions,
+                              label: l10n.navSessions,
+                              isActive: isActive(AppRoutes.browseSessions),
+                              onTap: () => goTo(AppRoutes.browseSessions),
+                            ),
+                            _MenuItem(
+                              icon: AppIcons.userPlus,
+                              label: l10n.menuGroups,
+                              isActive: isActive(AppRoutes.manageClubs),
+                              onTap: () => goTo(AppRoutes.manageClubs),
+                            ),
+                            if (canViewHostFinance)
+                              _MenuItem(
+                                icon: AppIcons.billing,
+                                label: l10n.transactionDashboardTitle,
+                                isActive: isActive(AppRoutes.transactions),
+                                onTap: () => pushTo(AppRoutes.transactions),
+                              ),
+                            _MenuItem(
+                              icon: AppIcons.reminders,
+                              label: l10n.reminderTitle,
+                              isActive: isActive(AppRoutes.reminders),
+                              onTap: () => pushTo(AppRoutes.reminders),
+                            ),
+                          ],
                         ),
-                      ),
-                      if (isSignedIn)
-                        _MenuItem(
-                          icon: AppIcons.award,
-                          label: l10n.navLeaderboard,
-                          isActive: isActive(AppRoutes.leaderboard),
-                          onTap: () => pushTo(AppRoutes.leaderboard),
+                        if (user.isAdmin)
+                          _MenuSection(
+                            title: 'ADMIN',
+                            children: [
+                              for (final destination
+                                  in AdminWebDestination.values)
+                                _MenuItem(
+                                  icon: destination.icon,
+                                  label: destination.titleFor(
+                                    Localizations.localeOf(context),
+                                  ),
+                                  onTap: () {
+                                    closeDrawer();
+                                    unawaited(
+                                      openAdminWebDestination(
+                                        context,
+                                        user,
+                                        destination,
+                                      ),
+                                    );
+                                  },
+                                ),
+                            ],
+                          ),
+                        const _MenuDivider(),
+                        _MenuSection(
+                          children: [
+                            _MenuItem(
+                              icon: AppIcons.settings,
+                              label: l10n.settingsTitle,
+                              isActive: isActive(AppRoutes.settings),
+                              onTap: () => pushTo(AppRoutes.settings),
+                            ),
+                            if (isAiAssistantEnabled)
+                              _MenuItem(
+                                itemKey: const Key('menu-ai-assistant'),
+                                icon: AppIcons.sparkles,
+                                label: l10n.aiAssistantTitle,
+                                isFeatured: true,
+                                onTap: openAiAssistant,
+                              ),
+                            _MenuItem(
+                              icon: AppIcons.help,
+                              label: l10n.menuHelpFeedback,
+                              isActive: isActive(AppRoutes.feedback),
+                              onTap: () => pushTo(AppRoutes.feedback),
+                            ),
+                          ],
+                        ),
+                      ] else
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(
+                            AppSpacing.md,
+                            AppSpacing.md,
+                            AppSpacing.md,
+                            AppSpacing.sm,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              OutlinedButton.icon(
+                                key: const Key('menu-sign-in-button'),
+                                style: OutlinedButton.styleFrom(
+                                  textStyle: const TextStyle(
+                                    fontSize: 14,
+                                    height: 20 / 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  closeDrawer();
+                                  unawaited(context.push(AppRoutes.signIn));
+                                },
+                                icon: const Icon(AppIcons.login, size: 18),
+                                label: Text(l10n.authSignIn),
+                              ),
+                              const SizedBox(height: AppSpacing.sm),
+                              FilledButton.icon(
+                                key: const Key('menu-sign-up-button'),
+                                style: FilledButton.styleFrom(
+                                  textStyle: const TextStyle(
+                                    fontSize: 14,
+                                    height: 20 / 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  closeDrawer();
+                                  unawaited(context.push(AppRoutes.signUp));
+                                },
+                                icon: const Icon(AppIcons.userPlus, size: 18),
+                                label: Text(l10n.authSignUp),
+                              ),
+                            ],
+                          ),
                         ),
                     ],
                   ),
-                  if (isSignedIn) ...[
-                    const _MenuDivider(
-                      key: Key('menu-explore-manage-divider'),
-                    ),
-                    _MenuSection(
-                      title: l10n.menuManage,
-                      compactTop: true,
-                      children: [
-                        _MenuItem(
-                          icon: AppIcons.sessions,
-                          label: l10n.navSessions,
-                          isActive: isActive(AppRoutes.browseSessions),
-                          onTap: () => goTo(AppRoutes.browseSessions),
-                        ),
-                        _MenuItem(
-                          icon: AppIcons.userPlus,
-                          label: l10n.menuGroups,
-                          isActive: isActive(AppRoutes.manageClubs),
-                          onTap: () => goTo(AppRoutes.manageClubs),
-                        ),
-                        if (canViewHostFinance)
-                          _MenuItem(
-                            icon: AppIcons.billing,
-                            label: l10n.transactionDashboardTitle,
-                            isActive: isActive(AppRoutes.transactions),
-                            onTap: () => pushTo(AppRoutes.transactions),
-                          ),
-                        _MenuItem(
-                          icon: AppIcons.reminders,
-                          label: l10n.reminderTitle,
-                          isActive: isActive(AppRoutes.reminders),
-                          onTap: () => pushTo(AppRoutes.reminders),
-                        ),
-                      ],
-                    ),
-                    if (user.isAdmin)
-                      _MenuSection(
-                        title: 'ADMIN',
-                        children: [
-                          for (final destination in AdminWebDestination.values)
-                            _MenuItem(
-                              icon: destination.icon,
-                              label: destination.titleFor(
-                                Localizations.localeOf(context),
-                              ),
-                              onTap: () {
-                                closeDrawer();
-                                unawaited(
-                                  openAdminWebDestination(
-                                    context,
-                                    user,
-                                    destination,
-                                  ),
-                                );
-                              },
-                            ),
-                        ],
-                      ),
-                    const _MenuDivider(),
-                    _MenuSection(
-                      children: [
-                        _MenuItem(
-                          icon: AppIcons.settings,
-                          label: l10n.settingsTitle,
-                          isActive: isActive(AppRoutes.settings),
-                          onTap: () => pushTo(AppRoutes.settings),
-                        ),
-                        if (isAiAssistantEnabled)
-                          _MenuItem(
-                            itemKey: const Key('menu-ai-assistant'),
-                            icon: AppIcons.sparkles,
-                            label: l10n.aiAssistantTitle,
-                            isFeatured: true,
-                            onTap: openAiAssistant,
-                          ),
-                        _MenuItem(
-                          icon: AppIcons.help,
-                          label: l10n.menuHelpFeedback,
-                          isActive: isActive(AppRoutes.feedback),
-                          onTap: () => pushTo(AppRoutes.feedback),
-                        ),
-                      ],
-                    ),
-                  ] else
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.md,
-                        AppSpacing.md,
-                        AppSpacing.md,
-                        AppSpacing.sm,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          OutlinedButton.icon(
-                            key: const Key('menu-sign-in-button'),
-                            style: OutlinedButton.styleFrom(
-                              textStyle: const TextStyle(
-                                fontSize: 14,
-                                height: 20 / 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            onPressed: () {
-                              closeDrawer();
-                              unawaited(context.push(AppRoutes.signIn));
-                            },
-                            icon: const Icon(AppIcons.login, size: 18),
-                            label: Text(l10n.authSignIn),
-                          ),
-                          const SizedBox(height: AppSpacing.sm),
-                          FilledButton.icon(
-                            key: const Key('menu-sign-up-button'),
-                            style: FilledButton.styleFrom(
-                              textStyle: const TextStyle(
-                                fontSize: 14,
-                                height: 20 / 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            onPressed: () {
-                              closeDrawer();
-                              unawaited(context.push(AppRoutes.signUp));
-                            },
-                            icon: const Icon(AppIcons.userPlus, size: 18),
-                            label: Text(l10n.authSignUp),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
+                ),
+                const _MenuDivider(),
+                _MenuFooter(
+                  appName: l10n.appName,
+                  languageCode: localeCode,
+                  themeMode: themeMode,
+                  onLanguageTap: () {
+                    unawaited(showLanguageSelector(context));
+                  },
+                  onThemeTap: () {
+                    unawaited(showThemeModeSelector(context));
+                  },
+                ),
+              ],
             ),
-            const _MenuDivider(),
-            _MenuFooter(
-              appName: l10n.appName,
-              languageCode: localeCode,
-              themeMode: themeMode,
-              onLanguageTap: () {
-                unawaited(showLanguageSelector(context));
-              },
-              onThemeTap: () {
-                unawaited(showThemeModeSelector(context));
-              },
-            ),
-          ],
-        ),
+          ),
+          const Positioned(
+            top: 0,
+            right: 0,
+            child: IgnorePointer(child: _DrawerEdgeAccent()),
+          ),
+        ],
       ),
     );
   }
@@ -317,6 +330,35 @@ class SlideOutMenu extends ConsumerWidget {
     UserRole.referee => l10n.menuRoleReferee,
     UserRole.player || UserRole.guest => l10n.menuRolePlayer,
   };
+}
+
+/// Brand accent along the drawer's leading edge, matching the web drawer's
+/// green-to-blue highlight that fades into the surface.
+class _DrawerEdgeAccent extends StatelessWidget {
+  const _DrawerEdgeAccent();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
+
+    return Container(
+      key: const Key('menu-right-edge-accent'),
+      width: 2,
+      height: 180,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            theme.colorScheme.primary.withValues(alpha: 0.7),
+            palette.info.withValues(alpha: 0.34),
+            Colors.transparent,
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _ProfileHeader extends StatelessWidget {
@@ -474,6 +516,7 @@ class _MenuItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
     final featuredColor = theme.brightness == Brightness.dark
         ? const Color(0xFFE9D5FF)
         : const Color(0xFF6D28D9);
@@ -482,47 +525,163 @@ class _MenuItem extends StatelessWidget {
         : isActive
         ? theme.colorScheme.primary
         : theme.colorScheme.onSurface;
+    final iconColor = isActive ? theme.colorScheme.onPrimary : color;
+    final radius = BorderRadius.circular(AppRadius.xl);
 
     return Padding(
-      padding: isFeatured
-          ? const EdgeInsets.symmetric(
-              horizontal: AppSpacing.sm,
-              vertical: AppSpacing.xxs,
-            )
-          : EdgeInsets.zero,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+      ),
       child: Material(
         key: itemKey,
-        borderRadius: BorderRadius.circular(AppRadius.xl),
-        color: isFeatured
-            ? Colors.transparent
-            : isActive
-            ? theme.colorScheme.primary.withValues(alpha: 0.1)
-            : Colors.transparent,
-        child: ListTile(
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: isFeatured ? AppSpacing.md : AppSpacing.lg,
-          ),
-          minTileHeight: 48,
-          leading: IconTheme.merge(
-            data: IconThemeData(color: color, size: 22),
-            child: isFeatured
-                ? Icon(AppIcons.sparkles, color: color, size: 22)
-                : leading ?? Icon(icon),
-          ),
-          title: Text(
-            label,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontSize: 15,
-              height: 20 / 15,
-              color: color,
-              fontWeight: isFeatured || isActive
-                  ? FontWeight.w700
-                  : FontWeight.w500,
+        color: Colors.transparent,
+        borderRadius: radius,
+        child: Semantics(
+          selected: isActive,
+          button: true,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: radius,
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOut,
+              constraints: const BoxConstraints(
+                minHeight: AppSizes.minTapTarget,
+              ),
+              decoration: BoxDecoration(
+                borderRadius: radius,
+                border: Border.all(
+                  color: isActive
+                      ? theme.colorScheme.primary.withValues(alpha: 0.34)
+                      : Colors.transparent,
+                ),
+                gradient: isActive
+                    ? LinearGradient(
+                        colors: [
+                          theme.colorScheme.primary.withValues(alpha: 0.15),
+                          theme.colorScheme.primary.withValues(alpha: 0.07),
+                          palette.brandSurface.withValues(alpha: 0.28),
+                        ],
+                        stops: const [0, 0.62, 1],
+                      )
+                    : null,
+                boxShadow: isActive
+                    ? [
+                        BoxShadow(
+                          color: theme.colorScheme.primary.withValues(
+                            alpha: 0.08,
+                          ),
+                          blurRadius: 20,
+                          offset: const Offset(0, 7),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Stack(
+                alignment: Alignment.centerLeft,
+                children: [
+                  if (isActive)
+                    Positioned(
+                      left: -1,
+                      child: Container(
+                        key: const Key('menu-active-indicator'),
+                        width: 3,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          borderRadius: const BorderRadius.horizontal(
+                            right: Radius.circular(AppRadius.pill),
+                          ),
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              theme.colorScheme.primary,
+                              palette.info,
+                            ],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: theme.colorScheme.primary.withValues(
+                                alpha: 0.36,
+                              ),
+                              blurRadius: 12,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                      vertical: AppSpacing.xs,
+                    ),
+                    child: Row(
+                      children: [
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          curve: Curves.easeOut,
+                          width: 36,
+                          height: 36,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: isActive
+                                ? theme.colorScheme.primary
+                                : palette.muted.withValues(alpha: 0.7),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: isActive
+                                  ? theme.colorScheme.primary.withValues(
+                                      alpha: 0.34,
+                                    )
+                                  : Colors.transparent,
+                            ),
+                            boxShadow: isActive
+                                ? [
+                                    BoxShadow(
+                                      color: theme.colorScheme.primary
+                                          .withValues(alpha: 0.2),
+                                      blurRadius: 13,
+                                      offset: const Offset(0, 5),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: IconTheme.merge(
+                            data: IconThemeData(color: iconColor, size: 20),
+                            child: isFeatured
+                                ? Icon(
+                                    AppIcons.sparkles,
+                                    color: iconColor,
+                                    size: 20,
+                                  )
+                                : leading ?? Icon(icon),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              fontSize: 15,
+                              height: 20 / 15,
+                              color: color,
+                              fontWeight: isFeatured
+                                  ? FontWeight.w700
+                                  : isActive
+                                  ? FontWeight.w600
+                                  : FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-          onTap: onTap,
         ),
       ),
     );
@@ -565,6 +724,7 @@ class _MenuFooter extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final palette = Theme.of(context).extension<AppPalette>()!;
+    final tint = HomeHeaderTint.of(context);
     return Padding(
       key: const Key('menu-footer'),
       padding: const EdgeInsets.fromLTRB(
@@ -578,11 +738,26 @@ class _MenuFooter extends StatelessWidget {
           Expanded(
             child: Row(
               children: [
-                ClipOval(
-                  child: Image.asset(
-                    'assets/icons/app-logo-96.png',
-                    width: 22,
-                    height: 22,
+                // Rounded-square badge, matching web's top-bar-logo-mark shape.
+                Container(
+                  width: 26,
+                  height: 26,
+                  padding: const EdgeInsets.all(2),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: palette.border),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        tint.accent.withValues(alpha: 0.14),
+                        tint.soft.withValues(alpha: 0.13),
+                      ],
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: Image.asset('assets/icons/app-logo-96.png'),
                   ),
                 ),
                 const SizedBox(width: AppSpacing.sm),

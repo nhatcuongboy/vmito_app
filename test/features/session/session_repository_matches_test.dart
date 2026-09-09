@@ -73,9 +73,10 @@ void main() {
     client.raw.httpClientAdapter = adapter;
     final repository = SessionRepositoryImpl(client);
 
-    final matches = await repository.matches('s1');
+    final matches = await repository.matches('s1', playerId: 'p1');
 
     expect(adapter.requests.single.path, '/sessions/s1/matches');
+    expect(adapter.requests.single.queryParameters['playerId'], 'p1');
     expect(matches, hasLength(1));
     final match = matches.single;
     expect(match.id, 'm1');

@@ -35,7 +35,7 @@ final liveSessionRealtimeProvider = Provider.autoDispose.family<void, String>((
       .where((event) => _refreshEvents.contains(event.name))
       .where((event) {
         final eventSessionId = event.data['sessionId'];
-        return eventSessionId == null || eventSessionId == sessionId;
+        return eventSessionId == sessionId;
       })
       .listen((_) {
         debounce?.cancel();

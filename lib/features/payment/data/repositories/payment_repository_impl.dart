@@ -28,6 +28,55 @@ class PaymentRepositoryImpl implements PaymentRepository {
   }
 
   @override
+  Future<List<PaymentRecord>> mySessionPayments(String sessionId) async {
+    final response = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.mySessionPayments(sessionId),
+    );
+    return unwrapList(response.data, PaymentRecord.fromJson);
+  }
+
+  @override
+  Future<HostPaymentSettings?> hostSettings(String hostId) async {
+    try {
+      final response = await _client.get<Map<String, dynamic>>(
+        ApiEndpoints.hostPaymentSettings(hostId),
+      );
+      final body = response.data;
+      final payload = body?['success'] == null ? body : body?['data'];
+      if (payload == null) return null;
+      return HostPaymentSettings.fromJson(
+        Map<String, dynamic>.from(payload as Map),
+      );
+    } on ApiException catch (error) {
+      if (error.isNotFound) return null;
+      rethrow;
+    }
+  }
+
+  @override
+  Future<PaymentRecord> submitPayment(
+    String paymentId, {
+    required PaymentMethod paymentMethod,
+    String? proofImageUrl,
+    String? proofNotes,
+  }) async {
+    final response = await _client.post<Map<String, dynamic>>(
+      ApiEndpoints.paymentSubmit(paymentId),
+      data: {
+        'paymentMethod': paymentMethod == PaymentMethod.bankTransfer
+            ? 'BANK_TRANSFER'
+            : 'CASH',
+        if (proofImageUrl?.trim().isNotEmpty ?? false)
+          'proofImageUrl': proofImageUrl!.trim(),
+        if (proofNotes?.trim().isNotEmpty ?? false)
+          'proofNotes': proofNotes!.trim(),
+      },
+      options: apiOptions(skipGlobalError: true),
+    );
+    return unwrap(response.data, PaymentRecord.fromJson);
+  }
+
+  @override
   Future<List<HostPaymentSettings>> settings() async {
     final response = await _client.get<Map<String, dynamic>>(
       ApiEndpoints.paymentSettings,

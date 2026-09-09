@@ -18,6 +18,7 @@ import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/venue/application/venue_controller.dart';
 import 'package:vmito_app/features/venue/data/venue_service.dart';
 import 'package:vmito_app/features/venue/domain/venue.dart';
+import 'package:vmito_app/features/venue/presentation/venue_card_skeleton.dart';
 import 'package:vmito_app/features/venue/presentation/venue_filter_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_paginated_list_view.dart';
@@ -273,9 +274,7 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
                             .load(),
                         child: switch (state) {
                           _ when state.isLoading && state.venues.isEmpty =>
-                            const _VenueListStatus(
-                              child: CircularProgressIndicator(),
-                            ),
+                            const _VenueListSkeleton(),
                           _ when state.error != null && state.venues.isEmpty =>
                             _VenueListStatus(
                               child: AppErrorView(
@@ -366,6 +365,20 @@ class _VenueListStatus extends StatelessWidget {
     physics: const AlwaysScrollableScrollPhysics(),
     padding: const EdgeInsets.all(AppSpacing.xl),
     children: [Center(child: child)],
+  );
+}
+
+class _VenueListSkeleton extends StatelessWidget {
+  const _VenueListSkeleton();
+
+  @override
+  Widget build(BuildContext context) => ListView.separated(
+    key: const Key('venue-skeleton-list'),
+    physics: const AlwaysScrollableScrollPhysics(),
+    padding: const EdgeInsets.all(AppSpacing.screenPadding),
+    itemCount: 3,
+    separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+    itemBuilder: (_, _) => const VenueCardSkeleton(),
   );
 }
 

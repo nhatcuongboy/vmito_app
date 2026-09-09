@@ -5,6 +5,7 @@ import 'package:vmito_app/core/location/device_geocoding_service.dart';
 import 'package:vmito_app/core/location/device_location_service.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/location/new_admin_units.dart';
+import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/core/widgets/city_selector.dart';
@@ -23,7 +24,9 @@ class _PreferencesController extends LocationPreferencesController {
     state = state.copyWith(
       preferredCity: city,
       clearPreferredCity: city == null,
-      selectionType: city == null ? LocationSelectionType.all : LocationSelectionType.city,
+      selectionType: city == null
+          ? LocationSelectionType.all
+          : LocationSelectionType.city,
       onboardingCompleted: true,
     );
   }
@@ -82,7 +85,9 @@ Widget _app({
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(
-      appBar: AppBar(title: CitySelector(onChanged: onChanged, showLabel: showLabel)),
+      appBar: AppBar(
+        title: CitySelector(onChanged: onChanged, showLabel: showLabel),
+      ),
     ),
   ),
 );
@@ -230,34 +235,39 @@ void main() {
     expect(find.byKey(const Key('city-selector-results')), findsOneWidget);
   });
 
-  testWidgets('selecting Other reports an intentional null city and updates label', (tester) async {
-    var wasCalled = false;
-    String? changed = 'not-null';
-    await tester.pumpWidget(
-      _app(
-        showLabel: true,
-        onChanged: (city) {
-          wasCalled = true;
-          changed = city;
-        },
-      ),
-    );
+  testWidgets(
+    'selecting Other reports an intentional null city and updates label',
+    (tester) async {
+      var wasCalled = false;
+      String? changed = 'not-null';
+      await tester.pumpWidget(
+        _app(
+          showLabel: true,
+          onChanged: (city) {
+            wasCalled = true;
+            changed = city;
+          },
+        ),
+      );
 
-    expect(find.text('Hồ Chí Minh'), findsOneWidget);
+      expect(find.text('Hồ Chí Minh'), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('discovery-city-selector')));
-    await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('discovery-city-selector')));
+      await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('discovery-city-other')), findsOneWidget);
-    await tester.tap(find.byKey(const Key('discovery-city-other')));
-    await tester.pumpAndSettle();
+      expect(find.byKey(const Key('discovery-city-other')), findsOneWidget);
+      await tester.tap(find.byKey(const Key('discovery-city-other')));
+      await tester.pumpAndSettle();
 
-    expect(wasCalled, isTrue);
-    expect(changed, isNull);
-    expect(find.text('Khác'), findsOneWidget);
-  });
+      expect(wasCalled, isTrue);
+      expect(changed, isNull);
+      expect(find.text('Khác'), findsOneWidget);
+    },
+  );
 
-  testWidgets('displays Other as selected when preference is other', (tester) async {
+  testWidgets('displays Other as selected when preference is other', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       _app(
         initialPreferences: const LocationPreferences(
@@ -278,12 +288,17 @@ void main() {
     final otherRow = find.byKey(const Key('discovery-city-other'));
     expect(otherRow, findsOneWidget);
     expect(
-      find.descendant(of: otherRow, matching: find.byIcon(AppIcons.checkCircle)),
+      find.descendant(
+        of: otherRow,
+        matching: find.byIcon(AppIcons.checkCircle),
+      ),
       findsOneWidget,
     );
   });
 
-  testWidgets('search with no results provides a button to select Other', (tester) async {
+  testWidgets('search with no results provides a button to select Other', (
+    tester,
+  ) async {
     var wasCalled = false;
     String? changed = 'not-null';
     await tester.pumpWidget(
@@ -317,7 +332,9 @@ void main() {
     expect(changed, isNull);
   });
 
-  testWidgets('GPS abroad outside supported list automatically selects Other', (tester) async {
+  testWidgets('GPS abroad outside supported list automatically selects Other', (
+    tester,
+  ) async {
     var wasCalled = false;
     String? changed = 'not-null';
     await tester.pumpWidget(
@@ -342,4 +359,59 @@ void main() {
     expect(changed, isNull);
     expect(find.byKey(const Key('city-selector-location-error')), findsNothing);
   });
+
+  testWidgets(
+    'shows chevron down icon and uses green primary color when non-All option is selected',
+    (tester) async {
+      await tester.pumpWidget(
+        _app(
+          initialPreferences: const LocationPreferences(
+            preferredCity: 'Hồ Chí Minh',
+            selectionType: LocationSelectionType.city,
+            onboardingCompleted: true,
+            isRestored: true,
+          ),
+          showLabel: true,
+          onChanged: (_) {},
+        ),
+      );
+
+      final buttonFinder = find.byKey(const Key('discovery-city-selector'));
+      expect(buttonFinder, findsOneWidget);
+      expect(find.byIcon(AppIcons.chevronDown), findsOneWidget);
+
+      final button = tester.widget<OutlinedButton>(buttonFinder);
+      expect(
+        button.style?.foregroundColor?.resolve({}),
+        AppTheme.light.colorScheme.primary,
+      );
+    },
+  );
+
+  testWidgets(
+    'uses muted foreground color when All option is selected',
+    (tester) async {
+      await tester.pumpWidget(
+        _app(
+          initialPreferences: const LocationPreferences(
+            selectionType: LocationSelectionType.all,
+            onboardingCompleted: true,
+            isRestored: true,
+          ),
+          showLabel: true,
+          onChanged: (_) {},
+        ),
+      );
+
+      final buttonFinder = find.byKey(const Key('discovery-city-selector'));
+      expect(buttonFinder, findsOneWidget);
+      expect(find.byIcon(AppIcons.chevronDown), findsOneWidget);
+
+      final button = tester.widget<OutlinedButton>(buttonFinder);
+      expect(
+        button.style?.foregroundColor?.resolve({}),
+        AppTheme.light.extension<AppPalette>()!.mutedForeground,
+      );
+    },
+  );
 }

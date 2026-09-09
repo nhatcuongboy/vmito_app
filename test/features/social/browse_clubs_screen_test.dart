@@ -3,12 +3,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
+import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
 import 'package:vmito_app/features/social/presentation/browse_clubs_screen.dart';
+import 'package:vmito_app/features/social/presentation/club_browse_card_skeleton.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_paginated_list_view.dart';
 
@@ -40,6 +42,36 @@ class _TestLocationPreferencesController extends LocationPreferencesController {
 }
 
 void main() {
+  testWidgets('shows club card skeletons during the first load', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          locationPreferencesControllerProvider.overrideWith(
+            _TestLocationPreferencesController.new,
+          ),
+          clubsControllerProvider.overrideWith(
+            () => _TestClubsController(const ClubsState(isLoading: true)),
+          ),
+        ],
+        child: MaterialApp(
+          locale: const Locale('vi'),
+          theme: AppTheme.light,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const BrowseClubsScreen(embedded: true, showMapToggle: true),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.byKey(const Key('club-skeleton-list')), findsOneWidget);
+    expect(find.byType(ClubBrowseCardSkeleton), findsNWidgets(3));
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.byKey(const Key('club-map-view-toggle')), findsOneWidget);
+  });
+
   testWidgets('club card shows schedule and location metadata with icons', (
     tester,
   ) async {

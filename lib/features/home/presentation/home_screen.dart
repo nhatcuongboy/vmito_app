@@ -29,6 +29,7 @@ import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/features/venue/presentation/browse_venues_screen.dart';
 import 'package:vmito_app/features/venue/presentation/venue_filter_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_sort_selector.dart';
 
 /// The app's discovery landing page.
 ///
@@ -135,12 +136,24 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               clubsState,
               tournamentState,
             ),
+            sortIcon: _sortIcon(
+              sessionState,
+              venueState,
+              clubsState,
+              tournamentState,
+            ),
             filterCount: _filterCount(
               sessionState,
               venueState,
               clubsState,
               tournamentState,
               preferredCity,
+            ),
+            sortIsActive: _hasCustomSort(
+              sessionState,
+              venueState,
+              clubsState,
+              tournamentState,
             ),
             onSort: _openActiveSort,
             onFilter: _openActiveFilters,
@@ -434,6 +447,52 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     },
   };
 
+  bool _hasCustomSort(
+    BrowseSessionsState sessionState,
+    VenueBrowseState venueState,
+    ClubsState clubsState,
+    TournamentBrowseState tournamentState,
+  ) => switch (_selectedTab) {
+    HomeDiscoveryTab.sessions =>
+      sessionState.filters.sort != SessionBrowseSort.dateAsc,
+    HomeDiscoveryTab.venues =>
+      venueState.filter.sortBy != VenueSortOption.distance.value,
+    HomeDiscoveryTab.clubs => clubsState.sortBy != 'sessionCount',
+    HomeDiscoveryTab.tournaments =>
+      tournamentState.sort != TournamentBrowseSort.startAsc,
+  };
+
+  IconData _sortIcon(
+    BrowseSessionsState sessionState,
+    VenueBrowseState venueState,
+    ClubsState clubsState,
+    TournamentBrowseState tournamentState,
+  ) => switch (_selectedTab) {
+    HomeDiscoveryTab.sessions => _sessionSortIcon(sessionState.filters.sort),
+    HomeDiscoveryTab.venues => VenueSortOption.fromValue(
+      venueState.filter.sortBy,
+    ).icon,
+    HomeDiscoveryTab.clubs => switch (clubsState.sortBy) {
+      'name' => AppIcons.sortAlpha,
+      'createdAt' => AppIcons.calendarArrowDown,
+      _ => AppIcons.trendingUp,
+    },
+    HomeDiscoveryTab.tournaments => switch (tournamentState.sort) {
+      TournamentBrowseSort.startAsc => AppIcons.calendarClock,
+      TournamentBrowseSort.newest => AppIcons.calendarArrowDown,
+      TournamentBrowseSort.nameAsc => AppIcons.sortAlpha,
+      TournamentBrowseSort.nameDesc => AppIcons.sortAlphaDesc,
+    },
+  };
+
+  IconData _sessionSortIcon(SessionBrowseSort sort) => switch (sort) {
+    SessionBrowseSort.dateAsc => AppIcons.calendarClock,
+    SessionBrowseSort.dateDesc => AppIcons.calendarArrowDown,
+    SessionBrowseSort.newest => AppIcons.history,
+    SessionBrowseSort.priceAsc => AppIcons.sortNumberAsc,
+    SessionBrowseSort.priceDesc => AppIcons.sortNumberDesc,
+  };
+
   String _sessionSortLabel(
     AppLocalizations l10n,
     SessionBrowseSort sort,
@@ -451,15 +510,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       case HomeDiscoveryTab.sessions:
         final controller = ref.read(browseSessionsControllerProvider.notifier);
         final current = ref.read(browseSessionsControllerProvider).filters;
-        final selected = await showDiscoverySortSheet<SessionBrowseSort>(
+        final selected = await showAppSortSheet<SessionBrowseSort>(
           context,
           title: l10n.homeDiscoverySortBy,
           selected: current.sort,
           options: [
             for (final option in SessionBrowseSort.values)
-              DiscoverySortOption(
+              AppSortOption(
                 value: option,
                 label: _sessionSortLabel(l10n, option),
+                icon: _sessionSortIcon(option),
               ),
           ],
         );
@@ -469,13 +529,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       case HomeDiscoveryTab.venues:
         final controller = ref.read(venueBrowseControllerProvider.notifier);
         final current = ref.read(venueBrowseControllerProvider).filter;
-        final selected = await showDiscoverySortSheet<VenueSortOption>(
+        final selected = await showAppSortSheet<VenueSortOption>(
           context,
           title: l10n.homeDiscoverySortBy,
           selected: VenueSortOption.fromValue(current.sortBy),
           options: [
             for (final option in VenueSortOption.values)
-              DiscoverySortOption(value: option, label: option.label(l10n)),
+              AppSortOption(
+                value: option,
+                label: option.label(l10n),
+                icon: option.icon,
+              ),
           ],
         );
         if (selected != null) {
@@ -507,22 +571,25 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       case HomeDiscoveryTab.clubs:
         final controller = ref.read(clubsControllerProvider.notifier);
         final current = ref.read(clubsControllerProvider);
-        final selected = await showDiscoverySortSheet<String>(
+        final selected = await showAppSortSheet<String>(
           context,
           title: l10n.homeDiscoverySortBy,
           selected: current.sortBy,
           options: [
-            DiscoverySortOption(
+            AppSortOption(
               value: 'sessionCount',
               label: l10n.homeDiscoverySortPopular,
+              icon: AppIcons.trendingUp,
             ),
-            DiscoverySortOption(
+            AppSortOption(
               value: 'createdAt',
               label: l10n.homeDiscoverySortNewest,
+              icon: AppIcons.calendarArrowDown,
             ),
-            DiscoverySortOption(
+            AppSortOption(
               value: 'name',
               label: l10n.homeDiscoverySortNameAsc,
+              icon: AppIcons.sortAlpha,
             ),
           ],
         );
@@ -534,26 +601,30 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           tournamentBrowseControllerProvider.notifier,
         );
         final current = ref.read(tournamentBrowseControllerProvider);
-        final selected = await showDiscoverySortSheet<TournamentBrowseSort>(
+        final selected = await showAppSortSheet<TournamentBrowseSort>(
           context,
           title: l10n.homeDiscoverySortBy,
           selected: current.sort,
           options: [
-            DiscoverySortOption(
+            AppSortOption(
               value: TournamentBrowseSort.startAsc,
               label: l10n.homeDiscoverySortStartSoonest,
+              icon: AppIcons.calendarClock,
             ),
-            DiscoverySortOption(
+            AppSortOption(
               value: TournamentBrowseSort.newest,
               label: l10n.homeDiscoverySortNewest,
+              icon: AppIcons.calendarArrowDown,
             ),
-            DiscoverySortOption(
+            AppSortOption(
               value: TournamentBrowseSort.nameAsc,
               label: l10n.homeDiscoverySortNameAsc,
+              icon: AppIcons.sortAlpha,
             ),
-            DiscoverySortOption(
+            AppSortOption(
               value: TournamentBrowseSort.nameDesc,
               label: l10n.homeDiscoverySortNameDesc,
+              icon: AppIcons.sortAlphaDesc,
             ),
           ],
         );

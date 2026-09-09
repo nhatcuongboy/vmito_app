@@ -426,6 +426,31 @@ final publicProfileProvider =
       },
     );
 
+/// Rating summaries for the visible session hosts, fetched in one request.
+///
+/// The key is a sorted, comma-delimited set of ids. A string key gives
+/// the provider stable equality as pagination changes the session list.
+// ignore: specify_nonobvious_property_types
+final batchRatingStatsProvider =
+    FutureProvider.family<Map<String, RatingStats>, String>((
+      ref,
+      hostIdsKey,
+    ) async {
+      final hostIds = hostIdsKey
+          .split(',')
+          .where((id) => id.isNotEmpty)
+          .toList(growable: false);
+      if (hostIds.isEmpty) return const {};
+      final stats = await ref
+          .watch(socialServiceProvider)
+          .batchRatingStats(hostIds);
+      return {
+        for (final stat in stats)
+          if (stat.userId case final userId? when userId.isNotEmpty)
+            userId: stat,
+      };
+    });
+
 // Keep the callable provider family while its implementation type is private.
 // ignore: specify_nonobvious_property_types
 final ratingEligibilityProvider =

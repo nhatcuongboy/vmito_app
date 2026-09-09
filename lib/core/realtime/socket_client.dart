@@ -15,6 +15,9 @@ class SocketEvent {
   final Map<String, dynamic> data;
 }
 
+typedef SocketFactory =
+    io.Socket Function(String uri, Map<String, dynamic> options);
+
 /// Socket.IO connection for one namespace.
 ///
 /// iOS tears down sockets when the app backgrounds, so **every** handler must
@@ -26,14 +29,20 @@ class SocketClient {
     required TokenStorage tokenStorage,
     this.namespace = SocketNamespace.sessions,
     this.observedEvents = SessionEvent.all,
-  }) : _tokens = tokenStorage;
+    SocketFactory? socketFactory,
+  }) : _tokens = tokenStorage,
+       _socketFactory =
+           socketFactory ?? ((uri, options) => io.io(uri, options));
 
   final TokenStorage _tokens;
   final String namespace;
   final List<String> observedEvents;
+  final SocketFactory _socketFactory;
 
   io.Socket? _socket;
   String? _tournamentRoom;
+  String? _authenticatedUserId;
+  final Map<String, int> _sessionRoomReferences = {};
   final _events = StreamController<SocketEvent>.broadcast();
   final _connection = StreamController<bool>.broadcast();
 
@@ -51,7 +60,7 @@ class SocketClient {
     // The token is read inside the auth callback, not captured, so every
     // reconnect picks up the current one after a refresh without recreating
     // the socket. Guests connect with an empty token.
-    final socket = io.io('${AppConfig.socketBaseUrl}$namespace', {
+    final socket = _socketFactory('${AppConfig.socketBaseUrl}$namespace', {
       'transports': ['websocket'],
       'autoConnect': true,
       'auth': (dynamic Function(Map<String, dynamic>) callback) {
@@ -72,6 +81,12 @@ class SocketClient {
       ..onConnect((_) {
         AppLogger.debug('socket connected: $namespace');
         _connection.add(true);
+        for (final sessionId in _sessionRoomReferences.keys) {
+          socket.emit(SocketCommand.joinSession, sessionId);
+        }
+        if (_authenticatedUserId case final userId?) {
+          socket.emit(SocketCommand.joinUserRoom, {'userId': userId});
+        }
         if (_tournamentRoom case final tournamentId?) {
           socket.emit(SocketCommand.joinTournament, tournamentId);
         }
@@ -81,7 +96,10 @@ class SocketClient {
         _connection.add(false);
       })
       ..onConnectError(
-        (error) => AppLogger.warn('socket connect error', error: error),
+        (error) {
+          _connection.add(false);
+          AppLogger.warn('socket connect error', error: error);
+        },
       );
   }
 
@@ -89,11 +107,43 @@ class SocketClient {
   Stream<Map<String, dynamic>> on(String eventName) =>
       events.where((e) => e.name == eventName).map((e) => e.data);
 
-  void joinSession(String sessionId) =>
+  void joinSession(String sessionId) {
+    final references = (_sessionRoomReferences[sessionId] ?? 0) + 1;
+    _sessionRoomReferences[sessionId] = references;
+    if (references == 1 && isConnected) {
       _socket?.emit(SocketCommand.joinSession, sessionId);
+    }
+  }
 
-  void leaveSession(String sessionId) =>
+  void leaveSession(String sessionId) {
+    final references = _sessionRoomReferences[sessionId] ?? 0;
+    if (references > 1) {
+      _sessionRoomReferences[sessionId] = references - 1;
+      return;
+    }
+    _sessionRoomReferences.remove(sessionId);
+    if (references > 0 && isConnected) {
       _socket?.emit(SocketCommand.leaveSession, sessionId);
+    }
+  }
+
+  /// Changes the authenticated socket identity.
+  ///
+  /// Reconnecting is intentional: the JWT is part of the handshake, and the
+  /// server clears old user rooms on disconnect. Active session rooms are
+  /// restored by [connect]'s callback.
+  void setAuthenticatedUser(String? userId) {
+    if (_authenticatedUserId == userId) {
+      connect();
+      return;
+    }
+    _authenticatedUserId = userId;
+    if (_socket == null) {
+      connect();
+    } else {
+      reconnect();
+    }
+  }
 
   void joinTournament(String tournamentId) {
     _tournamentRoom = tournamentId;

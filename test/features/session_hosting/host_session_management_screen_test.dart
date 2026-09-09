@@ -195,9 +195,8 @@ void main() {
     expect(title.data, longName);
     expect(title.maxLines, 1);
     expect(title.overflow, TextOverflow.ellipsis);
-    expect(title.style?.fontSize, 20);
-    expect(title.style?.height, closeTo(24 / 20, 0.0001));
-    expect(title.style?.fontWeight, FontWeight.w700);
+    expect(title.style?.fontSize, 16);
+    expect(title.style?.fontWeight, FontWeight.w600);
     expect(titleRect.right, lessThanOrEqualTo(badgeRect.left));
     expect(badgeRect.right, lessThanOrEqualTo(moreRect.left));
     expect(
