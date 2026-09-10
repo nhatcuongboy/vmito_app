@@ -13,6 +13,7 @@ import 'package:vmito_app/core/notifications/firebase_bootstrap.dart';
 import 'package:vmito_app/core/notifications/push_registration_manager.dart';
 import 'package:vmito_app/core/security/app_lock_controller.dart';
 import 'package:vmito_app/core/security/biometric_lock_storage.dart';
+import 'package:vmito_app/core/session/session_data_cache.dart';
 import 'package:vmito_app/core/storage/token_storage.dart';
 import 'package:vmito_app/core/theme/theme_mode_controller.dart';
 import 'package:vmito_app/core/utils/logger.dart';
@@ -85,6 +86,9 @@ Future<void> bootstrap() async {
               .read(pushRegistrationManagerProvider)
               ?.unregister(unregisterServer: unregisterServer);
         },
+      ),
+      sessionDataCleanupProvider.overrideWithValue(
+        () => invalidateSessionData(container),
       ),
       localeRepositoryProvider.overrideWithValue(
         SharedPreferencesLocaleRepository(preferences),

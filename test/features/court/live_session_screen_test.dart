@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:vmito_app/core/realtime/socket_client.dart';
+import 'package:vmito_app/core/theme/app_theme.dart';
+import 'package:vmito_app/core/widgets/app_bottom_navigation_bar.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/features/court/application/live_session_controller.dart';
@@ -15,8 +17,8 @@ import 'package:vmito_app/features/session_hosting/application/player_statistics
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/domain/public_profile.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
-import 'package:vmito_app/shared/models/session_player.dart';
 import 'package:vmito_app/shared/models/match.dart';
+import 'package:vmito_app/shared/models/session_player.dart';
 
 class _MockSocketClient extends Mock implements SocketClient {}
 
@@ -50,7 +52,6 @@ void main() {
             id: 'p1',
             userId: 'u1',
             name: 'Player One',
-            registrationStatus: RegistrationStatus.approved,
           ),
         ],
       ),
@@ -61,7 +62,15 @@ void main() {
     expect(find.text('Sân'), findsOneWidget);
     expect(find.text('Kết quả'), findsOneWidget);
     expect(find.text('Thanh toán'), findsOneWidget);
+    expect(find.byType(AppBottomNavigationBar), findsOneWidget);
     expect(find.byType(NavigationBar), findsOneWidget);
+
+    await tester.tap(find.byKey(const ValueKey('player-live-tab-2')));
+    await tester.pumpAndSettle();
+    expect(
+      tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+      2,
+    );
 
     await tester.pumpWidget(const SizedBox.shrink());
   });
@@ -169,6 +178,7 @@ Future<void> _pump(
         ),
       ],
       child: MaterialApp(
+        theme: AppTheme.light,
         locale: const Locale('vi'),
         localizationsDelegates: const [
           AppLocalizations.delegate,

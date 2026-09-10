@@ -15,6 +15,16 @@ class _LocationPreferencesController extends LocationPreferencesController {
     preferredCity: 'Hồ Chí Minh',
     isRestored: true,
   );
+
+  @override
+  Future<void> selectCity(String? city) async {
+    state = state.copyWith(preferredCity: city);
+  }
+
+  @override
+  Future<void> selectAll() async {
+    state = state.copyWith(clearPreferredCity: true);
+  }
 }
 
 class _Harness extends StatefulWidget {
@@ -90,6 +100,12 @@ void main() {
     await tester.tap(find.byKey(const Key('session-filter-time-morning')));
     await tester.tap(find.byKey(const Key('session-filter-has-slots')));
     await tester.tap(find.byKey(const Key('session-filter-near-me')));
+    await tester.ensureVisible(
+      find.byKey(const Key('session-filter-courts-fourPlus')),
+    );
+    await tester.tap(
+      find.byKey(const Key('session-filter-courts-fourPlus')),
+    );
     await tester.pumpAndSettle();
 
     final scrollable = find
@@ -105,16 +121,22 @@ void main() {
     );
     await tester.tap(find.byKey(const Key('session-filter-sport-pickleball')));
     await tester.scrollUntilVisible(
-      find.byKey(const Key('session-filter-level-4')),
+      find.byKey(const Key('session-filter-level-section')),
       300,
       scrollable: scrollable,
     );
+    await tester.tap(find.byKey(const Key('session-filter-level-section')));
+    await tester.pump();
+    await tester.ensureVisible(find.byKey(const Key('session-filter-level-4')));
     await tester.tap(find.byKey(const Key('session-filter-level-4')));
     await tester.scrollUntilVisible(
-      find.byKey(const Key('session-filter-min-fee')),
+      find.byKey(const Key('session-filter-cost-section')),
       300,
       scrollable: scrollable,
     );
+    await tester.tap(find.byKey(const Key('session-filter-cost-section')));
+    await tester.pump();
+    await tester.ensureVisible(find.byKey(const Key('session-filter-min-fee')));
     await tester.enterText(
       find.byKey(const Key('session-filter-min-fee')),
       '250000',
@@ -138,6 +160,7 @@ void main() {
     expect(result!.nearMe, isTrue);
     expect(result!.latitude, 10.77);
     expect(result!.sports, {SessionSport.pickleball});
+    expect(result!.courtCount, SessionCourtCountFilter.fourPlus);
     expect(result!.levels, {4});
     expect(result!.minFee, 50000);
   });
@@ -151,6 +174,10 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('session-filter-reset')));
+    await tester.pump();
+
+    expect(result, isNull);
+    await tester.tap(find.byKey(const Key('session-filter-apply')));
     await tester.pumpAndSettle();
 
     expect(result?.search, 'Sunday');

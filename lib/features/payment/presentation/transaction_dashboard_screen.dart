@@ -785,7 +785,9 @@ class _BySessionTabState extends State<_BySessionTab> {
                             value: sort,
                             child: Text(
                               _sessionSortLabel(l10n, sort),
-                              style: const TextStyle(fontWeight: FontWeight.normal),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.normal,
+                              ),
                             ),
                           ),
                       ],

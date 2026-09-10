@@ -20,10 +20,15 @@ enum AuthStatus { unknown, authenticated, guest, unauthenticated }
 const developmentBypassUserId = 'development-bypass-user';
 
 class AuthState {
-  const AuthState({this.status = AuthStatus.unknown, this.user});
+  const AuthState({
+    this.status = AuthStatus.unknown,
+    this.user,
+    this.wasExplicitlySignedOut = false,
+  });
 
   final AuthStatus status;
   final User? user;
+  final bool wasExplicitlySignedOut;
 
   bool get isResolved => status != AuthStatus.unknown;
 
@@ -31,8 +36,11 @@ class AuthState {
   bool get isSignedIn =>
       status == AuthStatus.authenticated || status == AuthStatus.guest;
 
-  AuthState copyWith({AuthStatus? status, User? user}) =>
-      AuthState(status: status ?? this.status, user: user ?? this.user);
+  AuthState copyWith({AuthStatus? status, User? user}) => AuthState(
+    status: status ?? this.status,
+    user: user ?? this.user,
+    wasExplicitlySignedOut: wasExplicitlySignedOut,
+  );
 }
 
 /// The single owner of session state.
@@ -227,7 +235,11 @@ class AuthController extends Notifier<AuthState> {
     await _service.deleteAccount();
     await _runSessionCleanup();
     await _clearPersistedSession();
-    state = const AuthState(status: AuthStatus.unauthenticated);
+    state = const AuthState(
+      status: AuthStatus.unauthenticated,
+      wasExplicitlySignedOut: true,
+    );
+    ref.read(sessionDataCleanupProvider)();
   }
 
   /// Guests hold no JWT: identity is the player/session pair from a join code.
@@ -260,7 +272,11 @@ class AuthController extends Notifier<AuthState> {
     } else {
       await _clearPersistedSession();
     }
-    state = const AuthState(status: AuthStatus.unauthenticated);
+    state = const AuthState(
+      status: AuthStatus.unauthenticated,
+      wasExplicitlySignedOut: true,
+    );
+    ref.read(sessionDataCleanupProvider)();
   }
 
   Future<void> _runSessionCleanup({bool unregisterServer = true}) async {
@@ -292,6 +308,7 @@ class AuthController extends Notifier<AuthState> {
     await _runSessionCleanup(unregisterServer: false);
     await _clearPersistedSession();
     state = const AuthState(status: AuthStatus.unauthenticated);
+    ref.read(sessionDataCleanupProvider)();
   }
 
   void setUser(User user) => state = state.copyWith(user: user);
@@ -308,6 +325,13 @@ typedef SessionCleanup = Future<void> Function({bool unregisterServer});
 final sessionCleanupProvider = Provider<SessionCleanup>(
   (ref) => ({unregisterServer = true}) async {},
 );
+
+/// Clears in-memory data only after authentication has been removed.
+///
+/// Keeping this separate from [sessionCleanupProvider] prevents active
+/// providers from reloading the old account with a still-valid token during
+/// sign-out.
+final sessionDataCleanupProvider = Provider<void Function()>((ref) => () {});
 
 /// Convenience selectors — prefer these in widgets so a rebuild is scoped to
 /// the field that actually changed.

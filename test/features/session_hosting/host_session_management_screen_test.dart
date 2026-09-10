@@ -107,6 +107,11 @@ void main() {
     final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
     expect(scaffold.bottomNavigationBar, isNotNull);
     expect(find.byKey(const Key('host-session-bottom-nav')), findsOneWidget);
+    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(
+      tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+      0,
+    );
     const labels = ['Tổng quan', 'Người chơi', 'Sân', 'Kết quả', 'Thanh toán'];
     for (var index = 0; index < labels.length; index++) {
       expect(
@@ -315,6 +320,10 @@ void main() {
     for (var index = 0; index < contentKeys.length; index++) {
       await tester.tap(find.byKey(ValueKey('host-session-tab-$index')));
       await tester.pumpAndSettle();
+      expect(
+        tester.widget<NavigationBar>(find.byType(NavigationBar)).selectedIndex,
+        index,
+      );
       expect(find.byKey(Key(contentKeys[index])), findsOneWidget);
     }
   });

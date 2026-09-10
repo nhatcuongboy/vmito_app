@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show SystemSound, SystemSoundType;
+import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
@@ -36,7 +36,8 @@ class AppShell extends ConsumerStatefulWidget {
   ConsumerState<AppShell> createState() => _AppShellState();
 }
 
-class _AppShellState extends ConsumerState<AppShell> {
+class _AppShellState extends ConsumerState<AppShell>
+    with WidgetsBindingObserver {
   // A router rebuild can keep the previous shell alive for one frame. This
   // key therefore belongs to a shell instance rather than being app-global.
   final _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -45,6 +46,12 @@ class _AppShellState extends ConsumerState<AppShell> {
   Listenable? _routerDelegate;
   bool _navigationRefreshScheduled = false;
   bool _keyboardVisible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
 
   @override
   void didChangeDependencies() {
@@ -74,9 +81,22 @@ class _AppShellState extends ConsumerState<AppShell> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _routerDelegate?.removeListener(_handleNavigationChanged);
     _bottomBarVisibility.dispose();
     super.dispose();
+  }
+
+  @override
+  void handleStatusBarTap() {
+    final index = widget.navigationShell.currentIndex;
+    final isAtTabRoot =
+        GoRouterState.of(context).uri.path ==
+        AppRoutes.shellDestinations[index];
+    if (!isAtTabRoot) return;
+    unawaited(
+      ref.read(tabReselectionControllerProvider).handleReselect(index),
+    );
   }
 
   void _handleNavigationChanged() {
@@ -94,11 +114,17 @@ class _AppShellState extends ConsumerState<AppShell> {
     final theme = Theme.of(context);
     final palette = theme.extension<AppPalette>()!;
     final isSignedIn = ref.watch(isSignedInProvider);
+    final sessionIdentity = ref.watch(
+      authControllerProvider.select((auth) => (auth.status, auth.user?.id)),
+    );
     final location = GoRouterState.of(context).uri.path;
     final shouldKeepBottomBarVisible = location == AppRoutes.notifications;
     final shouldHideBottomBar = AppRoutes.hidesBottomNavigation(location);
 
     return ProviderScope(
+      // Recreate screen-local snapshots and scroll positions at every account
+      // boundary. Provider state is cleared separately by session cleanup.
+      key: ValueKey(sessionIdentity),
       overrides: [
         appShellScaffoldKeyProvider.overrideWithValue(_scaffoldKey),
       ],
@@ -140,37 +166,24 @@ class _AppShellState extends ConsumerState<AppShell> {
                         duration: duration,
                         curve: Curves.easeOutCubic,
                         offset: visible ? Offset.zero : const Offset(0, 1),
-                        child: AnimatedOpacity(
-                          duration: duration,
-                          curve: Curves.easeOutCubic,
-                          opacity: visible ? 1 : 0,
-                          child: child,
-                        ),
+                        child: child,
                       ),
                     ),
                   );
                 },
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: DecoratedBox(
-                    key: const Key('app-bottom-navigation-surface'),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surface,
-                      border: Border(
-                        top: BorderSide(color: palette.border),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: theme.colorScheme.shadow.withValues(
-                            alpha: theme.brightness == Brightness.light
-                                ? 0.08
-                                : 0.24,
-                          ),
-                          blurRadius: 8,
-                          offset: const Offset(0, -2),
-                        ),
-                      ],
+                child: DecoratedBox(
+                  key: const Key('app-bottom-navigation-surface'),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    border: Border(
+                      top: BorderSide(color: palette.border),
                     ),
+                  ),
+                  // `NavigationBar` clamps labels at 1.3x, which still wraps
+                  // five Vietnamese labels on a narrow phone. Labels are
+                  // redundant with the icons, so cap them lower here.
+                  child: MediaQuery.withClampedTextScaling(
+                    maxScaleFactor: 1.2,
                     child: NavigationBar(
                       maintainBottomViewPadding: true,
                       selectedIndex: widget.navigationShell.currentIndex,
@@ -185,14 +198,7 @@ class _AppShellState extends ConsumerState<AppShell> {
                           label: l10n.navSessions,
                         ),
                         NavigationDestination(
-                          icon: NewsfeedBadgeIcon(
-                            icon: AppIcons.feed,
-                            semanticLabel: l10n.navFeed,
-                          ),
-                          selectedIcon: NewsfeedBadgeIcon(
-                            icon: AppIcons.feed,
-                            semanticLabel: l10n.navFeed,
-                          ),
+                          icon: const NewsfeedBadgeIcon(icon: AppIcons.feed),
                           label: l10n.navFeed,
                         ),
                         NavigationDestination(
@@ -214,7 +220,8 @@ class _AppShellState extends ConsumerState<AppShell> {
   }
 
   void _onDestinationSelected(int index) {
-    unawaited(SystemSound.play(SystemSoundType.click));
+    // `SystemSoundType.click` is a no-op on iOS; selection haptics fire on both.
+    unawaited(HapticFeedback.selectionClick());
 
     final isCurrentTab = index == widget.navigationShell.currentIndex;
     final isAtTabRoot =

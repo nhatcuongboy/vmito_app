@@ -165,14 +165,18 @@ class _HostEditPlayerSheetState extends ConsumerState<_HostEditPlayerSheet> {
                             value: Gender.male,
                             child: Text(
                               l10n.genderMale,
-                              style: const TextStyle(fontWeight: FontWeight.normal),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.normal,
+                              ),
                             ),
                           ),
                           DropdownMenuItem(
                             value: Gender.female,
                             child: Text(
                               l10n.genderFemale,
-                              style: const TextStyle(fontWeight: FontWeight.normal),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.normal,
+                              ),
                             ),
                           ),
                         ],
@@ -195,7 +199,9 @@ class _HostEditPlayerSheetState extends ConsumerState<_HostEditPlayerSheet> {
                               value: level,
                               child: Text(
                                 l10n.levelName(level),
-                                style: const TextStyle(fontWeight: FontWeight.normal),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.normal,
+                                ),
                               ),
                             ),
                         ],
@@ -296,7 +302,9 @@ class _ClubFeeEditor extends StatelessWidget {
                           value: club.id,
                           child: Text(
                             club.name,
-                            style: const TextStyle(fontWeight: FontWeight.normal),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.normal,
+                            ),
                           ),
                         ),
                     ],

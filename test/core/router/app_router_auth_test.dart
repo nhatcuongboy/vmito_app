@@ -25,6 +25,13 @@ class _AuthController extends AuthController {
   void signOutForTest() {
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
+
+  void explicitSignOutForTest() {
+    state = const AuthState(
+      status: AuthStatus.unauthenticated,
+      wasExplicitlySignedOut: true,
+    );
+  }
 }
 
 // Exercise the production parser, redirects and navigation stack without
@@ -153,6 +160,17 @@ void main() {
       await tester.pumpAndSettle();
       unawaited(router.push(AppRoutes.signIn));
       await tester.pumpAndSettle();
+      auth.authenticate();
+      await tester.pumpAndSettle();
+      expect(router.state.uri.path, AppRoutes.home);
+
+      router.go(AppRoutes.settings);
+      await tester.pumpAndSettle();
+      auth.explicitSignOutForTest();
+      await tester.pumpAndSettle();
+      expect(router.state.uri.path, AppRoutes.signIn);
+      expect(router.state.uri.queryParameters['redirect'], isNull);
+
       auth.authenticate();
       await tester.pumpAndSettle();
       expect(router.state.uri.path, AppRoutes.home);

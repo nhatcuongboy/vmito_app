@@ -22,6 +22,9 @@ abstract final class AppColors {
   static const Color secondary = Color(0xFFF4F4F5);
   static const Color secondaryForeground = Color(0xFF18181B);
   static const Color muted = Color(0xFFF4F4F5);
+
+  /// 4.84:1 on [background] — WCAG AA with almost no headroom. Lightening this
+  /// drops unselected nav labels and helper text below the 4.5:1 floor.
   static const Color mutedForeground = Color(0xFF71717A);
   static const Color accent = Color(0xFFF4F4F5);
   static const Color accentForeground = Color(0xFF18181B);

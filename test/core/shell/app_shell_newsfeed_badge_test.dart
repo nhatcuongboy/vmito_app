@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/app_shell.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
+import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/core/widgets/newsfeed_badge_icon.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
@@ -84,7 +85,7 @@ void main() {
     expect(find.text('6'), findsWidgets);
     expect(
       tester.getSemantics(find.byType(NewsfeedBadgeIcon).first).label,
-      contains('Bảng tin: 6'),
+      contains('6 bài chưa đọc'),
     );
 
     final surface = tester.widget<DecoratedBox>(
@@ -94,9 +95,12 @@ void main() {
     final palette = AppTheme.light.extension<AppPalette>()!;
     expect(decoration.color, AppTheme.light.colorScheme.surface);
     expect((decoration.border! as Border).top.color, palette.border);
-    expect(decoration.boxShadow, isNotEmpty);
+    expect(decoration.boxShadow, isNull);
     expect(find.byType(NavigationBar), findsOneWidget);
-    expect(tester.getSize(find.byType(NavigationBar)).height, 64);
+    expect(
+      tester.getSize(find.byType(NavigationBar)).height,
+      AppSizes.bottomNavHeight,
+    );
   });
 
   testWidgets('bottom navigation hides a zero badge', (tester) async {
@@ -107,5 +111,26 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('0'), findsNothing);
+    expect(find.byKey(const Key('newsfeed-unread-badge')), findsNothing);
+  });
+
+  testWidgets('navigation labels are clamped below the Material default', (
+    tester,
+  ) async {
+    final router = _router();
+    addTearDown(router.dispose);
+
+    await tester.pumpWidget(
+      MediaQuery(
+        // Above `NavigationBar`'s own 1.3 clamp, so the shell's tighter clamp
+        // is what is under test.
+        data: const MediaQueryData(textScaler: TextScaler.linear(2)),
+        child: _harness(router, 0),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final barContext = tester.element(find.byType(NavigationBar));
+    expect(MediaQuery.textScalerOf(barContext).scale(12), 12 * 1.2);
   });
 }

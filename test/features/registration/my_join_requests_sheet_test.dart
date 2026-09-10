@@ -128,7 +128,9 @@ void main() {
     double fontSize(Key key) =>
         tester.widget<Text>(find.byKey(key)).style!.fontSize!;
 
-    final context = tester.element(find.byKey(const Key('my-join-requests-close')));
+    final context = tester.element(
+      find.byKey(const Key('my-join-requests-close')),
+    );
     expect(
       find.text(AppLocalizations.of(context).myJoinRequestsTitle),
       findsOneWidget,

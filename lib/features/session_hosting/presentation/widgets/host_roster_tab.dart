@@ -381,102 +381,99 @@ class _RosterListTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                        Expanded(
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(
-                              AppSpacing.sm,
-                              0,
-                              AppSpacing.xxs,
-                              0,
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.sm,
+                          0,
+                          AppSpacing.xxs,
+                          0,
+                        ),
+                        child: Row(
+                          // Avatar and text must be direct siblings so
+                          // CrossAxisAlignment.center aligns their true
+                          // vertical centers, whether the name wraps to
+                          // one or two lines.
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            _PlayerAvatar(
+                              player: player,
+                              statusColor: colors.dot,
+                              radius: 19,
                             ),
-                            child: Row(
-                              // Avatar and text must be direct siblings so
-                              // CrossAxisAlignment.center aligns their true
-                              // vertical centers, whether the name wraps to
-                              // one or two lines.
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                _PlayerAvatar(
-                                  player: player,
-                                  statusColor: colors.dot,
-                                  radius: 19,
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              child: Text(
+                                key: ValueKey(
+                                  'host-roster-name-${player.id}',
                                 ),
-                                const SizedBox(width: AppSpacing.sm),
-                                Expanded(
-                                  child: Text(
-                                    key: ValueKey(
-                                      'host-roster-name-${player.id}',
+                                player.displayName ?? l10n.playerName(player),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(
+                                      height: 1.15,
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: -.2,
                                     ),
-                                    player.displayName ??
-                                        l10n.playerName(player),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium
-                                        ?.copyWith(
-                                          height: 1.15,
-                                          fontWeight: FontWeight.w700,
-                                          letterSpacing: -.2,
-                                        ),
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: 32,
-                                  height: 32,
-                                  child: _ActionMenu(
-                                    player: player,
-                                    onAction: onAction,
-                                  ),
-                                ),
-                              ],
+                              ),
                             ),
-                          ),
+                            SizedBox(
+                              width: 32,
+                              height: 32,
+                              child: _ActionMenu(
+                                player: player,
+                                onAction: onAction,
+                              ),
+                            ),
+                          ],
                         ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                            AppSpacing.sm,
-                            2,
-                            AppSpacing.sm,
-                            8,
-                          ),
-                          child: Wrap(
-                            spacing: 5,
-                            runSpacing: 4,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              _NumberBadge(
-                                number: player.playerNumber,
-                                compact: true,
-                              ),
-                              _GenderBadge(
-                                key: ValueKey(
-                                  'host-roster-gender-${player.id}',
-                                ),
-                                gender: player.gender,
-                              ),
-                              _LevelBadge(
-                                key: ValueKey(
-                                  'host-roster-level-${player.id}',
-                                ),
-                                label: _levelLabel(l10n, player.level),
-                              ),
-                              if (player.isClubMember &&
-                                  player.clubName?.isNotEmpty == true)
-                                _ClubBadge(
-                                  key: ValueKey(
-                                    'host-roster-club-${player.id}',
-                                  ),
-                                  label: player.clubName!,
-                                ),
-                            ],
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.sm,
+                        2,
+                        AppSpacing.sm,
+                        8,
+                      ),
+                      child: Wrap(
+                        spacing: 5,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          _NumberBadge(
+                            number: player.playerNumber,
+                            compact: true,
+                          ),
+                          _GenderBadge(
+                            key: ValueKey(
+                              'host-roster-gender-${player.id}',
+                            ),
+                            gender: player.gender,
+                          ),
+                          _LevelBadge(
+                            key: ValueKey(
+                              'host-roster-level-${player.id}',
+                            ),
+                            label: _levelLabel(l10n, player.level),
+                          ),
+                          if (player.isClubMember &&
+                              player.clubName?.isNotEmpty == true)
+                            _ClubBadge(
+                              key: ValueKey(
+                                'host-roster-club-${player.id}',
+                              ),
+                              label: player.clubName!,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
+            ),
+          ],
         ),
       ),
     );

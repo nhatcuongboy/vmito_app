@@ -188,6 +188,8 @@ class BrowseSessionsController extends Notifier<BrowseSessionsState> {
     districts: filters.districts,
     minFee: filters.hasCustomFeeRange ? filters.minFee : null,
     maxFee: filters.hasCustomFeeRange ? filters.maxFee : null,
+    minCourts: filters.courtCount?.minCourts,
+    maxCourts: filters.courtCount?.maxCourts,
     splitEvenly: filters.splitEvenly,
     latitude: filters.nearMe ? filters.latitude : null,
     longitude: filters.nearMe ? filters.longitude : null,

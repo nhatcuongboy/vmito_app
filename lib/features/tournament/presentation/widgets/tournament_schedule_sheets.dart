@@ -685,7 +685,9 @@ class _TournamentScheduleEditFormState
                           value: value,
                           child: Text(
                             '$value ${l10n.tournamentScheduleMinutes}',
-                            style: const TextStyle(fontWeight: FontWeight.normal),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.normal,
+                            ),
                           ),
                         ),
                     ],
@@ -711,7 +713,9 @@ class _TournamentScheduleEditFormState
                           value: court.id,
                           child: Text(
                             court.label(l10n.tournamentScheduleCourt),
-                            style: const TextStyle(fontWeight: FontWeight.normal),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.normal,
+                            ),
                           ),
                         ),
                     ],
@@ -737,7 +741,9 @@ class _TournamentScheduleEditFormState
                           value: umpire.id,
                           child: Text(
                             umpire.name,
-                            style: const TextStyle(fontWeight: FontWeight.normal),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.normal,
+                            ),
                           ),
                         ),
                     ],

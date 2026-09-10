@@ -159,6 +159,8 @@ void main() {
       districts: const {'Phường An Đông', 'Phường An Hội Đông'},
       minFee: 50000,
       maxFee: 120000,
+      minCourts: 2,
+      maxCourts: 2,
       splitEvenly: true,
       latitude: 10.77,
       longitude: 106.69,
@@ -181,6 +183,8 @@ void main() {
       'district': 'Phường An Đông,Phường An Hội Đông',
       'minFee': 50000,
       'maxFee': 120000,
+      'minCourts': 2,
+      'maxCourts': 2,
       'feeType': 'SPLIT_EVENLY',
       'lat': 10.77,
       'lng': 106.69,
@@ -191,6 +195,48 @@ void main() {
       'sortOrder': 'desc',
     });
   });
+
+  test(
+    'serializes at-least-four court filter and omits an unset filter',
+    () async {
+      final adapter = _RecordingAdapter();
+      final repository = _repository(adapter);
+
+      await repository.browseAvailable(
+        limit: 20,
+        timeRanges: const {},
+        levels: const {},
+        sports: const {},
+        districts: const {},
+        minCourts: 4,
+        splitEvenly: false,
+        sortByDistance: false,
+      );
+      expect(adapter.requests.single.queryParameters['minCourts'], 4);
+      expect(
+        adapter.requests.single.queryParameters.containsKey('maxCourts'),
+        isFalse,
+      );
+
+      await repository.browseAvailable(
+        limit: 20,
+        timeRanges: const {},
+        levels: const {},
+        sports: const {},
+        districts: const {},
+        splitEvenly: false,
+        sortByDistance: false,
+      );
+      expect(
+        adapter.requests.last.queryParameters.containsKey('minCourts'),
+        isFalse,
+      );
+      expect(
+        adapter.requests.last.queryParameters.containsKey('maxCourts'),
+        isFalse,
+      );
+    },
+  );
 
   test(
     'hosted and joined share search/status/pagination query contract',

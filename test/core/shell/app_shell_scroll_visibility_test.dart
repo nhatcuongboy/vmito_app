@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/app_shell.dart';
+import 'package:vmito_app/core/shell/tab_reselection_controller.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/core/widgets/slide_out_menu.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
@@ -104,11 +106,80 @@ Widget _feedLikeScrollView() => CustomScrollView(
   ],
 );
 
+class _StatusBarScrollable extends ConsumerStatefulWidget {
+  const _StatusBarScrollable();
+
+  @override
+  ConsumerState<_StatusBarScrollable> createState() =>
+      _StatusBarScrollableState();
+}
+
+class _StatusBarScrollableState extends ConsumerState<_StatusBarScrollable> {
+  final _controller = ScrollController();
+  late final VoidCallback _removeHandler;
+
+  @override
+  void initState() {
+    super.initState();
+    _removeHandler = ref
+        .read(tabReselectionControllerProvider)
+        .register(
+          tabIndex: 0,
+          onReselect: () => scrollToTop(_controller),
+        );
+  }
+
+  @override
+  void dispose() {
+    _removeHandler();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => _list(
+    itemCount: 40,
+    controller: _controller,
+  );
+}
+
 double _bottomBarHeight(WidgetTester tester) => tester
     .getSize(find.byKey(const Key('app-bottom-navigation-reveal')))
     .height;
 
 void main() {
+  testWidgets('status-bar tap scrolls the current tab to the top', (
+    tester,
+  ) async {
+    final router = _router(const _StatusBarScrollable());
+    addTearDown(router.dispose);
+
+    await tester.pumpWidget(_harness(router));
+    await tester.pumpAndSettle();
+    await tester.drag(
+      find.byKey(const Key('test-list')),
+      const Offset(0, -500),
+    );
+    await tester.pumpAndSettle();
+
+    final scrollable = tester.state<ScrollableState>(
+      find.descendant(
+        of: find.byKey(const Key('test-list')),
+        matching: find.byType(Scrollable),
+      ),
+    );
+    expect(scrollable.position.pixels, greaterThan(0));
+
+    final message = const JSONMethodCodec().encodeMethodCall(
+      const MethodCall('handleScrollToTop'),
+    );
+    await TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .handlePlatformMessage('flutter/status_bar', message, (_) {});
+    await tester.pumpAndSettle();
+
+    expect(scrollable.position.pixels, 0);
+  });
+
   testWidgets('long content uses a drag threshold to hide and show the bar', (
     tester,
   ) async {

@@ -9,10 +9,25 @@ void main() {
       hasSlots: true,
       source: SessionSource.facebook,
       sports: {SessionSport.badminton},
+      courtCount: SessionCourtCountFilter.fourPlus,
     );
-    expect(filters.activeCount, 4);
+    expect(filters.activeCount, 5);
+    expect(filters.courtCount?.minCourts, 4);
+    expect(filters.courtCount?.maxCourts, isNull);
     expect(filters.copyWith(hasSlots: false).search, 'Sunday');
     expect(filters.copyWith(levels: {}).levels, isEmpty);
+    expect(filters.copyWith(clearCourtCount: true).courtCount, isNull);
+  });
+
+  test('maps every court-count option to its API bounds', () {
+    expect(SessionCourtCountFilter.one.minCourts, 1);
+    expect(SessionCourtCountFilter.one.maxCourts, 1);
+    expect(SessionCourtCountFilter.two.minCourts, 2);
+    expect(SessionCourtCountFilter.two.maxCourts, 2);
+    expect(SessionCourtCountFilter.three.minCourts, 3);
+    expect(SessionCourtCountFilter.three.maxCourts, 3);
+    expect(SessionCourtCountFilter.fourPlus.minCourts, 4);
+    expect(SessionCourtCountFilter.fourPlus.maxCourts, isNull);
   });
 
   test('default city is not counted and reset preserves search', () {

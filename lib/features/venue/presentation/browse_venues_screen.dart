@@ -21,6 +21,7 @@ import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/features/venue/presentation/venue_card_skeleton.dart';
 import 'package:vmito_app/features/venue/presentation/venue_filter_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_filter_sheet.dart';
 import 'package:vmito_app/shared/widgets/app_paginated_list_view.dart';
 import 'package:vmito_app/shared/widgets/discovery_entity_map_view.dart';
 import 'package:vmito_app/shared/widgets/discovery_map_toggle.dart';
@@ -324,9 +325,8 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
   }
 
   Future<void> _openFilters(VenueFilter filter) async {
-    final selected = await showModalBottomSheet<VenueFilter>(
-      context: context,
-      isScrollControlled: true,
+    final selected = await showAppFilterSheet<VenueFilter>(
+      context,
       builder: (context) => VenueFilterSheet(
         initial: filter,
         preferredCity: ref

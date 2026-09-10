@@ -158,6 +158,15 @@
   },
   "courtCallAcknowledge": "Đã hiểu",
   "navFeed": "Bảng tin",
+  "newsfeedUnreadCount": "{count, plural, other{{count} bài chưa đọc}}",
+  "@newsfeedUnreadCount": {
+    "description": "Screen-reader announcement for the feed tab unread badge.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "profileTitle": "Cá nhân",
   "profileEditAction": "Chỉnh sửa",
   "profileEditTitle": "Chỉnh sửa hồ sơ",
@@ -755,6 +764,10 @@
   "@sessionFilterSelectedCount": {"placeholders": {"count": {"type": "int"}}},
   "sessionFilterNoDistricts": "Không có dữ liệu phường/xã cho khu vực này.",
   "sessionFilterSport": "Môn thể thao",
+  "sessionFilterCourtCount": "Số sân",
+  "sessionFilterFourPlusCourts": "4+ sân",
+  "sessionFiltersSelected": "{count} bộ lọc",
+  "@sessionFiltersSelected": {"placeholders": {"count": {"type": "int"}}},
   "sessionSportBadminton": "Cầu lông",
   "sessionSportPickleball": "Pickleball",
   "sessionFilterCost": "Chi phí",

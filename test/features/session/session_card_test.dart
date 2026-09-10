@@ -571,6 +571,7 @@ void main() {
 
       expect(find.text('Còn 3 slot'), findsOneWidget);
       expect(find.text('2 sân'), findsOneWidget);
+      expect(find.byIcon(AppIcons.grid2x2), findsOneWidget);
       final trackSize = tester.getSize(
         find.byKey(const Key('session-browse-progress-track')),
       );
@@ -666,6 +667,7 @@ void main() {
       );
 
       expect(find.text('2 sân'), findsOneWidget);
+      expect(find.byIcon(AppIcons.grid2x2), findsOneWidget);
       expect(find.byKey(const Key('session-browse-slot-status')), findsNothing);
       expect(
         find.byKey(const Key('session-browse-progress-track')),
@@ -700,6 +702,7 @@ void main() {
       expect(find.text('Nguồn Facebook'), findsOneWidget);
       expect(find.text('Bài Facebook'), findsNothing);
       expect(find.text('2 sân'), findsOneWidget);
+      expect(find.byIcon(AppIcons.grid2x2), findsOneWidget);
       expect(
         tester.widget<Card>(find.byType(Card)).color,
         const Color(0xFFF8FAFC),

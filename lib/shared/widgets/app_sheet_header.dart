@@ -12,6 +12,7 @@ class AppSheetHeader extends StatelessWidget {
   const AppSheetHeader({
     required this.title,
     this.subtitle,
+    this.titleTrailing,
     this.leadingIcon,
     this.leadingIconColor,
     this.leadingButtonKey,
@@ -33,6 +34,7 @@ class AppSheetHeader extends StatelessWidget {
 
   final String title;
   final String? subtitle;
+  final Widget? titleTrailing;
   final IconData? leadingIcon;
   final Color? leadingIconColor;
   final Key? leadingButtonKey;
@@ -69,7 +71,6 @@ class AppSheetHeader extends StatelessWidget {
         Padding(
           padding: padding,
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               if (leadingIcon != null) ...[
                 if (onLeadingPressed != null)
@@ -120,6 +121,10 @@ class AppSheetHeader extends StatelessWidget {
                   ],
                 ),
               ),
+              if (titleTrailing case final trailing?) ...[
+                const SizedBox(width: AppSpacing.sm),
+                trailing,
+              ],
               if (showCloseButton)
                 IconButton(
                   key: closeButtonKey,

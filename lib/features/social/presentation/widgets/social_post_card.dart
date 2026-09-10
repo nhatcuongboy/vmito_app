@@ -381,6 +381,7 @@ class _SingleImage extends StatelessWidget {
   Widget build(BuildContext context) {
     final imageUrls = images.map((image) => image.url).toList(growable: false);
     return GestureDetector(
+      key: const Key('post-image-single'),
       behavior: HitTestBehavior.opaque,
       onTap: () => unawaited(showAppLightbox(context, images: imageUrls)),
       child: CachedNetworkImage(

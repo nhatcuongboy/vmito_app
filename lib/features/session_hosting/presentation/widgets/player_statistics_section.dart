@@ -108,12 +108,18 @@ class _PlayerStatisticsSectionState
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SwitchListTile.adaptive(
-                  key: const Key('host-player-statistics-gender-mvp'),
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(l10n.hostPlayerStatsGenderMvp),
-                  value: _showGenderMvp,
-                  onChanged: (value) => setState(() => _showGenderMvp = value),
+                // The host screen tints its body, which would otherwise hide
+                // this tile's ink splashes painted on the Scaffold's Material.
+                Material(
+                  color: Colors.transparent,
+                  child: SwitchListTile.adaptive(
+                    key: const Key('host-player-statistics-gender-mvp'),
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(l10n.hostPlayerStatsGenderMvp),
+                    value: _showGenderMvp,
+                    onChanged: (value) =>
+                        setState(() => _showGenderMvp = value),
+                  ),
                 ),
                 Card(
                   clipBehavior: Clip.antiAlias,

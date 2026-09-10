@@ -34,7 +34,8 @@ class CitySelectorResults extends StatelessWidget {
           : cities
                 .where((city) => citySearchKey(city).contains(query))
                 .toList(growable: false);
-      final matchesOther = query.isNotEmpty &&
+      final matchesOther =
+          query.isNotEmpty &&
           citySearchKey(l10n.citySelectorOther).contains(query);
 
       if (visible.isEmpty && !matchesOther) {
@@ -74,7 +75,8 @@ class CitySelectorResults extends StatelessWidget {
               ...visible.map<_ResultEntry>(_CityEntry.new),
               if (matchesOther) const _OtherEntry(),
             ];
-      final isCitySelected = (selectionType == LocationSelectionType.city ||
+      final isCitySelected =
+          (selectionType == LocationSelectionType.city ||
               (selectionType == null && selectedCity != null)) &&
           selectedCity != null;
       return ListView.builder(

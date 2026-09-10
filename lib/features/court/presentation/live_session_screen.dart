@@ -7,13 +7,15 @@ import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/realtime/socket_client.dart';
 import 'package:vmito_app/core/realtime/socket_events.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/color_parsing.dart';
+import 'package:vmito_app/core/widgets/app_bottom_navigation_bar.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/court/application/live_session_controller.dart';
-import 'package:vmito_app/features/court/application/match_history_provider.dart';
 import 'package:vmito_app/features/court/application/match_elapsed_provider.dart';
+import 'package:vmito_app/features/court/application/match_history_provider.dart';
 import 'package:vmito_app/features/court/domain/player_live_session.dart';
 import 'package:vmito_app/features/court/presentation/player_live_payment_tab.dart';
 import 'package:vmito_app/features/court/presentation/widgets/badminton_court_view.dart';
@@ -196,11 +198,11 @@ class _Hub extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final items = [
-      (Icons.dashboard_outlined, l10n.playerLiveOverview),
-      (Icons.person_pin_circle_outlined, l10n.playerLiveStatus),
-      (Icons.sports_tennis_outlined, l10n.playerLiveCourts),
-      (Icons.emoji_events_outlined, l10n.playerLiveResults),
-      (Icons.payments_outlined, l10n.playerLivePayments),
+      (AppIcons.info, l10n.playerLiveOverview),
+      (AppIcons.user, l10n.playerLiveStatus),
+      (AppIcons.square, l10n.playerLiveCourts),
+      (AppIcons.trophy, l10n.playerLiveResults),
+      (AppIcons.dollarSign, l10n.playerLivePayments),
     ];
     final pages = <Widget>[
       _Overview(session: session, player: player, onRefresh: onRefresh),
@@ -251,16 +253,18 @@ class _Hub extends StatelessWidget {
         return Column(
           children: [
             Expanded(child: content),
-            SafeArea(
-              top: false,
-              child: NavigationBar(
-                selectedIndex: index,
-                onDestinationSelected: onSelect,
-                destinations: [
-                  for (final item in items)
-                    NavigationDestination(icon: Icon(item.$1), label: item.$2),
-                ],
-              ),
+            AppBottomNavigationBar(
+              key: const Key('player-live-bottom-nav'),
+              selectedIndex: index,
+              onDestinationSelected: onSelect,
+              destinations: [
+                for (var i = 0; i < items.length; i++)
+                  NavigationDestination(
+                    key: ValueKey('player-live-tab-$i'),
+                    icon: Icon(items[i].$1),
+                    label: items[i].$2,
+                  ),
+              ],
             ),
           ],
         );

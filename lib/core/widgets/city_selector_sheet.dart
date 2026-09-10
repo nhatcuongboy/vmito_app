@@ -17,12 +17,14 @@ import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 
 class CitySelection {
   const CitySelection(this.city, {LocationSelectionType? type})
-      : type = type ??
-            (city != null
-                ? LocationSelectionType.city
-                : LocationSelectionType.all);
+    : type =
+          type ??
+          (city != null
+              ? LocationSelectionType.city
+              : LocationSelectionType.all);
 
-  const CitySelection.city(String this.city) : type = LocationSelectionType.city;
+  const CitySelection.city(String this.city)
+    : type = LocationSelectionType.city;
   const CitySelection.all() : city = null, type = LocationSelectionType.all;
   const CitySelection.other() : city = null, type = LocationSelectionType.other;
 
@@ -44,20 +46,19 @@ class CitySelection {
 Future<CitySelection?> showCitySelectorSheet(
   BuildContext context, {
   bool isOnboarding = false,
-}) =>
-    showModalBottomSheet<CitySelection>(
-      context: context,
-      useRootNavigator: true,
-      isScrollControlled: true,
-      showDragHandle: !isOnboarding,
-      isDismissible: !isOnboarding,
-      enableDrag: !isOnboarding,
-      useSafeArea: true,
-      builder: (_) => PopScope(
-        canPop: !isOnboarding,
-        child: CitySelectorSheet(isOnboarding: isOnboarding),
-      ),
-    );
+}) => showModalBottomSheet<CitySelection>(
+  context: context,
+  useRootNavigator: true,
+  isScrollControlled: true,
+  showDragHandle: !isOnboarding,
+  isDismissible: !isOnboarding,
+  enableDrag: !isOnboarding,
+  useSafeArea: true,
+  builder: (_) => PopScope(
+    canPop: !isOnboarding,
+    child: CitySelectorSheet(isOnboarding: isOnboarding),
+  ),
+);
 
 class CitySelectorSheet extends ConsumerStatefulWidget {
   const CitySelectorSheet({
@@ -166,13 +167,15 @@ class _CitySelectorSheetState extends ConsumerState<CitySelectorSheet> {
                                 fillColor: colorScheme.surfaceContainerHighest
                                     .withValues(alpha: .55),
                                 border: OutlineInputBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(AppRadius.lg),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.lg,
+                                  ),
                                   borderSide: BorderSide.none,
                                 ),
                                 enabledBorder: OutlineInputBorder(
-                                  borderRadius:
-                                      BorderRadius.circular(AppRadius.lg),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.lg,
+                                  ),
                                   borderSide: BorderSide.none,
                                 ),
                               ),
@@ -189,15 +192,17 @@ class _CitySelectorSheetState extends ConsumerState<CitySelectorSheet> {
                               onTap: _isLocating
                                   ? null
                                   : () =>
-                                      unawaited(_useCurrentLocation(cities)),
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.pill),
+                                        unawaited(_useCurrentLocation(cities)),
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.pill,
+                              ),
                               child: Container(
                                 height: 40,
                                 width: 40,
                                 decoration: BoxDecoration(
-                                  color:
-                                      colorScheme.primary.withValues(alpha: .1),
+                                  color: colorScheme.primary.withValues(
+                                    alpha: .1,
+                                  ),
                                   borderRadius: BorderRadius.circular(
                                     AppRadius.pill,
                                   ),

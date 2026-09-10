@@ -42,6 +42,8 @@ abstract interface class SessionRepository {
     required Set<String> districts,
     int? minFee,
     int? maxFee,
+    int? minCourts,
+    int? maxCourts,
     required bool splitEvenly,
     double? latitude,
     double? longitude,

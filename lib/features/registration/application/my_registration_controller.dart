@@ -86,12 +86,10 @@ class MyRegistrationController extends AsyncNotifier<List<SessionPlayer>> {
   }
 }
 
-final myRegistrationProvider =
-    AsyncNotifierProvider.autoDispose.family<
-      MyRegistrationController,
-      List<SessionPlayer>,
-      String
-    >(MyRegistrationController.new);
+final myRegistrationProvider = AsyncNotifierProvider.autoDispose
+    .family<MyRegistrationController, List<SessionPlayer>, String>(
+      MyRegistrationController.new,
+    );
 
 /// The single status the bottom bar renders from.
 ///

@@ -8,6 +8,7 @@ import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/widgets/app_bottom_navigation_bar.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/court/application/live_session_controller.dart';
 import 'package:vmito_app/features/court/application/match_history_provider.dart';
@@ -233,26 +234,31 @@ class _HostSessionManagementScreenState
           ],
         ),
         bottomNavigationBar: _HostSessionBottomNavBar(
-          tabs: [
-            _HostNavTab(
+          destinations: [
+            NavigationDestination(
+              key: const ValueKey('host-session-tab-0'),
               label: l10n.hostManageOverview,
-              icon: AppIcons.info,
+              icon: const Icon(AppIcons.info),
             ),
-            _HostNavTab(
+            NavigationDestination(
+              key: const ValueKey('host-session-tab-1'),
               label: l10n.hostManageRoster,
-              icon: AppIcons.users,
+              icon: const Icon(AppIcons.users),
             ),
-            _HostNavTab(
+            NavigationDestination(
+              key: const ValueKey('host-session-tab-2'),
               label: l10n.hostManageCourts,
-              icon: AppIcons.square,
+              icon: const Icon(AppIcons.square),
             ),
-            _HostNavTab(
+            NavigationDestination(
+              key: const ValueKey('host-session-tab-3'),
               label: l10n.hostManageResults,
-              icon: AppIcons.trophy,
+              icon: const Icon(AppIcons.trophy),
             ),
-            _HostNavTab(
+            NavigationDestination(
+              key: const ValueKey('host-session-tab-4'),
               label: l10n.hostManagePayments,
-              icon: AppIcons.dollarSign,
+              icon: const Icon(AppIcons.dollarSign),
             ),
           ],
         ),
@@ -305,7 +311,6 @@ class _HostSessionManagementScreenState
         final l10n = AppLocalizations.of(context);
         final confirmed = await showAppConfirmDialog(
           context,
-          type: AppConfirmDialogType.submit,
           title: l10n.startSessionConfirmTitle,
           content: l10n.startSessionConfirm,
           confirmLabel: l10n.startSessionAction,
@@ -417,25 +422,13 @@ class _SessionStatusBadge extends StatelessWidget {
   }
 }
 
-class _HostNavTab {
-  const _HostNavTab({
-    required this.label,
-    required this.icon,
-  });
-
-  final String label;
-  final IconData icon;
-}
-
 class _HostSessionBottomNavBar extends StatelessWidget {
-  const _HostSessionBottomNavBar({required this.tabs});
+  const _HostSessionBottomNavBar({required this.destinations});
 
-  final List<_HostNavTab> tabs;
+  final List<NavigationDestination> destinations;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final palette = theme.extension<AppPalette>()!;
     final tabController = DefaultTabController.of(context);
 
     return AnimatedBuilder(
@@ -446,132 +439,13 @@ class _HostSessionBottomNavBar extends StatelessWidget {
             : (tabController.animation?.value ?? tabController.index.toDouble())
                   .round();
 
-        return DecoratedBox(
+        return AppBottomNavigationBar(
           key: const Key('host-session-bottom-nav'),
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-            border: Border(
-              top: BorderSide(
-                color: palette.border,
-              ),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: theme.colorScheme.shadow.withValues(
-                  alpha: theme.brightness == Brightness.light ? 0.05 : 0.25,
-                ),
-                blurRadius: 8,
-                offset: const Offset(0, -2),
-              ),
-            ],
-          ),
-          child: SafeArea(
-            top: false,
-            child: SizedBox(
-              height: AppSizes.bottomNavHeight,
-              child: Row(
-                children: [
-                  for (var i = 0; i < tabs.length; i++)
-                    Expanded(
-                      child: _HostNavTabItem(
-                        key: ValueKey('host-session-tab-$i'),
-                        tab: tabs[i],
-                        isActive: activeIndex == i,
-                        onTap: () => tabController.animateTo(i),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
+          selectedIndex: activeIndex,
+          onDestinationSelected: tabController.animateTo,
+          destinations: destinations,
         );
       },
-    );
-  }
-}
-
-class _HostNavTabItem extends StatelessWidget {
-  const _HostNavTabItem({
-    required this.tab,
-    required this.isActive,
-    required this.onTap,
-    super.key,
-  });
-
-  final _HostNavTab tab;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final palette = theme.extension<AppPalette>()!;
-    final activeColor = theme.colorScheme.primary;
-    final inactiveColor = palette.mutedForeground;
-
-    return Stack(
-      children: [
-        if (isActive)
-          Positioned(
-            top: 0,
-            left: AppSpacing.sm,
-            right: AppSpacing.sm,
-            height: 3,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: activeColor,
-                borderRadius: BorderRadius.circular(AppRadius.pill),
-              ),
-            ),
-          ),
-        Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onTap,
-            splashColor: activeColor.withValues(alpha: 0.1),
-            highlightColor: activeColor.withValues(alpha: 0.05),
-            child: SizedBox(
-              width: double.infinity,
-              height: double.infinity,
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  top: AppSpacing.sm,
-                  bottom: AppSpacing.xs,
-                  left: AppSpacing.xxs,
-                  right: AppSpacing.xxs,
-                ),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      tab.icon,
-                      size: 20,
-                      color: isActive ? activeColor : inactiveColor,
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        tab.label,
-                        maxLines: 1,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          fontSize: 11,
-                          height: 1.2,
-                          fontWeight: isActive
-                              ? FontWeight.w600
-                              : FontWeight.w500,
-                          color: isActive ? activeColor : inactiveColor,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }

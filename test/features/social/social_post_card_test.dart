@@ -177,4 +177,66 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('2/2'), findsOneWidget);
   });
+
+  testWidgets('opens a regular post image in the lightbox', (tester) async {
+    final post = SocialPost(
+      id: 'post-with-image',
+      content: 'Bài viết có ảnh',
+      author: const SocialPostAuthor(id: 'user-1', name: 'An'),
+      images: const [
+        SocialPostImage(id: 'image-1', url: 'https://image/1.jpg'),
+      ],
+      likeCount: 0,
+      commentCount: 0,
+      shareCount: 0,
+      isLiked: false,
+      createdAt: DateTime(2026, 7, 30, 19),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('vi'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: SocialPostCard(post: post)),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('post-image-single')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.byKey(const Key('lightbox-close-button')), findsOneWidget);
+  });
+
+  testWidgets('opens an activity post image in the lightbox', (tester) async {
+    final post = SocialPost(
+      id: 'avatar-update',
+      content: '',
+      author: const SocialPostAuthor(id: 'user-1', name: 'An'),
+      images: const [],
+      likeCount: 0,
+      commentCount: 0,
+      shareCount: 0,
+      isLiked: false,
+      createdAt: DateTime(2026, 7, 30, 19),
+      activityType: 'AVATAR_UPDATED',
+      metadata: const {'image': 'https://image/avatar.jpg'},
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('vi'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(body: SocialPostCard(post: post)),
+      ),
+    );
+
+    await tester.tap(find.byKey(const Key('activity-post-image')));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.byKey(const Key('lightbox-close-button')), findsOneWidget);
+  });
 }

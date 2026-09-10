@@ -990,13 +990,24 @@ class _BrowseMetaRow extends StatelessWidget {
         if (label != null && courts != null)
           const SizedBox(width: AppSpacing.sm),
         if (courts != null)
-          Text(
-            courts!,
+          Row(
             key: const Key('session-browse-court-count'),
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: palette.mutedForeground,
-              fontWeight: FontWeight.w600,
-            ),
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                AppIcons.grid2x2,
+                size: 14,
+                color: palette.mutedForeground,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Text(
+                courts!,
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: palette.mutedForeground,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
       ],
     );
@@ -1036,13 +1047,24 @@ class _FacebookSourceRow extends StatelessWidget {
             ),
           ),
           if (courts != null)
-            Text(
-              courts,
+            Row(
               key: const Key('session-browse-court-count'),
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: palette.mutedForeground,
-                fontWeight: FontWeight.w600,
-              ),
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  AppIcons.grid2x2,
+                  size: 14,
+                  color: palette.mutedForeground,
+                ),
+                const SizedBox(width: AppSpacing.xs),
+                Text(
+                  courts,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: palette.mutedForeground,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
         ],
       ),

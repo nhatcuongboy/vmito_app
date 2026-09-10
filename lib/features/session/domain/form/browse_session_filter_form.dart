@@ -4,6 +4,7 @@ abstract final class BrowseFilterControl {
   static const date = 'date';
   static const timeRanges = 'timeRanges';
   static const hasSlots = 'hasSlots';
+  static const courtCount = 'courtCount';
   static const nearMe = 'nearMe';
   static const source = 'source';
   static const city = 'city';
@@ -28,8 +29,8 @@ Map<String, dynamic>? validateBrowseFeeRange(
 }
 
 int? _feeValue(Object? value) => switch (value) {
-  int value => value,
-  String value =>
+  final int value => value,
+  final String value =>
     int.tryParse(value.trim()) ??
         int.tryParse(value.replaceAll(RegExp('[^0-9]'), '')),
   _ => null,

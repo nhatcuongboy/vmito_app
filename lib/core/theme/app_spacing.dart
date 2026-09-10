@@ -29,7 +29,11 @@ abstract final class AppRadius {
 abstract final class AppSizes {
   static const double minTapTarget = 48;
   static const double appBarHeight = 56;
-  static const double bottomNavHeight = 64;
+
+  /// `NavigationBar` gives its label no `maxLines`, so a label that wraps is
+  /// clipped rather than ellipsised. Five Vietnamese labels at the clamped
+  /// text scale need this much room; do not lower it without re-measuring.
+  static const double bottomNavHeight = 72;
 
   /// Badminton court aspect ratio, from `BadmintonCourt.tsx:66`.
   /// Vertical orientation is a coordinate transform of this, not a second

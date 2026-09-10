@@ -118,6 +118,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       if (location == AppRoutes.splash) return AppRoutes.home;
       if (AppRoutes.isPublic(location)) return null;
 
+      // An explicit logout starts a fresh navigation session. In contrast, a
+      // session expiry or a login prompt keeps the requested route so the user
+      // can resume the interrupted action after authenticating.
+      if (auth.wasExplicitlySignedOut) return AppRoutes.signIn;
+
       return AppRoutes.signInWithRedirect(state.uri.toString());
     },
     routes: [

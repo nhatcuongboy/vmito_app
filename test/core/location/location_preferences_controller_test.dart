@@ -64,51 +64,60 @@ void main() {
       },
     );
 
-    test('selectOther sets preferredCity to null and selectionType to other', () async {
-      final repository = _Repository(city: 'Hồ Chí Minh', selectionType: LocationSelectionType.city);
-      final container = ProviderContainer(
-        overrides: [
-          locationPreferencesRepositoryProvider.overrideWithValue(repository),
-        ],
-      );
-      addTearDown(container.dispose);
-      final controller = container.read(
-        locationPreferencesControllerProvider.notifier,
-      );
-      controller.restore();
+    test(
+      'selectOther sets preferredCity to null and selectionType to other',
+      () async {
+        final repository = _Repository(
+          city: 'Hồ Chí Minh',
+          selectionType: LocationSelectionType.city,
+        );
+        final container = ProviderContainer(
+          overrides: [
+            locationPreferencesRepositoryProvider.overrideWithValue(repository),
+          ],
+        );
+        addTearDown(container.dispose);
+        final controller = container.read(
+          locationPreferencesControllerProvider.notifier,
+        );
+        controller.restore();
 
-      await controller.selectOther();
+        await controller.selectOther();
 
-      final state = container.read(locationPreferencesControllerProvider);
-      expect(state.preferredCity, isNull);
-      expect(state.selectionType, LocationSelectionType.other);
-      expect(state.onboardingCompleted, isTrue);
-      expect(repository.city, isNull);
-      expect(repository.selectionType, LocationSelectionType.other);
-    });
+        final state = container.read(locationPreferencesControllerProvider);
+        expect(state.preferredCity, isNull);
+        expect(state.selectionType, LocationSelectionType.other);
+        expect(state.onboardingCompleted, isTrue);
+        expect(repository.city, isNull);
+        expect(repository.selectionType, LocationSelectionType.other);
+      },
+    );
 
-    test('selectAll sets preferredCity to null and selectionType to all', () async {
-      final repository = _Repository();
-      final container = ProviderContainer(
-        overrides: [
-          locationPreferencesRepositoryProvider.overrideWithValue(repository),
-        ],
-      );
-      addTearDown(container.dispose);
-      final controller = container.read(
-        locationPreferencesControllerProvider.notifier,
-      );
-      controller.restore();
+    test(
+      'selectAll sets preferredCity to null and selectionType to all',
+      () async {
+        final repository = _Repository();
+        final container = ProviderContainer(
+          overrides: [
+            locationPreferencesRepositoryProvider.overrideWithValue(repository),
+          ],
+        );
+        addTearDown(container.dispose);
+        final controller = container.read(
+          locationPreferencesControllerProvider.notifier,
+        );
+        controller.restore();
 
-      await controller.selectAll();
+        await controller.selectAll();
 
-      final state = container.read(locationPreferencesControllerProvider);
-      expect(state.preferredCity, isNull);
-      expect(state.selectionType, LocationSelectionType.all);
-      expect(state.onboardingCompleted, isTrue);
-      expect(repository.city, isNull);
-      expect(repository.selectionType, LocationSelectionType.all);
-    });
+        final state = container.read(locationPreferencesControllerProvider);
+        expect(state.preferredCity, isNull);
+        expect(state.selectionType, LocationSelectionType.all);
+        expect(state.onboardingCompleted, isTrue);
+        expect(repository.city, isNull);
+        expect(repository.selectionType, LocationSelectionType.all);
+      },
+    );
 
     test(
       'keeps the device preference when auth state changes elsewhere',

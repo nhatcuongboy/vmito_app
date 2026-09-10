@@ -903,6 +903,22 @@
             }
           },
           {
+            "name": "minCourts",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "maxCourts",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "hasSlots",
             "required": true,
             "in": "query",

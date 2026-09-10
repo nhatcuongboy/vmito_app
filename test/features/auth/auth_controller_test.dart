@@ -145,7 +145,37 @@ void main() {
   });
 
   test(
-    'sign-out parks the refresh token out of the interceptor\'s reach',
+    'sign-out clears session data after authentication is removed',
+    () async {
+      final secureStorage = FakeSecureStorage();
+      final tokens = TokenStorage(secureStorage);
+      await tokens.save(accessToken: 'access', refreshToken: 'refresh');
+      late final ProviderContainer container;
+      AuthStatus? statusDuringCleanup;
+      var cleanupCount = 0;
+      container = ProviderContainer(
+        overrides: [
+          tokenStorageProvider.overrideWithValue(tokens),
+          biometricLockStorageProvider.overrideWithValue(
+            BiometricLockStorage(secureStorage),
+          ),
+          sessionDataCleanupProvider.overrideWithValue(() {
+            cleanupCount++;
+            statusDuringCleanup = container.read(authControllerProvider).status;
+          }),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await container.read(authControllerProvider.notifier).signOut();
+
+      expect(cleanupCount, 1);
+      expect(statusDuringCleanup, AuthStatus.unauthenticated);
+    },
+  );
+
+  test(
+    "sign-out parks the refresh token out of the interceptor's reach",
     () async {
       final secureStorage = FakeSecureStorage();
       final tokens = TokenStorage(secureStorage);

@@ -29,6 +29,7 @@ import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/features/venue/presentation/browse_venues_screen.dart';
 import 'package:vmito_app/features/venue/presentation/venue_filter_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_filter_sheet.dart';
 import 'package:vmito_app/shared/widgets/app_sort_selector.dart';
 
 /// The app's discovery landing page.
@@ -718,10 +719,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _openSessionFilters() async {
     final controller = ref.read(browseSessionsControllerProvider.notifier);
     final current = ref.read(browseSessionsControllerProvider).filters;
-    final filters = await showModalBottomSheet<BrowseSessionFilters>(
-      context: context,
+    final filters = await showAppFilterSheet<BrowseSessionFilters>(
+      context,
       useRootNavigator: true,
-      isScrollControlled: true,
       builder: (context) => SessionFilterSheet(initial: current),
     );
     if (filters != null) unawaited(controller.load(filters: filters));
@@ -730,10 +730,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _openVenueFilters() async {
     final controller = ref.read(venueBrowseControllerProvider.notifier);
     final current = ref.read(venueBrowseControllerProvider).filter;
-    final filter = await showModalBottomSheet<VenueFilter>(
-      context: context,
+    final filter = await showAppFilterSheet<VenueFilter>(
+      context,
       useRootNavigator: true,
-      isScrollControlled: true,
       builder: (context) => VenueFilterSheet(
         initial: current,
         preferredCity: ref

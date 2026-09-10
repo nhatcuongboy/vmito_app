@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/features/social/domain/social_post.dart';
+import 'package:vmito_app/shared/widgets/app_lightbox.dart';
 
 // ---------------------------------------------------------------------------
 // Public widget
@@ -372,17 +373,22 @@ class _FullImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        color: isDark ? const Color(0xFF111827) : const Color(0xFFF3F4F6),
-        width: double.infinity,
-        constraints: const BoxConstraints(minHeight: 220, maxHeight: 380),
-        child: CachedNetworkImage(
-          imageUrl: url,
-          fit: BoxFit.cover,
+    child: GestureDetector(
+      key: const Key('activity-post-image'),
+      behavior: HitTestBehavior.opaque,
+      onTap: () => showAppLightbox(context, images: [url]),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          color: isDark ? const Color(0xFF111827) : const Color(0xFFF3F4F6),
           width: double.infinity,
-          errorWidget: (_, _, _) => const SizedBox.shrink(),
+          constraints: const BoxConstraints(minHeight: 220, maxHeight: 380),
+          child: CachedNetworkImage(
+            imageUrl: url,
+            fit: BoxFit.cover,
+            width: double.infinity,
+            errorWidget: (_, _, _) => const SizedBox.shrink(),
+          ),
         ),
       ),
     ),
