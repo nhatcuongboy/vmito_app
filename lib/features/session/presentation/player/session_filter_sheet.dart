@@ -135,8 +135,9 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
     _form.markAllAsTouched();
     if (_form.invalid || _form.pending) return;
     final selectedCity = _value<String>(BrowseFilterControl.city);
-    final locNotifier =
-        ref.read(locationPreferencesControllerProvider.notifier);
+    final locNotifier = ref.read(
+      locationPreferencesControllerProvider.notifier,
+    );
     if (selectedCity != null && selectedCity.trim().isNotEmpty) {
       unawaited(locNotifier.selectCity(selectedCity));
     } else {
@@ -236,6 +237,7 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
             resetButtonKey: const Key('session-filter-reset'),
             applyButtonKey: const Key('session-filter-apply'),
             closeButtonKey: const Key('session-filter-close'),
+            showActiveCount: false,
             actionsEnabled: !_isLocating,
             onReset: _reset,
             onApply: _apply,
@@ -245,16 +247,15 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                 AppFilterSection(
                   title: l10n.sessionFilterDate,
                   icon: AppIcons.calendar,
-                  selectedCount: pending.date != null ? 1 : 0,
                   child: ReactiveValueListenableBuilder<DateTime>(
                     formControlName: BrowseFilterControl.date,
                     builder: (context, dateControl, _) {
                       final hasDate = dateControl.value != null;
-                      final locale =
-                          Localizations.localeOf(context).toString();
+                      final locale = Localizations.localeOf(context).toString();
                       final formattedDate = hasDate
-                          ? DateFormat.yMMMMEEEEd(locale)
-                              .format(dateControl.value!)
+                          ? DateFormat.yMMMMEEEEd(
+                              locale,
+                            ).format(dateControl.value!)
                           : null;
 
                       return Material(
@@ -270,8 +271,7 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                             ),
                             decoration: BoxDecoration(
                               color: theme.colorScheme.surface,
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.lg),
+                              borderRadius: BorderRadius.circular(AppRadius.lg),
                               border: Border.all(
                                 color: hasDate
                                     ? scheme.primary
@@ -281,46 +281,9 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                             ),
                             child: Row(
                               children: [
-                                Container(
-                                  padding:
-                                      const EdgeInsets.all(AppSpacing.xs),
-                                  decoration: BoxDecoration(
-                                    color: hasDate
-                                        ? scheme.primary
-                                            .withValues(alpha: 0.12)
-                                        : palette.muted
-                                            .withValues(alpha: 0.3),
-                                    borderRadius: BorderRadius.circular(
-                                      AppRadius.md,
-                                    ),
-                                  ),
-                                  child: Icon(
-                                    AppIcons.calendar,
-                                    size: 20,
-                                    color: hasDate
-                                        ? scheme.primary
-                                        : palette.mutedForeground,
-                                  ),
-                                ),
-                                const SizedBox(width: AppSpacing.sm),
                                 Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Text(
-                                        hasDate
-                                            ? l10n.sessionFilterDate
-                                            : l10n.sessionFilterAllDates,
-                                        style: theme.textTheme.bodySmall
-                                            ?.copyWith(
-                                              color: palette.mutedForeground,
-                                              fontSize: 12,
-                                            ),
-                                      ),
-                                      if (hasDate)
-                                        Text(
+                                  child: hasDate
+                                      ? Text(
                                           formattedDate!,
                                           style: theme.textTheme.bodyMedium
                                               ?.copyWith(
@@ -329,9 +292,16 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                                               ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
+                                        )
+                                      : Text(
+                                          l10n.sessionFilterAllDates,
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                                color: palette.mutedForeground,
+                                              ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                    ],
-                                  ),
                                 ),
                                 if (hasDate)
                                   IconButton(
@@ -368,6 +338,7 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                           values: SessionTimeRange.values,
                           selected: control.value ?? const {},
                           label: (range) => _timeRangeLabel(l10n, range),
+                          icon: _timeRangeIcon,
                           itemKey: (range) => Key(
                             'session-filter-time-${range.name}',
                           ),
@@ -382,45 +353,27 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                   title: l10n.sessionFilterQuick,
                   icon: AppIcons.sparkles,
                   selectedCount:
-                      (pending.hasSlots ? 1 : 0) + (pending.nearMe ? 1 : 0),
+                      (pending.hasSlots ? 1 : 0) +
+                      (pending.nearMe ? 1 : 0) +
+                      (pending.courtCount != null ? 1 : 0),
                   child: Wrap(
-                    spacing: AppSpacing.sm,
-                    runSpacing: AppSpacing.sm,
+                    spacing: AppSpacing.md,
+                    runSpacing: AppSpacing.xxs,
                     children: [
                       ReactiveValueListenableBuilder<bool>(
                         formControlName: BrowseFilterControl.hasSlots,
                         builder: (context, control, _) {
                           final isSelected = control.value ?? false;
-                          return FilterChip(
+                          return AppFilterChip(
                             key: const Key('session-filter-has-slots'),
+                            label: l10n.sessionFilterAvailableSlots,
+                            selected: isSelected,
                             avatar: Icon(
                               AppIcons.userCheck,
                               size: 16,
                               color: isSelected
                                   ? scheme.primary
                                   : palette.mutedForeground,
-                            ),
-                            label: Text(l10n.sessionFilterAvailableSlots),
-                            labelStyle: TextStyle(
-                              color: isSelected
-                                  ? scheme.primary
-                                  : scheme.onSurface,
-                              fontWeight: isSelected
-                                  ? FontWeight.w600
-                                  : FontWeight.w500,
-                            ),
-                            selected: isSelected,
-                            showCheckmark: false,
-                            backgroundColor: theme.colorScheme.surface,
-                            selectedColor: scheme.primary.withValues(alpha: .12),
-                            side: BorderSide(
-                              color: isSelected
-                                  ? scheme.primary
-                                  : palette.border,
-                              width: isSelected ? 1.5 : 1.0,
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.xs,
                             ),
                             onSelected: (value) => control.value = value,
                           );
@@ -430,8 +383,10 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                         formControlName: BrowseFilterControl.nearMe,
                         builder: (context, control, _) {
                           final isSelected = control.value ?? false;
-                          return FilterChip(
+                          return AppFilterChip(
                             key: const Key('session-filter-near-me'),
+                            label: l10n.sessionFilterNearMe,
+                            selected: isSelected,
                             avatar: _isLocating
                                 ? const SizedBox.square(
                                     dimension: 14,
@@ -446,34 +401,51 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                                         ? scheme.primary
                                         : palette.mutedForeground,
                                   ),
-                            label: Text(l10n.sessionFilterNearMe),
-                            labelStyle: TextStyle(
-                              color: isSelected
-                                  ? scheme.primary
-                                  : scheme.onSurface,
-                              fontWeight: isSelected
-                                  ? FontWeight.w600
-                                  : FontWeight.w500,
-                            ),
-                            selected: isSelected,
-                            showCheckmark: false,
-                            backgroundColor: theme.colorScheme.surface,
-                            selectedColor: scheme.primary.withValues(alpha: .12),
-                            side: BorderSide(
-                              color: isSelected
-                                  ? scheme.primary
-                                  : palette.border,
-                              width: isSelected ? 1.5 : 1.0,
-                            ),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.xs,
-                            ),
                             onSelected: _isLocating
                                 ? null
                                 : (_) => _toggleNearMe(),
                           );
                         },
                       ),
+                      for (final courtCount in SessionCourtCountFilter.values)
+                        ReactiveValueListenableBuilder<SessionCourtCountFilter>(
+                          formControlName: BrowseFilterControl.courtCount,
+                          builder: (context, control, _) {
+                            final isSelected = control.value == courtCount;
+                            final isFourPlus =
+                                courtCount == SessionCourtCountFilter.fourPlus;
+                            final label = isFourPlus
+                                ? l10n.sessionFilterFourPlusCourts
+                                : l10n.sessionFilterCourtCountValue(
+                                    courtCount.minCourts,
+                                  );
+                            final accessibilityLabel = isFourPlus
+                                ? l10n.sessionFilterFourPlusCourtsAccessibility
+                                : label;
+                            return Semantics(
+                              label: accessibilityLabel,
+                              selected: isSelected,
+                              button: true,
+                              child: AppFilterChip(
+                                key: Key(
+                                  'session-filter-courts-${courtCount.name}',
+                                ),
+                                label: label,
+                                selected: isSelected,
+                                avatar: Icon(
+                                  AppIcons.grid2x2,
+                                  size: 16,
+                                  color: isSelected
+                                      ? scheme.primary
+                                      : palette.mutedForeground,
+                                ),
+                                onSelected: (_) => control.value = isSelected
+                                    ? null
+                                    : courtCount,
+                              ),
+                            );
+                          },
+                        ),
                     ],
                   ),
                 ),
@@ -491,17 +463,17 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                           avatarBuilder: (context, sport, isSelected) =>
                               switch (sport) {
                                 SessionSport.badminton => Image.asset(
-                                    'assets/icons/shuttlecock.png',
-                                    width: 16,
-                                    height: 16,
-                                  ),
+                                  'assets/icons/shuttlecock.png',
+                                  width: 16,
+                                  height: 16,
+                                ),
                                 SessionSport.pickleball => Icon(
-                                    Icons.sports_tennis,
-                                    size: 16,
-                                    color: isSelected
-                                        ? scheme.primary
-                                        : palette.mutedForeground,
-                                  ),
+                                  Icons.sports_tennis,
+                                  size: 16,
+                                  color: isSelected
+                                      ? scheme.primary
+                                      : palette.mutedForeground,
+                                ),
                               },
                           itemKey: (sport) => Key(
                             'session-filter-sport-${sport.name}',
@@ -512,35 +484,11 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                   ),
                 ),
                 AppFilterSection(
-                  title: l10n.sessionFilterCourtCount,
-                  icon: AppIcons.grid2x2,
-                  selectedCount: pending.courtCount != null ? 1 : 0,
-                  child:
-                      ReactiveValueListenableBuilder<SessionCourtCountFilter>(
-                        formControlName: BrowseFilterControl.courtCount,
-                        builder: (context, control, _) =>
-                            AppFilterOptionGroup<SessionCourtCountFilter>(
-                              values: SessionCourtCountFilter.values,
-                              selected: control.value == null
-                                  ? const <SessionCourtCountFilter>{}
-                                  : {control.value!},
-                              label: (value) =>
-                                  value == SessionCourtCountFilter.fourPlus
-                                  ? l10n.sessionFilterFourPlusCourts
-                                  : '${value.minCourts}',
-                              itemKey: (value) => Key(
-                                'session-filter-courts-${value.name}',
-                              ),
-                              onSelected: (value) => control.value =
-                                  control.value == value ? null : value,
-                            ),
-                      ),
-                ),
-                AppFilterSection(
                   key: const Key('session-filter-area-section'),
                   title: l10n.sessionFilterArea,
                   icon: AppIcons.mapPin,
-                  selectedCount: pending.districts.length +
+                  selectedCount:
+                      pending.districts.length +
                       (pending.city != null && !pending.cityIsDefault ? 1 : 0),
                   child: Column(
                     children: [
@@ -548,7 +496,8 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                         formControlName: BrowseFilterControl.city,
                         builder: (context, cityControl, _) {
                           final selectedCity = cityControl.value;
-                          final hasCityValue = selectedCity != null &&
+                          final hasCityValue =
+                              selectedCity != null &&
                               selectedCity.trim().isNotEmpty;
                           return Material(
                             color: Colors.transparent,
@@ -561,15 +510,18 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                               ),
                               borderRadius: BorderRadius.circular(AppRadius.lg),
                               child: Container(
-                                constraints: const BoxConstraints(minHeight: 48),
+                                constraints: const BoxConstraints(
+                                  minHeight: 48,
+                                ),
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: AppSpacing.md,
                                   vertical: AppSpacing.sm,
                                 ),
                                 decoration: BoxDecoration(
                                   color: theme.colorScheme.surface,
-                                  borderRadius:
-                                      BorderRadius.circular(AppRadius.lg),
+                                  borderRadius: BorderRadius.circular(
+                                    AppRadius.lg,
+                                  ),
                                   border: Border.all(
                                     color: hasCityValue
                                         ? scheme.primary
@@ -616,10 +568,12 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                                         onPressed: () {
                                           cityControl.value = null;
                                           _form
-                                              .control(
-                                                BrowseFilterControl.districts,
-                                              )
-                                              .value = <String>{};
+                                                  .control(
+                                                    BrowseFilterControl
+                                                        .districts,
+                                                  )
+                                                  .value =
+                                              <String>{};
                                         },
                                       )
                                     else
@@ -640,7 +594,8 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                         formControlName: BrowseFilterControl.city,
                         builder: (context, cityControl, _) {
                           final selectedCity = cityControl.value;
-                          final isCitySelected = selectedCity != null &&
+                          final isCitySelected =
+                              selectedCity != null &&
                               selectedCity.trim().isNotEmpty;
 
                           return ReactiveValueListenableBuilder<Set<String>>(
@@ -689,8 +644,8 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                                           border: Border.all(
                                             color: isCitySelected
                                                 ? (hasDistricts
-                                                    ? scheme.primary
-                                                    : palette.border)
+                                                      ? scheme.primary
+                                                      : palette.border)
                                                 : palette.border.withValues(
                                                     alpha: 0.4,
                                                   ),
@@ -704,34 +659,40 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                                               size: 20,
                                               color: isCitySelected
                                                   ? (hasDistricts
-                                                      ? scheme.primary
-                                                      : palette.mutedForeground)
+                                                        ? scheme.primary
+                                                        : palette
+                                                              .mutedForeground)
                                                   : palette.mutedForeground
-                                                      .withValues(alpha: 0.4),
+                                                        .withValues(alpha: 0.4),
                                             ),
-                                            const SizedBox(width: AppSpacing.sm),
+                                            const SizedBox(
+                                              width: AppSpacing.sm,
+                                            ),
                                             Expanded(
                                               child: Text(
                                                 !isCitySelected
                                                     ? l10n.citySelectorTitle
                                                     : (hasDistricts
-                                                        ? l10n.sessionFilterSelectedCount(
-                                                            selectedDistricts
-                                                                .length,
-                                                          )
-                                                        : l10n.sessionFilterDistricts),
-                                                style: theme.textTheme.bodyMedium
+                                                          ? l10n.sessionFilterSelectedCount(
+                                                              selectedDistricts
+                                                                  .length,
+                                                            )
+                                                          : l10n.sessionFilterDistricts),
+                                                style: theme
+                                                    .textTheme
+                                                    .bodyMedium
                                                     ?.copyWith(
                                                       color: !isCitySelected
                                                           ? palette
-                                                              .mutedForeground
-                                                              .withValues(
-                                                                alpha: 0.5,
-                                                              )
+                                                                .mutedForeground
+                                                                .withValues(
+                                                                  alpha: 0.5,
+                                                                )
                                                           : (hasDistricts
-                                                              ? scheme.onSurface
-                                                              : palette
-                                                                  .mutedForeground),
+                                                                ? scheme
+                                                                      .onSurface
+                                                                : palette
+                                                                      .mutedForeground),
                                                       fontWeight: hasDistricts
                                                           ? FontWeight.w600
                                                           : FontWeight.normal,
@@ -777,7 +738,7 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                                               color: isCitySelected
                                                   ? palette.mutedForeground
                                                   : palette.mutedForeground
-                                                      .withValues(alpha: 0.3),
+                                                        .withValues(alpha: 0.3),
                                             ),
                                           ],
                                         ),
@@ -790,7 +751,8 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                                       spacing: AppSpacing.xs,
                                       runSpacing: AppSpacing.xs,
                                       children: [
-                                        for (final district in selectedDistricts)
+                                        for (final district
+                                            in selectedDistricts)
                                           InputChip(
                                             label: Text(district),
                                             deleteIconColor: scheme.primary,
@@ -832,7 +794,8 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                   key: const Key('session-filter-cost-section'),
                   title: 'Phí',
                   icon: AppIcons.banknote,
-                  selectedCount: (pending.hasCustomFeeRange ? 1 : 0) +
+                  selectedCount:
+                      (pending.hasCustomFeeRange ? 1 : 0) +
                       (pending.splitEvenly ? 1 : 0),
                   child: Column(
                     children: [
@@ -914,8 +877,7 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                   key: const Key('session-filter-source-section'),
                   title: l10n.sessionFilterSource,
                   icon: AppIcons.link,
-                  selectedCount:
-                      pending.source != SessionSource.all ? 1 : 0,
+                  selectedCount: pending.source != SessionSource.all ? 1 : 0,
                   showDivider: false,
                   child: ReactiveValueListenableBuilder<SessionSource>(
                     formControlName: BrowseFilterControl.source,
@@ -957,7 +919,7 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
     // Track the selected date locally inside the sheet
     DateTime? sheetDate = control.value;
 
-    final result = await showModalBottomSheet<DateTime?>(
+    final result = await showModalBottomSheet<Object>(
       context: context,
       useRootNavigator: true,
       isScrollControlled: true,
@@ -968,17 +930,22 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
               sheetDate != null && DateUtils.isSameDay(sheetDate, today);
           final isTomorrow =
               sheetDate != null && DateUtils.isSameDay(sheetDate, tomorrow);
-          return SafeArea(
-            child: AnimatedPadding(
-              duration: const Duration(milliseconds: 180),
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.viewInsetsOf(context).bottom,
+          final calendarDate = sheetDate ?? today;
+          return AnimatedPadding(
+            duration: const Duration(milliseconds: 180),
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.viewInsetsOf(context).bottom,
+            ),
+            // Material wraps SafeArea (not the other way around) so the
+            // sheet's surface color still paints behind the bottom safe
+            // area (e.g. the iOS home indicator strip) instead of leaving
+            // it transparent — SafeArea only insets the content from it.
+            child: Material(
+              color: scheme.surface,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppRadius.xl),
               ),
-              child: Material(
-                color: scheme.surface,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(AppRadius.xl),
-                ),
+              child: SafeArea(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -1014,15 +981,21 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                         ],
                       ),
                     ),
-                    // Calendar
+                    // Calendar — keyed by the active date so its internal
+                    // selection resets when a preset chip changes the date.
+                    // CalendarDatePicker only reads `initialDate` once
+                    // (in initState), so without a key it ignores updates to
+                    // that value on rebuild and keeps showing the old day.
                     CalendarDatePicker(
-                      initialDate: sheetDate ?? today,
+                      key: ValueKey(calendarDate),
+                      initialDate: calendarDate,
                       firstDate: today,
                       lastDate: today.add(const Duration(days: 365)),
                       onDateChanged: (date) =>
                           setState(() => sheetDate = DateUtils.dateOnly(date)),
                     ),
-                    // Action bar
+                    // Action bar — same icon + fill layout as the "Bộ lọc"
+                    // sheet's footer buttons.
                     Padding(
                       padding: const EdgeInsets.fromLTRB(
                         AppSpacing.md,
@@ -1030,24 +1003,16 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                         AppSpacing.md,
                         AppSpacing.md,
                       ),
-                      child: Row(
-                        children: [
-                          Flexible(
-                            child: OutlinedButton(
-                              onPressed: () => Navigator.pop(context, null),
-                              child: Text(l10n.sessionFilterAllDates),
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            flex: 2,
-                            child: FilledButton(
-                              onPressed: () =>
-                                  Navigator.pop(context, sheetDate ?? today),
-                              child: Text(l10n.commonDone),
-                            ),
-                          ),
-                        ],
+                      child: AppSheetFooterButtons(
+                        secondaryLabel: l10n.commonCancel,
+                        secondaryIcon: AppIcons.close,
+                        onSecondary: () => Navigator.pop(context),
+                        primaryLabel: l10n.commonDone,
+                        primaryIcon: AppIcons.check,
+                        onPrimary: () => Navigator.pop(
+                          context,
+                          sheetDate ?? _allDatesSelection,
+                        ),
                       ),
                     ),
                   ],
@@ -1058,12 +1023,10 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
         },
       ),
     );
-    if (!mounted) return;
-    if (result == null) {
-      control.value = null;
-    } else {
-      control.value = result;
-    }
+    // A null result means the sheet was cancelled or dismissed without a
+    // choice — leave the current filter untouched rather than clearing it.
+    if (!mounted || result == null) return;
+    control.value = result is DateTime ? result : null;
   }
 
   Future<void> _pickCity(
@@ -1093,121 +1056,131 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                           citySearchKey(city).contains(citySearchKey(query)),
                     )
                     .toList(growable: false);
-          return SafeArea(
-            child: SizedBox(
-              height: MediaQuery.sizeOf(context).height * .75,
-              child: Column(
-                children: [
-                  AppSheetHeader(
-                    title: l10n.sessionFilterCity,
-                    showCloseButton: true,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.md,
-                      0,
-                      AppSpacing.md,
-                      AppSpacing.xs,
+          // Material wraps SafeArea (not the other way around) so the
+          // sheet's surface color still paints behind the bottom safe area
+          // instead of leaving it transparent there.
+          return Material(
+            color: scheme.surface,
+            clipBehavior: Clip.antiAlias,
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppRadius.xl),
+            ),
+            child: SafeArea(
+              child: SizedBox(
+                height: MediaQuery.sizeOf(context).height * .75,
+                child: Column(
+                  children: [
+                    AppSheetHeader(
+                      title: l10n.sessionFilterCity,
+                      showCloseButton: true,
                     ),
-                    child: TextField(
-                      autofocus: false,
-                      decoration: InputDecoration(
-                        hintText: 'Tìm tỉnh / thành phố...',
-                        prefixIcon: const Icon(AppIcons.search, size: 18),
-                        isDense: true,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(AppRadius.lg),
-                          borderSide:
-                              BorderSide(color: palette.border),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.md,
-                          vertical: AppSpacing.sm,
-                        ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.md,
+                        0,
+                        AppSpacing.md,
+                        AppSpacing.xs,
                       ),
-                      onChanged: (v) => setState(() => query = v),
-                    ),
-                  ),
-                  const Divider(height: 1),
-                  // "All places" option
-                  ListTile(
-                    leading: Icon(
-                      AppIcons.language,
-                      size: 18,
-                      color: selected == null
-                          ? scheme.primary
-                          : scheme.onSurfaceVariant,
-                    ),
-                    title: Text(
-                      l10n.citySelectorAllPlaces,
-                      style: TextStyle(
-                        color: selected == null ? scheme.primary : null,
-                        fontWeight: selected == null
-                            ? FontWeight.w600
-                            : FontWeight.normal,
-                      ),
-                    ),
-                    trailing: selected == null
-                        ? Icon(
-                            AppIcons.checkCircle,
-                            color: scheme.primary,
-                            size: 20,
-                          )
-                        : null,
-                    onTap: () => setState(() => selected = null),
-                  ),
-                  const Divider(height: 1),
-                  Expanded(
-                    child: filtered.isEmpty
-                        ? Center(child: Text(l10n.citySelectorNoResults))
-                        : ListView.builder(
-                            itemCount: filtered.length,
-                            itemBuilder: (context, index) {
-                              final city = filtered[index];
-                              final isActive = city == selected;
-                              return ListTile(
-                                leading: Icon(
-                                  AppIcons.mapPin,
-                                  size: 18,
-                                  color: isActive
-                                      ? scheme.primary
-                                      : scheme.onSurfaceVariant,
-                                ),
-                                title: Text(
-                                  city,
-                                  style: TextStyle(
-                                    color: isActive ? scheme.primary : null,
-                                    fontWeight: isActive
-                                        ? FontWeight.w500
-                                        : FontWeight.normal,
-                                  ),
-                                ),
-                                trailing: isActive
-                                    ? Icon(
-                                        AppIcons.checkCircle,
-                                        color: scheme.primary,
-                                        size: 20,
-                                      )
-                                    : null,
-                                selected: isActive,
-                                selectedTileColor: scheme.primary
-                                    .withValues(alpha: .06),
-                                onTap: () => setState(() => selected = city),
-                              );
-                            },
+                      child: TextField(
+                        autofocus: false,
+                        decoration: InputDecoration(
+                          hintText: 'Tìm tỉnh / thành phố...',
+                          prefixIcon: const Icon(AppIcons.search, size: 18),
+                          isDense: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(AppRadius.lg),
+                            borderSide: BorderSide(color: palette.border),
                           ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(AppSpacing.md),
-                    child: FilledButton(
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 48),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.md,
+                            vertical: AppSpacing.sm,
+                          ),
+                        ),
+                        onChanged: (v) => setState(() => query = v),
                       ),
-                      onPressed: () => Navigator.pop(context, selected),
-                      child: Text(l10n.commonDone),
                     ),
-                  ),
-                ],
+                    const Divider(height: 1),
+                    // "All places" option
+                    ListTile(
+                      leading: Icon(
+                        AppIcons.language,
+                        size: 18,
+                        color: selected == null
+                            ? scheme.primary
+                            : scheme.onSurfaceVariant,
+                      ),
+                      title: Text(
+                        l10n.citySelectorAllPlaces,
+                        style: TextStyle(
+                          color: selected == null ? scheme.primary : null,
+                          fontWeight: selected == null
+                              ? FontWeight.w600
+                              : FontWeight.normal,
+                        ),
+                      ),
+                      trailing: selected == null
+                          ? Icon(
+                              AppIcons.checkCircle,
+                              color: scheme.primary,
+                              size: 20,
+                            )
+                          : null,
+                      onTap: () => setState(() => selected = null),
+                    ),
+                    const Divider(height: 1),
+                    Expanded(
+                      child: filtered.isEmpty
+                          ? Center(child: Text(l10n.citySelectorNoResults))
+                          : ListView.builder(
+                              itemCount: filtered.length,
+                              itemBuilder: (context, index) {
+                                final city = filtered[index];
+                                final isActive = city == selected;
+                                return ListTile(
+                                  leading: Icon(
+                                    AppIcons.mapPin,
+                                    size: 18,
+                                    color: isActive
+                                        ? scheme.primary
+                                        : scheme.onSurfaceVariant,
+                                  ),
+                                  title: Text(
+                                    city,
+                                    style: TextStyle(
+                                      color: isActive ? scheme.primary : null,
+                                      fontWeight: isActive
+                                          ? FontWeight.w500
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                  trailing: isActive
+                                      ? Icon(
+                                          AppIcons.checkCircle,
+                                          color: scheme.primary,
+                                          size: 20,
+                                        )
+                                      : null,
+                                  selected: isActive,
+                                  selectedTileColor: scheme.primary.withValues(
+                                    alpha: .06,
+                                  ),
+                                  onTap: () => setState(() => selected = city),
+                                );
+                              },
+                            ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 48),
+                        ),
+                        onPressed: () => Navigator.pop(context, selected),
+                        child: Text(l10n.commonDone),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -1257,14 +1230,14 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                             ),
                             decoration: BoxDecoration(
                               color: Theme.of(context).colorScheme.primary,
-                              borderRadius:
-                                  BorderRadius.circular(AppRadius.pill),
+                              borderRadius: BorderRadius.circular(
+                                AppRadius.pill,
+                              ),
                             ),
                             child: Text(
                               '${selected.length}',
                               style: TextStyle(
-                                color:
-                                    Theme.of(context).colorScheme.onPrimary,
+                                color: Theme.of(context).colorScheme.onPrimary,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 12,
                               ),
@@ -1284,12 +1257,12 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                           onPressed: wards.isEmpty
                               ? null
                               : () => setState(() {
-                                    if (selected.length == wards.length) {
-                                      selected.clear();
-                                    } else {
-                                      selected.addAll(wards);
-                                    }
-                                  }),
+                                  if (selected.length == wards.length) {
+                                    selected.clear();
+                                  } else {
+                                    selected.addAll(wards);
+                                  }
+                                }),
                           child: Text(
                             selected.length == wards.length
                                 ? l10n.homeSearchClearAll
@@ -1347,6 +1320,13 @@ String _timeRangeLabel(AppLocalizations l10n, SessionTimeRange value) =>
       SessionTimeRange.night => l10n.sessionFilterNight,
     };
 
+IconData _timeRangeIcon(SessionTimeRange value) => switch (value) {
+  SessionTimeRange.morning => AppIcons.light,
+  SessionTimeRange.afternoon => AppIcons.light,
+  SessionTimeRange.evening => AppIcons.clock,
+  SessionTimeRange.night => AppIcons.dark,
+};
+
 String _sourceLabel(AppLocalizations l10n, SessionSource value) =>
     switch (value) {
       SessionSource.all => l10n.sessionSourceAll,
@@ -1359,6 +1339,15 @@ String _sportLabel(AppLocalizations l10n, SessionSport value) =>
       SessionSport.badminton => l10n.sessionSportBadminton,
       SessionSport.pickleball => l10n.sessionSportPickleball,
     };
+
+/// Sentinel returned by the date picker sheet when "Xong" is pressed with
+/// the "Tất cả ngày" preset active, distinguishing that from a cancelled
+/// sheet (which pops `null` and leaves the current filter untouched).
+class _AllDatesSelection {
+  const _AllDatesSelection();
+}
+
+const _allDatesSelection = _AllDatesSelection();
 
 class _PresetChip extends StatelessWidget {
   const _PresetChip({
@@ -1381,8 +1370,8 @@ class _PresetChip extends StatelessWidget {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm + 2,
-          vertical: AppSpacing.xs,
+          horizontal: AppSpacing.md - 4,
+          vertical: AppSpacing.xs + 2,
         ),
         decoration: BoxDecoration(
           color: isSelected

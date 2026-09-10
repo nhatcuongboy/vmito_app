@@ -32,8 +32,9 @@ class AppFilterCountBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final bgColor =
-        isRed ? scheme.error : scheme.primary.withValues(alpha: .12);
+    final bgColor = isRed
+        ? scheme.error
+        : scheme.primary.withValues(alpha: .12);
     final textColor = isRed ? scheme.onError : scheme.primary;
     return Container(
       width: 22,
@@ -47,6 +48,155 @@ class AppFilterCountBadge extends StatelessWidget {
           fontWeight: FontWeight.w700,
           fontSize: 11,
         ),
+      ),
+    );
+  }
+}
+
+/// A single selectable filter chip, shared by [AppFilterOptionGroup] and any
+/// standalone toggle chip (e.g. the "Còn chỗ trống" / "Gần tôi" quick
+/// filters) so every chip in a filter sheet renders with identical padding
+/// and label styling instead of each call site re-declaring its own
+/// [FilterChip] parameters.
+class AppFilterChip extends StatelessWidget {
+  const AppFilterChip({
+    required this.label,
+    required this.selected,
+    required this.onSelected,
+    this.avatar,
+    super.key,
+  });
+
+  final String label;
+  final bool selected;
+  final ValueChanged<bool>? onSelected;
+  final Widget? avatar;
+
+  /// Left equals right and top equals bottom so the avatar+label group
+  /// sits centered in the chip; the tighter avatar-to-label gap is
+  /// controlled separately via `labelPadding`, not this outer padding.
+  static const EdgeInsets padding = EdgeInsets.symmetric(
+    horizontal: AppSpacing.sm + 4,
+    vertical: AppSpacing.sm + 2,
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
+    final scheme = theme.colorScheme;
+    final hasLeading = avatar != null;
+    final leading = avatar == null
+        ? null
+        : SizedBox.square(
+            dimension: 18,
+            child: Center(child: avatar),
+          );
+
+    return FilterChip(
+      avatar: leading,
+      label: Text(label),
+      labelStyle: TextStyle(
+        color: selected ? scheme.primary : scheme.onSurface,
+        fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+        height: 1.0,
+      ),
+      labelPadding: EdgeInsets.only(left: hasLeading ? 4 : 4, right: 4),
+      selected: selected,
+      showCheckmark: false,
+      backgroundColor: theme.colorScheme.surface,
+      selectedColor: scheme.primary.withValues(alpha: .12),
+      side: BorderSide(
+        color: selected ? scheme.primary : palette.border,
+        width: selected ? 1.5 : 1.0,
+      ),
+      padding: padding,
+      onSelected: onSelected,
+    );
+  }
+}
+
+/// The reset/apply (or cancel/done) button pair used at the bottom of every
+/// filter sheet and picker. A [LayoutBuilder] — rather than Flexible/
+/// Expanded flex ratios — lets the secondary button hug its own content
+/// width and the primary button claim exactly what's left: Flutter's Row
+/// flex algorithm pre-allocates each flex child's share in a single pass, so
+/// an Expanded sibling can't reclaim space a smaller Flexible one didn't
+/// use, which used to strand the primary button short of the trailing edge.
+/// The [ConstrainedBox] still caps the secondary button's width (with a
+/// [FittedBox] scale-down fallback) so it can't push the primary button
+/// below a usable width at very large text scales.
+class AppSheetFooterButtons extends StatelessWidget {
+  const AppSheetFooterButtons({
+    required this.secondaryLabel,
+    required this.secondaryIcon,
+    required this.onSecondary,
+    required this.primaryLabel,
+    required this.primaryIcon,
+    required this.onPrimary,
+    this.secondaryKey,
+    this.primaryKey,
+    this.secondaryIsDestructive = false,
+    super.key,
+  });
+
+  final String secondaryLabel;
+  final IconData secondaryIcon;
+  final VoidCallback? onSecondary;
+  final String primaryLabel;
+  final IconData primaryIcon;
+  final VoidCallback? onPrimary;
+  final Key? secondaryKey;
+  final Key? primaryKey;
+  final bool secondaryIsDestructive;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final secondaryStyle = secondaryIsDestructive
+        ? OutlinedButton.styleFrom(
+            minimumSize: const Size(0, 48),
+            backgroundColor: theme.colorScheme.error.withValues(alpha: .08),
+            side: BorderSide(
+              color: theme.colorScheme.error.withValues(alpha: .3),
+            ),
+            foregroundColor: theme.colorScheme.error,
+          )
+        : OutlinedButton.styleFrom(minimumSize: const Size(0, 48));
+
+    return LayoutBuilder(
+      builder: (context, constraints) => Row(
+        children: [
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: constraints.maxWidth / 3),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: OutlinedButton.icon(
+                key: secondaryKey,
+                onPressed: onSecondary,
+                icon: Icon(secondaryIcon, size: 18),
+                label: Text(secondaryLabel),
+                style: secondaryStyle,
+              ),
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: FilledButton.icon(
+              key: primaryKey,
+              onPressed: onPrimary,
+              icon: Icon(primaryIcon, size: 18),
+              label: Text(primaryLabel),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size(0, 48),
+                textStyle: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -67,6 +217,7 @@ class AppFilterSheetScaffold extends StatelessWidget {
     this.applyButtonKey,
     this.closeButtonKey,
     this.actionsEnabled = true,
+    this.showActiveCount = true,
     super.key,
   });
 
@@ -83,11 +234,11 @@ class AppFilterSheetScaffold extends StatelessWidget {
   final Key? applyButtonKey;
   final Key? closeButtonKey;
   final bool actionsEnabled;
+  final bool showActiveCount;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final palette = theme.extension<AppPalette>()!;
     final size = MediaQuery.sizeOf(context);
     return AnimatedPadding(
       duration: const Duration(milliseconds: 180),
@@ -105,7 +256,7 @@ class AppFilterSheetScaffold extends StatelessWidget {
             children: [
               AppSheetHeader(
                 title: title,
-                titleTrailing: activeCount > 0
+                titleTrailing: showActiveCount && activeCount > 0
                     ? AppFilterCountBadge(
                         label: activeCountLabel ?? '$activeCount',
                         isRed: true,
@@ -122,40 +273,16 @@ class AppFilterSheetScaffold extends StatelessWidget {
                 ),
               ),
               AppSheetActionBar(
-                child: Row(
-                  children: [
-                    Flexible(
-                      child: OutlinedButton.icon(
-                        key: resetButtonKey,
-                        onPressed: actionsEnabled ? onReset : null,
-                        icon: const Icon(AppIcons.history, size: 18),
-                        label: Text(resetLabel),
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(0, 48),
-                          side: BorderSide(
-                            color: theme.colorScheme.outlineVariant,
-                          ),
-                          foregroundColor: palette.mutedForeground,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      flex: 2,
-                      child: FilledButton.icon(
-                        key: applyButtonKey,
-                        onPressed: actionsEnabled ? onApply : null,
-                        icon: const Icon(AppIcons.search, size: 18),
-                        label: Text(applyLabel),
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size(0, 48),
-                          textStyle: theme.textTheme.labelLarge?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                child: AppSheetFooterButtons(
+                  secondaryKey: resetButtonKey,
+                  secondaryLabel: resetLabel,
+                  secondaryIcon: AppIcons.history,
+                  secondaryIsDestructive: true,
+                  onSecondary: actionsEnabled ? onReset : null,
+                  primaryKey: applyButtonKey,
+                  primaryLabel: applyLabel,
+                  primaryIcon: AppIcons.search,
+                  onPrimary: actionsEnabled ? onApply : null,
                 ),
               ),
             ],
@@ -200,13 +327,20 @@ class _AppFilterSectionState extends State<AppFilterSection> {
     final theme = Theme.of(context);
     final palette = theme.extension<AppPalette>()!;
     final count = widget.selectedCount ?? 0;
+    // The badge sits directly against the title (not pinned to the far
+    // right of the row) — Flexible, not Expanded, so title+badge cluster
+    // together and any leftover width trails after them instead of
+    // stranding the badge far from its label. A trailing Spacer only
+    // appears when there's a summary or chevron to push to the row's edge.
+    final hasTrailing =
+        (count == 0 && widget.summary != null) || widget.collapsible;
     final header = Row(
       children: [
         if (widget.icon case final icon?) ...[
           Icon(icon, size: 19, color: theme.colorScheme.primary),
           const SizedBox(width: AppSpacing.sm),
         ],
-        Expanded(
+        Flexible(
           child: Text(
             widget.title,
             style: theme.textTheme.titleSmall?.copyWith(
@@ -216,6 +350,11 @@ class _AppFilterSectionState extends State<AppFilterSection> {
             overflow: TextOverflow.ellipsis,
           ),
         ),
+        if (count > 0) ...[
+          const SizedBox(width: AppSpacing.xs),
+          AppFilterCountBadge(label: '$count', isRed: true),
+        ],
+        if (hasTrailing) const Spacer(),
         if (count == 0)
           if (widget.summary case final summary?)
             Flexible(
@@ -232,10 +371,6 @@ class _AppFilterSectionState extends State<AppFilterSection> {
         if (widget.collapsible) ...[
           const SizedBox(width: AppSpacing.xs),
           Icon(_expanded ? AppIcons.chevronUp : AppIcons.chevronDown, size: 20),
-        ],
-        if (count > 0) ...[
-          const SizedBox(width: AppSpacing.xs),
-          AppFilterCountBadge(label: '$count', isRed: true),
         ],
       ],
     );
@@ -315,7 +450,7 @@ class AppFilterOptionGroup<T> extends StatelessWidget {
 
     return Wrap(
       spacing: AppSpacing.sm,
-      runSpacing: AppSpacing.sm,
+      runSpacing: AppSpacing.xxs,
       children: [
         for (final value in values) ...[
           Builder(
@@ -340,30 +475,11 @@ class AppFilterOptionGroup<T> extends StatelessWidget {
                         )
                       : null);
 
-              final hasLeading = avatar != null;
-
-              return FilterChip(
+              return AppFilterChip(
                 key: itemKey?.call(value),
-                avatar: avatar,
-                label: Text(label(value)),
-                labelStyle: TextStyle(
-                  color: isSelected ? scheme.primary : scheme.onSurface,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                  height: 1.0,
-                ),
-                labelPadding: EdgeInsets.only(
-                  left: hasLeading ? 2.0 : 4.0,
-                  right: 4.0,
-                ),
+                label: label(value),
                 selected: isSelected,
-                showCheckmark: false,
-                backgroundColor: theme.colorScheme.surface,
-                selectedColor: scheme.primary.withValues(alpha: .12),
-                side: BorderSide(
-                  color: isSelected ? scheme.primary : palette.border,
-                  width: isSelected ? 1.5 : 1.0,
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+                avatar: avatar,
                 onSelected: enabled ? (_) => onSelected(value) : null,
               );
             },

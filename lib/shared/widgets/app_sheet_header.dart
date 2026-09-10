@@ -101,12 +101,27 @@ class AppSheetHeader extends StatelessWidget {
                 const SizedBox(width: AppSpacing.sm),
               ],
               Expanded(
+                // titleTrailing (e.g. a filter-count badge) sits in its own
+                // mainAxisSize.min row right next to the title text, not
+                // pushed out to the header's far edge — only the close
+                // button stays pinned there, via the outer Expanded.
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      title,
-                      style: titleTextStyle(context),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            title,
+                            style: titleTextStyle(context),
+                          ),
+                        ),
+                        if (titleTrailing case final trailing?) ...[
+                          const SizedBox(width: AppSpacing.sm),
+                          trailing,
+                        ],
+                      ],
                     ),
                     if (subtitle case final subtitle?)
                       Padding(
@@ -121,10 +136,6 @@ class AppSheetHeader extends StatelessWidget {
                   ],
                 ),
               ),
-              if (titleTrailing case final trailing?) ...[
-                const SizedBox(width: AppSpacing.sm),
-                trailing,
-              ],
               if (showCloseButton)
                 IconButton(
                   key: closeButtonKey,

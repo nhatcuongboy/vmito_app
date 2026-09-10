@@ -394,6 +394,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     HomeDiscoveryTab.clubs => switch (clubsState.sortBy) {
       'name' => l10n.homeDiscoverySortNameAsc,
       'createdAt' => l10n.homeDiscoverySortNewest,
+      'distance' => l10n.homeDiscoverySortNearest,
       _ => l10n.homeDiscoverySortPopular,
     },
     HomeDiscoveryTab.tournaments => switch (tournamentState.sort) {
@@ -414,7 +415,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       sessionState.filters.sort != SessionBrowseSort.dateAsc,
     HomeDiscoveryTab.venues =>
       venueState.filter.sortBy != VenueSortOption.distance.value,
-    HomeDiscoveryTab.clubs => clubsState.sortBy != 'sessionCount',
+    HomeDiscoveryTab.clubs => clubsState.sortBy != 'distance',
     HomeDiscoveryTab.tournaments =>
       tournamentState.sort != TournamentBrowseSort.startAsc,
   };
@@ -432,6 +433,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     HomeDiscoveryTab.clubs => switch (clubsState.sortBy) {
       'name' => AppIcons.sortAlpha,
       'createdAt' => AppIcons.calendarArrowDown,
+      'distance' => AppIcons.location,
       _ => AppIcons.trendingUp,
     },
     HomeDiscoveryTab.tournaments => switch (tournamentState.sort) {
@@ -534,6 +536,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           selected: current.sortBy,
           options: [
             AppSortOption(
+              value: 'distance',
+              label: l10n.homeDiscoverySortNearest,
+              icon: AppIcons.location,
+            ),
+            AppSortOption(
               value: 'sessionCount',
               label: l10n.homeDiscoverySortPopular,
               icon: AppIcons.trendingUp,
@@ -550,9 +557,31 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
           ],
         );
-        if (selected != null) {
-          unawaited(controller.load(search: current.search, sortBy: selected));
+        if (selected == null) return;
+        if (selected == 'distance' &&
+            (current.latitude == null || current.longitude == null)) {
+          try {
+            final coordinates = await ref
+                .read(deviceLocationServiceProvider)
+                .call();
+            unawaited(
+              controller.load(
+                search: current.search,
+                sortBy: 'distance',
+                latitude: coordinates.latitude,
+                longitude: coordinates.longitude,
+              ),
+            );
+          } on Object {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(l10n.venueFilterLocationDenied)),
+              );
+            }
+          }
+          return;
         }
+        unawaited(controller.load(search: current.search, sortBy: selected));
       case HomeDiscoveryTab.tournaments:
         final controller = ref.read(
           tournamentBrowseControllerProvider.notifier,
@@ -608,6 +637,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     );
     if (!mounted || result == null) return;
+    // "Xem tất cả" on the clubs "Nhóm nổi bật" section is just a sort
+    // shortcut: apply the popular sort to the plain browse list but keep the
+    // default header instead of switching to the featured results app bar.
+    if (result is HomeSearchPreset && tab == HomeDiscoveryTab.clubs) {
+      unawaited(ref.read(homeDiscoveryPresetsProvider).apply(tab));
+      return;
+    }
     // The first outcome snapshots the plain browse list; later ones replace
     // each other, so back always returns to what the user left.
     _browseSnapshots.putIfAbsent(tab, () => _snapshot(tab));

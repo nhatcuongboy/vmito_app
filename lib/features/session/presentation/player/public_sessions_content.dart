@@ -22,6 +22,7 @@ import 'package:vmito_app/features/social/domain/public_profile.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_loading_view.dart';
 import 'package:vmito_app/shared/widgets/app_paginated_list_view.dart';
+import 'package:vmito_app/shared/widgets/app_skeleton.dart';
 import 'package:vmito_app/shared/widgets/discovery_map_toggle.dart';
 
 /// Public-session browser embedded in Home discovery.
@@ -308,21 +309,21 @@ class _SessionListSkeleton extends StatelessWidget {
   const _SessionListSkeleton();
 
   @override
-  Widget build(BuildContext context) => ListView.separated(
-    key: const Key('browse-sessions-skeleton-list'),
-    physics: const AlwaysScrollableScrollPhysics(),
-    padding: const EdgeInsets.fromLTRB(
+  Widget build(BuildContext context) => const AppSkeletonList(
+    listKey: Key('browse-sessions-skeleton-list'),
+    itemExtentEstimate: 190,
+    padding: EdgeInsets.fromLTRB(
       AppSpacing.md,
       AppSpacing.md,
       AppSpacing.md,
       88,
     ),
-    itemCount: 3,
-    separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
-    itemBuilder: (_, _) => const SessionCardSkeleton(
-      variant: SessionCardVariant.browse,
-      showFavorite: true,
-    ),
+    itemBuilder: _buildCard,
+  );
+
+  static Widget _buildCard(BuildContext context) => const SessionCardSkeleton(
+    variant: SessionCardVariant.browse,
+    showFavorite: true,
   );
 }
 

@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/constants/image_constants.dart';
+import 'package:vmito_app/core/location/device_location_service.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/tab_reselection_controller.dart';
@@ -23,6 +24,7 @@ import 'package:vmito_app/features/venue/presentation/venue_filter_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_filter_sheet.dart';
 import 'package:vmito_app/shared/widgets/app_paginated_list_view.dart';
+import 'package:vmito_app/shared/widgets/app_skeleton.dart';
 import 'package:vmito_app/shared/widgets/discovery_entity_map_view.dart';
 import 'package:vmito_app/shared/widgets/discovery_map_toggle.dart';
 
@@ -54,6 +56,7 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
   Timer? _debounce;
   VoidCallback? _removeReselectHandler;
   var _showMap = false;
+
   @override
   void initState() {
     super.initState();
@@ -66,21 +69,59 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
             onReselect: () => scrollToTop(_scroll),
           );
     }
-    unawaited(
-      Future<void>.microtask(
-        () => ref
-            .read(venueBrowseControllerProvider.notifier)
-            .load(
-              filter:
-                  widget.initialFilter ??
-                  VenueFilter(
-                    city: ref
-                        .read(locationPreferencesControllerProvider)
-                        .preferredCity,
-                  ),
-            ),
-      ),
-    );
+    unawaited(Future<void>.microtask(_loadInitial));
+  }
+
+  /// Loads the first page with coordinates resolved beforehand when sorting by distance.
+  ///
+  /// The default sort is "Gần tôi nhất" (distance), which the backend only honours when
+  /// coordinates are attached. Resolving coordinates before issuing the load avoids
+  /// firing an uncoordinated request followed immediately by a coordinated re-sort,
+  /// preventing double fetching and UI flickering.
+  Future<void> _loadInitial() async {
+    final controller = ref.read(venueBrowseControllerProvider.notifier);
+    final currentState = ref.read(venueBrowseControllerProvider);
+    final preferredCity =
+        ref.read(locationPreferencesControllerProvider).preferredCity;
+    var filter =
+        widget.initialFilter ??
+        VenueFilter(
+          city: preferredCity,
+          latitude: currentState.filter.latitude,
+          longitude: currentState.filter.longitude,
+        );
+
+    // Reuse existing coordinates if the filter does not have them yet.
+    if (filter.latitude == null && filter.longitude == null) {
+      if (currentState.filter.latitude != null &&
+          currentState.filter.longitude != null) {
+        filter = filter.copyWith(
+          latitude: currentState.filter.latitude,
+          longitude: currentState.filter.longitude,
+        );
+      }
+    }
+
+    final needsLocation =
+        filter.sortBy == VenueSortOption.distance.value &&
+        (filter.latitude == null || filter.longitude == null);
+
+    if (needsLocation) {
+      try {
+        final coordinates =
+            await ref.read(deviceLocationServiceProvider).call();
+        filter = filter.copyWith(
+          latitude: coordinates.latitude,
+          longitude: coordinates.longitude,
+        );
+      } on Object {
+        // No position available (permission denied, no fix).
+        // Keep the filter as-is rather than surfacing an error on a silent background step.
+      }
+    }
+
+    if (!mounted) return;
+    await controller.load(filter: filter);
   }
 
   @override
@@ -372,14 +413,12 @@ class _VenueListSkeleton extends StatelessWidget {
   const _VenueListSkeleton();
 
   @override
-  Widget build(BuildContext context) => ListView.separated(
-    key: const Key('venue-skeleton-list'),
-    physics: const AlwaysScrollableScrollPhysics(),
-    padding: const EdgeInsets.all(AppSpacing.screenPadding),
-    itemCount: 3,
-    separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
-    itemBuilder: (_, _) => const VenueCardSkeleton(),
+  Widget build(BuildContext context) => const AppSkeletonList(
+    listKey: Key('venue-skeleton-list'),
+    itemBuilder: _buildCard,
   );
+
+  static Widget _buildCard(BuildContext context) => const VenueCardSkeleton();
 }
 
 class _VenueFilterSummary extends StatelessWidget {

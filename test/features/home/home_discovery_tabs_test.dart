@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:vmito_app/core/location/device_location_service.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/location/new_admin_units.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
@@ -201,6 +202,12 @@ void main() {
           clubsControllerProvider.overrideWith(_FakeClubsController.new),
           tournamentBrowseControllerProvider.overrideWith(
             _FakeTournamentsController.new,
+          ),
+          deviceLocationServiceProvider.overrideWithValue(
+            () async => const DeviceCoordinates(
+              latitude: 10.7769,
+              longitude: 106.7009,
+            ),
           ),
         ],
         child: MaterialApp(
@@ -1023,6 +1030,12 @@ void main() {
           ),
           venueBrowseControllerProvider.overrideWith(
             _FakeVenuesController.new,
+          ),
+          deviceLocationServiceProvider.overrideWithValue(
+            () async => const DeviceCoordinates(
+              latitude: 10.7769,
+              longitude: 106.7009,
+            ),
           ),
         ],
         child: MaterialApp(

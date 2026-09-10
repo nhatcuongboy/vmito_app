@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:vmito_app/core/location/device_location_service.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
@@ -53,7 +54,7 @@ void main() {
       await tester.pump();
 
       expect(find.byKey(const Key('venue-skeleton-list')), findsOneWidget);
-      expect(find.byType(VenueCardSkeleton), findsNWidgets(3));
+      expect(find.byType(VenueCardSkeleton), findsAtLeastNWidgets(3));
       expect(find.byType(CircularProgressIndicator), findsNothing);
       expect(find.byKey(const Key('venue-map-view-toggle')), findsOneWidget);
     });
@@ -366,7 +367,79 @@ void main() {
         );
       },
     );
+
+    testWidgets(
+      'resolves location before initial load and issues only a single load',
+      (tester) async {
+        final controller = _RecordingVenueBrowseController(
+          const VenueBrowseState(),
+        );
+
+        await tester.pumpWidget(
+          buildApp(
+            const BrowseVenuesScreen(embedded: true),
+            overrides: [
+              venueBrowseControllerProvider.overrideWith(() => controller),
+              deviceLocationServiceProvider.overrideWithValue(
+                () async => const DeviceCoordinates(
+                  latitude: 10.7769,
+                  longitude: 106.7009,
+                ),
+              ),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(controller.loadedFilters.length, 1);
+        expect(controller.loadedFilters.first?.sortBy, 'distance');
+        expect(controller.loadedFilters.first?.latitude, 10.7769);
+        expect(controller.loadedFilters.first?.longitude, 106.7009);
+      },
+    );
+
+    testWidgets(
+      'loads once with distance sort if device location resolution fails',
+      (tester) async {
+        final controller = _RecordingVenueBrowseController(
+          const VenueBrowseState(),
+        );
+
+        await tester.pumpWidget(
+          buildApp(
+            const BrowseVenuesScreen(embedded: true),
+            overrides: [
+              venueBrowseControllerProvider.overrideWith(() => controller),
+              deviceLocationServiceProvider.overrideWithValue(
+                () async => throw const LocationPermissionException(),
+              ),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        expect(controller.loadedFilters.length, 1);
+        expect(controller.loadedFilters.first?.sortBy, 'distance');
+        expect(controller.loadedFilters.first?.latitude, isNull);
+        expect(controller.loadedFilters.first?.longitude, isNull);
+      },
+    );
   });
+}
+
+class _RecordingVenueBrowseController extends VenueBrowseController {
+  _RecordingVenueBrowseController(this._initialState);
+  final VenueBrowseState _initialState;
+  final List<VenueFilter?> loadedFilters = [];
+
+  @override
+  VenueBrowseState build() => _initialState;
+
+  @override
+  Future<void> load({VenueFilter? filter}) async {
+    loadedFilters.add(filter ?? state.filter);
+    state = state.copyWithFilter(filter ?? state.filter);
+  }
 }
 
 class _FakeVenueBrowseController extends VenueBrowseController {

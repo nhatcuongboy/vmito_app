@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/constants/image_constants.dart';
+import 'package:vmito_app/core/location/device_location_service.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/tab_reselection_controller.dart';
@@ -20,6 +21,8 @@ import 'package:vmito_app/features/social/presentation/club_schedule_formatter.d
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_empty_filter_sheet.dart';
 import 'package:vmito_app/shared/widgets/app_paginated_list_view.dart';
+import 'package:vmito_app/shared/widgets/app_skeleton.dart';
+import 'package:vmito_app/shared/widgets/app_sort_selector.dart';
 import 'package:vmito_app/shared/widgets/discovery_entity_map_view.dart';
 import 'package:vmito_app/shared/widgets/discovery_map_toggle.dart';
 
@@ -49,6 +52,7 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
   Timer? _timer;
   VoidCallback? _removeReselectHandler;
   var _showMap = false;
+
   @override
   void initState() {
     super.initState();
@@ -65,17 +69,43 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
             onReselect: () => scrollToTop(_scroll),
           );
     }
-    unawaited(
-      Future<void>.microtask(
-        () => ref
-            .read(clubsControllerProvider.notifier)
-            .load(
-              search: widget.initialSearch,
-              city: ref
-                  .read(locationPreferencesControllerProvider)
-                  .preferredCity,
-            ),
-      ),
+    unawaited(Future<void>.microtask(_loadInitial));
+  }
+
+  /// Loads the first page with coordinates resolved beforehand when sorting by distance.
+  ///
+  /// The default sort is "Gần tôi nhất" (distance), which the backend only honours with
+  /// coordinates attached. Resolving coordinates before issuing the load avoids
+  /// firing an uncoordinated request followed immediately by a coordinated re-sort.
+  Future<void> _loadInitial() async {
+    final controller = ref.read(clubsControllerProvider.notifier);
+    final city = ref.read(locationPreferencesControllerProvider).preferredCity;
+    final currentState = ref.read(clubsControllerProvider);
+    var latitude = currentState.latitude;
+    var longitude = currentState.longitude;
+
+    final needsLocation =
+        currentState.sortBy == 'distance' &&
+        (latitude == null || longitude == null);
+
+    if (needsLocation) {
+      try {
+        final coordinates =
+            await ref.read(deviceLocationServiceProvider).call();
+        latitude = coordinates.latitude;
+        longitude = coordinates.longitude;
+      } on Object {
+        // No position available (permission denied, no fix). Keep the first
+        // page as-is rather than surfacing an error on a silent background step.
+      }
+    }
+
+    if (!mounted) return;
+    await controller.load(
+      search: widget.initialSearch,
+      city: city,
+      latitude: latitude,
+      longitude: longitude,
     );
   }
 
@@ -227,38 +257,63 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
     );
   }
 
-  Future<void> _sort() => showModalBottomSheet<void>(
-    context: context,
-    builder: (context) => SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const ListTile(
-            title: Text(
-              'Sắp xếp',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
+  Future<void> _sort() async {
+    final l10n = AppLocalizations.of(context);
+    final controller = ref.read(clubsControllerProvider.notifier);
+    final current = ref.read(clubsControllerProvider);
+    final selected = await showAppSortSheet<String>(
+      context,
+      title: l10n.homeDiscoverySortBy,
+      selected: current.sortBy,
+      options: [
+        AppSortOption(
+          value: 'distance',
+          label: l10n.homeDiscoverySortNearest,
+          icon: AppIcons.location,
+        ),
+        AppSortOption(
+          value: 'sessionCount',
+          label: l10n.homeDiscoverySortPopular,
+          icon: AppIcons.trendingUp,
+        ),
+        AppSortOption(
+          value: 'createdAt',
+          label: l10n.homeDiscoverySortNewest,
+          icon: AppIcons.calendarArrowDown,
+        ),
+        AppSortOption(
+          value: 'name',
+          label: l10n.homeDiscoverySortNameAsc,
+          icon: AppIcons.sortAlpha,
+        ),
+      ],
+    );
+    if (selected == null || !mounted) return;
+    if (selected == 'distance' &&
+        (current.latitude == null || current.longitude == null)) {
+      try {
+        final coordinates = await ref
+            .read(deviceLocationServiceProvider)
+            .call();
+        unawaited(
+          controller.load(
+            search: current.search,
+            sortBy: 'distance',
+            latitude: coordinates.latitude,
+            longitude: coordinates.longitude,
           ),
-          for (final option in const [
-            ('Phổ biến nhất', 'sessionCount'),
-            ('Mới nhất', 'createdAt'),
-            ('Tên A–Z', 'name'),
-          ])
-            ListTile(
-              title: Text(option.$1),
-              onTap: () {
-                Navigator.pop(context);
-                unawaited(
-                  ref
-                      .read(clubsControllerProvider.notifier)
-                      .load(search: ref.read(clubsControllerProvider).search),
-                );
-              },
-            ),
-        ],
-      ),
-    ),
-  );
+        );
+      } on Object {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(l10n.venueFilterLocationDenied)),
+          );
+        }
+      }
+      return;
+    }
+    unawaited(controller.load(search: current.search, sortBy: selected));
+  }
 
   List<DiscoveryMapItem> _mapItems(List<ClubSummary> clubs) => clubs
       .where((club) => club.defaultVenue?.hasCoordinates ?? false)
@@ -296,14 +351,13 @@ class _ClubListSkeleton extends StatelessWidget {
   const _ClubListSkeleton();
 
   @override
-  Widget build(BuildContext context) => ListView.separated(
-    key: const Key('club-skeleton-list'),
-    physics: const AlwaysScrollableScrollPhysics(),
-    padding: const EdgeInsets.all(AppSpacing.screenPadding),
-    itemCount: 3,
-    separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
-    itemBuilder: (_, _) => const ClubBrowseCardSkeleton(),
+  Widget build(BuildContext context) => const AppSkeletonList(
+    listKey: Key('club-skeleton-list'),
+    itemBuilder: _buildCard,
   );
+
+  static Widget _buildCard(BuildContext context) =>
+      const ClubBrowseCardSkeleton();
 }
 
 class _ClubBrowseCard extends StatelessWidget {

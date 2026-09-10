@@ -37,7 +37,7 @@ void main() {
       find.byKey(const Key('browse-sessions-skeleton-list')),
       findsOneWidget,
     );
-    expect(find.byType(SessionCardSkeleton), findsNWidgets(3));
+    expect(find.byType(SessionCardSkeleton), findsAtLeastNWidgets(3));
     expect(find.byType(AppLoadingView), findsNothing);
   });
 }

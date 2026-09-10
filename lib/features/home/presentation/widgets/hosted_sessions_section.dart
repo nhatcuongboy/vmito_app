@@ -33,12 +33,16 @@ class HostedSessionsSection extends ConsumerWidget {
         sessions.when(
           skipLoadingOnReload: true,
           skipLoadingOnRefresh: true,
-          loading: () => const Column(
-            children: [
-              SessionCardSkeleton(showHostInfo: false),
-              SizedBox(height: AppSpacing.md),
-              SessionCardSkeleton(showHostInfo: false),
-            ],
+          loading: () => Semantics(
+            container: true,
+            label: l10n.commonLoading,
+            child: const Column(
+              children: [
+                SessionCardSkeleton(showHostInfo: false),
+                SizedBox(height: AppSpacing.md),
+                SessionCardSkeleton(showHostInfo: false),
+              ],
+            ),
           ),
           error: (error, _) => AppErrorView(
             error: error,

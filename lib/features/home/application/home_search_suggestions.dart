@@ -97,6 +97,10 @@ class ApiHomeSearchSuggestionService implements HomeSearchSuggestionService {
       HomeDiscoveryTab.clubs => _clubs(
         ClubsState(
           city: presets.city,
+          // The featured list is "Nhóm nổi bật" — pin the popular sort so the
+          // preview matches what "Xem tất cả" applies, regardless of the
+          // browse list's current (distance) sort.
+          sortBy: HomeDiscoveryPresets.clubSort,
           latitude: _ref.read(clubsControllerProvider).latitude,
           longitude: _ref.read(clubsControllerProvider).longitude,
         ),

@@ -30,6 +30,7 @@ import 'package:vmito_app/shared/models/session_player.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
 import 'package:vmito_app/shared/widgets/app_loading_view.dart';
 import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
+import 'package:vmito_app/shared/widgets/app_skeleton.dart';
 import 'package:vmito_app/shared/widgets/app_sort_selector.dart';
 
 /// Authenticated hub for sessions the current user hosts or has joined.
@@ -761,13 +762,10 @@ class _MySessionsSkeleton extends StatelessWidget {
   final MySessionScope scope;
 
   @override
-  Widget build(BuildContext context) => ListView.separated(
-    key: const Key('my-sessions-skeleton-list'),
-    physics: const AlwaysScrollableScrollPhysics(),
-    padding: const EdgeInsets.all(AppSpacing.md),
-    itemCount: 3,
-    separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
-    itemBuilder: (_, _) => SessionCardSkeleton(
+  Widget build(BuildContext context) => AppSkeletonList(
+    listKey: const Key('my-sessions-skeleton-list'),
+    itemExtentEstimate: 220,
+    itemBuilder: (context) => SessionCardSkeleton(
       showHostInfo: scope != MySessionScope.hosted,
       showActions: true,
     ),

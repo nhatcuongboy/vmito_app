@@ -194,7 +194,10 @@ class ClubsState {
     this.error,
     this.city,
     this.district,
-    this.sortBy = 'sessionCount',
+    // "Gần tôi nhất" by default, matching the web client. Coordinates are
+    // resolved on the browse screen; the backend only distance-sorts once
+    // lat/lng are attached.
+    this.sortBy = 'distance',
     this.favoriteOnly = false,
     this.latitude,
     this.longitude,
@@ -357,6 +360,10 @@ class ClubsController extends Notifier<ClubsState> {
 List<ClubSummary> sortClubs(List<ClubSummary> clubs, String sortBy) {
   final sorted = [...clubs];
   switch (sortBy) {
+    case 'distance':
+      // Trust the server's nearest-first ordering; re-sorting client-side
+      // would only corrupt it when a page omits the computed distance.
+      break;
     case 'name':
       sorted.sort(
         (first, second) => first.name.toLowerCase().compareTo(

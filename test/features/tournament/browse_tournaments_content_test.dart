@@ -46,7 +46,10 @@ void main() {
     await tester.pump();
 
     expect(find.byKey(const Key('tournament-skeleton-list')), findsOneWidget);
-    expect(find.byType(TournamentBrowseCardSkeleton), findsNWidgets(3));
+    expect(
+      find.byType(TournamentBrowseCardSkeleton),
+      findsAtLeastNWidgets(3),
+    );
     expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(find.byKey(const Key('tournament-map-view-toggle')), findsOneWidget);
   });
