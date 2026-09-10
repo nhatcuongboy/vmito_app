@@ -1013,7 +1013,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(VenueFilterSheet), findsOneWidget);
-    expect(find.text('Lọc và sắp xếp'), findsOneWidget);
+    expect(find.text('Bộ lọc'), findsOneWidget);
   });
 
   testWidgets('Home can open with venues selected from routing state', (

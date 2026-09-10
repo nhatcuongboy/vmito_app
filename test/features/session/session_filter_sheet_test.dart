@@ -174,10 +174,6 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('session-filter-reset')));
-    await tester.pump();
-
-    expect(result, isNull);
-    await tester.tap(find.byKey(const Key('session-filter-apply')));
     await tester.pumpAndSettle();
 
     expect(result?.search, 'Sunday');

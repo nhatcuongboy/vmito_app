@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
+import 'package:vmito_app/core/theme/app_typography.dart';
 import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 
 class AppSortOption<T> {
@@ -49,12 +50,13 @@ class AppSortSelector extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10),
         visualDensity: VisualDensity.compact,
         foregroundColor: foregroundColor,
+        textStyle: AppTypography.chipLabel(theme.textTheme, isActive: isActive),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 18),
-          const SizedBox(width: 6),
+          Icon(icon, size: 16),
+          const SizedBox(width: 5),
           Flexible(
             child: Text(
               label,
@@ -62,7 +64,7 @@ class AppSortSelector extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 3),
           const Icon(AppIcons.chevronDown, size: 14),
         ],
       ),

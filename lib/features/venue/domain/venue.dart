@@ -287,37 +287,76 @@ class VenuePriceRule {
   final String? specificDate;
 }
 
+enum VenueSport {
+  badminton('BADMINTON'),
+  pickleball('PICKLEBALL');
+
+  const VenueSport(this.wireValue);
+  final String wireValue;
+
+  static VenueSport? fromWireValue(String? wireValue) {
+    if (wireValue == null) return null;
+    final upper = wireValue.toUpperCase();
+    for (final sport in values) {
+      if (sport.wireValue == upper) return sport;
+    }
+    return null;
+  }
+}
+
+enum VenueCourtCountFilter {
+  one(1, 1),
+  two(2, 2),
+  three(3, 3),
+  fourPlus(4, null);
+
+  const VenueCourtCountFilter(this.minCourts, this.maxCourts);
+  final int minCourts;
+  final int? maxCourts;
+}
+
 class VenueFilter {
   const VenueFilter({
     this.keyword = '',
     this.city,
     this.cityIsDefault = true,
     this.district,
+    this.districts = const {},
     this.sortBy = 'distance',
     this.favoriteOnly = false,
     this.latitude,
     this.longitude,
     this.sportType,
+    this.sports = const {},
+    this.courtCount,
   });
+
   final String keyword;
   final String? city;
   final bool cityIsDefault;
   final String? district;
+  final Set<String> districts;
   final String sortBy;
   final bool favoriteOnly;
   final double? latitude;
   final double? longitude;
   final String? sportType;
+  final Set<VenueSport> sports;
+  final VenueCourtCountFilter? courtCount;
 
   int activeCount({String? preferredCity}) {
     final normalizedCity = city?.trim();
     final normalizedPreferredCity = preferredCity?.trim();
+    final hasDistricts =
+        districts.isNotEmpty || (district?.trim().isNotEmpty ?? false);
     return (normalizedCity == null ||
                 normalizedCity.isEmpty ||
                 normalizedCity == normalizedPreferredCity
             ? 0
             : 1) +
-        (district?.trim().isEmpty ?? true ? 0 : 1) +
+        (hasDistricts ? (districts.isNotEmpty ? districts.length : 1) : 0) +
+        sports.length +
+        (courtCount != null ? 1 : 0) +
         (favoriteOnly ? 1 : 0);
   }
 
@@ -326,23 +365,34 @@ class VenueFilter {
     String? city,
     bool? cityIsDefault,
     String? district,
+    Set<String>? districts,
     String? sortBy,
     bool? favoriteOnly,
     double? latitude,
     double? longitude,
     String? sportType,
+    Set<VenueSport>? sports,
+    VenueCourtCountFilter? courtCount,
     bool clearLocation = false,
     bool clearCity = false,
     bool clearDistrict = false,
+    bool clearDistricts = false,
+    bool clearSports = false,
+    bool clearCourtCount = false,
   }) => VenueFilter(
     keyword: keyword ?? this.keyword,
     city: clearCity ? null : city ?? this.city,
     cityIsDefault: cityIsDefault ?? this.cityIsDefault,
     district: clearDistrict ? null : district ?? this.district,
+    districts: (clearDistricts || clearDistrict)
+        ? const {}
+        : districts ?? this.districts,
     sortBy: sortBy ?? this.sortBy,
     favoriteOnly: favoriteOnly ?? this.favoriteOnly,
     latitude: clearLocation ? null : latitude ?? this.latitude,
     longitude: clearLocation ? null : longitude ?? this.longitude,
     sportType: sportType ?? this.sportType,
+    sports: clearSports ? const {} : sports ?? this.sports,
+    courtCount: clearCourtCount ? null : courtCount ?? this.courtCount,
   );
 }

@@ -73,12 +73,23 @@ class _ClubDiscoveryFilterSheetState extends State<ClubDiscoveryFilterSheet> {
     );
   }
 
+  void _reset() {
+    _form.reset(
+      value: {
+        _DiscoveryFilterControl.district: null,
+        _DiscoveryFilterControl.favorite: false,
+      },
+    );
+    _form.markAsUntouched();
+    Navigator.of(context).pop(const ClubDiscoveryFilters());
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return _FilterSheetFrame(
       title: l10n.homeDiscoveryClubFilters,
-      onReset: () => Navigator.of(context).pop(const ClubDiscoveryFilters()),
+      onReset: _reset,
       onApply: _submit,
       child: AppReactiveForm(
         formGroup: _form,

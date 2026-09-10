@@ -266,9 +266,6 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
                             .load(
                               filter: state.filter.copyWith(
                                 keyword: value,
-                                sortBy: value.isEmpty
-                                    ? state.filter.sortBy
-                                    : 'relevance',
                               ),
                             ),
                       );
@@ -439,9 +436,17 @@ class _VenueFilterSummary extends StatelessWidget {
     final district = filter.district?.trim();
     final hasCity =
         city != null && city.isNotEmpty && city != preferredCity?.trim();
-    final hasDistrict = district != null && district.isNotEmpty;
-    final hasSort = filter.sortBy != VenueSortOption.relevance.value;
-    if (!hasCity && !hasDistrict && !filter.favoriteOnly && !hasSort) {
+    final hasDistricts = filter.districts.isNotEmpty;
+    final hasDistrict = !hasDistricts && district != null && district.isNotEmpty;
+    final hasSports = filter.sports.isNotEmpty;
+    final hasCourtCount = filter.courtCount != null;
+    final hasSort = filter.sortBy != VenueSortOption.distance.value;
+    if (!hasCity &&
+        !hasDistrict &&
+        !hasDistricts &&
+        !hasSports &&
+        !hasCourtCount &&
+        !hasSort) {
       return const SizedBox.shrink();
     }
 
@@ -461,32 +466,72 @@ class _VenueFilterSummary extends StatelessWidget {
               label: VenueSortOption.fromValue(filter.sortBy).label(l10n),
               onDeleted: () => onChanged(
                 filter.copyWith(
-                  sortBy: VenueSortOption.relevance.value,
-                  clearLocation: true,
+                  sortBy: VenueSortOption.distance.value,
                 ),
               ),
+            ),
+          for (final sport in filter.sports)
+            _SummaryChip(
+              label: switch (sport) {
+                VenueSport.badminton => l10n.sessionSportBadminton,
+                VenueSport.pickleball => l10n.sessionSportPickleball,
+              },
+              onDeleted: () {
+                final nextSports = {...filter.sports}..remove(sport);
+                onChanged(
+                  filter.copyWith(
+                    sports: nextSports,
+                    clearSports: nextSports.isEmpty,
+                  ),
+                );
+              },
             ),
           if (hasCity)
             _SummaryChip(
               label: city,
               onDeleted: () => onChanged(
                 preferredCity == null
-                    ? filter.copyWith(clearCity: true, clearDistrict: true)
+                    ? filter.copyWith(
+                        clearCity: true,
+                        clearDistrict: true,
+                        clearDistricts: true,
+                      )
                     : filter.copyWith(
                         city: preferredCity,
                         clearDistrict: true,
+                        clearDistricts: true,
                       ),
               ),
             ),
-          if (hasDistrict)
+          if (hasDistricts)
+            for (final d in filter.districts)
+              _SummaryChip(
+                label: d,
+                onDeleted: () {
+                  final next = {...filter.districts}..remove(d);
+                  onChanged(
+                    filter.copyWith(
+                      districts: next,
+                      clearDistricts: next.isEmpty,
+                    ),
+                  );
+                },
+              )
+          else if (hasDistrict)
             _SummaryChip(
               label: district,
               onDeleted: () => onChanged(filter.copyWith(clearDistrict: true)),
             ),
-          if (filter.favoriteOnly)
+          if (hasCourtCount)
             _SummaryChip(
-              label: l10n.venueFilterFavoriteOnly,
-              onDeleted: () => onChanged(filter.copyWith(favoriteOnly: false)),
+              label: filter.courtCount == VenueCourtCountFilter.fourPlus
+                  ? l10n.sessionFilterFourPlusCourts
+                  : l10n.sessionFilterCourtCountValue(
+                      filter.courtCount!.minCourts,
+                    ),
+              onDeleted: () => onChanged(
+                filter.copyWith(clearCourtCount: true),
+              ),
             ),
         ],
       ),
@@ -559,8 +604,8 @@ class VenueCard extends StatelessWidget {
                   ),
                   if (venue.distance != null)
                     Positioned(
-                      left: 10,
-                      bottom: 10,
+                      left: 8,
+                      bottom: 8,
                       child: _badge(
                         AppIcons.navigation,
                         '${venue.distance!.toStringAsFixed(1)} km',
@@ -689,19 +734,20 @@ class VenueCard extends StatelessWidget {
   static Widget _badge(IconData icon, String label) => DecoratedBox(
     decoration: BoxDecoration(
       color: Colors.black54,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(AppRadius.pill),
     ),
     child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: Colors.white),
-          const SizedBox(width: 4),
+          Icon(icon, size: 11, color: Colors.white),
+          const SizedBox(width: 3),
           Text(
             label,
             style: const TextStyle(
               color: Colors.white,
+              fontSize: 11,
               fontWeight: FontWeight.w600,
             ),
           ),

@@ -7,6 +7,7 @@ import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
+import 'package:vmito_app/core/location/new_admin_units.dart';
 import 'package:vmito_app/features/venue/application/venue_controller.dart';
 import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/features/venue/presentation/browse_venues_screen.dart';
@@ -20,7 +21,18 @@ void main() {
     Widget child, {
     List<Object> overrides = const [],
   }) => ProviderScope(
-    overrides: overrides.cast(),
+    overrides: [
+      newAdminUnitsProvider.overrideWith(
+        (ref) async => const [
+          NewAdminUnit(
+            city: 'Hồ Chí Minh',
+            wards: ['Bến Nghé', 'Phú Nhuận'],
+          ),
+          NewAdminUnit(city: 'Hà Nội', wards: ['Ba Đình']),
+        ],
+      ),
+      ...overrides.cast(),
+    ],
     child: MaterialApp(
       locale: const Locale('vi'),
       theme: AppTheme.light,
@@ -194,34 +206,33 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(VenueFilterSheet), findsOneWidget);
-      for (final option in VenueSortOption.values) {
-        expect(
-          find.byKey(Key('venue-filter-sort-${option.value}')),
-          findsOneWidget,
-        );
-      }
+      expect(find.text('Bộ lọc'), findsOneWidget);
+      expect(find.text('Sắp xếp theo'), findsNothing);
 
-      await tester.enterText(
-        find.descendant(
-          of: find.byKey(const Key('venue-filter-city')),
-          matching: find.byType(TextField),
-        ),
-        'Hồ Chí Minh',
-      );
-      await tester.enterText(
-        find.descendant(
-          of: find.byKey(const Key('venue-filter-district')),
-          matching: find.byType(TextField),
-        ),
-        'Phú Nhuận',
-      );
-      tester.testTextInput.hide();
+      // Select sport (badminton)
+      await tester.tap(find.byKey(const Key('venue-filter-sport-badminton')));
+
+      // Select city (Hồ Chí Minh)
+      await tester.tap(find.byKey(const Key('venue-filter-city')));
       await tester.pumpAndSettle();
-      final courtsSort = find.byKey(
-        const Key('venue-filter-sort-numberOfCourts'),
+      await tester.tap(find.text('Hồ Chí Minh'));
+      await tester.tap(find.text('Xong'));
+      await tester.pumpAndSettle();
+
+      // Select district (Phú Nhuận)
+      await tester.tap(find.byKey(const Key('venue-filter-districts')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Phú Nhuận'));
+      await tester.tap(find.text('Xong'));
+      await tester.pumpAndSettle();
+
+      // Select court count (4+ sân)
+      final courtsCount = find.byKey(
+        const Key('venue-filter-courts-fourPlus'),
       );
-      await tester.ensureVisible(courtsSort);
-      await tester.tap(courtsSort);
+      await tester.ensureVisible(courtsCount);
+      await tester.tap(courtsCount);
+
       final favorite = find.byKey(const Key('venue-filter-favorite'));
       await tester.ensureVisible(favorite);
       await tester.tap(favorite);
@@ -232,8 +243,9 @@ void main() {
 
       expect(controller.state.filter.keyword, 'thpt');
       expect(controller.state.filter.city, 'Hồ Chí Minh');
-      expect(controller.state.filter.district, 'Phú Nhuận');
-      expect(controller.state.filter.sortBy, 'numberOfCourts');
+      expect(controller.state.filter.districts, {'Phú Nhuận'});
+      expect(controller.state.filter.sports, {VenueSport.badminton});
+      expect(controller.state.filter.courtCount, VenueCourtCountFilter.fourPlus);
       expect(controller.state.filter.favoriteOnly, isTrue);
     });
 
@@ -244,6 +256,9 @@ void main() {
             keyword: 'thpt',
             city: 'Hà Nội',
             district: 'Ba Đình',
+            districts: {'Ba Đình'},
+            sports: {VenueSport.badminton},
+            courtCount: VenueCourtCountFilter.two,
             sortBy: 'createdAt',
             favoriteOnly: true,
           ),
@@ -256,6 +271,9 @@ void main() {
               keyword: 'thpt',
               city: 'Hà Nội',
               district: 'Ba Đình',
+              districts: {'Ba Đình'},
+              sports: {VenueSport.badminton},
+              courtCount: VenueCourtCountFilter.two,
               sortBy: 'createdAt',
               favoriteOnly: true,
             ),
@@ -272,15 +290,15 @@ void main() {
       final reset = find.byKey(const Key('venue-filter-reset'));
       await tester.ensureVisible(reset);
       await tester.tap(reset);
-      final apply = find.byKey(const Key('venue-filter-apply'));
-      await tester.ensureVisible(apply);
-      await tester.tap(apply);
       await tester.pumpAndSettle();
 
       expect(controller.state.filter.keyword, 'thpt');
       expect(controller.state.filter.city, isNull);
       expect(controller.state.filter.district, isNull);
-      expect(controller.state.filter.sortBy, 'relevance');
+      expect(controller.state.filter.districts, isEmpty);
+      expect(controller.state.filter.sports, isEmpty);
+      expect(controller.state.filter.courtCount, isNull);
+      expect(controller.state.filter.sortBy, 'createdAt');
       expect(controller.state.filter.favoriteOnly, isFalse);
     });
 

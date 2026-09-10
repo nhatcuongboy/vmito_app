@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
+import 'package:vmito_app/core/theme/app_typography.dart';
 import 'package:vmito_app/core/widgets/city_selector_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
@@ -57,12 +58,13 @@ class CitySelector extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 10),
         visualDensity: VisualDensity.compact,
         foregroundColor: foregroundColor,
+        textStyle: AppTypography.chipLabel(theme.textTheme, isActive: isActive),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(AppIcons.location, size: 18, color: foregroundColor),
-          const SizedBox(width: 6),
+          Icon(AppIcons.location, size: 16, color: foregroundColor),
+          const SizedBox(width: 5),
           Flexible(
             child: ConstrainedBox(
               constraints: BoxConstraints(maxWidth: labelMaxWidth),
@@ -73,7 +75,7 @@ class CitySelector extends ConsumerWidget {
               ),
             ),
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 3),
           const Icon(AppIcons.chevronDown, size: 14),
         ],
       ),

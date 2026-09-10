@@ -137,4 +137,13 @@ abstract final class AppTypography {
         fontWeight: FontWeight.w600,
         letterSpacing: 0,
       );
+
+  /// Compact chip/selector text used by discovery toolbars and filter pills.
+  static TextStyle chipLabel(TextTheme textTheme, {bool isActive = false}) =>
+      (textTheme.labelMedium ?? const TextStyle()).copyWith(
+        fontSize: 13.5,
+        height: 18 / 13.5,
+        fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
+        letterSpacing: 0,
+      );
 }

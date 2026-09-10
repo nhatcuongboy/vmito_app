@@ -50,6 +50,18 @@ void main() {
           28,
           FontWeight.w700,
         );
+        _expectStyle(
+          AppTypography.chipLabel(text, isActive: false),
+          13.5,
+          18,
+          FontWeight.w500,
+        );
+        _expectStyle(
+          AppTypography.chipLabel(text, isActive: true),
+          13.5,
+          18,
+          FontWeight.w600,
+        );
       });
     }
 

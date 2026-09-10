@@ -19,7 +19,7 @@ import 'package:vmito_app/features/social/domain/club.dart';
 import 'package:vmito_app/features/social/presentation/club_browse_card_skeleton.dart';
 import 'package:vmito_app/features/social/presentation/club_schedule_formatter.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
-import 'package:vmito_app/shared/widgets/app_empty_filter_sheet.dart';
+import 'package:vmito_app/features/home/presentation/widgets/home_discovery_filter_sheets.dart';
 import 'package:vmito_app/shared/widgets/app_paginated_list_view.dart';
 import 'package:vmito_app/shared/widgets/app_skeleton.dart';
 import 'package:vmito_app/shared/widgets/app_sort_selector.dart';
@@ -118,6 +118,32 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
     super.dispose();
   }
 
+  Future<void> _openFilters() async {
+    final controller = ref.read(clubsControllerProvider.notifier);
+    final current = ref.read(clubsControllerProvider);
+    final filter = await showModalBottomSheet<ClubDiscoveryFilters>(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (context) => ClubDiscoveryFilterSheet(
+        initial: ClubDiscoveryFilters(
+          district: current.district,
+          favoriteOnly: current.favoriteOnly,
+        ),
+      ),
+    );
+    if (filter == null) return;
+    unawaited(
+      controller.load(
+        search: current.search,
+        district: filter.district,
+        clearDistrict: filter.district == null,
+        favoriteOnly: filter.favoriteOnly,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(clubsControllerProvider);
@@ -126,14 +152,9 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
 
     final content = Column(
       children: [
-        if (!widget.embedded)
+        if (discoveryHeader == null)
           Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.sm,
-              AppSpacing.md,
-              AppSpacing.sm,
-            ),
+            padding: const EdgeInsets.all(AppSpacing.md),
             child: Row(
               children: [
                 Expanded(
@@ -156,7 +177,7 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
                 IconButton.filledTonal(
                   tooltip: 'Bộ lọc',
                   icon: const Icon(AppIcons.tune),
-                  onPressed: () => AppEmptyFilterSheet.show(context),
+                  onPressed: _openFilters,
                 ),
               ],
             ),

@@ -30,10 +30,20 @@ class VenueService {
         'limit': limit,
         'closureStatus': 'OPERATING',
         if (filter.keyword.trim().isNotEmpty) 'keyword': filter.keyword.trim(),
-        if (filter.sportType?.isNotEmpty ?? false)
+        if (filter.sports.isNotEmpty)
+          'sportType': filter.sports.map((s) => s.wireValue).join(',')
+        else if (filter.sportType?.isNotEmpty ?? false)
           'sportType': filter.sportType,
         if (filter.city?.isNotEmpty ?? false) 'city': filter.city,
-        if (filter.district?.isNotEmpty ?? false) 'district': filter.district,
+        if (filter.districts.isNotEmpty)
+          'district': filter.districts.join(',')
+        else if (filter.district?.isNotEmpty ?? false)
+          'district': filter.district,
+        if (filter.courtCount != null) ...{
+          'minCourts': filter.courtCount!.minCourts,
+          if (filter.courtCount!.maxCourts != null)
+            'maxCourts': filter.courtCount!.maxCourts,
+        },
         if (filter.favoriteOnly) 'favoriteOnly': true,
         'sortBy': sort,
         'sortOrder':
