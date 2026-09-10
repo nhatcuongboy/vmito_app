@@ -13,10 +13,13 @@ import 'package:vmito_app/core/widgets/city_onboarding_dialog.dart';
 import 'package:vmito_app/core/widgets/notification_header_button.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
+import 'package:vmito_app/features/home/application/home_discovery_presets.dart';
+import 'package:vmito_app/features/home/domain/home_search_outcome.dart';
 import 'package:vmito_app/features/home/presentation/widgets/home_discovery_filter_sheets.dart';
 import 'package:vmito_app/features/home/presentation/widgets/home_discovery_tabs.dart';
 import 'package:vmito_app/features/home/presentation/widgets/home_discovery_toolbar.dart';
 import 'package:vmito_app/features/home/presentation/widgets/home_header_backdrop.dart';
+import 'package:vmito_app/features/home/presentation/widgets/home_search_results_app_bar.dart';
 import 'package:vmito_app/features/session/application/player/browse_sessions_controller.dart';
 import 'package:vmito_app/features/session/presentation/player/public_sessions_content.dart';
 import 'package:vmito_app/features/session/presentation/player/session_filter_sheet.dart';
@@ -57,10 +60,10 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   late HomeDiscoveryTab _selectedTab;
   var _contentRevision = 0;
-  final _searchQueries = <HomeDiscoveryTab, String>{};
+  final _searchOutcomes = <HomeDiscoveryTab, HomeSearchOutcome>{};
   final _browseSnapshots = <HomeDiscoveryTab, Object>{};
 
-  String? get _activeQuery => _searchQueries[_selectedTab];
+  HomeSearchOutcome? get _activeOutcome => _searchOutcomes[_selectedTab];
 
   BrowseSessionFilters get _initialSessionFilters => BrowseSessionFilters(
     venueId: widget.initialVenueId,
@@ -104,7 +107,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final preferredCity = ref
         .watch(locationPreferencesControllerProvider)
         .preferredCity;
-    final activeQuery = _activeQuery;
+    final activeOutcome = _activeOutcome;
+    final activeQuery = switch (activeOutcome) {
+      HomeSearchQuery(:final query) => query,
+      _ => null,
+    };
     final theme = Theme.of(context);
     final palette = theme.extension<AppPalette>()!;
     final discoveryHeader = DecoratedBox(
@@ -165,17 +172,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
 
     return Scaffold(
-      appBar: activeQuery == null
+      appBar: activeOutcome == null
           ? _buildBrowseAppBar(
               context,
               l10n,
               isAuthenticated,
               canCreateTournament,
             )
-          : _buildSearchResultsAppBar(
-              context,
-              l10n,
-              activeQuery,
+          : HomeSearchResultsAppBar(
+              outcome: activeOutcome,
+              onExit: _exitSearchResults,
+              onSearch: _openSearch,
             ),
       body: KeyedSubtree(
         key: ValueKey('${_selectedTab.name}-$_contentRevision'),
@@ -183,15 +190,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           HomeDiscoveryTab.sessions => BrowseSessionsContent(
             discoveryHeader: discoveryHeader,
             showMapToggle: isAuthenticated,
-            initialFilters: activeQuery == null
+            initialFilters: activeOutcome == null
                 ? _initialSessionFilters
                 : sessionState.filters,
           ),
           HomeDiscoveryTab.venues => BrowseVenuesScreen(
             embedded: true,
             discoveryHeader: discoveryHeader,
-            initialFilter: activeQuery == null ? null : venueState.filter,
-            showFilterSummary: activeQuery != null,
+            initialFilter: activeOutcome == null ? null : venueState.filter,
+            showFilterSummary: activeOutcome != null,
             showMapToggle: isAuthenticated,
           ),
           HomeDiscoveryTab.clubs => BrowseClubsScreen(
@@ -354,57 +361,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     ),
     HomeDiscoveryTab.venues => null,
   };
-
-  PreferredSizeWidget _buildSearchResultsAppBar(
-    BuildContext context,
-    AppLocalizations l10n,
-    String query,
-  ) => AppBar(
-    backgroundColor: Colors.transparent,
-    surfaceTintColor: Colors.transparent,
-    flexibleSpace: const HomeHeaderBackdrop(),
-    elevation: 0,
-    scrolledUnderElevation: 0,
-    leading: IconButton(
-      key: const Key('home-search-exit-results'),
-      tooltip: l10n.homeSearchExitResults,
-      icon: const Icon(AppIcons.arrowBack),
-      onPressed: _exitSearchResults,
-    ),
-    titleSpacing: 0,
-    title: Semantics(
-      button: true,
-      label: l10n.homeSearchTooltip,
-      child: InkWell(
-        key: const Key('home-search-result-query'),
-        borderRadius: BorderRadius.circular(24),
-        onTap: _openSearch,
-        child: Container(
-          height: 44,
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: Row(
-            children: [
-              const Icon(AppIcons.search, size: 21),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  query,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ),
-    actions: const [SizedBox(width: 8)],
-  );
 
   int _filterCount(
     BrowseSessionsState sessionState,
@@ -644,16 +600,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   Future<void> _openSearch() async {
     final tab = _selectedTab;
-    final result = await context.push<String>(
-      AppRoutes.homeSearchFor(tab.name, query: _searchQueries[tab]),
+    final current = _searchOutcomes[tab];
+    final result = await context.push<HomeSearchOutcome>(
+      AppRoutes.homeSearchFor(
+        tab.name,
+        query: current is HomeSearchQuery ? current.query : null,
+      ),
     );
-    if (!mounted || result == null || result.isEmpty) return;
-    _applySearch(tab, result);
+    if (!mounted || result == null) return;
+    // The first outcome snapshots the plain browse list; later ones replace
+    // each other, so back always returns to what the user left.
+    _browseSnapshots.putIfAbsent(tab, () => _snapshot(tab));
+    setState(() => _searchOutcomes[tab] = result);
+    switch (result) {
+      case HomeSearchQuery(:final query):
+        _applySearch(tab, query);
+      case HomeSearchPreset():
+        unawaited(ref.read(homeDiscoveryPresetsProvider).apply(tab));
+    }
   }
 
   void _applySearch(HomeDiscoveryTab tab, String query) {
-    _browseSnapshots.putIfAbsent(tab, () => _snapshot(tab));
-    setState(() => _searchQueries[tab] = query);
     switch (tab) {
       case HomeDiscoveryTab.sessions:
         final state = ref.read(browseSessionsControllerProvider);
@@ -713,7 +680,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       default:
         break;
     }
-    setState(() => _searchQueries.remove(tab));
+    setState(() => _searchOutcomes.remove(tab));
   }
 
   Future<void> _openSessionFilters() async {

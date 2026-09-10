@@ -23,6 +23,7 @@ abstract final class AppIcons {
   // --- Actions & Controls ----------------------------------------------------
   static const IconData search = LucideIcons.search;
   static const IconData searchOff = LucideIcons.search_x;
+  static const IconData searchHistory = LucideIcons.rotate_ccw_clock;
   // Discovery entries reuse the entity icon in its "search" variant so they
   // stay distinguishable from the management entries for the same entity.
   static const IconData searchSessions = LucideIcons.calendar_search;

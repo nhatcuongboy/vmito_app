@@ -76,6 +76,19 @@ abstract final class Dates {
   static String dateOnly(DateTime time, {String locale = 'vi'}) =>
       DateFormat.yMd(_intlLocale(locale)).format(time.toLocal());
 
+  /// `12/9 – 14/9`, or one date when both fall on the same day. For compact
+  /// rows where the year is implied.
+  static String shortDateRange(
+    DateTime start,
+    DateTime end, {
+    String locale = 'vi',
+  }) {
+    final format = DateFormat.Md(_intlLocale(locale));
+    final from = format.format(start.toLocal());
+    final to = format.format(end.toLocal());
+    return from == to ? from : '$from – $to';
+  }
+
   static String dayWithRange(
     DateTime start,
     DateTime? end, {

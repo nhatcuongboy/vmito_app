@@ -160,4 +160,16 @@ void main() {
       expect(Dates.dayAndTime(time), contains('•'));
     });
   });
+
+  group('Dates.shortDateRange', () {
+    test('drops the year and collapses a single day', () {
+      final start = DateTime(2026, 9, 12, 8);
+
+      expect(
+        Dates.shortDateRange(start, DateTime(2026, 9, 14, 18)),
+        '12/9 – 14/9',
+      );
+      expect(Dates.shortDateRange(start, DateTime(2026, 9, 12, 20)), '12/9');
+    });
+  });
 }

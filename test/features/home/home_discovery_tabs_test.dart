@@ -11,6 +11,7 @@ import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
+import 'package:vmito_app/features/home/domain/home_search_outcome.dart';
 import 'package:vmito_app/features/home/presentation/home_screen.dart';
 import 'package:vmito_app/features/home/presentation/widgets/home_discovery_tabs.dart';
 import 'package:vmito_app/features/home/presentation/widgets/home_discovery_toolbar.dart';
@@ -809,7 +810,8 @@ void main() {
                 body: Center(
                   child: FilledButton(
                     key: const Key('fake-search-submit'),
-                    onPressed: () => context.pop('quang hung'),
+                    onPressed: () =>
+                        context.pop(const HomeSearchQuery('quang hung')),
                     child: const Text('Submit'),
                   ),
                 ),
@@ -859,6 +861,86 @@ void main() {
     expect(find.byKey(const Key('home-search-result-query')), findsNothing);
   });
 
+  testWidgets('featured preset applies its filters and back restores', (
+    tester,
+  ) async {
+    final router = GoRouter(
+      initialLocation: AppRoutes.home,
+      routes: [
+        GoRoute(
+          path: AppRoutes.home,
+          builder: (context, state) => const HomeScreen(),
+          routes: [
+            GoRoute(
+              path: AppRoutes.homeSearchPath,
+              builder: (context, state) => Scaffold(
+                body: Center(
+                  child: FilledButton(
+                    key: const Key('fake-search-see-all'),
+                    onPressed: () => context.pop(
+                      const HomeSearchPreset(HomeDiscoveryTab.sessions),
+                    ),
+                    child: const Text('See all'),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          authControllerProvider.overrideWith(_HostAuthController.new),
+          notificationControllerProvider.overrideWith(
+            _FakeNotificationController.new,
+          ),
+          locationPreferencesControllerProvider.overrideWith(
+            _HomeLocationPreferencesController.new,
+          ),
+          browseSessionsControllerProvider.overrideWith(
+            _FakeSessionsController.new,
+          ),
+        ],
+        child: MaterialApp.router(
+          locale: const Locale('vi'),
+          theme: AppTheme.light,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          routerConfig: router,
+        ),
+      ),
+    );
+    await tester.pump();
+    final before = _FakeSessionsController.lastFilters;
+
+    await tester.tap(find.byKey(const Key('home-search-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('fake-search-see-all')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('home-search-result-preset')), findsOneWidget);
+    expect(find.text('Kèo còn chỗ sắp diễn ra'), findsOneWidget);
+    expect(_FakeSessionsController.lastFilters?.hasSlots, isTrue);
+    expect(_FakeSessionsController.lastFilters?.city, 'Hồ Chí Minh');
+
+    await tester.tap(find.byKey(const Key('home-search-exit-results')));
+    await tester.pump();
+
+    expect(find.byKey(const Key('home-search-button')), findsOneWidget);
+    expect(find.byKey(const Key('home-search-result-preset')), findsNothing);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(HomeScreen)),
+    );
+    expect(
+      container.read(browseSessionsControllerProvider).filters.hasSlots,
+      before?.hasSlots ?? false,
+    );
+  });
+
   testWidgets('venue search results expose the combined filter sheet', (
     tester,
   ) async {
@@ -878,7 +960,7 @@ void main() {
                 body: Center(
                   child: FilledButton(
                     key: const Key('fake-venue-search-submit'),
-                    onPressed: () => context.pop('thpt'),
+                    onPressed: () => context.pop(const HomeSearchQuery('thpt')),
                     child: const Text('Submit venue search'),
                   ),
                 ),

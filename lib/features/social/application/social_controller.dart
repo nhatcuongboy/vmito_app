@@ -268,7 +268,7 @@ class ClubsController extends Notifier<ClubsState> {
             longitude: nextLongitude,
           );
       state = ClubsState(
-        clubs: _sortClubs(result.clubs, nextSort),
+        clubs: sortClubs(result.clubs, nextSort),
         search: search,
         page: result.page,
         totalPages: result.totalPages,
@@ -323,7 +323,7 @@ class ClubsController extends Notifier<ClubsState> {
             longitude: current.longitude,
           );
       state = ClubsState(
-        clubs: _sortClubs([...current.clubs, ...result.clubs], current.sortBy),
+        clubs: sortClubs([...current.clubs, ...result.clubs], current.sortBy),
         search: current.search,
         page: result.page,
         totalPages: result.totalPages,
@@ -350,29 +350,31 @@ class ClubsController extends Notifier<ClubsState> {
       );
     }
   }
+}
 
-  List<ClubSummary> _sortClubs(List<ClubSummary> clubs, String sortBy) {
-    final sorted = [...clubs];
-    switch (sortBy) {
-      case 'name':
-        sorted.sort(
-          (first, second) => first.name.toLowerCase().compareTo(
-            second.name.toLowerCase(),
-          ),
-        );
-      case 'createdAt':
-        sorted.sort(
-          (first, second) => (second.createdAt ?? DateTime(0)).compareTo(
-            first.createdAt ?? DateTime(0),
-          ),
-        );
-      default:
-        sorted.sort(
-          (first, second) => second.memberCount.compareTo(first.memberCount),
-        );
-    }
-    return sorted;
+/// Client-side order for a page of clubs. Public so the Home search preview
+/// orders its page exactly as the browse list does.
+List<ClubSummary> sortClubs(List<ClubSummary> clubs, String sortBy) {
+  final sorted = [...clubs];
+  switch (sortBy) {
+    case 'name':
+      sorted.sort(
+        (first, second) => first.name.toLowerCase().compareTo(
+          second.name.toLowerCase(),
+        ),
+      );
+    case 'createdAt':
+      sorted.sort(
+        (first, second) => (second.createdAt ?? DateTime(0)).compareTo(
+          first.createdAt ?? DateTime(0),
+        ),
+      );
+    default:
+      sorted.sort(
+        (first, second) => second.memberCount.compareTo(first.memberCount),
+      );
   }
+  return sorted;
 }
 
 final clubsControllerProvider = NotifierProvider<ClubsController, ClubsState>(

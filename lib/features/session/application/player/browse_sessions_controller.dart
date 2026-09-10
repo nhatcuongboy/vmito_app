@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
 import 'package:vmito_app/core/network/paginated.dart';
 import 'package:vmito_app/core/utils/logger.dart';
+import 'package:vmito_app/features/session/application/player/browse_sessions_query.dart';
 import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
 import 'package:vmito_app/features/session/domain/browse_session_filters.dart';
 import 'package:vmito_app/features/session/domain/repositories/session_repository.dart';
@@ -174,30 +175,7 @@ class BrowseSessionsController extends Notifier<BrowseSessionsState> {
     required BrowseSessionFilters filters,
     required int page,
     required int limit,
-  }) => _repo.browseAvailable(
-    page: page,
-    limit: limit,
-    search: filters.search,
-    date: filters.date,
-    timeRanges: filters.timeRanges,
-    levels: filters.levels,
-    sports: filters.sports,
-    hasSlots: filters.hasSlots ? true : null,
-    sessionType: filters.source.name,
-    city: filters.city,
-    districts: filters.districts,
-    minFee: filters.hasCustomFeeRange ? filters.minFee : null,
-    maxFee: filters.hasCustomFeeRange ? filters.maxFee : null,
-    minCourts: filters.courtCount?.minCourts,
-    maxCourts: filters.courtCount?.maxCourts,
-    splitEvenly: filters.splitEvenly,
-    latitude: filters.nearMe ? filters.latitude : null,
-    longitude: filters.nearMe ? filters.longitude : null,
-    sortByDistance: filters.nearMe,
-    venueId: filters.venueId,
-    sortBy: filters.sort.sortBy,
-    sortOrder: filters.sort.sortOrder,
-  );
+  }) => _repo.browseFiltered(filters, page: page, limit: limit);
 }
 
 final browseSessionsControllerProvider =
