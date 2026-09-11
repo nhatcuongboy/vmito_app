@@ -130,9 +130,11 @@ class _AvatarCircle extends StatelessWidget {
               ? const [Color(0xFF4B5563), Color(0xFF374151)]
               : const [Color(0xFFDCFCE7), Color(0xFFBBF7D0)],
         ),
-        border: Border.all(
-          color: isDark ? Colors.white24 : Colors.black12,
-        ),
+        border: hasImage
+            ? null
+            : Border.all(
+                color: isDark ? Colors.white24 : Colors.black12,
+              ),
       ),
       clipBehavior: Clip.antiAlias,
       child: hasImage

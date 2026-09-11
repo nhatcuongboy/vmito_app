@@ -89,8 +89,8 @@ class NotificationListItem extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(
                   AppSpacing.md,
                   AppSpacing.md,
-                  AppSpacing.sm,
-                  AppSpacing.sm,
+                  AppSpacing.md,
+                  AppSpacing.md,
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,

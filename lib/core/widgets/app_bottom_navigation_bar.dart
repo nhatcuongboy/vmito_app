@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show HapticFeedback;
 import 'package:vmito_app/core/theme/app_colors.dart';
 
 /// The shared five-destination bottom navigation used across the app.
@@ -39,7 +40,10 @@ class AppBottomNavigationBar extends StatelessWidget {
         child: NavigationBar(
           maintainBottomViewPadding: true,
           selectedIndex: clampedIndex,
-          onDestinationSelected: onDestinationSelected,
+          onDestinationSelected: (index) {
+            HapticFeedback.selectionClick();
+            onDestinationSelected(index);
+          },
           destinations: destinations,
         ),
       ),

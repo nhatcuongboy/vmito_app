@@ -260,6 +260,7 @@ class _ApprovalTile extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     if (timestamp != null)
                       Expanded(
