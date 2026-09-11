@@ -103,7 +103,6 @@ class _CreateTournamentScreenState
       );
       return;
     }
-    _allowNavigation = true;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
@@ -111,7 +110,16 @@ class _CreateTournamentScreenState
         ),
       ),
     );
-    context.go(AppRoutes.homeForDiscoveryTab('tournaments'));
+    // Hand the tournament back to whoever pushed this screen (the host list
+    // opens it next, as web does); a deep link has nothing to return to.
+    setState(() => _allowNavigation = true);
+    await Future<void>.delayed(Duration.zero);
+    if (!mounted) return;
+    if (context.canPop()) {
+      context.pop(created);
+    } else {
+      context.go(AppRoutes.homeForDiscoveryTab('tournaments'));
+    }
   }
 
   Future<void> _pickLocation() async {

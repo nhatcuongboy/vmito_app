@@ -264,6 +264,9 @@ abstract final class ApiEndpoints {
   /// Public tournament discovery. The backend filters drafts when
   /// `publishedOnly=true`; the client also checks `isPublished` defensively.
   static const tournaments = '/tournaments';
+
+  /// Tournaments the caller hosts, manages or umpires — unpaginated.
+  static const myTournaments = '/tournaments/my';
   static String tournament(String id) => '/tournaments/$id';
   static String tournamentMatches(String id) => '/tournaments/$id/all-matches';
   static String tournamentCourts(String id) => '/tournaments/$id/courts';

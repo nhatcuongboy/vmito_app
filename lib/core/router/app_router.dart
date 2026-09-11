@@ -47,6 +47,7 @@ import 'package:vmito_app/features/social/presentation/session_rating_screen.dar
 import 'package:vmito_app/features/social/presentation/social_hub_screen.dart';
 import 'package:vmito_app/features/splash/presentation/splash_screen.dart';
 import 'package:vmito_app/features/tournament/presentation/create_tournament_screen.dart';
+import 'package:vmito_app/features/tournament/presentation/host_tournaments_screen.dart';
 import 'package:vmito_app/features/tournament/presentation/tournament_detail_screen.dart';
 import 'package:vmito_app/features/tournament/presentation/tournament_management_screen.dart';
 import 'package:vmito_app/features/venue/presentation/browse_venues_screen.dart';
@@ -215,6 +216,11 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => PublicProfileScreen(
           userId: state.pathParameters['id']!,
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.hostTournaments,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const HostTournamentsScreen(),
       ),
       GoRoute(
         path: AppRoutes.createTournament,

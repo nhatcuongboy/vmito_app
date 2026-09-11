@@ -139,6 +139,7 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen>
       ..watch(mySessionsRealtimeProvider)
       ..watch(myJoinRequestsRealtimeProvider);
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
     final isAuthenticated =
         ref.watch(authControllerProvider).status == AuthStatus.authenticated;
     final state = ref.watch(mySessionsControllerProvider(_scope));
@@ -223,32 +224,56 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen>
         ),
       ),
       floatingActionButton: _scope == MySessionScope.hosted
-          ? SizedBox(
-              height: 44,
-              child: FloatingActionButton.extended(
-                key: const Key('my-sessions-create-fab'),
-                heroTag: 'my-sessions-create-session-fab',
-                isExtended: _isFabExtended,
-                onPressed: () => context.push(AppRoutes.createSession),
-                backgroundColor:
-                    Theme.of(context).extension<AppPalette>()?.brandSurface ??
-                    (Theme.of(context).brightness == Brightness.dark
-                        ? const Color(0xFF183028)
-                        : const Color(0xFFE2F3E8)),
-                foregroundColor: Theme.of(context).colorScheme.primary,
-                elevation: 4,
-                extendedPadding: const EdgeInsets.symmetric(horizontal: 13),
-                shape: StadiumBorder(
-                  side: BorderSide(
-                    color: Theme.of(context).colorScheme.primary.withValues(
-                      alpha: 0.35,
+          ? Tooltip(
+              message: l10n.createSessionTitle,
+              child: SizedBox(
+                height: 44,
+                child: FilledButton(
+                  key: const Key('my-sessions-create-fab'),
+                  onPressed: () => context.push(AppRoutes.createSession),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(44, 44),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    padding: const EdgeInsets.symmetric(horizontal: 13),
+                    backgroundColor:
+                        theme.extension<AppPalette>()?.brandSurface ??
+                        (theme.brightness == Brightness.dark
+                            ? const Color(0xFF183028)
+                            : const Color(0xFFE2F3E8)),
+                    foregroundColor: theme.colorScheme.primary,
+                    elevation: 4,
+                    shadowColor:
+                        theme.colorScheme.shadow.withValues(alpha: 0.25),
+                    side: BorderSide(
+                      color: theme.colorScheme.primary.withValues(
+                        alpha: 0.35,
+                      ),
+                    ),
+                    shape: const StadiumBorder(),
+                  ),
+                  child: AnimatedSize(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.fastOutSlowIn,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(AppIcons.add, size: 18),
+                        if (_isFabExtended)
+                          Padding(
+                            padding: const EdgeInsetsDirectional.only(start: 8),
+                            child: Text(
+                              l10n.createSessionTitle,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                              ),
+                              maxLines: 1,
+                              softWrap: false,
+                              overflow: TextOverflow.clip,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
-                ),
-                icon: const Icon(AppIcons.add, size: 18),
-                label: Text(
-                  l10n.createSessionTitle,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
               ),
             )

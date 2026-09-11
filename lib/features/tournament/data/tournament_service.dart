@@ -185,6 +185,19 @@ class TournamentService {
       TournamentSummary.fromJson,
     ).where((tournament) => tournament.isPublished).toList(growable: false);
   }
+
+  /// Tournaments the caller hosts, manages or umpires, drafts included.
+  Future<List<TournamentSummary>> mine() async {
+    final response = await _client.get<dynamic>(ApiEndpoints.myTournaments);
+    return unwrapList(response.data, TournamentSummary.fromJson);
+  }
+
+  /// Every tournament in the system, drafts included, for the ADMIN list.
+  /// Omitting `publishedOnly` is what includes drafts; the web sends no params.
+  Future<List<TournamentSummary>> manageable() async {
+    final response = await _client.get<dynamic>(ApiEndpoints.tournaments);
+    return unwrapList(response.data, TournamentSummary.fromJson);
+  }
 }
 
 final tournamentServiceProvider = Provider<TournamentService>(

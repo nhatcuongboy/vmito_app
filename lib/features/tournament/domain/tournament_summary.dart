@@ -31,6 +31,9 @@ class TournamentSummary {
     required this.status,
     required this.isPublished,
     this.isFavorite = false,
+    this.hostId,
+    this.categoryCount = 0,
+    this.createdAt,
     this.slug,
     this.coverPhoto,
     this.location,
@@ -56,6 +59,12 @@ class TournamentSummary {
       status: TournamentStatus.fromWire(json['status'] as String?),
       isPublished: json['isPublished'] as bool? ?? false,
       isFavorite: json['isFavorite'] as bool? ?? false,
+      hostId: json['hostId'] as String?,
+      categoryCount: switch (json['_count']) {
+        {'categories': final num count} => count.toInt(),
+        _ => 0,
+      },
+      createdAt: DateTime.tryParse(json['createdAt'] as String? ?? ''),
       coverPhoto: json['coverPhoto'] as String? ?? _venueCoverPhoto(venue),
       location: _venueLocation(venue),
       venueName: venue?['name'] as String?,
@@ -78,6 +87,9 @@ class TournamentSummary {
   final TournamentStatus status;
   final bool isPublished;
   final bool isFavorite;
+  final String? hostId;
+  final int categoryCount;
+  final DateTime? createdAt;
   final String? coverPhoto;
   final String? location;
   final String? venueName;
@@ -92,6 +104,25 @@ class TournamentSummary {
 
   bool get hasVenueCoordinates =>
       venueLatitude != null && venueLongitude != null;
+
+  /// Still IN_PROGRESS after its last day, judged by the calendar in Vietnam.
+  ///
+  /// Mirrors web `isTournamentOverdue`: dates are stored as UTC midnight, so
+  /// the UTC date part of [endDate] is the tournament's calendar day.
+  bool isOverdue({DateTime? now}) {
+    if (status != TournamentStatus.inProgress) return false;
+    final end = endDate.toUtc();
+    final vietnamNow = (now ?? DateTime.now()).toUtc().add(
+      const Duration(hours: 7),
+    );
+    final endDay = DateTime.utc(end.year, end.month, end.day);
+    final today = DateTime.utc(
+      vietnamNow.year,
+      vietnamNow.month,
+      vietnamNow.day,
+    );
+    return endDay.isBefore(today);
+  }
 
   String? displayLocation({required bool showNewAddress}) {
     final address = resolveAppAddress(

@@ -52,6 +52,10 @@ GoRouter _buildRouter() => GoRouter(
     GoRoute(path: AppRoutes.feed, builder: (_, _) => _screen('Feed')),
     GoRoute(path: AppRoutes.manageClubs, builder: (_, _) => _screen('Groups')),
     GoRoute(
+      path: AppRoutes.hostTournaments,
+      builder: (_, _) => _screen('Host tournaments'),
+    ),
+    GoRoute(
       path: AppRoutes.transactions,
       builder: (_, _) => _screen('Transactions'),
     ),
@@ -361,6 +365,8 @@ void main() {
     );
     expect(find.text('Kèo'), findsOneWidget);
     expect(find.text('Nhóm'), findsOneWidget);
+    expect(find.byKey(const Key('menu-host-tournaments')), findsOneWidget);
+    expect(find.text('Giải đấu'), findsOneWidget);
     expect(find.text('Giao dịch'), findsOneWidget);
     expect(find.text('Nhắc thanh toán'), findsOneWidget);
     expect(find.text('ADMIN'), findsNothing);
@@ -586,6 +592,25 @@ void main() {
 
     expect(find.text('Groups body'), findsOneWidget);
     expect(find.byType(SlideOutMenu), findsNothing);
+  });
+
+  testWidgets('tournaments destination pushes the host tournament list', (
+    tester,
+  ) async {
+    final router = _buildRouter();
+    await tester.pumpWidget(
+      _harness(
+        const AuthState(status: AuthStatus.authenticated, user: host),
+        router,
+      ),
+    );
+    await _openDrawer(tester);
+
+    await _tapMenuItem(tester, 'Giải đấu');
+
+    expect(find.text('Host tournaments body'), findsOneWidget);
+    expect(find.byType(SlideOutMenu), findsNothing);
+    expect(router.canPop(), isTrue);
   });
 
   testWidgets('help closes the drawer and opens feedback', (

@@ -77,6 +77,14 @@ class _ClubManagementScreenState extends ConsumerState<ClubManagementScreen>
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>();
+    final backgroundColor = palette?.brandSurface ??
+        (theme.brightness == Brightness.dark
+            ? const Color(0xFF183028)
+            : const Color(0xFFE2F3E8));
+    final borderColor = theme.colorScheme.primary.withValues(alpha: 0.35);
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -91,30 +99,41 @@ class _ClubManagementScreenState extends ConsumerState<ClubManagementScreen>
         ),
       ),
       floatingActionButton: _tabs.index == 0 && ref.watch(canCreateClubProvider)
-          ? SizedBox(
-              height: 44,
-              child: FloatingActionButton.extended(
-                heroTag: 'club-management-create-fab',
-                onPressed: () => context.push(AppRoutes.createClub),
-                backgroundColor:
-                    Theme.of(context).extension<AppPalette>()?.brandSurface ??
-                    (Theme.of(context).brightness == Brightness.dark
-                        ? const Color(0xFF183028)
-                        : const Color(0xFFE2F3E8)),
-                foregroundColor: Theme.of(context).colorScheme.primary,
-                elevation: 4,
-                extendedPadding: const EdgeInsets.symmetric(horizontal: 13),
-                shape: StadiumBorder(
-                  side: BorderSide(
-                    color: Theme.of(context).colorScheme.primary.withValues(
-                      alpha: 0.35,
-                    ),
+          ? Tooltip(
+              message: l10n.clubCreate,
+              child: SizedBox(
+                height: 44,
+                child: FilledButton(
+                  key: const Key('club-management-create-fab'),
+                  onPressed: () => context.push(AppRoutes.createClub),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(44, 44),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    padding: const EdgeInsets.symmetric(horizontal: 13),
+                    backgroundColor: backgroundColor,
+                    foregroundColor: theme.colorScheme.primary,
+                    elevation: 4,
+                    shadowColor:
+                        theme.colorScheme.shadow.withValues(alpha: 0.25),
+                    side: BorderSide(color: borderColor),
+                    shape: const StadiumBorder(),
                   ),
-                ),
-                icon: const Icon(AppIcons.add, size: 18),
-                label: Text(
-                  l10n.clubCreate,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(AppIcons.add, size: 18),
+                      Padding(
+                        padding: const EdgeInsetsDirectional.only(start: 8),
+                        child: Text(
+                          l10n.clubCreate,
+                          style: const TextStyle(fontWeight: FontWeight.w600),
+                          maxLines: 1,
+                          softWrap: false,
+                          overflow: TextOverflow.clip,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             )

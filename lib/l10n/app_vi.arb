@@ -2306,6 +2306,7 @@
   "menuFooterYear": "© {year}",
   "@menuFooterYear": {"placeholders": {"year": {"type": "int"}}},
   "hostResultsEditMatch": "Chỉnh sửa trận đấu",
+  "hostResultsActions": "Tác vụ trận đấu",
   "hostResultsEditAction": "Sửa trận đấu",
   "hostResultsDeleteAction": "Xóa trận đấu",
   "hostResultsDeleteTitle": "Xác nhận xóa",
@@ -2322,12 +2323,15 @@
   "hostResultsPair1": "Cặp 1",
   "hostResultsPair2": "Cặp 2",
   "hostResultsWinner": "Thắng",
+  "hostResultsMatchTitle": "Trận {number}",
+  "@hostResultsMatchTitle": {"placeholders": {"number": {"type": "int"}}},
   "hostResultsPlayerPosition": "Vị trí {position}",
   "@hostResultsPlayerPosition": {"placeholders": {"position": {"type": "int"}}},
   "hostResultsSelectPlayer": "Chọn người chơi",
   "hostResultsDuplicatePlayers": "Mỗi vị trí phải là một người chơi khác nhau.",
   "hostResultsInvalidNumber": "Nhập một số hợp lệ không nhỏ hơn 0.",
   "hostResultsExtraMatch": "Trận phụ",
+  "hostResultsExtraBadge": "Phụ",
   "hostResultsShuttlecockCount": "Số lượng cầu",
   "hostResultsShuttlecockHint": "VD: 3, 2.5, 1.25...",
   "hostResultsNotes": "Ghi chú",
@@ -2876,5 +2880,32 @@
       }
     }
   },
-  "sessionOverviewNotesTitle": "Ghi chú"
+  "sessionOverviewNotesTitle": "Ghi chú",
+  "hostTournamentsTitle": "Giải đấu của tôi",
+  "hostTournamentsAdminTitle": "Quản lý giải đấu",
+  "hostTournamentsTabOpen": "Đang mở",
+  "hostTournamentsTabEnded": "Đã kết thúc",
+  "hostTournamentsTabAll": "Tất cả",
+  "hostTournamentsStatusExpired": "Đã quá hạn",
+  "hostTournamentsCategoryCount": "{count} hạng mục",
+  "@hostTournamentsCategoryCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hostTournamentsReferee": "Điều hành",
+  "hostTournamentsMoreActions": "Hành động khác",
+  "hostTournamentsEmptyTitle": "Chưa có giải đấu nào",
+  "hostTournamentsEmptyDesc": "Bắt đầu giải đấu đầu tiên của bạn — tạo hạng mục, mời người chơi và tổ chức thi đấu chuyên nghiệp.",
+  "hostTournamentsAdminEmptyTitle": "Chưa có giải đấu nào trong hệ thống",
+  "hostTournamentsAdminEmptyDesc": "Khi host tạo giải đấu, danh sách quản trị toàn hệ thống sẽ hiển thị tại đây.",
+  "hostTournamentsNoResultsTitle": "Không tìm thấy giải đấu phù hợp",
+  "hostTournamentsNoResultsDesc": "Thử từ khoá khác hoặc xoá bộ lọc đang áp dụng.",
+  "hostTournamentsCreateFirst": "Tạo giải đấu đầu tiên",
+  "hostTournamentsDeleteConfirm": "Bạn có chắc chắn muốn xoá giải đấu này? Hành động này không thể hoàn tác.",
+  "hostTournamentsDeleted": "Đã xoá giải đấu",
+  "hostTournamentsDeleteFailed": "Xoá giải đấu thất bại",
+  "hostTournamentsClearSearch": "Xoá tìm kiếm"
 }

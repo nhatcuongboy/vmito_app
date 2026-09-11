@@ -96,6 +96,41 @@ void main() {
     });
   });
 
+  group('Dates.dayRange', () {
+    test('shows one weekday date for a single-day event', () {
+      expect(
+        Dates.dayRange(
+          DateTime(2026, 6, 6),
+          DateTime(2026, 6, 6),
+          locale: 'en',
+        ),
+        'Sat, Jun 6, 2026',
+      );
+    });
+
+    test('states the year once for a range within a year', () {
+      expect(
+        Dates.dayRange(
+          DateTime(2026, 6, 6),
+          DateTime(2026, 6, 7),
+          locale: 'en',
+        ),
+        'Jun 6 – Jun 7, 2026',
+      );
+    });
+
+    test('repeats the year when the range crosses one', () {
+      expect(
+        Dates.dayRange(
+          DateTime(2026, 12, 31),
+          DateTime(2027, 1, 2),
+          locale: 'en',
+        ),
+        'Dec 31, 2026 – Jan 2, 2027',
+      );
+    });
+  });
+
   group('Dates.relativeDay', () {
     final now = DateTime(2026, 7, 10, 12);
 

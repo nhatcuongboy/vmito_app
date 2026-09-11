@@ -16,6 +16,10 @@ void main() {
         AppRoutes.stripLocale('/vi/tournament/vmito-open/manage'),
         '/tournaments/vmito-open/manage',
       );
+      expect(
+        AppRoutes.stripLocale('/vi/host/tournaments'),
+        AppRoutes.hostTournaments,
+      );
     });
 
     test('maps a bare locale root to /', () {
@@ -75,6 +79,7 @@ void main() {
       expect(AppRoutes.isPublic(AppRoutes.manageClub('c1')), isFalse);
       expect(AppRoutes.isPublic(AppRoutes.editClub('c1')), isFalse);
       expect(AppRoutes.isPublic(AppRoutes.clubFees('c1')), isFalse);
+      expect(AppRoutes.isPublic(AppRoutes.hostTournaments), isFalse);
     });
 
     test('a protected route under a public one stays protected', () {

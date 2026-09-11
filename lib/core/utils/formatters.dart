@@ -76,6 +76,25 @@ abstract final class Dates {
   static String dateOnly(DateTime time, {String locale = 'vi'}) =>
       DateFormat.yMd(_intlLocale(locale)).format(time.toLocal());
 
+  /// A multi-day event by calendar day: `Th 7, 6 thg 6, 2026` for one day,
+  /// `6 thg 6 – 7 thg 6, 2026` for a range. The year is repeated only when the
+  /// range crosses one. Pass calendar days, not instants — no zone shift.
+  static String dayRange(DateTime start, DateTime end, {String locale = 'vi'}) {
+    final intlLocale = _intlLocale(locale);
+    final sameDay =
+        start.year == end.year &&
+        start.month == end.month &&
+        start.day == end.day;
+    if (sameDay || end.isBefore(start)) {
+      return DateFormat.yMMMEd(intlLocale).format(start);
+    }
+    final to = DateFormat.yMMMd(intlLocale).format(end);
+    final from = start.year == end.year
+        ? DateFormat.MMMd(intlLocale).format(start)
+        : DateFormat.yMMMd(intlLocale).format(start);
+    return '$from – $to';
+  }
+
   /// `12/9 – 14/9`, or one date when both fall on the same day. For compact
   /// rows where the year is implied.
   static String shortDateRange(

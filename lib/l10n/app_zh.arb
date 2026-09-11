@@ -2268,6 +2268,7 @@
   "menuFooterYear": "© {year}",
   "@menuFooterYear": {"placeholders": {"year": {"type": "int"}}},
   "hostResultsEditMatch": "编辑比赛",
+  "hostResultsActions": "比赛操作",
   "hostResultsEditAction": "编辑比赛",
   "hostResultsDeleteAction": "删除比赛",
   "hostResultsDeleteTitle": "删除比赛？",
@@ -2284,12 +2285,15 @@
   "hostResultsPair1": "组合 1",
   "hostResultsPair2": "组合 2",
   "hostResultsWinner": "获胜",
+  "hostResultsMatchTitle": "第 {number} 场",
+  "@hostResultsMatchTitle": {"placeholders": {"number": {"type": "int"}}},
   "hostResultsPlayerPosition": "位置 {position}",
   "@hostResultsPlayerPosition": {"placeholders": {"position": {"type": "int"}}},
   "hostResultsSelectPlayer": "选择球员",
   "hostResultsDuplicatePlayers": "每个位置必须选择不同的球员。",
   "hostResultsInvalidNumber": "请输入不小于 0 的有效数字。",
   "hostResultsExtraMatch": "附加赛",
+  "hostResultsExtraBadge": "附加",
   "hostResultsShuttlecockCount": "用球数量",
   "hostResultsShuttlecockHint": "例如：3、2.5、1.25…",
   "hostResultsNotes": "备注",
@@ -2833,5 +2837,32 @@
       }
     }
   },
-  "sessionOverviewNotesTitle": "备注"
+  "sessionOverviewNotesTitle": "备注",
+  "hostTournamentsTitle": "我的锦标赛",
+  "hostTournamentsAdminTitle": "管理锦标赛",
+  "hostTournamentsTabOpen": "开放中",
+  "hostTournamentsTabEnded": "已结束",
+  "hostTournamentsTabAll": "全部",
+  "hostTournamentsStatusExpired": "已过期",
+  "hostTournamentsCategoryCount": "{count} 个类别",
+  "@hostTournamentsCategoryCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "hostTournamentsReferee": "执法",
+  "hostTournamentsMoreActions": "更多操作",
+  "hostTournamentsEmptyTitle": "还没有锦标赛",
+  "hostTournamentsEmptyDesc": "创建您的第一个锦标赛 — 设置类别、邀请选手并专业地运行赛程。",
+  "hostTournamentsAdminEmptyTitle": "系统中还没有锦标赛",
+  "hostTournamentsAdminEmptyDesc": "当主办方创建锦标赛后，系统管理员列表会显示在这里。",
+  "hostTournamentsNoResultsTitle": "未找到匹配的锦标赛",
+  "hostTournamentsNoResultsDesc": "请尝试其他关键词或清除筛选条件。",
+  "hostTournamentsCreateFirst": "创建您的第一个锦标赛",
+  "hostTournamentsDeleteConfirm": "您确定要删除此锦标赛吗？此操作无法撤销。",
+  "hostTournamentsDeleted": "锦标赛已删除",
+  "hostTournamentsDeleteFailed": "删除锦标赛失败",
+  "hostTournamentsClearSearch": "清除搜索"
 }

@@ -193,6 +193,13 @@ class SlideOutMenu extends ConsumerWidget {
                               isActive: isActive(AppRoutes.manageClubs),
                               onTap: () => goTo(AppRoutes.manageClubs),
                             ),
+                            _MenuItem(
+                              itemKey: const Key('menu-host-tournaments'),
+                              icon: AppIcons.swords,
+                              label: l10n.navTournaments,
+                              isActive: isActive(AppRoutes.hostTournaments),
+                              onTap: () => pushTo(AppRoutes.hostTournaments),
+                            ),
                             if (canViewHostFinance)
                               _MenuItem(
                                 icon: AppIcons.billing,

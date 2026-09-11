@@ -100,6 +100,7 @@ class _HostResultsTabState extends ConsumerState<HostResultsTab> {
                   ? right.compareTo(left)
                   : left.compareTo(right);
             });
+        final matchNumbers = _matchNumbers(matches);
         return RefreshIndicator(
           onRefresh: () async => _refreshHistory(),
           child: LayoutBuilder(
@@ -130,6 +131,7 @@ class _HostResultsTabState extends ConsumerState<HostResultsTab> {
                     else
                       _MatchesGrid(
                         matches: filtered,
+                        matchNumbers: matchNumbers,
                         session: widget.session,
                         maxWidth: constraints.maxWidth,
                         onEdit: widget.readOnly ? null : _editMatch,
@@ -143,6 +145,20 @@ class _HostResultsTabState extends ConsumerState<HostResultsTab> {
         );
       },
     );
+  }
+
+  /// Stable per-match ordinal ("Trận N"), independent of the active filter
+  /// or sort order — the earliest match in the whole session is always 1.
+  Map<String, int> _matchNumbers(List<Match> matches) {
+    final chronological = [...matches]
+      ..sort((a, b) {
+        final left = a.startTime?.millisecondsSinceEpoch ?? 1 << 62;
+        final right = b.startTime?.millisecondsSinceEpoch ?? 1 << 62;
+        return left.compareTo(right);
+      });
+    return {
+      for (var i = 0; i < chronological.length; i++) chronological[i].id: i + 1,
+    };
   }
 
   void _refreshHistory() {
@@ -263,12 +279,14 @@ class _ResultsControls extends StatelessWidget {
 class _MatchesGrid extends StatelessWidget {
   const _MatchesGrid({
     required this.matches,
+    required this.matchNumbers,
     required this.session,
     required this.maxWidth,
     required this.onEdit,
     required this.onDelete,
   });
   final List<Match> matches;
+  final Map<String, int> matchNumbers;
   final Session session;
   final double maxWidth;
   final ValueChanged<Match>? onEdit;
@@ -288,6 +306,7 @@ class _MatchesGrid extends StatelessWidget {
             width: cardWidth,
             child: _MatchResultCard(
               match: match,
+              matchNumber: matchNumbers[match.id] ?? 0,
               session: session,
               onEdit: onEdit == null ? null : () => onEdit!(match),
               onDelete: onDelete == null ? null : () => onDelete!(match),
@@ -301,11 +320,13 @@ class _MatchesGrid extends StatelessWidget {
 class _MatchResultCard extends StatelessWidget {
   const _MatchResultCard({
     required this.match,
+    required this.matchNumber,
     required this.session,
     required this.onEdit,
     required this.onDelete,
   });
   final Match match;
+  final int matchNumber;
   final Session session;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
@@ -325,114 +346,178 @@ class _MatchResultCard extends StatelessWidget {
           .where((entry) => entry.playerId == id)
           .firstOrNull;
       final sessionPlayer = playerById[id];
-      final name =
-          matchPlayer?.player?.name ??
+      return matchPlayer?.player?.name ??
           sessionPlayer?.displayName ??
           'Người chơi';
-      final number =
-          matchPlayer?.player?.playerNumber ?? sessionPlayer?.playerNumber;
-      return number == null ? name : '#$number $name';
     }
 
     final first = teams.first.map(playerLabel).toList(growable: false);
     final second = teams.second.map(playerLabel).toList(growable: false);
-    final isSingles = match.players.length <= 2;
-    final title = court == null
+    final courtTitle = court == null
         ? 'Sân'
         : (court.customName ?? 'Sân ${court.courtNumber}');
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final palette = theme.extension<AppPalette>() ?? AppPalette.light();
+    final l10n = AppLocalizations.of(context);
+    final metaStyle = theme.textTheme.bodyMedium?.copyWith(
+      color: palette.mutedForeground,
+      fontWeight: FontWeight.w600,
+    );
+    final hasActions = onEdit != null || onDelete != null;
     return Card(
       key: Key('host-result-card-${match.id}'),
       color: colors.surface,
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.sm + 4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // -- Header: court name + badge + time --------------------------
-            Row(
+      clipBehavior: Clip.antiAlias,
+      child: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.sm + 4,
+              vertical: AppSpacing.sm + 4,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  AppIcons.mapPin,
-                  color: palette.mutedForeground,
-                  size: 19,
+                // -- Header: match title + badge ------------------------------
+                Row(
+                  children: [
+                    Icon(
+                      AppIcons.swords,
+                      color: palette.mutedForeground,
+                      size: 16,
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                    Flexible(
+                      child: Text(
+                        l10n.hostResultsMatchTitle(matchNumber),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: palette.mutedForeground,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    if (match.isExtra) ...[
+                      const SizedBox(width: AppSpacing.sm),
+                      const _ExtraMatchBadge(),
+                    ],
+                    // Reserve room only in the header row so the corner menu
+                    // button never overlaps the title/badge, without shrinking
+                    // the meta row or scoreboard below it.
+                    if (hasActions)
+                      const SizedBox(width: AppSpacing.xl + AppSpacing.sm),
+                  ],
                 ),
-                const SizedBox(width: 7),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title, style: theme.textTheme.titleMedium),
-                      const SizedBox(height: AppSpacing.xxs),
-                      Text(
+
+                // -- Meta: court + time, same compact style ------------------
+                const SizedBox(height: AppSpacing.sm),
+                Row(
+                  children: [
+                    Icon(
+                      AppIcons.mapPin,
+                      color: palette.mutedForeground,
+                      size: 16,
+                    ),
+                    const SizedBox(width: AppSpacing.xxs),
+                    Text(courtTitle, style: metaStyle),
+                    const SizedBox(width: AppSpacing.md),
+                    Icon(
+                      AppIcons.clock,
+                      color: palette.mutedForeground,
+                      size: 16,
+                    ),
+                    const SizedBox(width: AppSpacing.xxs),
+                    Expanded(
+                      child: Text(
                         _timeLabel(match),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.labelSmall?.copyWith(
-                          color: palette.mutedForeground,
-                        ),
+                        style: metaStyle,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                if (match.isExtra) ...[
-                  const SizedBox(width: AppSpacing.sm),
-                  const _ExtraMatchBadge(),
+
+                // -- Scoreboard -----------------------------------------------
+                const SizedBox(height: AppSpacing.md),
+                _TeamLine(
+                  names: first,
+                  score: result.first,
+                  winner: result.winner == 1,
+                  palette: palette,
+                ),
+                _VsDivider(palette: palette),
+                _TeamLine(
+                  names: second,
+                  score: result.second,
+                  winner: result.winner == 2,
+                  palette: palette,
+                ),
+                if (match.isDraw && result.hasScore) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  Center(
+                    child: Text(
+                      'Hòa',
+                      style: theme.textTheme.labelLarge?.copyWith(
+                        color: colors.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
                 ],
-                if (onEdit != null)
-                  IconButton(
-                    key: Key('host-result-edit-${match.id}'),
-                    tooltip: AppLocalizations.of(context).hostResultsEditAction,
-                    onPressed: onEdit,
-                    icon: const Icon(AppIcons.edit, size: 19),
-                  ),
-                if (onDelete != null)
-                  IconButton(
-                    key: Key('host-result-delete-${match.id}'),
-                    tooltip: AppLocalizations.of(
-                      context,
-                    ).hostResultsDeleteAction,
-                    onPressed: onDelete,
-                    icon: const Icon(AppIcons.delete, size: 19),
-                  ),
               ],
             ),
-
-            // -- Scoreboard -------------------------------------------------
-            const SizedBox(height: AppSpacing.md),
-            _TeamLine(
-              label: isSingles ? 'Người chơi 1' : 'Cặp 1',
-              names: first,
-              score: result.first,
-              winner: result.winner == 1,
-              palette: palette,
-            ),
-            _VsDivider(palette: palette),
-            _TeamLine(
-              label: isSingles ? 'Người chơi 2' : 'Cặp 2',
-              names: second,
-              score: result.second,
-              winner: result.winner == 2,
-              palette: palette,
-            ),
-            if (match.isDraw && result.hasScore) ...[
-              const SizedBox(height: AppSpacing.sm),
-              Center(
-                child: Text(
-                  'Hòa',
-                  style: theme.textTheme.labelLarge?.copyWith(
-                    color: colors.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
-                  ),
+          ),
+          if (hasActions)
+            Positioned(
+              top: 0,
+              right: 0,
+              child: PopupMenuButton<VoidCallback>(
+                key: Key('host-result-actions-${match.id}'),
+                tooltip: l10n.hostResultsActions,
+                padding: EdgeInsets.zero,
+                offset: const Offset(0, 36),
+                icon: Icon(
+                  AppIcons.moreVert,
+                  size: 20,
+                  color: palette.mutedForeground,
                 ),
+                onSelected: (action) => action(),
+                itemBuilder: (context) => [
+                  if (onEdit != null)
+                    PopupMenuItem<VoidCallback>(
+                      key: Key('host-result-edit-${match.id}'),
+                      value: onEdit,
+                      child: Row(
+                        children: [
+                          const Icon(AppIcons.edit, size: 18),
+                          const SizedBox(width: 12),
+                          Text(l10n.hostResultsEditAction),
+                        ],
+                      ),
+                    ),
+                  if (onDelete != null)
+                    PopupMenuItem<VoidCallback>(
+                      key: Key('host-result-delete-${match.id}'),
+                      value: onDelete,
+                      child: Row(
+                        children: [
+                          Icon(AppIcons.delete, size: 18, color: colors.error),
+                          const SizedBox(width: 12),
+                          Text(
+                            l10n.hostResultsDeleteAction,
+                            style: TextStyle(color: colors.error),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
               ),
-            ],
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
@@ -456,7 +541,7 @@ class _MatchResultCard extends StatelessWidget {
 
   String _durationLabel(Duration duration) {
     final minutes = duration.inMinutes;
-    if (minutes < 1) return '< 1 phút';
+    if (minutes < 1) return '1 phút';
     final hours = minutes ~/ 60;
     final remainingMinutes = minutes % 60;
     if (hours == 0) return '$minutes phút';
@@ -467,13 +552,11 @@ class _MatchResultCard extends StatelessWidget {
 
 class _TeamLine extends StatelessWidget {
   const _TeamLine({
-    required this.label,
     required this.names,
     required this.score,
     required this.winner,
     required this.palette,
   });
-  final String label;
   final List<String> names;
   final int? score;
   final bool winner;
@@ -485,49 +568,34 @@ class _TeamLine extends StatelessWidget {
     final scoreColor = winner
         ? palette.success
         : (score == null ? palette.mutedForeground : colors.onSurface);
-    return Padding(
+    return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xs,
+        horizontal: AppSpacing.sm,
         vertical: AppSpacing.xs,
       ),
+      decoration: winner
+          ? BoxDecoration(
+              color: palette.success.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(AppRadius.md),
+            )
+          : null,
       child: Row(
         children: [
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: palette.mutedForeground,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xxs),
-                Text(
-                  names.isEmpty ? '—' : names.join(' · '),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: colors.onSurface,
-                    fontWeight: winner ? FontWeight.w700 : FontWeight.w600,
-                  ),
-                ),
-                if (winner)
-                  Text(
-                    AppLocalizations.of(context).hostResultsWinner,
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: palette.success,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-              ],
+            child: Text(
+              names.isEmpty ? '—' : names.join(' · '),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: winner ? palette.success : colors.onSurface,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
           const SizedBox(width: AppSpacing.sm),
           Text(
-            score?.toString() ?? '–',
-            style: theme.textTheme.headlineMedium?.copyWith(
+            score?.toString() ?? '-',
+            style: theme.textTheme.titleLarge?.copyWith(
               color: scoreColor,
               fontWeight: FontWeight.w800,
               height: 1,
@@ -585,7 +653,7 @@ class _ExtraMatchBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.pill),
       ),
       child: Text(
-        'Phụ',
+        AppLocalizations.of(context).hostResultsExtraBadge,
         style: theme.textTheme.labelSmall?.copyWith(
           color: palette.warning,
           fontWeight: FontWeight.w700,

@@ -141,6 +141,10 @@ abstract final class AppRoutes {
   ).toString();
   static const createTournament = '/tournaments/create';
 
+  /// Tournaments the user hosts, manages or umpires. Mirrors the web path so
+  /// `/vi/host/tournaments` deep links land here after [stripLocale].
+  static const hostTournaments = '/host/tournaments';
+
   /// Bottom-nav destinations, in tab order. The shell's branch order must
   /// match this list — index is how go_router identifies a branch.
   static const shellDestinations = <String>[

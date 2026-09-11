@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/court/application/live_session_controller.dart';
 import 'package:vmito_app/features/court/application/match_history_provider.dart';
@@ -173,16 +174,39 @@ void main() {
     expect(find.text('Kết quả (1)'), findsNothing);
     expect(find.byKey(const Key('host-results-filter')), findsOneWidget);
     expect(find.text('Mới nhất'), findsOneWidget);
+    expect(find.byIcon(AppIcons.swords), findsOneWidget);
+    expect(find.text('Trận 1'), findsOneWidget);
     expect(find.text('Sân 1'), findsOneWidget);
-    expect(find.text('Cặp 1'), findsOneWidget);
-    expect(find.text('Cặp 2'), findsOneWidget);
-    expect(find.text('#1 Sơn · #2 Minh'), findsOneWidget);
-    expect(find.text('#3 Nam · #4 Bảo'), findsOneWidget);
+    expect(find.text('Sơn · Minh'), findsOneWidget);
+    expect(find.text('Nam · Bảo'), findsOneWidget);
     expect(find.text('21'), findsOneWidget);
     expect(find.text('16'), findsOneWidget);
-    expect(find.text('Thắng'), findsOneWidget);
+    expect(
+      find.byKey(const Key('host-result-actions-match-1')),
+      findsOneWidget,
+    );
     expect(find.text('VS'), findsOneWidget);
     expect(find.textContaining('1 phút'), findsOneWidget);
+  });
+
+  testWidgets('renders hyphen for unset scores on unscored match card', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          liveSessionRealtimeProvider(session.id).overrideWith((ref) {}),
+          matchHistoryProvider(
+            session.id,
+          ).overrideWith((ref) async => [unscoredMatch]),
+        ],
+        child: _app(const HostResultsTab(session: session)),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('host-result-card-match-2')), findsOneWidget);
+    expect(find.text('-'), findsNWidgets(2));
   });
 
   testWidgets('renders the correct player pairs for a vertical court', (
@@ -218,8 +242,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('#1 Sơn · #3 Nam'), findsOneWidget);
-    expect(find.text('#2 Minh · #4 Bảo'), findsOneWidget);
+    expect(find.text('Sơn · Nam'), findsOneWidget);
+    expect(find.text('Minh · Bảo'), findsOneWidget);
   });
 
   testWidgets('filters results from the sheet and clears filters', (
@@ -316,6 +340,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await tester.tap(find.byKey(const Key('host-result-actions-match-1')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('host-result-edit-match-1')));
     await tester.pumpAndSettle();
     expect(find.text('Chỉnh sửa trận đấu'), findsOneWidget);
@@ -353,6 +379,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await tester.tap(find.byKey(const Key('host-result-actions-match-1')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('host-result-edit-match-1')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('host-match-edit-submit')));
@@ -381,6 +409,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await tester.tap(find.byKey(const Key('host-result-actions-match-2')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('host-result-edit-match-2')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('host-match-edit-submit')));
@@ -410,6 +440,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await tester.tap(find.byKey(const Key('host-result-actions-match-1')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('host-result-delete-match-1')));
     await tester.pumpAndSettle();
     expect(find.text('Xác nhận xóa'), findsOneWidget);
@@ -441,6 +473,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    await tester.tap(find.byKey(const Key('host-result-actions-match-1')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('host-result-delete-match-1')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('host-result-delete-confirm')));

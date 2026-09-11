@@ -35,4 +35,77 @@ void main() {
     expect(tournament.hasVenueCoordinates, isTrue);
     expect(tournament.isFavorite, isTrue);
   });
+
+  test('parses the host-list fields from GET /tournaments/my', () {
+    final tournament = TournamentSummary.fromJson({
+      'id': 't2',
+      'name': 'Giải nháp',
+      'hostId': 'host-1',
+      'startDate': '2026-06-06T00:00:00.000Z',
+      'endDate': '2026-06-07T00:00:00.000Z',
+      'createdAt': '2026-05-01T08:30:00.000Z',
+      'status': 'PREPARING',
+      'isPublished': false,
+      '_count': {'categories': 2, 'players': 10, 'pairs': 5},
+    });
+
+    expect(tournament.hostId, 'host-1');
+    expect(tournament.categoryCount, 2);
+    expect(tournament.createdAt, DateTime.utc(2026, 5, 1, 8, 30));
+    expect(tournament.isPublished, isFalse);
+  });
+
+  test('defaults the category count when _count is absent', () {
+    final tournament = TournamentSummary.fromJson({
+      'id': 't3',
+      'name': 'Giải',
+      'startDate': '2026-06-06T00:00:00.000Z',
+      'endDate': '2026-06-06T00:00:00.000Z',
+    });
+
+    expect(tournament.categoryCount, 0);
+    expect(tournament.createdAt, isNull);
+  });
+
+  group('isOverdue', () {
+    TournamentSummary tournament(TournamentStatus status) => TournamentSummary(
+      id: 't',
+      name: 'Giải',
+      startDate: DateTime.utc(2026, 6, 5),
+      endDate: DateTime.utc(2026, 6, 6),
+      status: status,
+      isPublished: true,
+    );
+
+    test('is false through the whole last day in Vietnam', () {
+      // 16:59 UTC on 6 June is 23:59 in Vietnam — still the last day.
+      expect(
+        tournament(
+          TournamentStatus.inProgress,
+        ).isOverdue(now: DateTime.utc(2026, 6, 6, 16, 59)),
+        isFalse,
+      );
+    });
+
+    test('turns true at midnight Vietnam time, before UTC catches up', () {
+      // 17:00 UTC on 6 June is already 7 June in Vietnam.
+      expect(
+        tournament(
+          TournamentStatus.inProgress,
+        ).isOverdue(now: DateTime.utc(2026, 6, 6, 17)),
+        isTrue,
+      );
+    });
+
+    test('only applies to IN_PROGRESS tournaments', () {
+      final later = DateTime.utc(2026, 7);
+      for (final status in [
+        TournamentStatus.preparing,
+        TournamentStatus.finished,
+        TournamentStatus.cancelled,
+      ]) {
+        expect(tournament(status).isOverdue(now: later), isFalse);
+      }
+    });
+  });
 }
