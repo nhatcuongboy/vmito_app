@@ -82,8 +82,13 @@ Verified behaviour at `vmito-fe/src/contexts/SocketContext.tsx:333-395`:
    handlers.
 
 The mobile version keeps all of it and adds a push so it works with the app
-closed. The string is `courtCallAnnouncement` in ARB — TTS reads the localised
-text, not a hardcoded Vietnamese one.
+closed, plus a visual modal ported from `CourtCallModal.tsx` (pulsing map-pin
+badge, court name, description, single acknowledge CTA — see
+`lib/core/widgets/court_call_dialog.dart`). The string is `courtCallAnnouncement`
+in ARB — TTS reads the localised text, not a hardcoded Vietnamese one. One
+deliberate divergence: the gap between the 3 TTS repeats is **3,000 ms**, not
+web's 1,500 ms (`lib/core/notifications/court_call_effects.dart`) — found the
+faster pace too rushed to react to on a phone.
 
 ### The iOS constraint
 

@@ -56,7 +56,7 @@ class PlatformCourtCallEffects implements CourtCallEffects {
     for (var repeat = 0; repeat < 3; repeat++) {
       await _tts.speak(message);
       if (repeat < 2) {
-        await Future<void>.delayed(const Duration(milliseconds: 1500));
+        await Future<void>.delayed(const Duration(seconds: 3));
       }
     }
   }

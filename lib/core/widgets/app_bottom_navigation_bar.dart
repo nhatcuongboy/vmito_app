@@ -25,6 +25,10 @@ class AppBottomNavigationBar extends StatelessWidget {
     final borderColor =
         theme.extension<AppPalette>()?.border ?? theme.dividerColor;
 
+    final clampedIndex = destinations.isEmpty
+        ? 0
+        : selectedIndex.clamp(0, destinations.length - 1);
+
     return DecoratedBox(
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
@@ -34,7 +38,7 @@ class AppBottomNavigationBar extends StatelessWidget {
         maxScaleFactor: 1.2,
         child: NavigationBar(
           maintainBottomViewPadding: true,
-          selectedIndex: selectedIndex,
+          selectedIndex: clampedIndex,
           onDestinationSelected: onDestinationSelected,
           destinations: destinations,
         ),

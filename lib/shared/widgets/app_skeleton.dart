@@ -12,6 +12,16 @@ import 'package:vmito_app/l10n/app_localizations.dart';
 /// once, keep the card chrome static so only the content pulses, and size the
 /// loading list to the viewport instead of a fixed count.
 
+/// The skeleton palette, falling back to the stock light/dark palette when the
+/// theme carries no [AppPalette]. Loading states render for a frame before any
+/// data arrives, so a bare `ThemeData` (widget tests, previews) must not crash
+/// them.
+AppPalette skeletonPalette(ThemeData theme) =>
+    theme.extension<AppPalette>() ??
+    (theme.brightness == Brightness.dark
+        ? AppPalette.dark()
+        : AppPalette.light());
+
 /// Wraps [child] in the app's single tuned shimmer pass.
 ///
 /// The highlight is derived from `onSurface` so the moving band stays visible in
@@ -26,7 +36,7 @@ class AppShimmer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final palette = theme.extension<AppPalette>()!;
+    final palette = skeletonPalette(theme);
     return Shimmer.fromColors(
       period: const Duration(milliseconds: 1450),
       baseColor: palette.muted,

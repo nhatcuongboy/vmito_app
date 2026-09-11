@@ -8,7 +8,7 @@ import 'package:vmito_app/core/notifications/court_call_effects.dart';
 import 'package:vmito_app/core/realtime/socket_client.dart';
 import 'package:vmito_app/core/realtime/socket_events.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
-import 'package:vmito_app/core/theme/app_icons.dart';
+import 'package:vmito_app/core/widgets/court_call_dialog.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_domain/vmito_domain.dart';
@@ -47,6 +47,8 @@ class _CourtCallListenerState extends ConsumerState<CourtCallListener> {
 
     final l10n = AppLocalizations.of(context);
     final message = l10n.courtCallAnnouncement(call.courtNumber);
+    final courtDisplayName =
+        call.courtName ?? l10n.courtNumber(call.courtNumber);
     final route = AppRoutes.liveSession(call.sessionId);
     final effects = ref.read(courtCallEffectsProvider);
     unawaited(
@@ -68,26 +70,10 @@ class _CourtCallListenerState extends ConsumerState<CourtCallListener> {
       _dialogOpen = false;
       return;
     }
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        icon: const Icon(AppIcons.campaign, size: 42),
-        title: Text(l10n.courtCallTitle),
-        content: ConstrainedBox(
-          constraints: const BoxConstraints(minWidth: 320),
-          child: Text(message, textAlign: TextAlign.center),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(dialogContext).pop();
-              context.go(route);
-            },
-            child: Text(l10n.courtCallAcknowledge),
-          ),
-        ],
-      ),
+    await CourtCallDialog.show(
+      context,
+      courtDisplayName: courtDisplayName,
+      onAcknowledge: () => context.go(route),
     );
     _dialogOpen = false;
   }

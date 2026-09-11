@@ -145,6 +145,8 @@ class NotificationListItem extends StatelessWidget {
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: theme.textTheme.bodySmall?.copyWith(
+                              fontSize: 13,
+                              height: 18 / 13,
                               color: theme.colorScheme.onSurface.withValues(
                                 alpha: isUnread ? 0.90 : (isDark ? 0.76 : 0.65),
                               ),
@@ -157,6 +159,8 @@ class NotificationListItem extends StatelessWidget {
                               locale: locale,
                             ),
                             style: theme.textTheme.labelSmall?.copyWith(
+                              fontSize: 12,
+                              height: 16 / 12,
                               color: isUnread
                                   ? accent
                                   : theme.colorScheme.onSurface.withValues(
@@ -196,17 +200,16 @@ class _NotificationLeading extends StatelessWidget {
       return PostAvatar(
         name: notification.actorName!,
         imageUrl: notification.actorAvatar,
-        size: 36,
-        bordered: true,
+        size: 44,
       );
     }
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     return Container(
-      width: 40,
-      height: 40,
+      width: 44,
+      height: 44,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppRadius.md),
+        shape: BoxShape.circle,
         color: unread
             ? (isDark
                   ? AppColors.primaryDark.withValues(alpha: 0.25)
@@ -227,7 +230,7 @@ class _NotificationLeading extends StatelessWidget {
       ),
       child: Icon(
         notificationIcon(notification),
-        size: 18,
+        size: 20,
         color: isDark ? AppColors.primaryDark : AppColors.primary,
       ),
     );

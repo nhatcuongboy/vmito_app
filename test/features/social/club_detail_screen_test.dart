@@ -17,6 +17,7 @@ import 'package:vmito_app/l10n/app_localizations.dart';
 class _TestClubManagementController extends ClubManagementController {
   static String? addedUserId;
   static String? removedUserId;
+  static String? cancelledJoinRequestClubId;
 
   @override
   Future<void> addMember(String clubId, String userId) async {
@@ -26,6 +27,11 @@ class _TestClubManagementController extends ClubManagementController {
   @override
   Future<void> removeMember(String clubId, String userId) async {
     removedUserId = userId;
+  }
+
+  @override
+  Future<void> cancelJoinRequest(String clubId) async {
+    cancelledJoinRequestClubId = clubId;
   }
 }
 
@@ -161,9 +167,11 @@ Future<void> _pump(
   double safeAreaTop = 0,
   double textScale = 1,
   User? currentUser,
+  List<ClubJoinRequest> myClubRequests = const [],
 }) async {
   _TestClubManagementController.addedUserId = null;
   _TestClubManagementController.removedUserId = null;
+  _TestClubManagementController.cancelledJoinRequestClubId = null;
   tester.view
     ..physicalSize = Size(width * 3, 844 * 3)
     ..devicePixelRatio = 3;
@@ -188,6 +196,7 @@ Future<void> _pump(
                 ]
               : const [],
         ),
+        myClubRequestsProvider.overrideWith((ref) async => myClubRequests),
         clubManagementControllerProvider.overrideWith(
           _TestClubManagementController.new,
         ),
@@ -281,6 +290,45 @@ void main() {
     expect(find.byKey(const Key('club-join-dialog')), findsNothing);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'shows a pending state instead of the join button after a request is sent',
+    (tester) async {
+      await _pump(
+        tester,
+        currentUser: _memberUser,
+        myClubRequests: [
+          ClubJoinRequest(
+            id: 'request-1',
+            userId: _memberUser.id,
+            userName: _memberUser.name ?? '',
+            userEmail: _memberUser.email,
+            createdAt: DateTime.utc(2026),
+            clubId: _club.id,
+          ),
+        ],
+      );
+
+      expect(find.text('Tham gia nhóm'), findsNothing);
+      expect(find.text('Đang chờ duyệt'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('club-join-button')));
+      await tester.pumpAndSettle();
+
+      final confirmButton = find.byKey(
+        const Key('club-cancel-request-confirm'),
+      );
+      expect(confirmButton, findsOneWidget);
+      await tester.tap(confirmButton);
+      await tester.pumpAndSettle();
+
+      expect(
+        _TestClubManagementController.cancelledJoinRequestClubId,
+        _club.id,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   testWidgets('reveals the compact title below an iPhone safe area', (
     tester,

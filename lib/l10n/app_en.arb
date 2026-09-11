@@ -141,15 +141,18 @@
     }
   },
   "courtCallTitle": "You're up!",
+  "courtCallGoToCourt": "Please go to",
+  "courtCallDescription": "Your match is about to start. Please proceed to the court now.",
   "courtCallAnnouncement": "Please go to court {courtNumber}",
   "@courtCallAnnouncement": {
+    "description": "Spoken aloud by TTS and shown in the call modal. Repeated 3 times at 3s gaps.",
     "placeholders": {
       "courtNumber": {
         "type": "int"
       }
     }
   },
-  "courtCallAcknowledge": "Got it",
+  "courtCallAcknowledge": "Got it, I'm on my way!",
   "navFeed": "Feed",
   "newsfeedUnreadCount": "{count, plural, =1{1 unread post} other{{count} unread posts}}",
   "profileTitle": "Profile",
@@ -362,6 +365,9 @@
   "homeDiscoverySortNearest": "Nearest to me",
   "homeDiscoverySortStartSoonest": "Starting soonest",
   "homeDiscoveryClubFilters": "Filters",
+  "clubFilterTitle": "Filter clubs",
+  "clubFilterActivityTime": "Activity time",
+  "clubFilterPeriodLabel": "Time of day",
   "homeDiscoveryTournamentFilters": "Tournament filters",
   "homeDiscoveryDistrict": "Ward / Commune / Special zone",
   "homeDiscoveryFavoriteOnly": "Favorites only",
@@ -1125,6 +1131,7 @@
   "sessionFormSpecificDates": "Specific dates",
   "sessionFormRecurring": "Recurring weekdays",
   "sessionFormAddDate": "Add date",
+  "sessionFormPickDates": "Pick dates",
   "sessionFormWeekCount": "Number of weeks",
   "sessionFormAdvanced": "Advanced",
   "sessionFormImages": "Session images",
@@ -2807,5 +2814,30 @@
   "playerLivePaymentPending": "Not submitted",
   "playerLivePaymentAwaitingApproval": "Awaiting approval",
   "playerLivePaymentApproved": "Approved",
-  "playerLivePaymentRejected": "Rejected"
+  "playerLivePaymentRejected": "Rejected",
+  "playerLivePaymentSummaryTitle": "Your payment summary",
+  "playerLivePaymentDetailsTitle": "Payment details",
+  "playerLiveYourSlot": "Your slot",
+  "playerLiveSlotNumber": "Slot {number}",
+  "playerLiveWaitingForApproval": "Waiting for host approval...",
+  "playerLiveRejectionReason": "Rejection reason: {reason}",
+  "playerLiveYourFee": "Your fee",
+  "playerLiveCurrentStatus": "Current status",
+  "sessionOverviewCancelledMessage": "This session has been cancelled.",
+  "sessionOverviewFinishedMessage": "This session has finished.",
+  "sessionOverviewInfoTitle": "Session information",
+  "sessionOverviewStatsTitle": "Session stats",
+  "sessionOverviewStatWaiting": "Waiting",
+  "sessionOverviewGenderBreakdown": "Men {male} · Women {female}",
+  "@sessionOverviewGenderBreakdown": {
+    "placeholders": {
+      "male": {
+        "type": "int"
+      },
+      "female": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionOverviewNotesTitle": "Notes"
 }

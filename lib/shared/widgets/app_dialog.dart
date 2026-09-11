@@ -92,6 +92,9 @@ class AppConfirmDialog extends StatelessWidget {
       ),
       actions: [
         TextButton(
+          style: TextButton.styleFrom(
+            foregroundColor: cs.onSurfaceVariant,
+          ),
           onPressed: () => Navigator.of(context).pop(false),
           child: Text(
             cancelLabel ?? MaterialLocalizations.of(context).cancelButtonLabel,

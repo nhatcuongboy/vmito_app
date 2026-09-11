@@ -23,6 +23,7 @@ import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/player/public_sessions_content.dart';
 import 'package:vmito_app/features/session/presentation/player/session_filter_sheet.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
+import 'package:vmito_app/features/social/domain/club_browse_filters.dart';
 import 'package:vmito_app/features/social/presentation/browse_clubs_screen.dart';
 import 'package:vmito_app/features/tournament/application/tournament_browse_controller.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
@@ -610,8 +611,10 @@ void main() {
     (tester) async {
       _FakeSessionsController.lastFilters = null;
       _SearchVenuesController.lastFilter = null;
-      _FakeClubsController.lastCity = 'Hồ Chí Minh';
-      _FakeClubsController.lastClearCity = false;
+      _FakeClubsController.lastFilters = const ClubBrowseFilters(
+        city: 'Hồ Chí Minh',
+        cityIsDefault: false,
+      );
       _FakeTournamentsController.lastCity = 'Hồ Chí Minh';
       _FakeTournamentsController.lastClearCity = false;
 
@@ -685,14 +688,14 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('discovery-city-Hà Nội')));
       await tester.pumpAndSettle();
-      expect(_FakeClubsController.lastCity, 'Hà Nội');
+      expect(_FakeClubsController.lastFilters?.city, 'Hà Nội');
 
       await tester.tap(find.byKey(const Key('discovery-city-selector')));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('discovery-city-other')));
       await tester.pumpAndSettle();
-      expect(_FakeClubsController.lastCity, isNull);
-      expect(_FakeClubsController.lastClearCity, isTrue);
+      expect(_FakeClubsController.lastFilters?.city, isNull);
+      expect(_FakeClubsController.lastFilters?.cityIsDefault, isTrue);
 
       // 4. Tournaments tab: switch tab, select Hà Nội, then select "Khác"
       await tester.tap(find.text('Tìm giải'));
@@ -1224,24 +1227,18 @@ class _VenueFilterSessionsController extends BrowseSessionsController {
 
 class _FakeClubsController extends ClubsController {
   static int loads = 0;
-  static String? lastCity;
-  static bool? lastClearCity;
+  static ClubBrowseFilters? lastFilters;
 
   @override
   Future<void> load({
-    String search = '',
-    String? city,
-    String? district,
+    String? search,
+    ClubBrowseFilters? filters,
     String? sortBy,
-    bool? favoriteOnly,
     double? latitude,
     double? longitude,
-    bool clearCity = false,
-    bool clearDistrict = false,
   }) async {
     loads++;
-    lastCity = city;
-    lastClearCity = clearCity;
+    lastFilters = filters;
   }
 }
 

@@ -13,6 +13,7 @@ import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/core/theme/theme_mode_controller.dart';
 import 'package:vmito_app/core/web/admin_web_destination.dart';
 import 'package:vmito_app/core/widgets/language_selector.dart';
+import 'package:vmito_app/core/widgets/sign_out_confirmation.dart';
 import 'package:vmito_app/core/widgets/theme_mode_selector.dart';
 import 'package:vmito_app/features/ai/application/ai_assistant_controller.dart';
 import 'package:vmito_app/features/ai/presentation/ai_assistant_sheet.dart';
@@ -54,6 +55,11 @@ class SlideOutMenu extends ConsumerWidget {
     void pushTo(String route) {
       closeDrawer();
       unawaited(context.push(route));
+    }
+
+    void confirmSignOut() {
+      closeDrawer();
+      unawaited(showSignOutConfirmation(context, ref));
     }
 
     final isSignedIn = isAuthenticated && user != null;
@@ -300,6 +306,7 @@ class SlideOutMenu extends ConsumerWidget {
                   ),
                 ),
                 const _MenuDivider(),
+                if (isSignedIn) _SignOutButton(onTap: confirmSignOut),
                 _MenuFooter(
                   appName: l10n.appName,
                   languageCode: localeCode,
@@ -696,6 +703,41 @@ class _MenuDivider extends StatelessWidget {
     height: 1,
     color: Theme.of(context).extension<AppPalette>()!.border,
   );
+}
+
+/// Pinned sign-out action at the very bottom of the drawer, above the
+/// footer branding row. Deliberately styled like a warning, not a nav
+/// item, since it ends the session rather than navigating within it.
+class _SignOutButton extends StatelessWidget {
+  const _SignOutButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final mutedColor = Theme.of(context).colorScheme.onSurfaceVariant;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        AppSpacing.md,
+        AppSpacing.sm,
+        AppSpacing.md,
+        AppSpacing.xs,
+      ),
+      child: SizedBox(
+        width: double.infinity,
+        child: TextButton.icon(
+          key: const Key('menu-sign-out-button'),
+          style: TextButton.styleFrom(
+            foregroundColor: mutedColor,
+          ),
+          onPressed: onTap,
+          icon: const Icon(AppIcons.logout, size: 18),
+          label: Text(l10n.authSignOut),
+        ),
+      ),
+    );
+  }
 }
 
 class _MenuFooter extends StatelessWidget {

@@ -14,6 +14,7 @@ import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/data/social_service.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
+import 'package:vmito_app/features/social/domain/club_browse_filters.dart';
 import 'package:vmito_app/features/tournament/application/tournament_browse_controller.dart';
 import 'package:vmito_app/features/tournament/data/tournament_service.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
@@ -96,7 +97,7 @@ class ApiHomeSearchSuggestionService implements HomeSearchSuggestionService {
       ),
       HomeDiscoveryTab.clubs => _clubs(
         ClubsState(
-          city: presets.city,
+          filters: ClubBrowseFilters(city: presets.city),
           // The featured list is "Nhóm nổi bật" — pin the popular sort so the
           // preview matches what "Xem tất cả" applies, regardless of the
           // browse list's current (distance) sort.
@@ -156,10 +157,8 @@ class ApiHomeSearchSuggestionService implements HomeSearchSuggestionService {
         .browseClubs(
           page: 1,
           search: search,
-          city: state.city,
-          district: state.district,
+          filters: state.filters,
           sortBy: state.sortBy,
-          favoriteOnly: state.favoriteOnly,
           latitude: state.latitude,
           longitude: state.longitude,
         );

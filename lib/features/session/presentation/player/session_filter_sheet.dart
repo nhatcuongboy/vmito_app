@@ -368,8 +368,8 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                       (pending.nearMe ? 1 : 0) +
                       (pending.courtCount != null ? 1 : 0),
                   child: Wrap(
-                    spacing: AppSpacing.md,
-                    runSpacing: AppSpacing.xxs,
+                    spacing: AppSpacing.sm,
+                    runSpacing: AppSpacing.sm,
                     children: [
                       ReactiveValueListenableBuilder<bool>(
                         formControlName: BrowseFilterControl.hasSlots,
@@ -908,7 +908,7 @@ class _PresetChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.pill),
           border: Border.all(
             color: isSelected ? scheme.primary : palette.border,
-            width: isSelected ? 1.5 : 1.0,
+            width: 1.0,
           ),
         ),
         child: Text(
@@ -916,6 +916,12 @@ class _PresetChip extends StatelessWidget {
           style: Theme.of(context).textTheme.labelMedium?.copyWith(
             color: isSelected ? scheme.primary : scheme.onSurfaceVariant,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            height: 16 / 12,
+          ),
+          strutStyle: const StrutStyle(
+            fontSize: 12,
+            height: 16 / 12,
+            forceStrutHeight: true,
           ),
         ),
       ),

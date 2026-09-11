@@ -17,6 +17,7 @@ import 'package:vmito_app/features/social/application/achievement_share_service.
 import 'package:vmito_app/features/social/data/profile_tabs_service.dart';
 import 'package:vmito_app/features/social/domain/profile_tabs.dart';
 import 'package:vmito_app/features/social/domain/public_profile.dart';
+import 'package:vmito_app/features/social/presentation/widgets/user_achievements_skeleton.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 const _achievementPeriods = ['week', 'month', 'year', 'all'];
@@ -77,9 +78,7 @@ class _UserAchievementsTabState extends ConsumerState<UserAchievementsTab> {
           }),
         );
       }
-      if (!snapshot.hasData) {
-        return const Center(child: CircularProgressIndicator());
-      }
+      if (!snapshot.hasData) return const UserAchievementsSkeleton();
       return LayoutBuilder(
         builder: (context, constraints) {
           final contentWidth = constraints.maxWidth

@@ -17,6 +17,7 @@ import 'package:vmito_app/features/session/application/player/my_sessions_contro
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/player/session_edit_modal.dart';
+import 'package:vmito_app/features/session/presentation/widgets/session_status_badge.dart';
 import 'package:vmito_app/features/session_hosting/application/host_session_management_controller.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/host_courts_tab.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/host_overview_tab.dart';
@@ -121,7 +122,7 @@ class _HostSessionManagementScreenState
               data: (value) => Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  _SessionStatusBadge(status: value.status),
+                  SessionStatusBadge(status: value.status),
                   const SizedBox(width: AppSpacing.xs),
                   PopupMenuButton<_SessionAction>(
                     key: const Key('host-session-more-menu'),
@@ -374,54 +375,6 @@ class _HostSessionManagementScreenState
   }
 }
 
-class _SessionStatusBadge extends StatelessWidget {
-  const _SessionStatusBadge({required this.status});
-
-  final SessionStatus status;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final palette = Theme.of(context).extension<AppPalette>()!;
-    final (label, color) = switch (status) {
-      SessionStatus.preparing => (
-        l10n.sessionStatusPreparing,
-        palette.mutedForeground,
-      ),
-      SessionStatus.inProgress => (
-        l10n.sessionStatusInProgress,
-        palette.success,
-      ),
-      SessionStatus.finished => (
-        l10n.sessionStatusFinished,
-        palette.mutedForeground,
-      ),
-      SessionStatus.cancelled => (l10n.sessionStatusCancelled, palette.warning),
-    };
-
-    return Container(
-      key: const Key('host-session-status-badge'),
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
-      ),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      child: Text(
-        label,
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: color,
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    );
-  }
-}
-
 class _HostSessionBottomNavBar extends StatelessWidget {
   const _HostSessionBottomNavBar({required this.destinations});
 
@@ -434,10 +387,12 @@ class _HostSessionBottomNavBar extends StatelessWidget {
     return AnimatedBuilder(
       animation: tabController.animation ?? tabController,
       builder: (context, _) {
-        final activeIndex = tabController.indexIsChanging
+        final rawIndex = tabController.indexIsChanging
             ? tabController.index
             : (tabController.animation?.value ?? tabController.index.toDouble())
                   .round();
+        final maxIndex = destinations.isEmpty ? 0 : destinations.length - 1;
+        final activeIndex = rawIndex.clamp(0, maxIndex);
 
         return AppBottomNavigationBar(
           key: const Key('host-session-bottom-nav'),

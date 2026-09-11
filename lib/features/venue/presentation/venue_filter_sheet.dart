@@ -41,7 +41,7 @@ enum VenueSortOption {
   };
 
   IconData get icon => switch (this) {
-    VenueSortOption.distance => AppIcons.location,
+    VenueSortOption.distance => AppIcons.myLocation,
     VenueSortOption.newest => AppIcons.calendarArrowDown,
     VenueSortOption.nameAsc => AppIcons.sortAlpha,
     VenueSortOption.priceAsc => AppIcons.trendingUp,
@@ -250,8 +250,8 @@ class _VenueFilterSheetState extends ConsumerState<VenueFilterSheet> {
                   icon: AppIcons.grid2x2,
                   selectedCount: pending.courtCount != null ? 1 : 0,
                   child: Wrap(
-                    spacing: AppSpacing.md,
-                    runSpacing: AppSpacing.xxs,
+                    spacing: AppSpacing.sm,
+                    runSpacing: AppSpacing.sm,
                     children: [
                       for (final courtCount in VenueCourtCountFilter.values)
                         ReactiveValueListenableBuilder<VenueCourtCountFilter>(

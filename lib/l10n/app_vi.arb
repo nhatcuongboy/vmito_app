@@ -147,16 +147,18 @@
     }
   },
   "courtCallTitle": "Đến lượt bạn vào sân!",
+  "courtCallGoToCourt": "Vui lòng di chuyển đến",
+  "courtCallDescription": "Trận đấu của bạn sắp bắt đầu. Hãy đến sân ngay nhé.",
   "courtCallAnnouncement": "Mời bạn vào sân số {courtNumber}",
   "@courtCallAnnouncement": {
-    "description": "Spoken aloud by TTS and shown in the call modal. Repeated 3 times at 1.5s gaps, matching the web app.",
+    "description": "Spoken aloud by TTS and shown in the call modal. Repeated 3 times at 3s gaps.",
     "placeholders": {
       "courtNumber": {
         "type": "int"
       }
     }
   },
-  "courtCallAcknowledge": "Đã hiểu",
+  "courtCallAcknowledge": "Đã hiểu, tôi đang đến!",
   "navFeed": "Bảng tin",
   "newsfeedUnreadCount": "{count, plural, other{{count} bài chưa đọc}}",
   "@newsfeedUnreadCount": {
@@ -377,6 +379,9 @@
   "homeDiscoverySortNearest": "Gần tôi nhất",
   "homeDiscoverySortStartSoonest": "Sắp diễn ra",
   "homeDiscoveryClubFilters": "Bộ lọc",
+  "clubFilterTitle": "Lọc nhóm",
+  "clubFilterActivityTime": "Thời gian hoạt động",
+  "clubFilterPeriodLabel": "Buổi",
   "homeDiscoveryTournamentFilters": "Lọc giải đấu",
   "homeDiscoveryDistrict": "Phường / Xã / Đặc khu",
   "homeDiscoveryFavoriteOnly": "Chỉ mục yêu thích",
@@ -1140,6 +1145,7 @@
   "sessionFormSpecificDates": "Các ngày cụ thể",
   "sessionFormRecurring": "Lặp lại theo tuần",
   "sessionFormAddDate": "Thêm ngày",
+  "sessionFormPickDates": "Chọn ngày",
   "sessionFormWeekCount": "Số tuần",
   "sessionFormAdvanced": "Nâng cao",
   "sessionFormImages": "Ảnh kèo",
@@ -2829,5 +2835,30 @@
   "playerLivePaymentPending": "Chưa gửi",
   "playerLivePaymentAwaitingApproval": "Chờ duyệt",
   "playerLivePaymentApproved": "Đã duyệt",
-  "playerLivePaymentRejected": "Bị từ chối"
+  "playerLivePaymentRejected": "Bị từ chối",
+  "playerLivePaymentSummaryTitle": "Tóm tắt thanh toán của bạn",
+  "playerLivePaymentDetailsTitle": "Chi tiết thanh toán",
+  "playerLiveYourSlot": "Slot của bạn",
+  "playerLiveSlotNumber": "Slot {number}",
+  "playerLiveWaitingForApproval": "Đang chờ host duyệt...",
+  "playerLiveRejectionReason": "Lý do từ chối: {reason}",
+  "playerLiveYourFee": "Phí của bạn",
+  "playerLiveCurrentStatus": "Trạng thái hiện tại",
+  "sessionOverviewCancelledMessage": "Kèo đã bị hủy.",
+  "sessionOverviewFinishedMessage": "Kèo đã kết thúc.",
+  "sessionOverviewInfoTitle": "Thông tin kèo",
+  "sessionOverviewStatsTitle": "Thống kê kèo",
+  "sessionOverviewStatWaiting": "Chờ",
+  "sessionOverviewGenderBreakdown": "Nam {male} · Nữ {female}",
+  "@sessionOverviewGenderBreakdown": {
+    "placeholders": {
+      "male": {
+        "type": "int"
+      },
+      "female": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionOverviewNotesTitle": "Ghi chú"
 }

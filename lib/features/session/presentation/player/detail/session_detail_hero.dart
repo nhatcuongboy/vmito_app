@@ -45,7 +45,7 @@ class _SessionDetailHeroState extends State<SessionDetailHero> {
   @override
   Widget build(BuildContext context) {
     final images = widget.session.galleryImages.isEmpty
-        ? [Session.defaultCoverPhoto]
+        ? [sessionCoverPhoto(widget.session)]
         : widget.session.galleryImages;
     return Stack(
       fit: StackFit.expand,

@@ -17,6 +17,7 @@ class HostCourtCardHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final startTime = court.currentMatch?.startTime;
 
     final (
@@ -28,33 +29,63 @@ class HostCourtCardHeader extends StatelessWidget {
       badgeTextColor,
       badgeBorderColor,
     ) = switch (court.status) {
-      CourtStatus.ready => (
-        const Color(0xFFFEFCE8), // yellow.50
-        const Color(0xFFEAB308), // yellow.500
-        const Color(0xFF854D0E), // yellow.800
-        l10n.courtStatusReady,
-        const Color(0xFFFACC15), // yellow.400
-        const Color(0xFF713F12), // yellow.900
-        Colors.transparent,
-      ),
-      CourtStatus.inUse => (
-        const Color(0xFFF0FDF4), // green.50
-        const Color(0xFF22C55E), // green.500
-        const Color(0xFF15803D), // green.700
-        l10n.courtStatusPlaying,
-        const Color(0xFF22C55E), // green.500
-        Colors.white,
-        Colors.transparent,
-      ),
-      CourtStatus.empty => (
-        const Color(0xFFF9FAFB), // gray.50
-        const Color(0xFF6B7280), // gray.500
-        const Color(0xFF374151), // gray.700
-        l10n.courtStatusEmpty,
-        const Color(0xFFF3F4F6), // gray.100
-        const Color(0xFF374151), // gray.700
-        const Color(0xFFE5E7EB), // gray.200
-      ),
+      CourtStatus.ready => isDark
+          ? (
+              const Color(0xFF2E1C0C),
+              const Color(0xFFEAB308),
+              const Color(0xFFFDE047),
+              l10n.courtStatusReady,
+              const Color(0x3FEAB308),
+              const Color(0xFFFDE047),
+              const Color(0x66EAB308),
+            )
+          : (
+              const Color(0xFFFEFCE8), // yellow.50
+              const Color(0xFFEAB308), // yellow.500
+              const Color(0xFF854D0E), // yellow.800
+              l10n.courtStatusReady,
+              const Color(0xFFFACC15), // yellow.400
+              const Color(0xFF713F12), // yellow.900
+              Colors.transparent,
+            ),
+      CourtStatus.inUse => isDark
+          ? (
+              const Color(0xFF0F291E),
+              const Color(0xFF22C55E),
+              const Color(0xFF86EFAC),
+              l10n.courtStatusPlaying,
+              const Color(0x3322C55E),
+              const Color(0xFF4ADE80),
+              const Color(0x6622C55E),
+            )
+          : (
+              const Color(0xFFF0FDF4), // green.50
+              const Color(0xFF22C55E), // green.500
+              const Color(0xFF15803D), // green.700
+              l10n.courtStatusPlaying,
+              const Color(0xFF22C55E), // green.500
+              Colors.white,
+              Colors.transparent,
+            ),
+      CourtStatus.empty => isDark
+          ? (
+              const Color(0xFF201D1A),
+              const Color(0xFF52525B),
+              const Color(0xFFE4E4E7),
+              l10n.courtStatusEmpty,
+              const Color(0xFF27272A),
+              const Color(0xFFA1A1AA),
+              const Color(0xFF3F3F46),
+            )
+          : (
+              const Color(0xFFF9FAFB), // gray.50
+              const Color(0xFF6B7280), // gray.500
+              const Color(0xFF374151), // gray.700
+              l10n.courtStatusEmpty,
+              const Color(0xFFF3F4F6), // gray.100
+              const Color(0xFF374151), // gray.700
+              const Color(0xFFE5E7EB), // gray.200
+            ),
     };
 
     return Container(
@@ -65,6 +96,11 @@ class HostCourtCardHeader extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: headerBg,
+        border: Border(
+          bottom: BorderSide(
+            color: isDark ? const Color(0x1FFFFFFF) : Colors.transparent,
+          ),
+        ),
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(AppRadius.lg),
         ),

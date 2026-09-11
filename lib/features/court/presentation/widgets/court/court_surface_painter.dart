@@ -6,7 +6,11 @@ import 'package:vmito_app/shared/models/court.dart';
 /// Geometry ported from `vmito-fe/src/components/court/BadmintonCourt.tsx`,
 /// which draws the same lines as absolutely-positioned boxes.
 class CourtSurfacePainter extends CustomPainter {
-  const CourtSurfacePainter({required this.status, this.courtColor});
+  const CourtSurfacePainter({
+    required this.status,
+    this.courtColor,
+    this.isDark = false,
+  });
 
   final CourtStatus status;
 
@@ -14,23 +18,30 @@ class CourtSurfacePainter extends CustomPainter {
   /// court goes amber and an empty one grey, because status has to survive a
   /// host who picked a green that looks like every other green.
   final Color? courtColor;
+  final bool isDark;
 
   @override
   void paint(Canvas canvas, Size size) {
     canvas.drawRect(Offset.zero & size, Paint()..color = _background);
 
-    // 4px outer border matching BadmintonCourt.tsx
+    final borderWidth = isDark ? 2.0 : 3.0;
     final outerBorder = Paint()
       ..color = _borderColor
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 4.0;
+      ..strokeWidth = borderWidth;
     canvas.drawRect(
-      Rect.fromLTWH(2, 2, size.width - 4, size.height - 4),
+      Rect.fromLTWH(
+        borderWidth / 2,
+        borderWidth / 2,
+        size.width - borderWidth,
+        size.height - borderWidth,
+      ),
       outerBorder,
     );
 
+    final lineAlpha = isDark && status == CourtStatus.empty ? 0.5 : 0.9;
     final line = Paint()
-      ..color = Colors.white.withValues(alpha: 0.9)
+      ..color = Colors.white.withValues(alpha: lineAlpha)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.4;
 
@@ -81,8 +92,9 @@ class CourtSurfacePainter extends CustomPainter {
 
   /// A dashed vertical line down the middle.
   void _paintNet(Canvas canvas, Size size) {
+    final netAlpha = isDark && status == CourtStatus.empty ? 0.55 : 1.0;
     final net = Paint()
-      ..color = Colors.white
+      ..color = Colors.white.withValues(alpha: netAlpha)
       ..strokeWidth = 2;
     for (var y = 0.0; y < size.height; y += 7) {
       canvas.drawLine(
@@ -93,19 +105,36 @@ class CourtSurfacePainter extends CustomPainter {
     }
   }
 
+  // Dark-mode empty/ready fills reuse the exact tones CourtSlotPlaceholder
+  // uses for its inactive/active circles — a court and its seats read as one
+  // surface instead of drifting apart. Both sit visibly above the card's
+  // near-black background (AppColors.cardDark, `0xFF1C1917`); the previous
+  // `0xff18181b` was close enough in luminance to disappear into it.
   Color get _background => switch (status) {
     CourtStatus.inUse => courtColor ?? const Color(0xff179a3b),
-    CourtStatus.ready => const Color(0xfffef3c7),
-    CourtStatus.empty => const Color(0xffe6e6e6),
+    CourtStatus.ready => isDark
+        ? const Color(0xFF422006)
+        : const Color(0xfffef3c7),
+    CourtStatus.empty => isDark
+        ? const Color(0xFF27272A)
+        : const Color(0xffe6e6e6),
   };
 
   Color get _borderColor => switch (status) {
-    CourtStatus.ready => const Color(0xfffacc15), // yellow.400
-    CourtStatus.inUse => const Color(0x4dffffff), // whiteAlpha.300
-    CourtStatus.empty => const Color(0xffe4e4e7), // border
+    CourtStatus.ready => isDark
+        ? const Color(0xFFEAB308) // yellow.500, solid — matches the slot dot
+        : const Color(0xfffacc15), // yellow.400
+    CourtStatus.inUse => isDark
+        ? const Color(0x4dffffff) // whiteAlpha.300 — same as light
+        : const Color(0x4dffffff), // whiteAlpha.300
+    CourtStatus.empty => isDark
+        ? const Color(0xFF52525B) // zinc.600 — same as the slot dot
+        : const Color(0xffe4e4e7), // border
   };
 
   @override
   bool shouldRepaint(CourtSurfacePainter oldDelegate) =>
-      oldDelegate.status != status || oldDelegate.courtColor != courtColor;
+      oldDelegate.status != status ||
+      oldDelegate.courtColor != courtColor ||
+      oldDelegate.isDark != isDark;
 }

@@ -6,6 +6,7 @@ import 'package:vmito_app/features/social/application/newsfeed_badge_controller.
 import 'package:vmito_app/features/social/data/profile_tabs_service.dart';
 import 'package:vmito_app/features/social/data/social_service.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
+import 'package:vmito_app/features/social/domain/club_browse_filters.dart';
 import 'package:vmito_app/features/social/domain/post_composer_draft.dart';
 import 'package:vmito_app/features/social/domain/public_profile.dart';
 import 'package:vmito_app/features/social/domain/social_post.dart';
@@ -192,13 +193,11 @@ class ClubsState {
     this.totalPages = 0,
     this.isLoading = false,
     this.error,
-    this.city,
-    this.district,
+    this.filters = const ClubBrowseFilters(),
     // "Gần tôi nhất" by default, matching the web client. Coordinates are
     // resolved on the browse screen; the backend only distance-sorts once
     // lat/lng are attached.
     this.sortBy = 'distance',
-    this.favoriteOnly = false,
     this.latitude,
     this.longitude,
   });
@@ -209,16 +208,13 @@ class ClubsState {
   final int totalPages;
   final bool isLoading;
   final Object? error;
-  final String? city;
-  final String? district;
+  final ClubBrowseFilters filters;
   final String sortBy;
-  final bool favoriteOnly;
   final double? latitude;
   final double? longitude;
 
   bool get hasMore => page > 0 && page < totalPages;
-  int get activeFilterCount =>
-      (district?.trim().isNotEmpty ?? false ? 1 : 0) + (favoriteOnly ? 1 : 0);
+  int get activeFilterCount => filters.activeCount;
 }
 
 class ClubsController extends Notifier<ClubsState> {
@@ -230,30 +226,23 @@ class ClubsController extends Notifier<ClubsState> {
   void restore(ClubsState snapshot) => state = snapshot;
 
   Future<void> load({
-    String search = '',
-    String? city,
-    String? district,
+    String? search,
+    ClubBrowseFilters? filters,
     String? sortBy,
-    bool? favoriteOnly,
     double? latitude,
     double? longitude,
-    bool clearCity = false,
-    bool clearDistrict = false,
   }) async {
-    final nextCity = clearCity ? null : city ?? state.city;
-    final nextDistrict = clearDistrict ? null : district ?? state.district;
+    final nextSearch = search ?? state.search;
+    final nextFilters = filters ?? state.filters;
     final nextSort = sortBy ?? state.sortBy;
-    final nextFavorite = favoriteOnly ?? state.favoriteOnly;
     final nextLatitude = latitude ?? state.latitude;
     final nextLongitude = longitude ?? state.longitude;
     state = ClubsState(
       clubs: state.clubs,
-      search: search,
+      search: nextSearch,
       isLoading: true,
-      city: nextCity,
-      district: nextDistrict,
+      filters: nextFilters,
       sortBy: nextSort,
-      favoriteOnly: nextFavorite,
       latitude: nextLatitude,
       longitude: nextLongitude,
     );
@@ -262,34 +251,28 @@ class ClubsController extends Notifier<ClubsState> {
           .read(socialServiceProvider)
           .browseClubs(
             page: 1,
-            search: search,
-            city: nextCity,
-            district: nextDistrict,
+            search: nextSearch,
+            filters: nextFilters,
             sortBy: nextSort,
-            favoriteOnly: nextFavorite,
             latitude: nextLatitude,
             longitude: nextLongitude,
           );
       state = ClubsState(
         clubs: sortClubs(result.clubs, nextSort),
-        search: search,
+        search: nextSearch,
         page: result.page,
         totalPages: result.totalPages,
-        city: nextCity,
-        district: nextDistrict,
+        filters: nextFilters,
         sortBy: nextSort,
-        favoriteOnly: nextFavorite,
         latitude: nextLatitude,
         longitude: nextLongitude,
       );
     } on Object catch (error) {
       state = ClubsState(
-        search: search,
+        search: nextSearch,
         error: error,
-        city: nextCity,
-        district: nextDistrict,
+        filters: nextFilters,
         sortBy: nextSort,
-        favoriteOnly: nextFavorite,
         latitude: nextLatitude,
         longitude: nextLongitude,
       );
@@ -305,10 +288,8 @@ class ClubsController extends Notifier<ClubsState> {
       page: current.page,
       totalPages: current.totalPages,
       isLoading: true,
-      city: current.city,
-      district: current.district,
+      filters: current.filters,
       sortBy: current.sortBy,
-      favoriteOnly: current.favoriteOnly,
       latitude: current.latitude,
       longitude: current.longitude,
     );
@@ -318,10 +299,8 @@ class ClubsController extends Notifier<ClubsState> {
           .browseClubs(
             page: current.page + 1,
             search: current.search,
-            city: current.city,
-            district: current.district,
+            filters: current.filters,
             sortBy: current.sortBy,
-            favoriteOnly: current.favoriteOnly,
             latitude: current.latitude,
             longitude: current.longitude,
           );
@@ -330,10 +309,8 @@ class ClubsController extends Notifier<ClubsState> {
         search: current.search,
         page: result.page,
         totalPages: result.totalPages,
-        city: current.city,
-        district: current.district,
+        filters: current.filters,
         sortBy: current.sortBy,
-        favoriteOnly: current.favoriteOnly,
         latitude: current.latitude,
         longitude: current.longitude,
       );
@@ -344,10 +321,8 @@ class ClubsController extends Notifier<ClubsState> {
         page: current.page,
         totalPages: current.totalPages,
         error: error,
-        city: current.city,
-        district: current.district,
+        filters: current.filters,
         sortBy: current.sortBy,
-        favoriteOnly: current.favoriteOnly,
         latitude: current.latitude,
         longitude: current.longitude,
       );

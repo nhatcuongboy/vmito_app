@@ -16,10 +16,12 @@ import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
+import 'package:vmito_app/features/social/domain/club_browse_filters.dart';
 import 'package:vmito_app/features/social/presentation/club_browse_card_skeleton.dart';
 import 'package:vmito_app/features/social/presentation/club_schedule_formatter.dart';
+import 'package:vmito_app/features/social/presentation/widgets/club_filter_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
-import 'package:vmito_app/features/home/presentation/widgets/home_discovery_filter_sheets.dart';
+import 'package:vmito_app/shared/widgets/app_filter_sheet.dart';
 import 'package:vmito_app/shared/widgets/app_paginated_list_view.dart';
 import 'package:vmito_app/shared/widgets/app_skeleton.dart';
 import 'package:vmito_app/shared/widgets/app_sort_selector.dart';
@@ -90,8 +92,9 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
 
     if (needsLocation) {
       try {
-        final coordinates =
-            await ref.read(deviceLocationServiceProvider).call();
+        final coordinates = await ref
+            .read(deviceLocationServiceProvider)
+            .call();
         latitude = coordinates.latitude;
         longitude = coordinates.longitude;
       } on Object {
@@ -100,10 +103,16 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
       }
     }
 
+    // Seed the ambient preferred city only when the user hasn't already
+    // chosen one through the filter sheet.
+    final filters = currentState.filters.city == null
+        ? currentState.filters.copyWith(city: city)
+        : currentState.filters;
+
     if (!mounted) return;
     await controller.load(
       search: widget.initialSearch,
-      city: city,
+      filters: filters,
       latitude: latitude,
       longitude: longitude,
     );
@@ -121,27 +130,13 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
   Future<void> _openFilters() async {
     final controller = ref.read(clubsControllerProvider.notifier);
     final current = ref.read(clubsControllerProvider);
-    final filter = await showModalBottomSheet<ClubDiscoveryFilters>(
-      context: context,
+    final filters = await showAppFilterSheet<ClubBrowseFilters>(
+      context,
       useRootNavigator: true,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (context) => ClubDiscoveryFilterSheet(
-        initial: ClubDiscoveryFilters(
-          district: current.district,
-          favoriteOnly: current.favoriteOnly,
-        ),
-      ),
+      builder: (context) => ClubFilterSheet(initial: current.filters),
     );
-    if (filter == null) return;
-    unawaited(
-      controller.load(
-        search: current.search,
-        district: filter.district,
-        clearDistrict: filter.district == null,
-        favoriteOnly: filter.favoriteOnly,
-      ),
-    );
+    if (filters == null) return;
+    unawaited(controller.load(filters: filters));
   }
 
   @override
@@ -290,7 +285,7 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
         AppSortOption(
           value: 'distance',
           label: l10n.homeDiscoverySortNearest,
-          icon: AppIcons.location,
+          icon: AppIcons.myLocation,
         ),
         AppSortOption(
           value: 'sessionCount',

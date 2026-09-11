@@ -739,9 +739,7 @@ class _SessionsBody extends StatelessWidget {
 
   void _downloadImage(BuildContext context, Session session) {
     final l10n = AppLocalizations.of(context);
-    final imageUrl = session.coverPhoto?.trim().isNotEmpty ?? false
-        ? session.coverPhoto!.trim()
-        : Session.defaultCoverPhoto;
+    final imageUrl = sessionCoverPhoto(session);
     unawaited(
       SharePlus.instance.share(
         ShareParams(text: imageUrl, subject: session.name),

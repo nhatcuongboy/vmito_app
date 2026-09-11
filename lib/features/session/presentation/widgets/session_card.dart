@@ -528,9 +528,7 @@ class _Cover extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = theme.extension<AppPalette>()!;
-    final url = session.coverPhoto?.trim().isNotEmpty ?? false
-        ? session.coverPhoto!.trim()
-        : Session.defaultCoverPhoto;
+    final url = sessionCoverPhoto(session);
 
     return SizedBox(
       width: width,

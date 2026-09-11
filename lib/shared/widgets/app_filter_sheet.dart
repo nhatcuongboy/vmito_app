@@ -72,12 +72,10 @@ class AppFilterChip extends StatelessWidget {
   final ValueChanged<bool>? onSelected;
   final Widget? avatar;
 
-  /// Left equals right and top equals bottom so the avatar+label group
-  /// sits centered in the chip; the tighter avatar-to-label gap is
-  /// controlled separately via `labelPadding`, not this outer padding.
+  /// Symmetric padding around the chip content.
   static const EdgeInsets padding = EdgeInsets.symmetric(
     horizontal: AppSpacing.sm + 4,
-    vertical: AppSpacing.sm + 2,
+    vertical: AppSpacing.sm,
   );
 
   @override
@@ -85,30 +83,59 @@ class AppFilterChip extends StatelessWidget {
     final theme = Theme.of(context);
     final palette = theme.extension<AppPalette>()!;
     final scheme = theme.colorScheme;
-    final hasLeading = avatar != null;
+
     final leading = avatar == null
         ? null
         : SizedBox.square(
-            dimension: 18,
-            child: Center(child: avatar),
+            dimension: 16,
+            child: Center(
+              child: IconTheme.merge(
+                data: IconThemeData(
+                  size: 16,
+                  color: selected ? scheme.primary : palette.mutedForeground,
+                ),
+                child: avatar!,
+              ),
+            ),
           );
 
+    final textStyle = (theme.textTheme.bodyMedium ?? const TextStyle()).copyWith(
+      color: selected ? scheme.primary : scheme.onSurface,
+      fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+      height: 20 / 14,
+      leadingDistribution: TextLeadingDistribution.even,
+    );
+
     return FilterChip(
-      avatar: leading,
-      label: Text(label),
-      labelStyle: TextStyle(
-        color: selected ? scheme.primary : scheme.onSurface,
-        fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-        height: 1.0,
+      label: Row(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          if (leading != null) ...[
+            leading,
+            const SizedBox(width: AppSpacing.xs + 2),
+          ],
+          Text(
+            label,
+            style: textStyle,
+            strutStyle: const StrutStyle(
+              fontSize: 14,
+              height: 20 / 14,
+              forceStrutHeight: true,
+            ),
+          ),
+        ],
       ),
-      labelPadding: EdgeInsets.only(left: hasLeading ? 4 : 4, right: 4),
+      labelStyle: textStyle,
+      labelPadding: EdgeInsets.zero,
+      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       selected: selected,
       showCheckmark: false,
       backgroundColor: theme.colorScheme.surface,
       selectedColor: scheme.primary.withValues(alpha: .12),
       side: BorderSide(
         color: selected ? scheme.primary : palette.border,
-        width: selected ? 1.5 : 1.0,
+        width: 1.0,
       ),
       padding: padding,
       onSelected: onSelected,
@@ -450,7 +477,7 @@ class AppFilterOptionGroup<T> extends StatelessWidget {
 
     return Wrap(
       spacing: AppSpacing.sm,
-      runSpacing: AppSpacing.xxs,
+      runSpacing: AppSpacing.sm,
       children: [
         for (final value in values) ...[
           Builder(

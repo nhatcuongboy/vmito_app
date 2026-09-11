@@ -1,17 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
-import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
-
-class ClubDiscoveryFilters {
-  const ClubDiscoveryFilters({this.district, this.favoriteOnly = false});
-
-  final String? district;
-  final bool favoriteOnly;
-}
 
 class TournamentDiscoveryFilters {
   const TournamentDiscoveryFilters({
@@ -26,95 +18,9 @@ class TournamentDiscoveryFilters {
 }
 
 abstract final class _DiscoveryFilterControl {
-  static const district = 'district';
   static const favorite = 'favorite';
   static const statuses = 'statuses';
   static const sports = 'sports';
-}
-
-class ClubDiscoveryFilterSheet extends StatefulWidget {
-  const ClubDiscoveryFilterSheet({required this.initial, super.key});
-
-  final ClubDiscoveryFilters initial;
-
-  @override
-  State<ClubDiscoveryFilterSheet> createState() =>
-      _ClubDiscoveryFilterSheetState();
-}
-
-class _ClubDiscoveryFilterSheetState extends State<ClubDiscoveryFilterSheet> {
-  late final FormGroup _form = FormGroup({
-    _DiscoveryFilterControl.district: FormControl<String>(
-      value: widget.initial.district,
-    ),
-    _DiscoveryFilterControl.favorite: FormControl<bool>(
-      value: widget.initial.favoriteOnly,
-    ),
-  });
-
-  @override
-  void dispose() {
-    _form.dispose();
-    super.dispose();
-  }
-
-  void _submit() {
-    _form.markAllAsTouched();
-    if (_form.invalid || _form.pending) return;
-    final district =
-        _form.control(_DiscoveryFilterControl.district).value as String?;
-    Navigator.of(context).pop(
-      ClubDiscoveryFilters(
-        district: district?.trim().isEmpty ?? true ? null : district!.trim(),
-        favoriteOnly:
-            _form.control(_DiscoveryFilterControl.favorite).value as bool? ??
-            false,
-      ),
-    );
-  }
-
-  void _reset() {
-    _form.reset(
-      value: {
-        _DiscoveryFilterControl.district: null,
-        _DiscoveryFilterControl.favorite: false,
-      },
-    );
-    _form.markAsUntouched();
-    Navigator.of(context).pop(const ClubDiscoveryFilters());
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return _FilterSheetFrame(
-      title: l10n.homeDiscoveryClubFilters,
-      onReset: _reset,
-      onApply: _submit,
-      child: AppReactiveForm(
-        formGroup: _form,
-        child: Column(
-          children: [
-            ReactiveTextField<String>(
-              key: const Key('club-discovery-filter-district'),
-              formControlName: _DiscoveryFilterControl.district,
-              decoration: InputDecoration(
-                labelText: l10n.homeDiscoveryDistrict,
-                prefixIcon: const Icon(AppIcons.location),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            ReactiveSwitchListTile(
-              key: const Key('club-discovery-filter-favorite'),
-              formControlName: _DiscoveryFilterControl.favorite,
-              title: Text(l10n.homeDiscoveryFavoriteOnly),
-              contentPadding: EdgeInsets.zero,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class TournamentDiscoveryFilterSheet extends StatefulWidget {

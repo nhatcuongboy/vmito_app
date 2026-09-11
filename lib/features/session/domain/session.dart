@@ -228,6 +228,13 @@ abstract class Session with _$Session {
 
   static const defaultCoverPhoto =
       'https://res.cloudinary.com/dzehhkd9m/image/upload/f_auto,q_auto,w_800,c_limit/v1778918839/badminton/session-covers/vtwinrsl4ffness0os42.jpg';
+  static const defaultPickleballCoverPhoto =
+      'https://res.cloudinary.com/dzehhkd9m/image/upload/v1789118954/pickleball-banner_gdklfl.png';
+
+  String get defaultCoverPhotoForSport => switch (sportType) {
+    SessionSportType.badminton => defaultCoverPhoto,
+    SessionSportType.pickleball => defaultPickleballCoverPhoto,
+  };
 
   int get playerCount => counts?.players ?? 0;
 
@@ -244,7 +251,7 @@ abstract class Session with _$Session {
       gallery.add(value);
     }
 
-    add(coverPhoto);
+    add(sessionCoverPhoto(this));
     images.forEach(add);
     return gallery;
   }
@@ -430,4 +437,11 @@ abstract class Session with _$Session {
   bool get hasLocation =>
       (venue?.name?.trim().isNotEmpty ?? false) ||
       (location?.trim().isNotEmpty ?? false);
+}
+
+String sessionCoverPhoto(Session session) {
+  final coverPhoto = session.coverPhoto?.trim();
+  return coverPhoto == null || coverPhoto.isEmpty
+      ? session.defaultCoverPhotoForSport
+      : coverPhoto;
 }

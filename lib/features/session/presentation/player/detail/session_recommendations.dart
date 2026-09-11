@@ -189,9 +189,7 @@ class _RecommendationCard extends StatelessWidget {
     final palette = theme.extension<AppPalette>()!;
     final l10n = AppLocalizations.of(context);
     final locale = Localizations.localeOf(context).languageCode;
-    final cover = session.coverPhoto?.trim().isNotEmpty == true
-        ? session.coverPhoto!.trim()
-        : Session.defaultCoverPhoto;
+    final cover = sessionCoverPhoto(session);
     final slots = recommendation.displayAvailableSlots;
     final maxSlots = recommendation.displayMaxSlots;
 

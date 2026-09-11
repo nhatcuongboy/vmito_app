@@ -59,7 +59,7 @@ final _achievements = UserAchievements(
 );
 
 void main() {
-  testWidgets('shows a loading indicator while achievements are pending', (
+  testWidgets('shows a skeleton while achievements are pending', (
     tester,
   ) async {
     await _pump(
@@ -68,7 +68,8 @@ void main() {
       isOwner: false,
     );
 
-    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+    expect(find.byKey(const Key('achievement-skeleton')), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
   });
 
   testWidgets('renders ported content and caps point history at 20', (

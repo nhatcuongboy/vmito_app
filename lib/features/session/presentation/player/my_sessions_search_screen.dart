@@ -142,7 +142,7 @@ class _MySessionsSearchScreenState
           onPressed: () => Navigator.of(context).pop(),
         ),
         titleSpacing: 0,
-        title: AppReactiveForm(
+        title: AppReactiveForm<void>(
           formGroup: _form,
           child: ReactiveTextField<String>(
             key: const Key('my-sessions-search-field'),
@@ -368,14 +368,9 @@ class _SuggestionAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = session.coverPhoto;
+    final imageUrl = sessionCoverPhoto(session);
     return CircleAvatar(
-      foregroundImage: imageUrl == null || imageUrl.isEmpty
-          ? null
-          : CachedNetworkImageProvider(imageUrl),
-      child: imageUrl == null || imageUrl.isEmpty
-          ? const Icon(AppIcons.sessions)
-          : null,
+      foregroundImage: CachedNetworkImageProvider(imageUrl),
     );
   }
 }

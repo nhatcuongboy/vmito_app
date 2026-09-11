@@ -19,6 +19,7 @@ import 'package:vmito_app/features/session/domain/session_location_payload.dart'
 import 'package:vmito_app/features/session/presentation/player/create_session_screen.dart';
 import 'package:vmito_app/features/session/presentation/player/session_edit_modal.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_filter_sheet.dart';
 import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 
 class _MockSessionFormService extends Mock implements SessionFormService {}
@@ -718,4 +719,80 @@ void main() {
     expect(find.byKey(const ValueKey('court-number-1')), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+    'bulk specific-dates picker adds a date and weekday chips use the '
+    'shared filter-chip style',
+    (tester) async {
+      _setSize(tester, const Size(600, 844));
+      await tester.pumpWidget(_app(host: true));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      final bulkToggle = find.byKey(const Key('bulk-enabled'));
+      await tester.scrollUntilVisible(
+        bulkToggle,
+        500,
+        scrollable: find.byType(Scrollable).first,
+      );
+      // scrollUntilVisible's own Scrollable.ensureVisible stops as soon as
+      // the target's edge clears the viewport, which can leave it directly
+      // under the screen's sticky submit bar (a Scaffold overlay the
+      // Scrollable doesn't know about). Re-center it so the tap lands on the
+      // switch, not the bar.
+      await Scrollable.ensureVisible(
+        tester.element(bulkToggle),
+        alignment: 0.5,
+      );
+      await tester.pump();
+      await tester.tap(bulkToggle);
+      await tester.pump();
+
+      final pickDates = find.byKey(const Key('bulk-pick-dates'));
+      await tester.scrollUntilVisible(
+        pickDates,
+        500,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await Scrollable.ensureVisible(tester.element(pickDates), alignment: 0.5);
+      await tester.pump();
+      await tester.tap(pickDates);
+      await tester.pumpAndSettle();
+
+      final today = DateTime.now();
+      final dayKey = Key(
+        'multi-date-picker-day-${today.year}-${today.month}-${today.day}',
+      );
+      expect(find.byKey(dayKey), findsOneWidget);
+      await tester.tap(find.byKey(dayKey));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('multi-date-picker-done')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('${today.day}/${today.month}/${today.year}'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Lặp lại theo tuần'));
+      await tester.pump();
+
+      final mondayChip = find.byKey(const Key('bulk-weekday-1'));
+      await tester.scrollUntilVisible(
+        mondayChip,
+        500,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await Scrollable.ensureVisible(
+        tester.element(mondayChip),
+        alignment: 0.5,
+      );
+      await tester.pump();
+      expect(tester.widget<AppFilterChip>(mondayChip).selected, isFalse);
+      await tester.tap(mondayChip);
+      await tester.pump();
+      expect(tester.widget<AppFilterChip>(mondayChip).selected, isTrue);
+
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

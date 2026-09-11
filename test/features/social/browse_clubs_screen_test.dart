@@ -9,6 +9,7 @@ import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
+import 'package:vmito_app/features/social/domain/club_browse_filters.dart';
 import 'package:vmito_app/features/social/presentation/browse_clubs_screen.dart';
 import 'package:vmito_app/features/social/presentation/club_browse_card_skeleton.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -24,15 +25,11 @@ class _TestClubsController extends ClubsController {
 
   @override
   Future<void> load({
-    String search = '',
-    String? city,
-    String? district,
+    String? search,
+    ClubBrowseFilters? filters,
     String? sortBy,
-    bool? favoriteOnly,
     double? latitude,
     double? longitude,
-    bool clearCity = false,
-    bool clearDistrict = false,
   }) async {}
 }
 

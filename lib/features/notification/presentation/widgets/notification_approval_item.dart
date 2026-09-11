@@ -118,8 +118,7 @@ class VenueApprovalListItem extends StatelessWidget {
             PostAvatar(
               name: submitter.name,
               imageUrl: submitter.image,
-              size: 36,
-              bordered: true,
+              size: 44,
             )
           else
             const _FallbackIcon(accent: accent, icon: AppIcons.mapPin),
@@ -147,7 +146,6 @@ class VenueApprovalListItem extends StatelessWidget {
                       label: request.type == 'CREATE'
                           ? l10n.notificationVenueRequestCreateBadge
                           : l10n.notificationVenueRequestUpdateBadge,
-                      color: accent,
                     ),
                   ],
                 ),
@@ -159,6 +157,8 @@ class VenueApprovalListItem extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall?.copyWith(
+                    fontSize: 13,
+                    height: 18 / 13,
                     color: theme.colorScheme.onSurface.withValues(
                       alpha: theme.brightness == Brightness.dark ? 0.76 : 0.65,
                     ),
@@ -168,6 +168,8 @@ class VenueApprovalListItem extends StatelessWidget {
                 Text(
                   Dates.timeAgo(request.createdAt, locale: locale),
                   style: theme.textTheme.labelSmall?.copyWith(
+                    fontSize: 12,
+                    height: 16 / 12,
                     color: accent,
                     fontWeight: FontWeight.w600,
                   ),
@@ -221,12 +223,7 @@ class _ApprovalTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PostAvatar(
-            name: name,
-            imageUrl: imageUrl,
-            size: 36,
-            bordered: true,
-          ),
+          PostAvatar(name: name, imageUrl: imageUrl, size: 44),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
@@ -245,7 +242,7 @@ class _ApprovalTile extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: AppSpacing.xs),
-                    _RequestBadge(label: badge, color: accent),
+                    _RequestBadge(label: badge),
                   ],
                 ),
                 const SizedBox(height: AppSpacing.xs),
@@ -254,78 +251,91 @@ class _ApprovalTile extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall?.copyWith(
+                    fontSize: 13,
+                    height: 18 / 13,
                     color: theme.colorScheme.onSurface.withValues(
                       alpha: isDark ? 0.76 : 0.65,
                     ),
                   ),
                 ),
-                if (timestamp != null) ...[
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    Dates.timeAgo(timestamp!, locale: locale),
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(
-                        alpha: isDark ? 0.70 : 0.55,
-                      ),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
                 const SizedBox(height: AppSpacing.sm),
-                Wrap(
-                  spacing: AppSpacing.sm,
-                  runSpacing: AppSpacing.xs,
+                Row(
                   children: [
-                    OutlinedButton(
-                      key: ValueKey('reject-approval-$itemId'),
-                      onPressed: busy ? null : () => onDecision(false),
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(76, 40),
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        visualDensity: VisualDensity.compact,
-                        foregroundColor: isDark
-                            ? const Color(0xFFF87171)
-                            : Colors.red.shade700,
-                        backgroundColor: isDark
-                            ? const Color(0xFFEF4444).withValues(alpha: 0.16)
-                            : Colors.red.withValues(alpha: 0.08),
-                        side: BorderSide.none,
-                      ),
-                      child: Text(
-                        l10n.notificationReject,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    FilledButton(
-                      key: ValueKey('approve-approval-$itemId'),
-                      onPressed: busy ? null : () => onDecision(true),
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size(76, 40),
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        visualDensity: VisualDensity.compact,
-                        backgroundColor: isDark
-                            ? AppColors.brandDark
-                            : Colors.green.shade700,
-                        foregroundColor: isDark
-                            ? AppColors.primaryForegroundDark
-                            : Colors.white,
-                      ),
-                      child: busy
-                          ? SizedBox.square(
-                              dimension: 16,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: isDark
-                                    ? AppColors.primaryForegroundDark
-                                    : Colors.white,
-                              ),
-                            )
-                          : Text(
-                              l10n.notificationApprove,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                    if (timestamp != null)
+                      Expanded(
+                        child: Text(
+                          Dates.timeAgo(timestamp!, locale: locale),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontSize: 12,
+                            height: 16 / 12,
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: isDark ? 0.70 : 0.55,
                             ),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      )
+                    else
+                      const Spacer(),
+                    Wrap(
+                      spacing: AppSpacing.sm,
+                      runSpacing: AppSpacing.xs,
+                      children: [
+                        OutlinedButton(
+                          key: ValueKey('reject-approval-$itemId'),
+                          onPressed: busy ? null : () => onDecision(false),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size(76, 40),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            visualDensity: VisualDensity.compact,
+                            foregroundColor: isDark
+                                ? const Color(0xFFF87171)
+                                : Colors.red.shade700,
+                            backgroundColor: Colors.transparent,
+                            side: BorderSide(
+                              color: isDark
+                                  ? const Color(0xFFF87171)
+                                  : Colors.red.shade700,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Text(
+                            l10n.notificationReject,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        FilledButton(
+                          key: ValueKey('approve-approval-$itemId'),
+                          onPressed: busy ? null : () => onDecision(true),
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size(76, 40),
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            visualDensity: VisualDensity.compact,
+                            backgroundColor: isDark
+                                ? AppColors.brandDark
+                                : Colors.green.shade700,
+                            foregroundColor: isDark
+                                ? AppColors.primaryForegroundDark
+                                : Colors.white,
+                          ),
+                          child: busy
+                              ? SizedBox.square(
+                                  dimension: 16,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: isDark
+                                        ? AppColors.primaryForegroundDark
+                                        : Colors.white,
+                                  ),
+                                )
+                              : Text(
+                                  l10n.notificationApprove,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -385,26 +395,32 @@ class _TintedTile extends StatelessWidget {
 }
 
 class _RequestBadge extends StatelessWidget {
-  const _RequestBadge({required this.label, required this.color});
+  const _RequestBadge({required this.label});
 
   final String label;
-  final MaterialColor color;
 
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
     padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
     decoration: BoxDecoration(
-      color: color.shade400,
+      color: isDark
+          ? Colors.white.withValues(alpha: 0.12)
+          : Colors.black.withValues(alpha: 0.08),
       borderRadius: BorderRadius.circular(6),
     ),
     child: Text(
       label,
       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-        color: Colors.white,
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.70)
+            : Colors.black.withValues(alpha: 0.55),
         fontWeight: FontWeight.w600,
       ),
     ),
-  );
+    );
+  }
 }
 
 class _FallbackIcon extends StatelessWidget {
@@ -415,13 +431,13 @@ class _FallbackIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(AppRadius.md),
+      shape: BoxShape.circle,
       color: accent.withValues(alpha: 0.12),
       border: Border.all(color: accent.withValues(alpha: 0.2)),
     ),
-    child: Icon(icon, size: 18, color: accent.shade500),
+    child: Icon(icon, size: 20, color: accent.shade500),
   );
 }

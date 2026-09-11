@@ -8,6 +8,7 @@ import 'package:vmito_app/core/network/api_client.dart';
 import 'package:vmito_app/core/network/api_options.dart';
 import 'package:vmito_app/core/network/paginated.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
+import 'package:vmito_app/features/social/domain/club_browse_filters.dart';
 import 'package:vmito_app/features/social/domain/club_user_option.dart';
 import 'package:vmito_app/features/social/domain/post_composer_draft.dart';
 import 'package:vmito_app/features/social/domain/public_profile.dart';
@@ -128,10 +129,8 @@ class SocialService {
     required int page,
     int limit = 20,
     String? search,
-    String? city,
-    String? district,
+    ClubBrowseFilters filters = const ClubBrowseFilters(),
     String? sortBy,
-    bool favoriteOnly = false,
     double? latitude,
     double? longitude,
   }) async {
@@ -141,10 +140,21 @@ class SocialService {
         'page': page,
         'limit': limit,
         if (search != null && search.trim().isNotEmpty) 'search': search.trim(),
-        if (city?.trim().isNotEmpty ?? false) 'city': city!.trim(),
-        if (district?.trim().isNotEmpty ?? false) 'district': district!.trim(),
+        if (filters.city?.trim().isNotEmpty ?? false)
+          'city': filters.city!.trim(),
+        if (filters.districts.isNotEmpty)
+          'district': filters.districts.join(','),
+        if (filters.levels.isNotEmpty)
+          'levels': (filters.levels.toList()..sort()).join(','),
+        if (filters.activeDays.isNotEmpty)
+          'activeDays': (filters.activeDays.toList()..sort()).join(','),
+        if (filters.activePeriods.isNotEmpty)
+          'activePeriods':
+              (filters.activePeriods.toList()
+                    ..sort((a, b) => a.index.compareTo(b.index)))
+                  .map((period) => period.wireValue)
+                  .join(','),
         'sortBy': ?sortBy,
-        if (favoriteOnly) 'favoriteOnly': true,
         'lat': ?latitude,
         'lng': ?longitude,
       },

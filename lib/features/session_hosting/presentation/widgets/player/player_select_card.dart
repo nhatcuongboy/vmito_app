@@ -39,9 +39,11 @@ class PlayerSelectCard extends StatelessWidget {
     // Null for an unrated player, and for a level the table does not know —
     // an absent chip reads as missing data, a raw number reads as real data.
     final levelLabel = level == null ? null : levelShortLabel(level);
+    final isDark = theme.brightness == Brightness.dark;
     final colors = _statusColors(
       isSelected: isSelected,
       status: player.status,
+      isDark: isDark,
     );
 
     return Semantics(
@@ -56,7 +58,7 @@ class PlayerSelectCard extends StatelessWidget {
             color: colors.background,
             borderRadius: BorderRadius.circular(AppRadius.xl),
             border: Border.all(
-              color: colors.border.withValues(alpha: 0.3),
+              color: colors.border.withValues(alpha: isDark ? 0.6 : 0.3),
               width: 1,
             ),
           ),
@@ -125,34 +127,65 @@ class PlayerSelectCard extends StatelessWidget {
 ({Color background, Color border}) _statusColors({
   required bool isSelected,
   required PlayerStatus status,
+  required bool isDark,
 }) {
   if (isSelected) {
-    return (
-      background: const Color(0xFFDBEAFE),
-      border: const Color(0xFF3B82F6),
-    );
+    return isDark
+        ? (
+            background: const Color(0xFF1E3A8A).withValues(alpha: 0.5),
+            border: const Color(0xFF3B82F6),
+          )
+        : (
+            background: const Color(0xFFDBEAFE),
+            border: const Color(0xFF3B82F6),
+          );
   }
   return switch (status) {
-    PlayerStatus.ready => (
-      background: const Color(0xFFFEF08A),
-      border: const Color(0xFFEAB308),
-    ),
-    PlayerStatus.waiting => (
-      background: const Color(0xFFFED7AA),
-      border: const Color(0xFFF97316),
-    ),
-    PlayerStatus.playing => (
-      background: const Color(0xFFBBF7D0),
-      border: const Color(0xFF22C55E),
-    ),
-    PlayerStatus.inactive => (
-      background: const Color(0xFFE5E7EB),
-      border: const Color(0xFF9CA3AF),
-    ),
-    PlayerStatus.finished => (
-      background: const Color(0xFFF9FAFB),
-      border: const Color(0xFFE5E7EB),
-    ),
+    PlayerStatus.ready => isDark
+        ? (
+            background: const Color(0xFF422006).withValues(alpha: 0.5),
+            border: const Color(0xFFEAB308),
+          )
+        : (
+            background: const Color(0xFFFEF08A),
+            border: const Color(0xFFEAB308),
+          ),
+    PlayerStatus.waiting => isDark
+        ? (
+            background: const Color(0xFF431407).withValues(alpha: 0.45),
+            border: const Color(0xFFEA580C),
+          )
+        : (
+            background: const Color(0xFFFED7AA),
+            border: const Color(0xFFF97316),
+          ),
+    PlayerStatus.playing => isDark
+        ? (
+            background: const Color(0xFF052E16).withValues(alpha: 0.45),
+            border: const Color(0xFF22C55E),
+          )
+        : (
+            background: const Color(0xFFBBF7D0),
+            border: const Color(0xFF22C55E),
+          ),
+    PlayerStatus.inactive => isDark
+        ? (
+            background: const Color(0xFF27272A),
+            border: const Color(0xFF52525B),
+          )
+        : (
+            background: const Color(0xFFE5E7EB),
+            border: const Color(0xFF9CA3AF),
+          ),
+    PlayerStatus.finished => isDark
+        ? (
+            background: const Color(0xFF18181B),
+            border: const Color(0xFF3F3F46),
+          )
+        : (
+            background: const Color(0xFFF9FAFB),
+            border: const Color(0xFFE5E7EB),
+          ),
   };
 }
 
@@ -211,10 +244,11 @@ class _WaitBadge extends ConsumerWidget {
         .asData
         ?.value;
     final displayedMinutes = minutes ?? player.currentWaitTime;
+    final isDark = theme.brightness == Brightness.dark;
     final colour = switch (displayedMinutes) {
       > _urgentMinutes => theme.colorScheme.error,
       > _warningMinutes => palette.warning,
-      _ => palette.mutedForeground,
+      _ => isDark ? const Color(0xFF3F3F46) : palette.mutedForeground,
     };
 
     final l10n = AppLocalizations.of(context);
@@ -250,16 +284,19 @@ class _LevelChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.8),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.15)
+            : Colors.white.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(AppRadius.sm),
       ),
       child: Text(
         label,
         style: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: Colors.black87,
+          color: isDark ? Colors.white : Colors.black87,
           fontWeight: FontWeight.w600,
         ),
       ),

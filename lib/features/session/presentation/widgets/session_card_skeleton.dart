@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
-import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/session/presentation/widgets/session_card.dart';
@@ -71,7 +70,7 @@ class SessionCardSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final palette = theme.extension<AppPalette>()!;
+    final palette = skeletonPalette(theme);
     final isBrowse = variant == SessionCardVariant.browse;
 
     return Card(

@@ -182,42 +182,55 @@ class _MarkPaidSheetState extends ConsumerState<MarkPaidSheet> {
                 builder: (context, control, _) {
                   final currentMethod =
                       control.value ?? PaymentMethod.bankTransfer;
+                  // Foreground is set explicitly rather than left to
+                  // OutlinedButton's default (colorScheme.primary): this
+                  // app's theme never pins primaryContainer/onPrimaryContainer,
+                  // so once the background swaps to colorScheme.primary on
+                  // selection, an unstyled default text color can read as
+                  // invisible against it.
+                  Widget methodButton({
+                    required IconData icon,
+                    required String label,
+                    required bool selected,
+                    required VoidCallback onPressed,
+                  }) {
+                    final foreground = selected
+                        ? theme.colorScheme.onPrimary
+                        : theme.colorScheme.onSurface;
+                    return OutlinedButton.icon(
+                      icon: Icon(icon, size: 18, color: foreground),
+                      label: Text(label, style: TextStyle(color: foreground)),
+                      style: OutlinedButton.styleFrom(
+                        backgroundColor: selected
+                            ? theme.colorScheme.primary
+                            : null,
+                        side: BorderSide(
+                          color: selected
+                              ? theme.colorScheme.primary
+                              : theme.colorScheme.outlineVariant,
+                        ),
+                      ),
+                      onPressed: onPressed,
+                    );
+                  }
+
                   return Row(
                     children: [
                       Expanded(
-                        child: OutlinedButton.icon(
-                          icon: const Icon(Icons.account_balance, size: 18),
-                          label: Text(l10n.transactionBankTransfer),
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor:
-                                currentMethod == PaymentMethod.bankTransfer
-                                ? theme.colorScheme.primaryContainer
-                                : null,
-                            side: BorderSide(
-                              color: currentMethod == PaymentMethod.bankTransfer
-                                  ? theme.colorScheme.primary
-                                  : theme.colorScheme.outlineVariant,
-                            ),
-                          ),
+                        child: methodButton(
+                          icon: Icons.account_balance,
+                          label: l10n.transactionBankTransfer,
+                          selected: currentMethod == PaymentMethod.bankTransfer,
                           onPressed: () =>
                               control.value = PaymentMethod.bankTransfer,
                         ),
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
-                        child: OutlinedButton.icon(
-                          icon: const Icon(Icons.money, size: 18),
-                          label: Text(l10n.transactionCash),
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor: currentMethod == PaymentMethod.cash
-                                ? theme.colorScheme.primaryContainer
-                                : null,
-                            side: BorderSide(
-                              color: currentMethod == PaymentMethod.cash
-                                  ? theme.colorScheme.primary
-                                  : theme.colorScheme.outlineVariant,
-                            ),
-                          ),
+                        child: methodButton(
+                          icon: Icons.money,
+                          label: l10n.transactionCash,
+                          selected: currentMethod == PaymentMethod.cash,
                           onPressed: () => control.value = PaymentMethod.cash,
                         ),
                       ),

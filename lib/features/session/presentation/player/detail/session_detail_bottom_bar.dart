@@ -47,6 +47,21 @@ class SessionDetailBottomBar extends ConsumerWidget {
         (session.host?.id != null && session.host!.id == user?.id) ||
         (user?.isAdmin ?? false);
 
+    // When the host adds a player directly (bypassing the self-registration
+    // flow), the `/players/me` endpoint may return an empty list if the row
+    // was created without a `createdByUserId` (single-add path on the backend).
+    // In that case, fall back to scanning `session.players`, which the detail
+    // endpoint already includes, and derive the status from the player's own
+    // `registrationStatus` field. This prevents the "Đăng ký" button from
+    // appearing for a user who is already in the session.
+    final hostAddedStatus =
+        isSignedIn && user != null
+        ? session.players
+              .where((p) => p.userId == user.id)
+              .firstOrNull
+              ?.registrationStatus
+        : null;
+
     final price = sessionPriceLabel(session, locale);
     // A split fee has useful information even before the host enters the
     // final per-player amount. Showing just the info button looked like a
@@ -143,8 +158,14 @@ class SessionDetailBottomBar extends ConsumerWidget {
                   // Signed out there is no ticket to read, and the provider
                   // short-circuits rather than calling an endpoint that
                   // would certainly 401.
+                  // Fall back to `hostAddedStatus` when the provider returns
+                  // null: the host may have added this user directly without
+                  // going through the self-registration flow, so the
+                  // `/players/me` list is empty even though the user already
+                  // has a slot.
                   registrationStatus: isSignedIn
-                      ? ref.watch(myRegistrationStatusProvider(session.id))
+                      ? (ref.watch(myRegistrationStatusProvider(session.id)) ??
+                          hostAddedStatus)
                       : null,
                   onManage: onManage,
                   onOpenBoard: onOpenLive,

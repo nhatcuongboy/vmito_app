@@ -58,15 +58,21 @@ class _CourtSlotPlaceholderState extends State<CourtSlotPlaceholder>
     final l10n = AppLocalizations.of(context);
     final isActive = widget.isActive;
 
-    // Active: yellow.100 bg, yellow.500 dashed border, yellow.700 text
-    // Inactive: gray.100 bg, gray.400 dashed border, gray.600 text
-    final bg = isActive ? const Color(0xFFFEF9C3) : const Color(0xFFF3F4F6);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    // Active: yellow.100 bg, yellow.500 dashed border, yellow.700 text (light)
+    //         dark amber bg, yellow.500 border, yellow.300 text (dark)
+    // Inactive: gray.100 bg, gray.400 dashed border, gray.600 text (light)
+    //           zinc.800 bg, zinc.600 border, zinc.400 text (dark)
+    final bg = isActive
+        ? (isDark ? const Color(0xFF422006) : const Color(0xFFFEF9C3))
+        : (isDark ? const Color(0xFF27272A) : const Color(0xFFF3F4F6));
     final borderColor = isActive
         ? const Color(0xFFEAB308)
-        : const Color(0xFF9CA3AF);
+        : (isDark ? const Color(0xFF52525B) : const Color(0xFF9CA3AF));
     final textColor = isActive
-        ? const Color(0xFFB45309)
-        : const Color(0xFF4B5563);
+        ? (isDark ? const Color(0xFFFDE047) : const Color(0xFFB45309))
+        : (isDark ? const Color(0xFFA1A1AA) : const Color(0xFF4B5563));
 
     final circle = Container(
       width: 50,

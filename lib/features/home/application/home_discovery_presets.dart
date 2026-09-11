@@ -3,6 +3,7 @@ import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/features/home/domain/home_discovery_tab.dart';
 import 'package:vmito_app/features/session/application/player/browse_sessions_controller.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
+import 'package:vmito_app/features/social/domain/club_browse_filters.dart';
 import 'package:vmito_app/features/tournament/application/tournament_browse_controller.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
 import 'package:vmito_app/features/venue/application/venue_controller.dart';
@@ -83,11 +84,8 @@ class HomeDiscoveryPresets {
       _ref
           .read(clubsControllerProvider.notifier)
           .load(
-            city: city,
-            clearCity: city == null,
-            clearDistrict: true,
+            filters: ClubBrowseFilters(city: city),
             sortBy: clubSort,
-            favoriteOnly: false,
           ),
     HomeDiscoveryTab.tournaments =>
       _ref

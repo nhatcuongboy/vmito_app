@@ -37,7 +37,7 @@ void main() {
     when(() => socket.events).thenAnswer((_) => const Stream.empty());
   });
 
-  testWidgets('approved player sees all five mobile destinations', (
+  testWidgets('approved player sees four mobile destinations', (
     tester,
   ) async {
     await _pump(
@@ -59,7 +59,7 @@ void main() {
 
     expect(find.text('Tổng quan'), findsOneWidget);
     expect(find.text('Trạng thái'), findsOneWidget);
-    expect(find.text('Sân'), findsOneWidget);
+    expect(find.text('Sân'), findsNothing);
     expect(find.text('Kết quả'), findsOneWidget);
     expect(find.text('Thanh toán'), findsOneWidget);
     expect(find.byType(AppBottomNavigationBar), findsOneWidget);

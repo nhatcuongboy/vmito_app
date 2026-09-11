@@ -37,6 +37,8 @@ import 'package:vmito_app/features/venue/data/venue_service.dart';
 import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/match.dart';
+import 'package:vmito_app/shared/widgets/app_filter_sheet.dart';
+import 'package:vmito_app/shared/widgets/app_multi_date_picker.dart';
 import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/shared/widgets/app_required_label.dart';
 import 'package:vmito_app/shared/widgets/app_sheet_action_bar.dart';
@@ -2407,21 +2409,19 @@ class _SpecificDateFields extends StatelessWidget {
         builder: (context, dates, _) => Column(
           children: [
             OutlinedButton.icon(
+              key: const Key('bulk-pick-dates'),
               onPressed: () async {
-                final date = await showDatePicker(
+                final result = await showAppMultiDatePicker(
                   context: context,
-                  initialDate: DateTime.now().add(const Duration(days: 1)),
+                  initialDates: dates.value ?? const [],
                   firstDate: DateTime.now(),
                   lastDate: SessionFormSubmission.maxBulkDate(DateTime.now()),
                 );
-                if (date == null) return;
-                final list = [...?dates.value];
-                if (!list.any((item) => DateUtils.isSameDay(item, date)))
-                  list.add(date);
-                dates.value = list..sort();
+                if (result == null) return;
+                dates.value = result;
               },
-              icon: const Icon(Icons.add),
-              label: Text(AppLocalizations.of(context).sessionFormAddDate),
+              icon: const Icon(AppIcons.calendar),
+              label: Text(AppLocalizations.of(context).sessionFormPickDates),
             ),
             if (dates.value?.isNotEmpty ?? false)
               Wrap(
@@ -2449,13 +2449,15 @@ class _RecurringFields extends StatelessWidget {
       ReactiveValueListenableBuilder<List<int>>(
         formControlName: SessionFormControl.bulkWeekdays,
         builder: (context, days, _) => Wrap(
-          spacing: AppSpacing.xs,
+          spacing: AppSpacing.sm,
+          runSpacing: AppSpacing.xxs,
           children: [
             for (var value = 1; value <= 7; value++)
-              FilterChip(
-                label: Text(
-                  MaterialLocalizations.of(context).narrowWeekdays[value % 7],
-                ),
+              AppFilterChip(
+                key: Key('bulk-weekday-${value % 7}'),
+                label: MaterialLocalizations.of(
+                  context,
+                ).narrowWeekdays[value % 7],
                 selected: days.value?.contains(value % 7) ?? false,
                 onSelected: (selected) {
                   final next = [...?days.value];

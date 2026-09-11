@@ -48,7 +48,8 @@ class CourtPlayerMarker extends StatelessWidget {
     final levelLabel = (mode.isHostView || mode.isSelection) && level != null
         ? levelShortLabel(level)
         : null;
-    final pair = _pairColorsFor(pairNumber);
+    final isDark = theme.brightness == Brightness.dark;
+    final pair = _pairColorsFor(pairNumber, isDark: isDark);
     final borderColor = isActive ? theme.colorScheme.primary : pair.border;
 
     return Stack(
@@ -68,7 +69,8 @@ class CourtPlayerMarker extends StatelessWidget {
                   isNameMode: isNameMode,
                   background: pair.background,
                   border: borderColor,
-                  borderWidth: isActive ? 3.5 : 3,
+                  borderWidth: isActive ? 3.0 : 2.0,
+                  isDark: isDark,
                   child: Text(
                     _label(l10n),
                     maxLines: 1,
@@ -78,13 +80,13 @@ class CourtPlayerMarker extends StatelessWidget {
                         ? TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: pair.border,
+                            color: pair.text,
                             height: 1.2,
                           )
                         : TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
-                            color: pair.border,
+                            color: pair.text,
                             height: 1,
                           ),
                   ),
@@ -92,13 +94,17 @@ class CourtPlayerMarker extends StatelessWidget {
                 Positioned(
                   top: isNameMode ? -10 : -8,
                   left: isNameMode ? -10 : -8,
-                  child: _GenderBadge(gender: player.gender),
+                  child: _GenderBadge(gender: player.gender, isDark: isDark),
                 ),
                 if (levelLabel != null)
                   Positioned(
                     top: isNameMode ? -12 : -10,
                     right: isNameMode ? -10 : -12,
-                    child: _LevelBadge(label: levelLabel, color: pair.border),
+                    child: _LevelBadge(
+                      label: levelLabel,
+                      color: pair.border,
+                      isDark: isDark,
+                    ),
                   ),
               ],
             ),
@@ -132,6 +138,7 @@ class _Marker extends StatelessWidget {
     required this.background,
     required this.border,
     required this.borderWidth,
+    required this.isDark,
     required this.child,
   });
 
@@ -139,6 +146,7 @@ class _Marker extends StatelessWidget {
   final Color background;
   final Color border;
   final double borderWidth;
+  final bool isDark;
   final Widget child;
 
   @override
@@ -148,11 +156,11 @@ class _Marker extends StatelessWidget {
       shape: isNameMode ? BoxShape.rectangle : BoxShape.circle,
       borderRadius: isNameMode ? BorderRadius.circular(8) : null,
       border: Border.all(color: border, width: borderWidth),
-      boxShadow: const [
+      boxShadow: [
         BoxShadow(
-          blurRadius: 4,
-          offset: Offset(0, 2),
-          color: Color(0x33000000),
+          blurRadius: isDark ? 10 : 4,
+          offset: const Offset(0, 3),
+          color: isDark ? const Color(0x99000000) : const Color(0x26000000),
         ),
       ],
     );
@@ -181,9 +189,10 @@ class _Marker extends StatelessWidget {
 /// Top-left circle carrying the player's gender, shown in every mode — the
 /// web renders it as decorative (`aria-hidden`), never gated on host view.
 class _GenderBadge extends StatelessWidget {
-  const _GenderBadge({required this.gender});
+  const _GenderBadge({required this.gender, this.isDark = false});
 
   final Gender? gender;
+  final bool isDark;
 
   @override
   Widget build(BuildContext context) {
@@ -202,7 +211,10 @@ class _GenderBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: color,
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.white, width: 2),
+        border: Border.all(
+          color: isDark ? const Color(0xE6FFFFFF) : Colors.white,
+          width: 2,
+        ),
         boxShadow: const [
           BoxShadow(
             blurRadius: 2,
@@ -219,10 +231,15 @@ class _GenderBadge extends StatelessWidget {
 /// Top-right pill carrying the player's level, coloured to match their pair.
 /// Host view only — a level is the host's working data, not a player's.
 class _LevelBadge extends StatelessWidget {
-  const _LevelBadge({required this.label, required this.color});
+  const _LevelBadge({
+    required this.label,
+    required this.color,
+    this.isDark = false,
+  });
 
   final String label;
   final Color color;
+  final bool isDark;
 
   @override
   Widget build(BuildContext context) {
@@ -233,7 +250,10 @@ class _LevelBadge extends StatelessWidget {
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: Colors.white, width: 2),
+        border: Border.all(
+          color: isDark ? const Color(0xE6FFFFFF) : Colors.white,
+          width: 2,
+        ),
       ),
       child: Text(
         label,
@@ -283,9 +303,38 @@ class _RemoveSelectionButton extends StatelessWidget {
   }
 }
 
-/// Blue for the left-column team, orange for the right — fixed hues, not
-/// theme-derived: `CourtPlayer.tsx` never varies these by brightness either.
-({Color background, Color border}) _pairColorsFor(int pairNumber) =>
-    pairNumber == 2
-    ? (background: const Color(0xFFFFF7ED), border: const Color(0xFFF97316))
-    : (background: const Color(0xFFEFF6FF), border: const Color(0xFF3B82F6));
+/// Blue for the left-column team, orange for the right with dark mode support.
+///
+/// Dark fills are fully opaque tailwind-900 tones, not a translucent black
+/// tinted with the pair colour. A translucent fill lets the court's own green
+/// bleed through and desaturate it, which is what made markers look sunken
+/// into the surface instead of sitting on top of it.
+({Color background, Color border, Color text}) _pairColorsFor(
+  int pairNumber, {
+  bool isDark = false,
+}) {
+  if (pairNumber == 2) {
+    return isDark
+        ? (
+            background: const Color(0xFF7C2D12), // orange.900
+            border: const Color(0xFFFB923C),
+            text: const Color(0xFFFED7AA),
+          )
+        : (
+            background: const Color(0xFFFFF7ED),
+            border: const Color(0xFFF97316),
+            text: const Color(0xFFF97316),
+          );
+  }
+  return isDark
+      ? (
+          background: const Color(0xFF1E3A8A), // blue.900
+          border: const Color(0xFF60A5FA),
+          text: const Color(0xFFBFDBFE),
+        )
+      : (
+          background: const Color(0xFFEFF6FF),
+          border: const Color(0xFF3B82F6),
+          text: const Color(0xFF3B82F6),
+        );
+}

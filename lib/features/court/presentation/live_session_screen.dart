@@ -15,22 +15,18 @@ import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/court/application/live_session_controller.dart';
 import 'package:vmito_app/features/court/application/match_elapsed_provider.dart';
-import 'package:vmito_app/features/court/application/match_history_provider.dart';
 import 'package:vmito_app/features/court/domain/player_live_session.dart';
 import 'package:vmito_app/features/court/presentation/player_live_payment_tab.dart';
 import 'package:vmito_app/features/court/presentation/widgets/badminton_court_view.dart';
+import 'package:vmito_app/features/court/presentation/widgets/live_session_overview_tab.dart';
 import 'package:vmito_app/features/payment/application/player_session_payment_controller.dart';
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
-import 'package:vmito_app/features/session/domain/player_statistics.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
+import 'package:vmito_app/features/session/presentation/widgets/session_status_badge.dart';
 import 'package:vmito_app/features/session_hosting/application/player_statistics_providers.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/host_results_tab.dart';
-import 'package:vmito_app/features/session_hosting/presentation/widgets/player_statistics_export_sheet.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
-import 'package:vmito_app/features/social/presentation/session_rating_screen.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
-import 'package:vmito_app/shared/models/court.dart';
-import 'package:vmito_app/shared/models/match.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 
 class LiveSessionScreen extends ConsumerStatefulWidget {
@@ -133,7 +129,24 @@ class _LiveSessionScreenState extends ConsumerState<LiveSessionScreen>
     final userId = ref.watch(currentUserProvider)?.id;
     final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.playerLiveTitle)),
+      appBar: AppBar(
+        title: Text(
+          session.maybeWhen(
+            data: (value) => value.name,
+            orElse: () => l10n.playerLiveTitle,
+          ),
+          overflow: TextOverflow.ellipsis,
+        ),
+        actions: [
+          session.maybeWhen(
+            data: (value) => Padding(
+              padding: const EdgeInsets.only(right: AppSpacing.md),
+              child: SessionStatusBadge(status: value.status),
+            ),
+            orElse: SizedBox.shrink,
+          ),
+        ],
+      ),
       body: Column(
         children: [
           if (!connected) const _ReconnectingBanner(),
@@ -200,17 +213,19 @@ class _Hub extends StatelessWidget {
     final items = [
       (AppIcons.info, l10n.playerLiveOverview),
       (AppIcons.user, l10n.playerLiveStatus),
-      (AppIcons.square, l10n.playerLiveCourts),
       (AppIcons.trophy, l10n.playerLiveResults),
       (AppIcons.dollarSign, l10n.playerLivePayments),
     ];
     final pages = <Widget>[
-      _Overview(session: session, player: player, onRefresh: onRefresh),
+      LiveSessionOverviewTab(
+        session: session,
+        player: player,
+        onRefresh: onRefresh,
+      ),
       _PlayerStatus(
         projection: PlayerLiveSession(session: session, player: player),
         onRefresh: onRefresh,
       ),
-      _Courts(session: session, onRefresh: onRefresh),
       HostResultsTab(session: session, playerId: player.id, readOnly: true),
       PlayerLivePaymentTab(session: session),
     ];
@@ -269,144 +284,6 @@ class _Hub extends StatelessWidget {
           ],
         );
       },
-    );
-  }
-}
-
-class _Overview extends ConsumerWidget {
-  const _Overview({
-    required this.session,
-    required this.player,
-    required this.onRefresh,
-  });
-  final Session session;
-  final SessionPlayer player;
-  final Future<void> Function() onRefresh;
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final stats = ref.watch(playerStatisticsProvider(session.id));
-    final playerMatches = ref.watch(
-      playerMatchHistoryProvider((sessionId: session.id, playerId: player.id)),
-    );
-    final rating = ref.watch(ratingEligibilityProvider(session.id));
-    final roster = [
-      ...session.approvedPlayers,
-    ]..sort((a, b) => _statusOrder(a.status).compareTo(_statusOrder(b.status)));
-    return RefreshIndicator(
-      onRefresh: onRefresh,
-      child: ListView(
-        key: const PageStorageKey('player-live-overview'),
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(AppSpacing.md),
-        children: [
-          _SessionHeader(session: session),
-          const SizedBox(height: AppSpacing.md),
-          Text(
-            session.description?.trim().isNotEmpty == true
-                ? session.description!
-                : l10n.playerLiveNoDescription,
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Text(
-            l10n.playerLivePersonalStats,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          stats.when(
-            loading: () => const LinearProgressIndicator(),
-            error: (_, _) => TextButton(
-              onPressed: () =>
-                  ref.invalidate(playerStatisticsProvider(session.id)),
-              child: Text(l10n.commonRetry),
-            ),
-            data: (all) {
-              final own = all.where((s) => s.playerId == player.id).firstOrNull;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _Stats(statistics: own),
-                  if (own != null)
-                    OutlinedButton.icon(
-                      onPressed: () => showPlayerStatisticsExportSheet(
-                        context,
-                        session: session,
-                        players: [own],
-                        showShuttlecocks: false,
-                      ),
-                      icon: const Icon(Icons.share_outlined),
-                      label: Text(l10n.hostPlayerStatsShare),
-                    ),
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          playerMatches.when(
-            loading: () => const SizedBox.shrink(),
-            error: (_, _) => const SizedBox.shrink(),
-            data: (matches) => _DoublesStats(
-              session: session,
-              player: player,
-              matches: matches,
-            ),
-          ),
-          if (session.status == SessionStatus.finished) ...[
-            const SizedBox(height: AppSpacing.lg),
-            rating.when(
-              loading: () => const LinearProgressIndicator(),
-              error: (_, _) => const SizedBox.shrink(),
-              data: (value) {
-                if (value.hasRatedHost) {
-                  return ListTile(
-                    leading: const Icon(Icons.star, color: Colors.amber),
-                    title: Text(l10n.playerLiveApprovedRating),
-                    subtitle: Text(value.hostRating?.comment ?? ''),
-                    trailing: Text('${value.hostRating?.rating ?? 0}/5'),
-                  );
-                }
-                if (!value.canRateHost || session.hostAccountId == null) {
-                  return const SizedBox.shrink();
-                }
-                return FilledButton.icon(
-                  onPressed: () => showRatingDialog(
-                    context,
-                    ref,
-                    sessionId: session.id,
-                    userId: session.hostAccountId!,
-                    name: session.displayHostName,
-                    type: 'PLAYER_TO_HOST',
-                  ),
-                  icon: const Icon(Icons.star_outline),
-                  label: Text(l10n.playerLiveRateHost),
-                );
-              },
-            ),
-          ],
-          const SizedBox(height: AppSpacing.lg),
-          Text(
-            l10n.playerLiveRoster,
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          for (final item in roster)
-            Card(
-              color: item.id == player.id
-                  ? Theme.of(context).colorScheme.primaryContainer
-                  : null,
-              child: ListTile(
-                leading: CircleAvatar(
-                  child: Text('${item.playerNumber ?? '–'}'),
-                ),
-                title: Text(
-                  item.displayName ??
-                      l10n.playerLiveNumber(item.playerNumber ?? 0),
-                ),
-                subtitle: Text(_statusLabel(l10n, item.status)),
-              ),
-            ),
-          const SizedBox(height: AppSpacing.xxl),
-        ],
-      ),
     );
   }
 }
@@ -504,240 +381,6 @@ class _PlayerStatus extends ConsumerWidget {
   }
 }
 
-class _Courts extends StatelessWidget {
-  const _Courts({required this.session, required this.onRefresh});
-  final Session session;
-  final Future<void> Function() onRefresh;
-  @override
-  Widget build(BuildContext context) => RefreshIndicator(
-    onRefresh: onRefresh,
-    child: LayoutBuilder(
-      builder: (context, constraints) {
-        final courts = session.orderedCourts;
-        final columns = constraints.maxWidth >= 900
-            ? 3
-            : constraints.maxWidth >= 600
-            ? 2
-            : 1;
-        final width =
-            (constraints.maxWidth -
-                AppSpacing.md * 2 -
-                AppSpacing.md * (columns - 1)) /
-            columns;
-        return ListView(
-          key: const PageStorageKey('player-live-courts'),
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(AppSpacing.md),
-          children: [
-            if (courts.isEmpty)
-              SizedBox(
-                height: 360,
-                child: Center(
-                  child: Text(AppLocalizations.of(context).liveNoCourts),
-                ),
-              )
-            else
-              Wrap(
-                spacing: AppSpacing.md,
-                runSpacing: AppSpacing.md,
-                children: [
-                  for (final court in courts)
-                    SizedBox(
-                      width: width,
-                      child: _CourtCard(session: session, court: court),
-                    ),
-                ],
-              ),
-            const SizedBox(height: AppSpacing.xxl),
-          ],
-        );
-      },
-    ),
-  );
-}
-
-class _CourtCard extends ConsumerWidget {
-  const _CourtCard({required this.session, required this.court});
-  final Session session;
-  final Court court;
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final start = court.currentMatch?.startTime;
-    final elapsed = start == null
-        ? null
-        : ref.watch(matchElapsedProvider(start)).value;
-    final players = court.currentPlayers.isNotEmpty
-        ? court.currentPlayers
-        : session.preSelectedPlayersFor(court);
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.sm),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    l10n.courtName(court),
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
-                ),
-                if (elapsed != null) Text(l10n.playerLiveMinutes(elapsed)),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            BadmintonCourtView(
-              court: court,
-              preSelectedPlayers: session.preSelectedPlayersFor(court),
-              courtColor: parseHexColor(session.courtColor),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(l10n.livePlayerCount(players.length)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SessionHeader extends StatelessWidget {
-  const _SessionHeader({required this.session});
-  final Session session;
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final status = switch (session.status) {
-      SessionStatus.preparing => l10n.sessionStatusPreparing,
-      SessionStatus.inProgress => l10n.sessionStatusInProgress,
-      SessionStatus.finished => l10n.sessionStatusFinished,
-      SessionStatus.cancelled => l10n.sessionStatusCancelled,
-    };
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    session.name,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                ),
-                Chip(label: Text(status)),
-              ],
-            ),
-            if (session.timeRangeLabel != null) Text(session.timeRangeLabel!),
-            if (session.priceLabel != null) Text(session.priceLabel!),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Stats extends StatelessWidget {
-  const _Stats({required this.statistics});
-  final PlayerStatistics? statistics;
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final s = statistics;
-    final values = [
-      (l10n.playerLiveMatches, '${s?.totalMatches ?? 0}'),
-      (l10n.playerLiveWins, '${s?.wins ?? 0}'),
-      (l10n.playerLiveLosses, '${s?.losses ?? 0}'),
-      (l10n.playerLiveWinRate, '${(s?.winRate ?? 0).toStringAsFixed(0)}%'),
-    ];
-    return Wrap(
-      spacing: AppSpacing.sm,
-      runSpacing: AppSpacing.sm,
-      children: [
-        for (final value in values)
-          SizedBox(
-            width: 145,
-            child: Card(
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Column(
-                  children: [
-                    Text(
-                      value.$2,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    Text(value.$1, textAlign: TextAlign.center),
-                  ],
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-class _DoublesStats extends StatelessWidget {
-  const _DoublesStats({
-    required this.session,
-    required this.player,
-    required this.matches,
-  });
-  final Session session;
-  final SessionPlayer player;
-  final List<Match> matches;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    var men = 0;
-    var women = 0;
-    var mixed = 0;
-    final roster = {for (final item in session.players) item.id: item};
-    for (final match in matches.where((item) => item.players.length == 4)) {
-      final ordered = [...match.players]
-        ..sort((a, b) => a.position.compareTo(b.position));
-      final index = ordered.indexWhere((item) => item.playerId == player.id);
-      if (index < 0) continue;
-      final partnerIndex = switch (index) {
-        0 => 1,
-        1 => 0,
-        2 => 3,
-        _ => 2,
-      };
-      final partner = roster[ordered[partnerIndex].playerId];
-      if (player.gender == Gender.male && partner?.gender == Gender.male) {
-        men++;
-      } else if (player.gender == Gender.female &&
-          partner?.gender == Gender.female) {
-        women++;
-      } else {
-        mixed++;
-      }
-    }
-    final values = [
-      (l10n.playerLiveMensDoubles, men),
-      (l10n.playerLiveWomensDoubles, women),
-      (l10n.playerLiveMixedDoubles, mixed),
-    ];
-    return Wrap(
-      spacing: AppSpacing.sm,
-      runSpacing: AppSpacing.sm,
-      children: [
-        for (final value in values)
-          Chip(
-            avatar: const Icon(Icons.groups_outlined, size: 18),
-            label: Text('${value.$1}: ${value.$2}'),
-          ),
-      ],
-    );
-  }
-}
-
 class _Info extends StatelessWidget {
   const _Info(this.icon, this.label, this.value);
   final IconData icon;
@@ -809,13 +452,6 @@ class _AccessDenied extends StatelessWidget {
   }
 }
 
-int _statusOrder(PlayerStatus status) => switch (status) {
-  PlayerStatus.playing => 0,
-  PlayerStatus.ready => 1,
-  PlayerStatus.waiting => 2,
-  PlayerStatus.finished => 3,
-  PlayerStatus.inactive => 4,
-};
 String _statusLabel(AppLocalizations l10n, PlayerStatus status) =>
     switch (status) {
       PlayerStatus.playing => l10n.courtStatusInUse,

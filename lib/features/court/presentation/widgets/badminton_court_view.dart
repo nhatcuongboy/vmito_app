@@ -168,6 +168,7 @@ class _BadmintonCourtViewState extends State<BadmintonCourtView> {
           painter: CourtSurfacePainter(
             status: widget.court.status,
             courtColor: widget.courtColor,
+            isDark: Theme.of(context).brightness == Brightness.dark,
           ),
           child: LayoutBuilder(
             builder: (context, constraints) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
+import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/color_parsing.dart';
 import 'package:vmito_app/features/court/application/court_display_mode_controller.dart';
@@ -35,7 +36,10 @@ class HostCourtCard extends ConsumerWidget {
       hostCourtActionsControllerProvider(session.id).notifier,
     );
     final displayMode = ref.watch(courtDisplayModeControllerProvider);
-    final shadowColor = Theme.of(context).shadowColor;
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
+    final isDark = theme.brightness == Brightness.dark;
+    final shadowColor = theme.shadowColor;
 
     ref.listen(hostCourtActionsControllerProvider(session.id), (
       previous,
@@ -63,21 +67,40 @@ class HostCourtCard extends ConsumerWidget {
       key: ValueKey('host-court-card-surface-${court.id}'),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(AppRadius.xl),
-        boxShadow: [
-          BoxShadow(
-            color: shadowColor.withValues(alpha: 0.12),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-          BoxShadow(
-            color: shadowColor.withValues(alpha: 0.08),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        boxShadow: isDark
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.25),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : [
+                BoxShadow(
+                  color: shadowColor.withValues(alpha: 0.12),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+                BoxShadow(
+                  color: shadowColor.withValues(alpha: 0.08),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
       ),
       child: Card(
         clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(AppRadius.xl),
+          side: BorderSide(
+            color: isDark ? const Color(0xFF332F2B) : palette.border,
+          ),
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -100,8 +123,17 @@ class HostCourtCard extends ConsumerWidget {
                   CourtRepeatWarningButton(session: session, court: court),
               ],
             ),
-            Padding(
+            Container(
               padding: const EdgeInsets.all(AppSpacing.sm),
+              decoration: BoxDecoration(
+                border: Border(
+                  top: BorderSide(
+                    color: isDark
+                        ? const Color(0x1FFFFFFF)
+                        : Colors.transparent,
+                  ),
+                ),
+              ),
               child: HostCourtActions(
                 court: court,
                 isSessionLive: session.status.isLive,

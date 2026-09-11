@@ -141,6 +141,8 @@
     }
   },
   "courtCallTitle": "轮到您上场了！",
+  "courtCallGoToCourt": "请前往",
+  "courtCallDescription": "您的比赛即将开始，请立即前往场地。",
   "courtCallAnnouncement": "请前往 {courtNumber} 号场地",
   "@courtCallAnnouncement": {
     "placeholders": {
@@ -149,7 +151,7 @@
       }
     }
   },
-  "courtCallAcknowledge": "知道了",
+  "courtCallAcknowledge": "知道了，我这就过去！",
   "navFeed": "动态",
   "newsfeedUnreadCount": "{count, plural, other{{count} 条未读动态}}",
   "profileTitle": "我的",
@@ -362,6 +364,9 @@
   "homeDiscoverySortNearest": "离我最近",
   "homeDiscoverySortStartSoonest": "即将开始",
   "homeDiscoveryClubFilters": "筛选",
+  "clubFilterTitle": "筛选俱乐部",
+  "clubFilterActivityTime": "活动时间",
+  "clubFilterPeriodLabel": "时段",
   "homeDiscoveryTournamentFilters": "赛事筛选",
   "homeDiscoveryDistrict": "坊 / 社 / 特区",
   "homeDiscoveryFavoriteOnly": "仅显示收藏",
@@ -1125,6 +1130,7 @@
   "sessionFormSpecificDates": "指定日期",
   "sessionFormRecurring": "每周重复",
   "sessionFormAddDate": "添加日期",
+  "sessionFormPickDates": "选择日期",
   "sessionFormWeekCount": "周数",
   "sessionFormAdvanced": "高级设置",
   "sessionFormImages": "场次图片",
@@ -2786,5 +2792,30 @@
   "playerLivePaymentPending": "未提交",
   "playerLivePaymentAwaitingApproval": "等待批准",
   "playerLivePaymentApproved": "已批准",
-  "playerLivePaymentRejected": "已拒绝"
+  "playerLivePaymentRejected": "已拒绝",
+  "playerLivePaymentSummaryTitle": "您的付款摘要",
+  "playerLivePaymentDetailsTitle": "付款详情",
+  "playerLiveYourSlot": "您的名额",
+  "playerLiveSlotNumber": "名额 {number}",
+  "playerLiveWaitingForApproval": "等待主办方审核...",
+  "playerLiveRejectionReason": "拒绝原因：{reason}",
+  "playerLiveYourFee": "您的费用",
+  "playerLiveCurrentStatus": "当前状态",
+  "sessionOverviewCancelledMessage": "该活动已取消。",
+  "sessionOverviewFinishedMessage": "该活动已结束。",
+  "sessionOverviewInfoTitle": "活动信息",
+  "sessionOverviewStatsTitle": "活动统计",
+  "sessionOverviewStatWaiting": "等待中",
+  "sessionOverviewGenderBreakdown": "男 {male} · 女 {female}",
+  "@sessionOverviewGenderBreakdown": {
+    "placeholders": {
+      "male": {
+        "type": "int"
+      },
+      "female": {
+        "type": "int"
+      }
+    }
+  },
+  "sessionOverviewNotesTitle": "备注"
 }

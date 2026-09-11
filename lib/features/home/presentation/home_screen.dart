@@ -24,7 +24,9 @@ import 'package:vmito_app/features/session/application/player/browse_sessions_co
 import 'package:vmito_app/features/session/presentation/player/public_sessions_content.dart';
 import 'package:vmito_app/features/session/presentation/player/session_filter_sheet.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
+import 'package:vmito_app/features/social/domain/club_browse_filters.dart';
 import 'package:vmito_app/features/social/presentation/browse_clubs_screen.dart';
+import 'package:vmito_app/features/social/presentation/widgets/club_filter_sheet.dart';
 import 'package:vmito_app/features/tournament/application/tournament_browse_controller.dart';
 import 'package:vmito_app/features/tournament/presentation/browse_tournaments_content.dart';
 import 'package:vmito_app/features/venue/application/venue_controller.dart';
@@ -256,14 +258,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
         );
       case HomeDiscoveryTab.clubs:
-        final state = ref.read(clubsControllerProvider);
-        await ref
-            .read(clubsControllerProvider.notifier)
-            .load(
-              search: state.search,
-              city: city,
-              clearCity: city == null,
-            );
+        final controller = ref.read(clubsControllerProvider.notifier);
+        final filters = ref.read(clubsControllerProvider).filters;
+        await controller.load(
+          filters: city == null
+              ? filters.copyWith(clearCity: true, cityIsDefault: true)
+              : filters.copyWith(city: city, cityIsDefault: true),
+        );
       case HomeDiscoveryTab.tournaments:
         final state = ref.read(tournamentBrowseControllerProvider);
         await ref
@@ -433,7 +434,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     HomeDiscoveryTab.clubs => switch (clubsState.sortBy) {
       'name' => AppIcons.sortAlpha,
       'createdAt' => AppIcons.calendarArrowDown,
-      'distance' => AppIcons.location,
+      'distance' => AppIcons.myLocation,
       _ => AppIcons.trendingUp,
     },
     HomeDiscoveryTab.tournaments => switch (tournamentState.sort) {
@@ -538,7 +539,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             AppSortOption(
               value: 'distance',
               label: l10n.homeDiscoverySortNearest,
-              icon: AppIcons.location,
+              icon: AppIcons.myLocation,
             ),
             AppSortOption(
               value: 'sessionCount',
@@ -749,27 +750,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _openClubFilters() async {
     final controller = ref.read(clubsControllerProvider.notifier);
     final current = ref.read(clubsControllerProvider);
-    final filter = await showModalBottomSheet<ClubDiscoveryFilters>(
-      context: context,
+    final filters = await showAppFilterSheet<ClubBrowseFilters>(
+      context,
       useRootNavigator: true,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (context) => ClubDiscoveryFilterSheet(
-        initial: ClubDiscoveryFilters(
-          district: current.district,
-          favoriteOnly: current.favoriteOnly,
-        ),
-      ),
+      builder: (context) => ClubFilterSheet(initial: current.filters),
     );
-    if (filter == null) return;
-    unawaited(
-      controller.load(
-        search: current.search,
-        district: filter.district,
-        clearDistrict: filter.district == null,
-        favoriteOnly: filter.favoriteOnly,
-      ),
-    );
+    if (filters == null) return;
+    unawaited(controller.load(filters: filters));
   }
 
   Future<void> _openTournamentFilters() async {

@@ -25,7 +25,6 @@ import 'package:vmito_app/features/profile/application/profile_controller.dart';
 import 'package:vmito_app/features/profile/data/profile_image_picker.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/widgets/session_card.dart';
-import 'package:vmito_app/features/session/presentation/widgets/session_card_skeleton.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/data/profile_tabs_service.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
@@ -33,7 +32,10 @@ import 'package:vmito_app/features/social/domain/public_profile.dart';
 import 'package:vmito_app/features/social/domain/social_post.dart';
 import 'package:vmito_app/features/social/presentation/widgets/profile_collapsing_header.dart';
 import 'package:vmito_app/features/social/presentation/widgets/profile_header_geometry.dart';
+import 'package:vmito_app/features/social/presentation/widgets/profile_tab_skeletons.dart';
+import 'package:vmito_app/features/social/presentation/widgets/public_profile_skeleton.dart';
 import 'package:vmito_app/features/social/presentation/widgets/social_post_card.dart';
+import 'package:vmito_app/features/social/presentation/widgets/user_achievements_skeleton.dart';
 import 'package:vmito_app/features/social/presentation/widgets/user_achievements_tab.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_lightbox.dart';
@@ -67,7 +69,11 @@ class PublicProfileScreen extends ConsumerWidget {
           bundle: data,
           isRootProfile: isRootProfile,
         ),
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => PublicProfileSkeleton(
+          isRootProfile: isRootProfile,
+          onMenuTap: () =>
+              ref.read(appShellScaffoldKeyProvider).currentState?.openDrawer(),
+        ),
         error: (error, _) => AppErrorView(
           error: error,
           onRetry: () => ref.invalidate(publicProfileProvider(userId)),
@@ -285,7 +291,11 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
           body: TabBarView(
             controller: _controller,
             children: [
-              _lazyTab(0, () => _PostsTab(userId: widget.userId)),
+              _lazyTab(
+                0,
+                () => _PostsTab(userId: widget.userId),
+                placeholder: const ProfilePostsSkeleton(),
+              ),
               _lazyTab(
                 1,
                 () => UserAchievementsTab(
@@ -293,13 +303,24 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
                   profile: widget.bundle.profile,
                   isOwner: _isOwner,
                 ),
+                placeholder: const UserAchievementsSkeleton(),
               ),
-              _lazyTab(2, () => _HostedTab(userId: widget.userId)),
+              _lazyTab(
+                2,
+                () => _HostedTab(userId: widget.userId),
+                placeholder: const ProfileHostedSkeleton(),
+              ),
               _lazyTab(
                 3,
                 () => _ClubsTab(userId: widget.userId, owner: _isOwner),
+                placeholder: const ProfileClubsSkeleton(),
               ),
-              _lazyTab(4, () => _ReviewsTab(bundle: widget.bundle)),
+              // Reviews come with the profile bundle; nothing to wait for.
+              _lazyTab(
+                4,
+                () => _ReviewsTab(bundle: widget.bundle),
+                placeholder: const SizedBox.shrink(),
+              ),
             ],
           ),
         ),
@@ -325,10 +346,13 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
     );
   }
 
-  Widget _lazyTab(int index, Widget Function() builder) =>
-      _loadedTabs.contains(index)
-      ? builder()
-      : const Center(child: CircularProgressIndicator());
+  /// [placeholder] shows while the user drags toward a tab that has not been
+  /// selected yet; the tab is only built (and fetches) once it is selected.
+  Widget _lazyTab(
+    int index,
+    Widget Function() builder, {
+    required Widget placeholder,
+  }) => _loadedTabs.contains(index) ? builder() : placeholder;
 }
 
 /// Renders the large avatar in a screen-level overlay, not inside either
@@ -788,7 +812,7 @@ class _PostsTabState extends ConsumerState<_PostsTab> {
         );
       }
       if (snapshot.connectionState == ConnectionState.waiting) {
-        return const Center(child: CircularProgressIndicator());
+        return const ProfilePostsSkeleton();
       }
       return NotificationListener<ScrollNotification>(
         onNotification: _handleScroll,
@@ -892,16 +916,7 @@ class _HostedTabState extends ConsumerState<_HostedTab> {
                 }),
               );
             }
-            if (!snapshot.hasData) {
-              return ListView.separated(
-                key: const Key('profile-hosted-skeleton-list'),
-                physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.all(AppSpacing.screenPadding),
-                itemCount: 3,
-                separatorBuilder: (_, _) => const SizedBox(height: 12),
-                itemBuilder: (_, _) => const SessionCardSkeleton(),
-              );
-            }
+            if (!snapshot.hasData) return const ProfileHostedSkeleton();
             final sessions = snapshot.data!.items;
             if (sessions.isEmpty) {
               return const _Empty('Không có kèo đã host.');
@@ -1067,9 +1082,7 @@ class _ClubsTabState extends ConsumerState<_ClubsTab> {
           ),
         );
       }
-      if (!snapshot.hasData) {
-        return const Center(child: CircularProgressIndicator());
-      }
+      if (!snapshot.hasData) return const ProfileClubsSkeleton();
       final l10n = AppLocalizations.of(context);
       final all = snapshot.data!;
       final hosted = all.where((club) => club.hostId == widget.userId).toList();

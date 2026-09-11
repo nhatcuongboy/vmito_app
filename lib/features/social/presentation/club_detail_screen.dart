@@ -26,8 +26,11 @@ import 'package:vmito_app/features/social/application/club_management_controller
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/data/social_service.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
+import 'package:vmito_app/features/social/presentation/widgets/club_announcements_skeleton.dart';
+import 'package:vmito_app/features/social/presentation/widgets/club_detail_skeleton.dart';
 import 'package:vmito_app/features/social/presentation/widgets/public_club_members_tab.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_dialog.dart';
 import 'package:vmito_app/shared/widgets/app_lightbox.dart';
 import 'package:vmito_app/shared/widgets/detail_hero_header.dart';
 import 'package:vmito_app/shared/widgets/login_prompt_dialog.dart';
@@ -42,8 +45,7 @@ class ClubDetailScreen extends ConsumerWidget {
     final club = ref.watch(clubDetailProvider(clubId));
     return club.when(
       data: (data) => _ClubDetail(club: data),
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      loading: () => const ClubDetailSkeleton(),
       error: (error, _) => Scaffold(
         appBar: AppBar(),
         body: AppErrorView(
@@ -130,12 +132,27 @@ class _ClubDetailState extends ConsumerState<_ClubDetail>
             club.members.any(
               (member) => member.userId == user.id && member.role == 'ADMIN',
             ));
-    final canJoin = !isMember && !club.isInvitationOnly;
+    // A pending request never shows up in `club.members`, so it alone can't
+    // tell us the request already exists — cross-reference the user's own
+    // outgoing requests (mirrors the web's `hasPendingRequest` check).
+    final clubRequestsAsync = ref.watch(myClubRequestsProvider);
+    final hasPendingRequest =
+        clubRequestsAsync.asData?.value.any(
+          (request) => request.clubId == club.id,
+        ) ??
+        false;
+    // While the provider is still loading we don't know whether a pending
+    // request exists. Disable the button instead of showing "Tham gia nhóm"
+    // and risking a duplicate submission.
+    final requestsLoading = clubRequestsAsync.isLoading;
+    final showMembershipBar = !isMember && !club.isInvitationOnly;
     return Scaffold(
-      bottomNavigationBar: canJoin
+      bottomNavigationBar: showMembershipBar
           ? _ClubMembershipBottomBar(
-              busy: _busy,
-              onPressed: () => _join(club),
+              busy: _busy || requestsLoading,
+              pending: hasPendingRequest,
+              onPressed: () =>
+                  hasPendingRequest ? _cancelJoinRequest(club) : _join(club),
             )
           : null,
       body: NestedScrollView(
@@ -473,7 +490,7 @@ class _ClubDetailState extends ConsumerState<_ClubDetail>
                     ),
                 ],
         ),
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () => const ClubAnnouncementsSkeleton(),
         error: (_, _) => const Center(child: Text('Không thể tải thông báo.')),
       );
     },
@@ -548,7 +565,35 @@ class _ClubDetailState extends ConsumerState<_ClubDetail>
             ? 'Bạn đã tham gia nhóm.'
             : 'Yêu cầu tham gia đang chờ duyệt.',
       );
-      ref.invalidate(clubDetailProvider(club.id));
+      ref
+        ..invalidate(clubDetailProvider(club.id))
+        // Refresh the outgoing-request list so hasPendingRequest flips to true
+        // immediately and the button shows "Đang chờ duyệt" without a reload.
+        ..invalidate(myClubRequestsProvider);
+    } on Object catch (error) {
+      _toast(error.toString());
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _cancelJoinRequest(ClubSummary club) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showAppConfirmDialog(
+      context,
+      type: AppConfirmDialogType.destructive,
+      title: l10n.clubWithdrawTitle,
+      content: l10n.clubWithdrawConfirm(club.name),
+      confirmLabel: l10n.clubWithdrawRequest,
+      confirmKey: const Key('club-cancel-request-confirm'),
+    );
+    if (confirmed != true || !mounted) return;
+    setState(() => _busy = true);
+    try {
+      await ref
+          .read(clubManagementControllerProvider.notifier)
+          .cancelJoinRequest(club.id);
+      _toast(l10n.clubWithdrawSuccess);
     } on Object catch (error) {
       _toast(error.toString());
     } finally {
@@ -866,10 +911,16 @@ class _ClubMemberBadge extends StatelessWidget {
 class _ClubMembershipBottomBar extends StatelessWidget {
   const _ClubMembershipBottomBar({
     required this.busy,
+    required this.pending,
     required this.onPressed,
   });
 
   final bool busy;
+
+  /// Whether the user already has a pending join request for this club —
+  /// swaps the button to a "Đang chờ duyệt" state that cancels the request
+  /// instead of sending a new one.
+  final bool pending;
   final VoidCallback onPressed;
 
   @override
@@ -901,9 +952,20 @@ class _ClubMembershipBottomBar extends StatelessWidget {
                 child: FilledButton.icon(
                   key: const Key('club-join-button'),
                   onPressed: busy ? null : onPressed,
-                  icon: const Icon(AppIcons.userPlus),
+                  style: pending
+                      ? FilledButton.styleFrom(
+                          backgroundColor:
+                              theme.colorScheme.surfaceContainerHighest,
+                          foregroundColor: theme.colorScheme.onSurfaceVariant,
+                        )
+                      : null,
+                  icon: Icon(pending ? AppIcons.clock : AppIcons.userPlus),
                   label: Text(
-                    busy ? l10n.feedbackSubmitting : 'Tham gia nhóm',
+                    busy
+                        ? l10n.feedbackSubmitting
+                        : pending
+                        ? l10n.clubAwaitingApproval
+                        : 'Tham gia nhóm',
                   ),
                 ),
               ),
