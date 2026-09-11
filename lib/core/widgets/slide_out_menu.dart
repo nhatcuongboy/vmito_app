@@ -191,7 +191,7 @@ class SlideOutMenu extends ConsumerWidget {
                               icon: AppIcons.userPlus,
                               label: l10n.menuGroups,
                               isActive: isActive(AppRoutes.manageClubs),
-                              onTap: () => goTo(AppRoutes.manageClubs),
+                              onTap: () => pushTo(AppRoutes.manageClubs),
                             ),
                             _MenuItem(
                               itemKey: const Key('menu-host-tournaments'),
