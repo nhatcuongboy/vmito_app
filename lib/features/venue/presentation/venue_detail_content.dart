@@ -12,8 +12,10 @@ import 'package:vmito_app/core/widgets/app_address_text.dart';
 import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/venue/domain/venue.dart';
+import 'package:vmito_app/features/venue/presentation/venue_detail_skeleton.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_lightbox.dart';
+import 'package:vmito_app/shared/widgets/app_skeleton.dart';
 import 'package:vmito_app/shared/widgets/detail_hero_header.dart';
 
 String venueDisplayName(Venue venue, AppLocalizations l10n) =>
@@ -810,7 +812,7 @@ class _PricingCard extends StatelessWidget {
       title: l10n.venuePricing,
       children: [
         priceBooks.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const AppShimmer(child: VenuePricingRowsSkeleton()),
           error: (_, _) => Text(l10n.venuePriceLoadError),
           data: (books) {
             final book = activeVenuePriceBook(books);

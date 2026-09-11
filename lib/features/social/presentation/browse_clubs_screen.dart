@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/constants/image_constants.dart';
@@ -54,6 +55,7 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
   Timer? _timer;
   VoidCallback? _removeReselectHandler;
   var _showMap = false;
+  var _isMapToggleExtended = true;
 
   @override
   void initState() {
@@ -139,121 +141,149 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
     unawaited(controller.load(filters: filters));
   }
 
+  bool _onScrollNotification(ScrollNotification notification) {
+    if (notification.metrics.axis == Axis.vertical) {
+      if (notification.metrics.pixels <= 0) {
+        if (!_isMapToggleExtended) {
+          setState(() => _isMapToggleExtended = true);
+        }
+      } else if (notification is UserScrollNotification) {
+        if (notification.direction == ScrollDirection.reverse) {
+          if (_isMapToggleExtended) {
+            setState(() => _isMapToggleExtended = false);
+          }
+        } else if (notification.direction == ScrollDirection.forward) {
+          if (!_isMapToggleExtended) {
+            setState(() => _isMapToggleExtended = true);
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(clubsControllerProvider);
     ref.watch(locationPreferencesControllerProvider);
     final discoveryHeader = widget.discoveryHeader;
 
-    final content = Column(
-      children: [
-        if (discoveryHeader == null)
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Row(
-              children: [
-                Expanded(
-                  child: SearchBar(
-                    controller: _search,
-                    hintText: 'Tìm kiếm nhóm',
-                    leading: const Icon(AppIcons.search),
-                    onChanged: (value) {
-                      _timer?.cancel();
-                      _timer = Timer(
-                        const Duration(milliseconds: 400),
-                        () => ref
-                            .read(clubsControllerProvider.notifier)
-                            .load(search: value),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                IconButton.filledTonal(
-                  tooltip: 'Bộ lọc',
-                  icon: const Icon(AppIcons.tune),
-                  onPressed: _openFilters,
-                ),
-              ],
-            ),
-          ),
-        ?discoveryHeader,
-        Expanded(
-          child: RefreshIndicator(
-            onRefresh: () => ref
-                .read(clubsControllerProvider.notifier)
-                .load(search: state.search),
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: _showMap
-                      ? DiscoveryEntityMapView(
-                          items: _mapItems(state.clubs),
-                          emptyMessage: AppLocalizations.of(
-                            context,
-                          ).discoveryMapNoLocations,
-                        )
-                      : Center(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 720),
-                            child: switch (state) {
-                              _ when state.isLoading && state.clubs.isEmpty =>
-                                const _ClubListSkeleton(),
-                              _
-                                  when state.error != null &&
-                                      state.clubs.isEmpty =>
-                                _ClubListStatus(
-                                  child: AppErrorView(
-                                    error: state.error!,
-                                    onRetry: () => ref
-                                        .read(
-                                          clubsControllerProvider.notifier,
-                                        )
-                                        .load(search: state.search),
-                                  ),
-                                ),
-                              _ when state.clubs.isEmpty =>
-                                const _ClubListStatus(
-                                  child: Text(
-                                    'Không tìm thấy câu lạc bộ.',
-                                  ),
-                                ),
-                              _ => AppPaginatedListView.separated(
-                                controller: _scroll,
-                                padding: const EdgeInsets.all(
-                                  AppSpacing.screenPadding,
-                                ),
-                                itemCount: state.clubs.length,
-                                hasMore: state.hasMore,
-                                isLoading: state.isLoading,
-                                isLoadingMore:
-                                    state.isLoading && state.page > 0,
-                                separatorBuilder: (_, _) =>
-                                    const SizedBox(height: AppSpacing.md),
-                                itemBuilder: (context, index) =>
-                                    _ClubBrowseCard(
-                                      club: state.clubs[index],
-                                    ),
-                              ),
-                            },
-                          ),
-                        ),
-                ),
-                if (widget.embedded && widget.showMapToggle)
-                  Positioned(
-                    right: AppSpacing.md,
-                    bottom: AppSpacing.md,
-                    child: DiscoveryMapToggle(
-                      key: const Key('club-map-view-toggle'),
-                      showMap: _showMap,
-                      onPressed: () => setState(() => _showMap = !_showMap),
+    final content = NotificationListener<ScrollNotification>(
+      onNotification: _onScrollNotification,
+      child: Column(
+        children: [
+          if (discoveryHeader == null)
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: SearchBar(
+                      controller: _search,
+                      hintText: 'Tìm kiếm nhóm',
+                      leading: const Icon(AppIcons.search),
+                      onChanged: (value) {
+                        _timer?.cancel();
+                        _timer = Timer(
+                          const Duration(milliseconds: 400),
+                          () => ref
+                              .read(clubsControllerProvider.notifier)
+                              .load(search: value),
+                        );
+                      },
                     ),
                   ),
-              ],
+                  const SizedBox(width: AppSpacing.xs),
+                  IconButton.filledTonal(
+                    tooltip: 'Bộ lọc',
+                    icon: const Icon(AppIcons.tune),
+                    onPressed: _openFilters,
+                  ),
+                ],
+              ),
+            ),
+          ?discoveryHeader,
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () => ref
+                  .read(clubsControllerProvider.notifier)
+                  .load(search: state.search),
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: _showMap
+                        ? DiscoveryEntityMapView(
+                            items: _mapItems(state.clubs),
+                            emptyMessage: AppLocalizations.of(
+                              context,
+                            ).discoveryMapNoLocations,
+                          )
+                        : Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 720),
+                              child: switch (state) {
+                                _ when state.isLoading && state.clubs.isEmpty =>
+                                  const _ClubListSkeleton(),
+                                _
+                                    when state.error != null &&
+                                        state.clubs.isEmpty =>
+                                  _ClubListStatus(
+                                    child: AppErrorView(
+                                      error: state.error!,
+                                      onRetry: () => ref
+                                          .read(
+                                            clubsControllerProvider.notifier,
+                                          )
+                                          .load(search: state.search),
+                                    ),
+                                  ),
+                                _ when state.clubs.isEmpty =>
+                                  const _ClubListStatus(
+                                    child: Text(
+                                      'Không tìm thấy câu lạc bộ.',
+                                    ),
+                                  ),
+                                _ => AppPaginatedListView.separated(
+                                  controller: _scroll,
+                                  padding: const EdgeInsets.all(
+                                    AppSpacing.screenPadding,
+                                  ),
+                                  itemCount: state.clubs.length,
+                                  hasMore: state.hasMore,
+                                  isLoading: state.isLoading,
+                                  isLoadingMore:
+                                      state.isLoading && state.page > 0,
+                                  separatorBuilder: (_, _) =>
+                                      const SizedBox(height: AppSpacing.md),
+                                  itemBuilder: (context, index) =>
+                                      _ClubBrowseCard(
+                                        club: state.clubs[index],
+                                      ),
+                                ),
+                              },
+                            ),
+                          ),
+                  ),
+                  if (widget.embedded && widget.showMapToggle)
+                    Positioned(
+                      right: AppSpacing.md,
+                      bottom: AppSpacing.md,
+                      child: DiscoveryMapToggle(
+                        key: const Key('club-map-view-toggle'),
+                        showMap: _showMap,
+                        isExtended: _isMapToggleExtended,
+                        onPressed: () => setState(() {
+                          _showMap = !_showMap;
+                          _isMapToggleExtended = true;
+                        }),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
 
     if (widget.embedded) return content;

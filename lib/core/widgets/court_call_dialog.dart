@@ -5,29 +5,44 @@ import 'package:flutter/services.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/core/widgets/court_call_info_card.dart';
+import 'package:vmito_app/core/widgets/court_call_pulse_badge.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 /// Ported from `vmito-fe`'s `CourtCallModal.tsx`: a pulsing map-pin badge,
 /// the court name, a short description, and a single acknowledge CTA.
 ///
+/// [sessionName], [venueAddress], and [hostName] are a mobile-only addition
+/// (the web modal omits them) so a player who isn't currently looking at
+/// that session can tell which one it is without leaving the dialog.
+///
 /// Non-dismissible by design — the web version blocks backdrop-tap only
 /// (`closeOnOverlayClick={false}`); this also blocks the Android back button
 /// via [PopScope], since a hardware back button has no web equivalent and
 /// the whole point of the call is that it must be acted on.
-class CourtCallDialog extends StatefulWidget {
+class CourtCallDialog extends StatelessWidget {
   const CourtCallDialog({
     required this.courtDisplayName,
     required this.onAcknowledge,
+    this.sessionName,
+    this.venueAddress,
+    this.hostName,
     super.key,
   });
 
   final String courtDisplayName;
   final VoidCallback onAcknowledge;
+  final String? sessionName;
+  final String? venueAddress;
+  final String? hostName;
 
   static Future<void> show(
     BuildContext context, {
     required String courtDisplayName,
     required VoidCallback onAcknowledge,
+    String? sessionName,
+    String? venueAddress,
+    String? hostName,
   }) {
     unawaited(HapticFeedback.mediumImpact());
     return showDialog<void>(
@@ -38,37 +53,12 @@ class CourtCallDialog extends StatefulWidget {
         child: CourtCallDialog(
           courtDisplayName: courtDisplayName,
           onAcknowledge: onAcknowledge,
+          sessionName: sessionName,
+          venueAddress: venueAddress,
+          hostName: hostName,
         ),
       ),
     );
-  }
-
-  @override
-  State<CourtCallDialog> createState() => _CourtCallDialogState();
-}
-
-class _CourtCallDialogState extends State<CourtCallDialog>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _pulseController;
-  late final Animation<double> _pulse;
-
-  @override
-  void initState() {
-    super.initState();
-    // Two 900ms half-cycles ease-in-out = the web's 1.8s courtCallPulse
-    // keyframe (0% -> 50% -> 100%).
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 900),
-    );
-    unawaited(_pulseController.repeat(reverse: true));
-    _pulse = CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut);
-  }
-
-  @override
-  void dispose() {
-    _pulseController.dispose();
-    super.dispose();
   }
 
   @override
@@ -77,9 +67,9 @@ class _CourtCallDialogState extends State<CourtCallDialog>
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
-    final brandSurface = isDark
-        ? const Color(0xFF183028)
-        : const Color(0xFFE2F3E8);
+    final accent = isDark ? AppColors.brandDark : colorScheme.primary;
+    final hasInfo =
+        sessionName != null || venueAddress != null || hostName != null;
 
     return Dialog(
       insetPadding: const EdgeInsets.symmetric(
@@ -108,55 +98,25 @@ class _CourtCallDialogState extends State<CourtCallDialog>
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              AnimatedBuilder(
-                animation: _pulse,
-                builder: (context, child) {
-                  final t = _pulse.value;
-                  return Transform.scale(
-                    scale: 1 + 0.04 * t,
-                    child: Container(
-                      width: 88,
-                      height: 88,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: brandSurface,
-                        boxShadow: [
-                          BoxShadow(
-                            color: colorScheme.primary.withValues(
-                              alpha: 0.18 * (1 - t),
-                            ),
-                            spreadRadius: 12 * t,
-                          ),
-                        ],
-                      ),
-                      child: child,
-                    ),
-                  );
-                },
-                child: Icon(
-                  AppIcons.mapPin,
-                  size: 44,
-                  color: isDark ? AppColors.brandDark : colorScheme.primary,
-                ),
-              ),
+              const CourtCallPulseBadge(),
               const SizedBox(height: AppSpacing.lg),
               Text(
                 l10n.courtCallGoToCourt,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w600,
-                  color: isDark ? AppColors.brandDark : colorScheme.primary,
+                  color: accent,
                 ),
               ),
               const SizedBox(height: AppSpacing.xs),
               Text(
-                widget.courtDisplayName,
+                courtDisplayName,
                 textAlign: TextAlign.center,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
-                  color: isDark ? AppColors.brandDark : colorScheme.primary,
+                  color: accent,
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
@@ -171,13 +131,23 @@ class _CourtCallDialogState extends State<CourtCallDialog>
                   ),
                 ),
               ),
+              if (hasInfo) ...[
+                const SizedBox(height: AppSpacing.md),
+                CourtCallInfoCard(
+                  sessionName: sessionName,
+                  venueAddress: venueAddress,
+                  hostName: hostName == null
+                      ? null
+                      : '${l10n.sessionHostLabel}: $hostName',
+                ),
+              ],
               const SizedBox(height: AppSpacing.xl),
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
                   onPressed: () {
                     Navigator.of(context).pop();
-                    widget.onAcknowledge();
+                    onAcknowledge();
                   },
                   icon: const Icon(AppIcons.navigation, size: 18),
                   label: Text(l10n.courtCallAcknowledge),

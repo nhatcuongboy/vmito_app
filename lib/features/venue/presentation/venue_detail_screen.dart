@@ -11,6 +11,7 @@ import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/venue/application/venue_controller.dart';
 import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/features/venue/presentation/venue_detail_content.dart';
+import 'package:vmito_app/features/venue/presentation/venue_detail_skeleton.dart';
 import 'package:vmito_app/features/venue/presentation/venue_edit_request_screen.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/login_prompt_dialog.dart';
@@ -25,8 +26,7 @@ class VenueDetailScreen extends ConsumerWidget {
     final venue = ref.watch(venueDetailProvider(venueId));
     return venue.when(
       data: (data) => _VenueDetail(venue: data),
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      loading: () => const VenueDetailSkeleton(),
       error: (error, _) => Scaffold(
         appBar: AppBar(),
         body: AppErrorView(

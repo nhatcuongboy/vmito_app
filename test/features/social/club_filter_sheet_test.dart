@@ -89,6 +89,7 @@ void main() {
     await tester.tap(find.text('Open'));
     await tester.pumpAndSettle();
 
+    expect(find.text('Bộ lọc'), findsOneWidget);
     expect(find.byKey(const Key('club-filter-area-section')), findsOneWidget);
     expect(
       find.byKey(const Key('club-filter-activity-time-section')),

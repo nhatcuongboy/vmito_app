@@ -238,6 +238,9 @@ void main() {
 
     await tester.tap(find.byType(InkWell));
     await tester.pumpAndSettle();
+    expect(find.text('Remove from Favorites?'), findsOneWidget);
+    await tester.tap(find.widgetWithText(FilledButton, 'Remove'));
+    await tester.pumpAndSettle();
 
     expect(find.text('Removed from Favorites'), findsOneWidget);
     expect(find.text('Undo'), findsOneWidget);
@@ -254,6 +257,32 @@ void main() {
       badgeDecoration.color,
       AppTheme.light.colorScheme.onInverseSurface.withValues(alpha: 0.1),
     );
+  });
+
+  testWidgets('cancelling removal keeps the favorite and skips the API', (
+    tester,
+  ) async {
+    final repository = _FakeFavoriteRepository(
+      summaryResult: const FavoriteSummary(isFavorite: true, favoriteCount: 1),
+    );
+    await tester.pumpWidget(
+      _app(
+        summary: repository.summaryResult,
+        repository: repository,
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byType(InkWell));
+    await tester.pumpAndSettle();
+    expect(find.text('Remove from Favorites?'), findsOneWidget);
+
+    await tester.tap(find.widgetWithText(TextButton, 'Cancel'));
+    await tester.pumpAndSettle();
+
+    expect(repository.calls, isEmpty);
+    expect(find.byIcon(AppIcons.favoriteFilled), findsOneWidget);
+    expect(find.text('Removed from Favorites'), findsNothing);
   });
 
   testWidgets('undo adds the removed favorite again', (tester) async {
@@ -274,6 +303,8 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.byType(InkWell));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Remove'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Undo'));
     await tester.pumpAndSettle();
@@ -338,6 +369,8 @@ void main() {
     await tester.pumpAndSettle();
 
     await tester.tap(find.byType(InkWell));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Remove'));
     await tester.pumpAndSettle();
 
     expect(repository.calls, ['remove:VENUE:v1']);

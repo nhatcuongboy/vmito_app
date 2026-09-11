@@ -13,6 +13,7 @@ import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
+import 'package:vmito_app/core/widgets/app_tab_bar.dart';
 import 'package:vmito_app/core/widgets/notification_header_button.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/registration/application/my_join_requests_controller.dart';
@@ -42,7 +43,9 @@ class BrowseSessionsScreen extends ConsumerStatefulWidget {
       _BrowseSessionsScreenState();
 }
 
-class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
+class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
   MySessionScope _scope = MySessionScope.hosted;
   final _scrollControllers = <MySessionScope, ScrollController>{};
   final _searchQueries = <MySessionScope, String>{};
@@ -53,6 +56,11 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(
+      length: MySessionScope.values.length,
+      vsync: this,
+      initialIndex: _scope.index,
+    )..addListener(_onTabChanged);
     for (final scope in MySessionScope.values) {
       _scrollControllers[scope] = ScrollController()
         ..addListener(() => _onScroll(scope));
@@ -68,11 +76,46 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
 
   @override
   void dispose() {
+    _tabController
+      ..removeListener(_onTabChanged)
+      ..dispose();
     _removeReselectHandler();
     for (final controller in _scrollControllers.values) {
       controller.dispose();
     }
     super.dispose();
+  }
+
+  void _onTabChanged() {
+    if (_tabController.indexIsChanging ||
+        _tabController.index == _scope.index ||
+        !mounted) {
+      return;
+    }
+    _setScope(MySessionScope.values[_tabController.index]);
+  }
+
+  void _onTabTap(int index) {
+    _setScope(MySessionScope.values[index]);
+  }
+
+  void _setScope(MySessionScope scope) {
+    if (scope == _scope) return;
+    setState(() {
+      _scope = scope;
+      _isFabExtended = true;
+    });
+    if (_tabController.index != scope.index) {
+      _tabController.animateTo(scope.index);
+    }
+    if (scope == MySessionScope.joined) {
+      _loadScope(scope);
+      unawaited(
+        ref.read(myJoinRequestsControllerProvider.notifier).loadInitial(),
+      );
+    } else {
+      _loadScope(scope);
+    }
   }
 
   void _loadScope(MySessionScope scope) {
@@ -151,53 +194,6 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
         },
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                AppSpacing.sm,
-                AppSpacing.md,
-                0,
-              ),
-              child: SizedBox(
-                width: double.infinity,
-                child: SegmentedButton<MySessionScope>(
-                  key: const Key('my-sessions-scope'),
-                  style: const ButtonStyle(
-                    minimumSize: WidgetStatePropertyAll(Size(0, 40)),
-                    visualDensity: VisualDensity.standard,
-                  ),
-                  segments: [
-                    ButtonSegment(
-                      value: MySessionScope.hosted,
-                      label: Text(l10n.mySessionsHosted),
-                    ),
-                    ButtonSegment(
-                      value: MySessionScope.joined,
-                      label: Text(l10n.mySessionsJoined),
-                    ),
-                  ],
-                  selected: {_scope},
-                  onSelectionChanged: (selection) {
-                    final scope = selection.single;
-                    if (scope == _scope) return;
-                    setState(() {
-                      _scope = scope;
-                      _isFabExtended = true;
-                    });
-                    if (scope == MySessionScope.joined) {
-                      _loadScope(scope);
-                      unawaited(
-                        ref
-                            .read(myJoinRequestsControllerProvider.notifier)
-                            .loadInitial(),
-                      );
-                    } else {
-                      _loadScope(scope);
-                    }
-                  },
-                ),
-              ),
-            ),
             _MySessionsToolbar(
               sortLabel: _sortLabel(l10n, state.sort),
               sortIcon: _sortIcon(state.sort),
@@ -226,29 +222,55 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
           ],
         ),
       ),
-      floatingActionButton: SizedBox(
-        height: 48,
-        child: FloatingActionButton.extended(
-          key: const Key('my-sessions-create-fab'),
-          heroTag: 'my-sessions-create-session-fab',
-          isExtended: _isFabExtended,
-          onPressed: () => context.push(AppRoutes.createSession),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          foregroundColor: Theme.of(context).colorScheme.onPrimary,
-          elevation: 2,
-          extendedPadding: const EdgeInsets.symmetric(horizontal: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          icon: const Icon(AppIcons.add, size: 20),
-          label: Text(
-            l10n.createSessionTitle,
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-        ),
-      ),
+      floatingActionButton: _scope == MySessionScope.hosted
+          ? SizedBox(
+              height: 44,
+              child: FloatingActionButton.extended(
+                key: const Key('my-sessions-create-fab'),
+                heroTag: 'my-sessions-create-session-fab',
+                isExtended: _isFabExtended,
+                onPressed: () => context.push(AppRoutes.createSession),
+                backgroundColor:
+                    Theme.of(context).extension<AppPalette>()?.brandSurface ??
+                    (Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF183028)
+                        : const Color(0xFFE2F3E8)),
+                foregroundColor: Theme.of(context).colorScheme.primary,
+                elevation: 4,
+                extendedPadding: const EdgeInsets.symmetric(horizontal: 13),
+                shape: StadiumBorder(
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.primary.withValues(
+                      alpha: 0.35,
+                    ),
+                  ),
+                ),
+                icon: const Icon(AppIcons.add, size: 18),
+                label: Text(
+                  l10n.createSessionTitle,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
+            )
+          : null,
     );
   }
+
+  PreferredSizeWidget _buildTabBar(AppLocalizations l10n) => AppTabBar(
+    key: const Key('my-sessions-scope'),
+    controller: _tabController,
+    onTap: _onTabTap,
+    tabs: [
+      Tab(
+        key: const Key('my-sessions-scope-hosted'),
+        text: l10n.mySessionsHosted,
+      ),
+      Tab(
+        key: const Key('my-sessions-scope-joined'),
+        text: l10n.mySessionsJoined,
+      ),
+    ],
+  );
 
   PreferredSizeWidget _buildBrowseAppBar({
     required AppLocalizations l10n,
@@ -272,7 +294,7 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
           icon: Badge(
             isLabelVisible: state.pendingCount > 0,
             label: Text('${state.pendingCount}'),
-            child: const Icon(AppIcons.userCheck),
+            child: const Icon(AppIcons.clipboardList),
           ),
           onPressed: () => unawaited(showPendingRequestsSheet(context)),
         ),
@@ -316,6 +338,7 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
         ),
       const SizedBox(width: 8),
     ],
+    bottom: _buildTabBar(l10n),
   );
 
   PreferredSizeWidget _buildSearchResultsAppBar({
@@ -361,6 +384,7 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen> {
       ),
     ),
     actions: const [SizedBox(width: 4)],
+    bottom: _buildTabBar(l10n),
   );
 
   void _openFilters(

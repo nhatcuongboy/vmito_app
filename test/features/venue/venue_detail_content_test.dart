@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
@@ -583,6 +584,56 @@ void main() {
 
     expect(pricingText.style?.fontSize, aboutText.style?.fontSize);
     expect(pricingText.style?.height, aboutText.style?.height);
+  });
+
+  testWidgets('shows a pricing skeleton instead of a spinner while loading', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(390 * 3, 844 * 3)
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          isSignedInProvider.overrideWithValue(false),
+          favoriteRepositoryProvider.overrideWithValue(
+            _TestFavoriteRepository(),
+          ),
+          locationPreferencesControllerProvider.overrideWith(
+            () => _TestLocationPreferencesController(showNewAddress: true),
+          ),
+        ],
+        child: MaterialApp(
+          locale: const Locale('vi'),
+          theme: AppTheme.light,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: VenueDetailContent(
+              venue: _venue,
+              priceBooks: const AsyncValue.loading(),
+              onBack: () {},
+              onShare: () {},
+              onCall: () {},
+              onZalo: () {},
+              onDirections: () {},
+              onFindSessions: () {},
+              onRequestUpdate: () {},
+            ),
+          ),
+        ),
+      ),
+    );
+    // A single pump: the shimmer's repeating animation never settles, so
+    // pumpAndSettle would time out here.
+    await tester.pump();
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.byKey(const Key('venue-pricing-card')), findsOneWidget);
+    expect(find.byType(Shimmer), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 
   testWidgets('uses the browse-venues default cover when no images exist', (

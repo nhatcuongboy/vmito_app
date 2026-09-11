@@ -3,22 +3,19 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/realtime/socket_client.dart';
 import 'package:vmito_app/core/realtime/socket_events.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
-import 'package:vmito_app/core/utils/color_parsing.dart';
 import 'package:vmito_app/core/widgets/app_bottom_navigation_bar.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/court/application/live_session_controller.dart';
-import 'package:vmito_app/features/court/application/match_elapsed_provider.dart';
 import 'package:vmito_app/features/court/domain/player_live_session.dart';
 import 'package:vmito_app/features/court/presentation/player_live_payment_tab.dart';
-import 'package:vmito_app/features/court/presentation/widgets/badminton_court_view.dart';
 import 'package:vmito_app/features/court/presentation/widgets/live_session_overview_tab.dart';
+import 'package:vmito_app/features/court/presentation/widgets/player_status_tab.dart';
 import 'package:vmito_app/features/payment/application/player_session_payment_controller.dart';
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
@@ -222,7 +219,7 @@ class _Hub extends StatelessWidget {
         player: player,
         onRefresh: onRefresh,
       ),
-      _PlayerStatus(
+      PlayerStatusTab(
         projection: PlayerLiveSession(session: session, player: player),
         onRefresh: onRefresh,
       ),
@@ -288,114 +285,6 @@ class _Hub extends StatelessWidget {
   }
 }
 
-class _PlayerStatus extends ConsumerWidget {
-  const _PlayerStatus({required this.projection, required this.onRefresh});
-  final PlayerLiveSession projection;
-  final Future<void> Function() onRefresh;
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final player = projection.player;
-    final start = projection.currentMatch?.startTime;
-    final elapsed = start == null
-        ? null
-        : ref.watch(matchElapsedProvider(start)).value;
-    String names(List<SessionPlayer> value) => value
-        .map((p) => p.displayName ?? '#${p.playerNumber ?? '–'}')
-        .join(', ');
-    return RefreshIndicator(
-      onRefresh: onRefresh,
-      child: ListView(
-        key: const PageStorageKey('player-live-status'),
-        physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(AppSpacing.md),
-        children: [
-          Card(
-            color: Theme.of(context).colorScheme.primaryContainer,
-            child: ListTile(
-              leading: CircleAvatar(
-                child: Text('${player.playerNumber ?? '–'}'),
-              ),
-              title: Text(
-                player.displayName ??
-                    l10n.playerLiveNumber(player.playerNumber ?? 0),
-              ),
-              subtitle: Text(_statusLabel(l10n, player.status)),
-            ),
-          ),
-          _Info(
-            Icons.sports_score,
-            l10n.playerLiveMatches,
-            '${player.matchesPlayed}',
-          ),
-          if (projection.waitingPosition != null)
-            _Info(
-              Icons.format_list_numbered,
-              l10n.playerLiveQueuePosition,
-              '#${projection.waitingPosition}',
-            ),
-          _Info(
-            Icons.timer_outlined,
-            start == null
-                ? l10n.playerLiveWaitTime
-                : l10n.playerLivePlayingTime,
-            l10n.playerLiveMinutes(elapsed ?? player.currentWaitTime),
-          ),
-          if (projection.currentCourt == null)
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              child: Center(child: Text(l10n.playerLiveNoCurrentCourt)),
-            )
-          else ...[
-            _Info(
-              Icons.place_outlined,
-              l10n.playerLiveCurrentCourt,
-              l10n.courtName(projection.currentCourt!),
-            ),
-            if (projection.partners.isNotEmpty)
-              _Info(
-                Icons.group_outlined,
-                l10n.playerLivePartner,
-                names(projection.partners),
-              ),
-            if (projection.opponents.isNotEmpty)
-              _Info(
-                Icons.groups_outlined,
-                l10n.playerLiveOpponents,
-                names(projection.opponents),
-              ),
-            const SizedBox(height: AppSpacing.md),
-            BadmintonCourtView(
-              court: projection.currentCourt!,
-              highlightedPlayerId: player.id,
-              preSelectedPlayers: projection.session.preSelectedPlayersFor(
-                projection.currentCourt!,
-              ),
-              courtColor: parseHexColor(projection.session.courtColor),
-            ),
-          ],
-          const SizedBox(height: AppSpacing.xxl),
-        ],
-      ),
-    );
-  }
-}
-
-class _Info extends StatelessWidget {
-  const _Info(this.icon, this.label, this.value);
-  final IconData icon;
-  final String label;
-  final String value;
-  @override
-  Widget build(BuildContext context) => Card(
-    child: ListTile(
-      leading: Icon(icon),
-      title: Text(label),
-      trailing: Text(value, textAlign: TextAlign.end),
-    ),
-  );
-}
-
 class _ReconnectingBanner extends StatelessWidget {
   const _ReconnectingBanner();
   @override
@@ -451,15 +340,6 @@ class _AccessDenied extends StatelessWidget {
     );
   }
 }
-
-String _statusLabel(AppLocalizations l10n, PlayerStatus status) =>
-    switch (status) {
-      PlayerStatus.playing => l10n.courtStatusInUse,
-      PlayerStatus.ready => l10n.courtStatusReady,
-      PlayerStatus.waiting => l10n.playerLiveWaitTime,
-      PlayerStatus.finished => l10n.sessionStatusFinished,
-      PlayerStatus.inactive => l10n.sessionStatusCancelled,
-    };
 
 extension<T> on Iterable<T> {
   T? get firstOrNull => isEmpty ? null : first;

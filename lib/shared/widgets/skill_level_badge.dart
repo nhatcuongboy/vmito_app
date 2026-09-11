@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
-import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_domain/vmito_domain.dart';
@@ -37,7 +36,11 @@ class SkillLevelBadge extends StatelessWidget {
   }
 }
 
-/// A neutral badge indicating that a session has no skill-level restriction.
+/// A badge indicating that a session has no skill-level restriction.
+///
+/// Matches the "Mọi trình độ" badge on the browse session card
+/// (`LevelRangeChips`): a tinted purple pill rather than the solid,
+/// rank-coloured fill used by [SkillLevelBadge].
 class AllSkillLevelsBadge extends StatelessWidget {
   const AllSkillLevelsBadge({
     required this.label,
@@ -50,12 +53,32 @@ class AllSkillLevelsBadge extends StatelessWidget {
   /// When `true`, uses tighter horizontal/vertical padding.
   final bool compact;
 
+  static const _lightPurple = Color(0xFF7C3AED);
+  static const _darkPurple = Color(0xFFC4B5FD);
+
   @override
-  Widget build(BuildContext context) => _Badge(
-    label: label,
-    color: Theme.of(context).extension<AppPalette>()!.mutedForeground,
-    compact: compact,
-  );
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = isDark ? _darkPurple : _lightPurple;
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? AppSpacing.xs + 2 : AppSpacing.sm + 2,
+        vertical: compact ? AppSpacing.xxs : 4,
+      ),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.14),
+        borderRadius: BorderRadius.circular(AppRadius.md),
+        border: Border.all(color: color.withValues(alpha: 0.28)),
+      ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: color,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
 }
 
 class _Badge extends StatelessWidget {

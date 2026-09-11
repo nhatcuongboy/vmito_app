@@ -99,6 +99,20 @@ abstract final class AppTheme {
         ),
       ),
       dividerTheme: DividerThemeData(color: palette.border, space: 1),
+      dataTableTheme: DataTableThemeData(
+        headingRowColor: WidgetStateProperty.all(palette.muted),
+        headingTextStyle: textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+          color: scheme.onSurface,
+        ),
+        dataTextStyle: textTheme.bodyMedium,
+        dataRowMinHeight: 44,
+        dataRowMaxHeight: 48,
+        headingRowHeight: 44,
+        horizontalMargin: 12,
+        columnSpacing: 20,
+        dividerThickness: 1,
+      ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(0, AppSizes.minTapTarget),

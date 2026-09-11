@@ -235,98 +235,109 @@ class _AppAreaFilterSectionState extends ConsumerState<AppAreaFilterSection> {
       context: context,
       useRootNavigator: true,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) {
           final l10n = AppLocalizations.of(context);
           final scheme = Theme.of(context).colorScheme;
-          return SafeArea(
-            child: SizedBox(
-              height: MediaQuery.sizeOf(context).height * .75,
-              child: Column(
-                children: [
-                  AppSheetHeader(
-                    title: l10n.sessionFilterDistricts,
-                    subtitle: city,
-                    titleTrailing: selected.isNotEmpty
-                        ? Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: AppSpacing.sm,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: scheme.primary,
-                              borderRadius: BorderRadius.circular(
-                                AppRadius.pill,
+          final allSelected =
+              wards.isNotEmpty && selected.length == wards.length;
+          final anySelected = selected.isNotEmpty;
+          return Material(
+            color: scheme.surface,
+            clipBehavior: Clip.antiAlias,
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(AppRadius.xl),
+            ),
+            child: SafeArea(
+              child: SizedBox(
+                height: MediaQuery.sizeOf(context).height * .75,
+                child: Column(
+                  children: [
+                    AppSheetHeader(
+                      title: l10n.sessionFilterDistricts,
+                      subtitle: city,
+                      titleTrailing: selected.isNotEmpty
+                          ? Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: AppSpacing.sm,
+                                vertical: 2,
                               ),
-                            ),
-                            child: Text(
-                              '${selected.length}',
-                              style: TextStyle(
-                                color: scheme.onPrimary,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
+                              decoration: BoxDecoration(
+                                color: scheme.primary,
+                                borderRadius: BorderRadius.circular(
+                                  AppRadius.pill,
+                                ),
                               ),
-                            ),
-                          )
-                        : null,
-                    showCloseButton: true,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.xs,
+                              child: Text(
+                                '${selected.length}',
+                                style: TextStyle(
+                                  color: scheme.onPrimary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            )
+                          : null,
+                      showCloseButton: true,
                     ),
-                    child: Row(
-                      children: [
-                        TextButton(
-                          onPressed: wards.isEmpty
-                              ? null
-                              : () => setState(() {
-                                  if (selected.length == wards.length) {
-                                    selected.clear();
-                                  } else {
-                                    selected.addAll(wards);
-                                  }
-                                }),
-                          child: Text(
-                            selected.length == wards.length
-                                ? l10n.homeSearchClearAll
-                                : l10n.citySelectorAll,
-                          ),
-                        ),
-                        const Spacer(),
-                        FilledButton(
-                          onPressed: () => Navigator.pop(context, selected),
-                          child: Text(l10n.commonDone),
-                        ),
-                      ],
+                    const Divider(height: 1),
+                    CheckboxListTile(
+                      title: Text(
+                        l10n.citySelectorAll,
+                        style: const TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      value: allSelected ? true : (anySelected ? null : false),
+                      tristate: true,
+                      controlAffinity: ListTileControlAffinity.trailing,
+                      onChanged: wards.isEmpty
+                          ? null
+                          : (_) => setState(() {
+                              if (allSelected) {
+                                selected.clear();
+                              } else {
+                                selected.addAll(wards);
+                              }
+                            }),
                     ),
-                  ),
-                  const Divider(height: 1),
-                  Expanded(
-                    child: wards.isEmpty
-                        ? Center(
-                            child: Text(
-                              l10n.sessionFilterNoDistricts,
+                    const Divider(height: 1),
+                    Expanded(
+                      child: wards.isEmpty
+                          ? Center(
+                              child: Text(
+                                l10n.sessionFilterNoDistricts,
+                              ),
+                            )
+                          : ListView.builder(
+                              itemCount: wards.length,
+                              itemBuilder: (context, index) {
+                                final ward = wards[index];
+                                return CheckboxListTile(
+                                  value: selected.contains(ward),
+                                  title: Text(ward),
+                                  controlAffinity:
+                                      ListTileControlAffinity.trailing,
+                                  onChanged: (checked) => setState(() {
+                                    checked ?? false
+                                        ? selected.add(ward)
+                                        : selected.remove(ward);
+                                  }),
+                                );
+                              },
                             ),
-                          )
-                        : ListView.builder(
-                            itemCount: wards.length,
-                            itemBuilder: (context, index) {
-                              final ward = wards[index];
-                              return CheckboxListTile(
-                                value: selected.contains(ward),
-                                title: Text(ward),
-                                onChanged: (checked) => setState(() {
-                                  checked ?? false
-                                      ? selected.add(ward)
-                                      : selected.remove(ward);
-                                }),
-                              );
-                            },
-                          ),
-                  ),
-                ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(AppSpacing.md),
+                      child: FilledButton(
+                        style: FilledButton.styleFrom(
+                          minimumSize: const Size(double.infinity, 48),
+                        ),
+                        onPressed: () => Navigator.pop(context, selected),
+                        child: Text(l10n.commonDone),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );

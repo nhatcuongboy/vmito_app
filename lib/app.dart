@@ -49,6 +49,7 @@ class VmitoApp extends ConsumerWidget {
             child: NewsfeedBadgeLifecycle(
               router: router,
               child: CourtCallListener(
+                router: router,
                 child: AppErrorListener(
                   child: child ?? const SizedBox.shrink(),
                 ),

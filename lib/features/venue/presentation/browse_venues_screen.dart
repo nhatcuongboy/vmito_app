@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
@@ -56,6 +57,7 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
   Timer? _debounce;
   VoidCallback? _removeReselectHandler;
   var _showMap = false;
+  var _isMapToggleExtended = true;
 
   @override
   void initState() {
@@ -237,128 +239,156 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
     }
   }
 
+  bool _onScrollNotification(ScrollNotification notification) {
+    if (notification.metrics.axis == Axis.vertical) {
+      if (notification.metrics.pixels <= 0) {
+        if (!_isMapToggleExtended) {
+          setState(() => _isMapToggleExtended = true);
+        }
+      } else if (notification is UserScrollNotification) {
+        if (notification.direction == ScrollDirection.reverse) {
+          if (_isMapToggleExtended) {
+            setState(() => _isMapToggleExtended = false);
+          }
+        } else if (notification.direction == ScrollDirection.forward) {
+          if (!_isMapToggleExtended) {
+            setState(() => _isMapToggleExtended = true);
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   Widget _body(VenueBrowseState state) {
     final discoveryHeader = widget.discoveryHeader;
 
-    return Column(
-      children: [
-        if (!widget.embedded)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              AppSpacing.sm,
-              AppSpacing.md,
-              AppSpacing.sm,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: SearchBar(
-                    controller: _search,
-                    hintText: 'Tìm kiếm sân',
-                    leading: const Icon(AppIcons.search),
-                    onChanged: (value) {
-                      _debounce?.cancel();
-                      _debounce = Timer(
-                        const Duration(milliseconds: 400),
-                        () => ref
-                            .read(venueBrowseControllerProvider.notifier)
-                            .load(
-                              filter: state.filter.copyWith(
-                                keyword: value,
+    return NotificationListener<ScrollNotification>(
+      onNotification: _onScrollNotification,
+      child: Column(
+        children: [
+          if (!widget.embedded)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.sm,
+                AppSpacing.md,
+                AppSpacing.sm,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: SearchBar(
+                      controller: _search,
+                      hintText: 'Tìm kiếm sân',
+                      leading: const Icon(AppIcons.search),
+                      onChanged: (value) {
+                        _debounce?.cancel();
+                        _debounce = Timer(
+                          const Duration(milliseconds: 400),
+                          () => ref
+                              .read(venueBrowseControllerProvider.notifier)
+                              .load(
+                                filter: state.filter.copyWith(
+                                  keyword: value,
+                                ),
                               ),
-                            ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
+                  const SizedBox(width: AppSpacing.xs),
+                  IconButton.filledTonal(
+                    key: const Key('venue-inline-filter-button'),
+                    tooltip: AppLocalizations.of(context).venueFiltersTitle,
+                    icon: const Icon(AppIcons.tune),
+                    onPressed: () => _openFilters(state.filter),
+                  ),
+                ],
+              ),
+            ),
+          ?discoveryHeader,
+          if (widget.showFilterSummary)
+            _VenueFilterSummary(
+              filter: state.filter,
+              preferredCity: ref
+                  .read(locationPreferencesControllerProvider)
+                  .preferredCity,
+              onChanged: (filter) => unawaited(
+                ref
+                    .read(venueBrowseControllerProvider.notifier)
+                    .load(filter: filter),
+              ),
+            ),
+          Expanded(
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: _showMap
+                      ? DiscoveryEntityMapView(
+                          items: _mapItems(state.venues),
+                          emptyMessage: AppLocalizations.of(
+                            context,
+                          ).discoveryMapNoLocations,
+                        )
+                      : RefreshIndicator(
+                          key: const Key('venue-refresh-indicator'),
+                          onRefresh: () => ref
+                              .read(venueBrowseControllerProvider.notifier)
+                              .load(),
+                          child: switch (state) {
+                            _ when state.isLoading && state.venues.isEmpty =>
+                              const _VenueListSkeleton(),
+                            _ when state.error != null && state.venues.isEmpty =>
+                              _VenueListStatus(
+                                child: AppErrorView(
+                                  error: state.error!,
+                                  onRetry: () => ref
+                                      .read(
+                                        venueBrowseControllerProvider.notifier,
+                                      )
+                                      .load(),
+                                ),
+                              ),
+                            _ when state.venues.isEmpty => const _VenueListStatus(
+                              child: Text('Không tìm thấy sân phù hợp.'),
+                            ),
+                            _ => AppPaginatedListView.separated(
+                              controller: _scroll,
+                              padding: const EdgeInsets.all(
+                                AppSpacing.screenPadding,
+                              ),
+                              itemCount: state.venues.length,
+                              hasMore: state.hasMore,
+                              isLoading: state.isLoading,
+                              isLoadingMore: state.isLoadingMore,
+                              separatorBuilder: (_, _) =>
+                                  const SizedBox(height: AppSpacing.md),
+                              itemBuilder: (context, index) =>
+                                  VenueCard(venue: state.venues[index]),
+                            ),
+                          },
+                        ),
                 ),
-                const SizedBox(width: AppSpacing.xs),
-                IconButton.filledTonal(
-                  key: const Key('venue-inline-filter-button'),
-                  tooltip: AppLocalizations.of(context).venueFiltersTitle,
-                  icon: const Icon(AppIcons.tune),
-                  onPressed: () => _openFilters(state.filter),
-                ),
+                if (widget.embedded && widget.showMapToggle)
+                  Positioned(
+                    right: AppSpacing.md,
+                    bottom: AppSpacing.md,
+                    child: DiscoveryMapToggle(
+                      key: const Key('venue-map-view-toggle'),
+                      showMap: _showMap,
+                      isExtended: _isMapToggleExtended,
+                      onPressed: () => setState(() {
+                        _showMap = !_showMap;
+                        _isMapToggleExtended = true;
+                      }),
+                    ),
+                  ),
               ],
             ),
           ),
-        ?discoveryHeader,
-        if (widget.showFilterSummary)
-          _VenueFilterSummary(
-            filter: state.filter,
-            preferredCity: ref
-                .read(locationPreferencesControllerProvider)
-                .preferredCity,
-            onChanged: (filter) => unawaited(
-              ref
-                  .read(venueBrowseControllerProvider.notifier)
-                  .load(filter: filter),
-            ),
-          ),
-        Expanded(
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: _showMap
-                    ? DiscoveryEntityMapView(
-                        items: _mapItems(state.venues),
-                        emptyMessage: AppLocalizations.of(
-                          context,
-                        ).discoveryMapNoLocations,
-                      )
-                    : RefreshIndicator(
-                        key: const Key('venue-refresh-indicator'),
-                        onRefresh: () => ref
-                            .read(venueBrowseControllerProvider.notifier)
-                            .load(),
-                        child: switch (state) {
-                          _ when state.isLoading && state.venues.isEmpty =>
-                            const _VenueListSkeleton(),
-                          _ when state.error != null && state.venues.isEmpty =>
-                            _VenueListStatus(
-                              child: AppErrorView(
-                                error: state.error!,
-                                onRetry: () => ref
-                                    .read(
-                                      venueBrowseControllerProvider.notifier,
-                                    )
-                                    .load(),
-                              ),
-                            ),
-                          _ when state.venues.isEmpty => const _VenueListStatus(
-                            child: Text('Không tìm thấy sân phù hợp.'),
-                          ),
-                          _ => AppPaginatedListView.separated(
-                            controller: _scroll,
-                            padding: const EdgeInsets.all(
-                              AppSpacing.screenPadding,
-                            ),
-                            itemCount: state.venues.length,
-                            hasMore: state.hasMore,
-                            isLoading: state.isLoading,
-                            isLoadingMore: state.isLoadingMore,
-                            separatorBuilder: (_, _) =>
-                                const SizedBox(height: AppSpacing.md),
-                            itemBuilder: (context, index) =>
-                                VenueCard(venue: state.venues[index]),
-                          ),
-                        },
-                      ),
-              ),
-              if (widget.embedded && widget.showMapToggle)
-                Positioned(
-                  right: AppSpacing.md,
-                  bottom: AppSpacing.md,
-                  child: DiscoveryMapToggle(
-                    key: const Key('venue-map-view-toggle'),
-                    showMap: _showMap,
-                    onPressed: () => setState(() => _showMap = !_showMap),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 

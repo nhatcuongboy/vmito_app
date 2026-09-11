@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -46,21 +47,95 @@ class LiveSessionDoublesStats extends StatelessWidget {
         mixed++;
       }
     }
+    final dark = Theme.of(context).brightness == Brightness.dark;
     final values = [
-      (l10n.playerLiveMensDoubles, men),
-      (l10n.playerLiveWomensDoubles, women),
-      (l10n.playerLiveMixedDoubles, mixed),
+      (
+        l10n.playerLiveMensDoubles,
+        men,
+        dark ? const Color(0xFF60A5FA) : const Color(0xFF1D4ED8),
+      ),
+      (
+        l10n.playerLiveWomensDoubles,
+        women,
+        dark ? const Color(0xFFF472B6) : const Color(0xFFBE185D),
+      ),
+      (
+        l10n.playerLiveMixedDoubles,
+        mixed,
+        dark ? const Color(0xFFC084FC) : const Color(0xFF7E22CE),
+      ),
     ];
     return Wrap(
       spacing: AppSpacing.sm,
       runSpacing: AppSpacing.sm,
       children: [
         for (final value in values)
-          Chip(
-            avatar: const Icon(Icons.groups_outlined, size: 18),
-            label: Text('${value.$1}: ${value.$2}'),
-          ),
+          _DoublesBadge(label: value.$1, count: value.$2, color: value.$3),
       ],
+    );
+  }
+}
+
+class _DoublesBadge extends StatelessWidget {
+  const _DoublesBadge({
+    required this.label,
+    required this.count,
+    required this.color,
+  });
+  final String label;
+  final int count;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final active = count > 0;
+    final tone = active ? color : theme.colorScheme.onSurfaceVariant;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: 6,
+      ),
+      decoration: BoxDecoration(
+        color: active
+            ? color.withValues(
+                alpha: theme.brightness == Brightness.dark ? 0.18 : 0.1,
+              )
+            : theme.colorScheme.surfaceContainerLow,
+        border: Border.all(
+          color: active
+              ? color.withValues(alpha: .5)
+              : theme.colorScheme.outlineVariant.withValues(alpha: .4),
+        ),
+        borderRadius: BorderRadius.circular(AppRadius.pill),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(AppIcons.users, size: 15, color: tone),
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: theme.textTheme.labelMedium?.copyWith(color: tone),
+          ),
+          const SizedBox(width: 5),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+            decoration: BoxDecoration(
+              color: active ? color.withValues(alpha: .18) : Colors.transparent,
+              borderRadius: BorderRadius.circular(AppRadius.pill),
+            ),
+            child: Text(
+              '$count',
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: tone,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

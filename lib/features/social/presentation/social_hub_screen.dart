@@ -13,19 +13,38 @@ import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/core/widgets/notification_header_button.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
+import 'package:vmito_app/features/social/presentation/widgets/feed_skeleton.dart';
 import 'package:vmito_app/features/social/presentation/widgets/post_avatar.dart';
 import 'package:vmito_app/features/social/presentation/widgets/post_composer_sheet.dart';
 import 'package:vmito_app/features/social/presentation/widgets/social_post_card.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
-class SocialHubScreen extends StatefulWidget {
+class SocialHubScreen extends ConsumerStatefulWidget {
   const SocialHubScreen({super.key});
 
   @override
-  State<SocialHubScreen> createState() => _SocialHubScreenState();
+  ConsumerState<SocialHubScreen> createState() => _SocialHubScreenState();
 }
 
-class _SocialHubScreenState extends State<SocialHubScreen> {
+class _SocialHubScreenState extends ConsumerState<SocialHubScreen> {
+  Future<void> _showComposer() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
+    final posted = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      builder: (_) => PostComposerSheet(
+        userName: ref.read(currentUserProvider)?.name ?? '',
+        userImage: ref.read(currentUserProvider)?.image,
+        onSubmit: ref.read(feedControllerProvider.notifier).createPost,
+      ),
+    );
+    if (posted == true && mounted) {
+      messenger.showSnackBar(SnackBar(content: Text(l10n.socialPostCreated)));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -49,7 +68,18 @@ class _SocialHubScreenState extends State<SocialHubScreen> {
                   ref.watch(authControllerProvider).status ==
                   AuthStatus.authenticated;
               return isAuthenticated
-                  ? const NotificationHeaderButton()
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          key: const Key('social-create-post'),
+                          tooltip: l10n.socialCreatePost,
+                          icon: const Icon(AppIcons.add),
+                          onPressed: _showComposer,
+                        ),
+                        const NotificationHeaderButton(),
+                      ],
+                    )
                   : IconButton(
                       tooltip: l10n.authSignIn,
                       icon: const Icon(AppIcons.login),
@@ -60,13 +90,15 @@ class _SocialHubScreenState extends State<SocialHubScreen> {
           const SizedBox(width: 8),
         ],
       ),
-      body: const _FeedTab(),
+      body: _FeedTab(onCreatePost: _showComposer),
     );
   }
 }
 
 class _FeedTab extends ConsumerStatefulWidget {
-  const _FeedTab();
+  const _FeedTab({required this.onCreatePost});
+
+  final VoidCallback onCreatePost;
 
   @override
   ConsumerState<_FeedTab> createState() => _FeedTabState();
@@ -114,7 +146,7 @@ class _FeedTabState extends ConsumerState<_FeedTab> {
     final user = ref.watch(currentUserProvider);
     final l10n = AppLocalizations.of(context);
     if (state.isLoading && state.posts.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
+      return const FeedSkeleton();
     }
     if (state.error != null && state.posts.isEmpty) {
       return AppErrorView(
@@ -143,7 +175,7 @@ class _FeedTabState extends ConsumerState<_FeedTab> {
                 hint: user?.name != null
                     ? l10n.socialComposerNameHint(user!.name ?? '')
                     : l10n.socialComposerHint,
-                onTap: _showComposer,
+                onTap: widget.onCreatePost,
               ),
             ),
           ),
@@ -179,24 +211,6 @@ class _FeedTabState extends ConsumerState<_FeedTab> {
         ],
       ),
     );
-  }
-
-  Future<void> _showComposer() async {
-    final messenger = ScaffoldMessenger.of(context);
-    final l10n = AppLocalizations.of(context);
-    final posted = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (_) => PostComposerSheet(
-        userName: ref.read(currentUserProvider)?.name ?? '',
-        userImage: ref.read(currentUserProvider)?.image,
-        onSubmit: ref.read(feedControllerProvider.notifier).createPost,
-      ),
-    );
-    if (posted == true && mounted) {
-      messenger.showSnackBar(SnackBar(content: Text(l10n.socialPostCreated)));
-    }
   }
 }
 

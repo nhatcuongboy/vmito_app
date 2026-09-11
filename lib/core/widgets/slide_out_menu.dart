@@ -58,7 +58,9 @@ class SlideOutMenu extends ConsumerWidget {
     }
 
     void confirmSignOut() {
-      closeDrawer();
+      // Leave the drawer open behind the confirm dialog; a successful
+      // sign-out redirects away from [AppShell] and takes the drawer with
+      // it, while a cancel should leave the user right where they were.
       unawaited(showSignOutConfirmation(context, ref));
     }
 
@@ -180,7 +182,7 @@ class SlideOutMenu extends ConsumerWidget {
                           compactTop: true,
                           children: [
                             _MenuItem(
-                              icon: AppIcons.sessions,
+                              icon: AppIcons.calendarClock,
                               label: l10n.navSessions,
                               isActive: isActive(AppRoutes.browseSessions),
                               onTap: () => goTo(AppRoutes.browseSessions),
@@ -253,6 +255,15 @@ class SlideOutMenu extends ConsumerWidget {
                               isActive: isActive(AppRoutes.feedback),
                               onTap: () => pushTo(AppRoutes.feedback),
                             ),
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(
+                                AppSpacing.sm,
+                                AppSpacing.sm,
+                                AppSpacing.sm,
+                                0,
+                              ),
+                              child: _SignOutButton(onTap: confirmSignOut),
+                            ),
                           ],
                         ),
                       ] else
@@ -306,7 +317,6 @@ class SlideOutMenu extends ConsumerWidget {
                   ),
                 ),
                 const _MenuDivider(),
-                if (isSignedIn) _SignOutButton(onTap: confirmSignOut),
                 _MenuFooter(
                   appName: l10n.appName,
                   languageCode: localeCode,
@@ -705,9 +715,10 @@ class _MenuDivider extends StatelessWidget {
   );
 }
 
-/// Pinned sign-out action at the very bottom of the drawer, above the
-/// footer branding row. Deliberately styled like a warning, not a nav
-/// item, since it ends the session rather than navigating within it.
+/// Sign-out action, last in the menu list. Rendered as a destructive tonal
+/// button rather than a nav row — same error-tinted treatment as the
+/// sign-out button on the settings screen — so it reads as a distinct,
+/// deliberate action rather than another destination to navigate to.
 class _SignOutButton extends StatelessWidget {
   const _SignOutButton({required this.onTap});
 
@@ -716,25 +727,20 @@ class _SignOutButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final mutedColor = Theme.of(context).colorScheme.onSurfaceVariant;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.md,
-        AppSpacing.sm,
-        AppSpacing.md,
-        AppSpacing.xs,
-      ),
-      child: SizedBox(
-        width: double.infinity,
-        child: TextButton.icon(
-          key: const Key('menu-sign-out-button'),
-          style: TextButton.styleFrom(
-            foregroundColor: mutedColor,
-          ),
-          onPressed: onTap,
-          icon: const Icon(AppIcons.logout, size: 18),
-          label: Text(l10n.authSignOut),
+    final error = Theme.of(context).colorScheme.error;
+    return SizedBox(
+      width: double.infinity,
+      child: FilledButton.tonalIcon(
+        key: const Key('menu-sign-out-button'),
+        style: FilledButton.styleFrom(
+          foregroundColor: error,
+          backgroundColor: error.withValues(alpha: 0.10),
+          side: BorderSide(color: error.withValues(alpha: 0.4)),
+          minimumSize: const Size.fromHeight(AppSizes.minTapTarget),
         ),
+        onPressed: onTap,
+        icon: const Icon(AppIcons.logout, size: 18),
+        label: Text(l10n.authSignOut),
       ),
     );
   }

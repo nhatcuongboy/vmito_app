@@ -340,6 +340,11 @@ class _AuthenticatedWebViewScreenState
             icon: const Icon(Icons.refresh),
             onPressed: () => _controller?.reload(),
           ),
+          IconButton(
+            icon: const Icon(Icons.close),
+            tooltip: 'Close',
+            onPressed: () => Navigator.of(context).pop(),
+          ),
         ],
         bottom: _progress < 1
             ? PreferredSize(

@@ -145,6 +145,8 @@ abstract final class AppIcons {
   static const IconData userPlus = LucideIcons.user_plus;
   static const IconData userCheck = LucideIcons.user_check;
   static const IconData userMinus = LucideIcons.user_minus;
+  static const IconData handshake = LucideIcons.handshake;
+  static const IconData swords = LucideIcons.swords;
   static const IconData pin = LucideIcons.pin;
   static const IconData language = LucideIcons.globe;
   static const IconData wifiOff = LucideIcons.wifi_off;

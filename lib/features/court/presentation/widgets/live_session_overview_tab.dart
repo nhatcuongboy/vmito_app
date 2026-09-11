@@ -6,6 +6,7 @@ import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/court/application/match_history_provider.dart';
 import 'package:vmito_app/features/court/presentation/widgets/live_session_doubles_stats.dart';
+import 'package:vmito_app/features/court/presentation/widgets/live_session_roster_section.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/widgets/overview/session_action_bar.dart';
 import 'package:vmito_app/features/session/presentation/widgets/overview/session_gallery.dart';
@@ -140,15 +141,18 @@ class LiveSessionOverviewTab extends ConsumerWidget {
                     ),
                     if (own != null) ...[
                       const SizedBox(height: AppSpacing.sm),
-                      OutlinedButton.icon(
-                        onPressed: () => showPlayerStatisticsExportSheet(
-                          context,
-                          session: session,
-                          players: [own],
-                          showShuttlecocks: false,
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.tonalIcon(
+                          onPressed: () => showPlayerStatisticsExportSheet(
+                            context,
+                            session: session,
+                            players: [own],
+                            showShuttlecocks: false,
+                          ),
+                          icon: const Icon(AppIcons.share, size: 18),
+                          label: Text(l10n.hostPlayerStatsShare),
                         ),
-                        icon: const Icon(Icons.share_outlined),
-                        label: Text(l10n.hostPlayerStatsShare),
                       ),
                     ],
                   ],
@@ -182,26 +186,10 @@ class LiveSessionOverviewTab extends ConsumerWidget {
               ),
             ],
             const SizedBox(height: AppSpacing.lg),
-            Text(
-              l10n.playerLiveRoster,
-              style: Theme.of(context).textTheme.titleMedium,
+            LiveSessionRosterSection(
+              roster: roster,
+              currentPlayerId: player.id,
             ),
-            for (final item in roster)
-              Card(
-                color: item.id == player.id
-                    ? Theme.of(context).colorScheme.primaryContainer
-                    : null,
-                child: ListTile(
-                  leading: CircleAvatar(
-                    child: Text('${item.playerNumber ?? '–'}'),
-                  ),
-                  title: Text(
-                    item.displayName ??
-                        l10n.playerLiveNumber(item.playerNumber ?? 0),
-                  ),
-                  subtitle: Text(_statusLabel(l10n, item.status)),
-                ),
-              ),
             const SizedBox(height: AppSpacing.xxl),
           ],
         ),
@@ -248,15 +236,6 @@ int _statusOrder(PlayerStatus status) => switch (status) {
   PlayerStatus.finished => 3,
   PlayerStatus.inactive => 4,
 };
-
-String _statusLabel(AppLocalizations l10n, PlayerStatus status) =>
-    switch (status) {
-      PlayerStatus.playing => l10n.courtStatusInUse,
-      PlayerStatus.ready => l10n.courtStatusReady,
-      PlayerStatus.waiting => l10n.playerLiveWaitTime,
-      PlayerStatus.finished => l10n.sessionStatusFinished,
-      PlayerStatus.inactive => l10n.sessionStatusCancelled,
-    };
 
 extension<T> on Iterable<T> {
   T? get firstOrNull => isEmpty ? null : first;

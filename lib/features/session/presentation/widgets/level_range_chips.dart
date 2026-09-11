@@ -35,7 +35,6 @@ class LevelRangeChips extends StatelessWidget {
         key: const Key('session-all-levels-badge'),
         label: AppLocalizations.of(context).sessionAllLevels,
         color: chipColor,
-        border: Border.all(color: chipColor.withValues(alpha: 0.28)),
       );
     }
 
@@ -87,7 +86,7 @@ class _LevelChip extends StatelessWidget {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.14),
         borderRadius: BorderRadius.circular(AppRadius.md),
-        border: border,
+        border: border ?? Border.all(color: color.withValues(alpha: 0.28)),
       ),
       child: Text(
         label,

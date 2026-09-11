@@ -495,6 +495,59 @@ void main() {
     expect(find.byKey(const Key('home-create-session-button')), findsOneWidget);
   });
 
+  testWidgets(
+    'scrolling down collapses map toggle and scrolling up restores full label',
+    (tester) async {
+      tester.view
+        ..physicalSize = const Size(390, 844)
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authControllerProvider.overrideWith(_HostAuthController.new),
+            notificationControllerProvider.overrideWith(
+              _FakeNotificationController.new,
+            ),
+            locationPreferencesControllerProvider.overrideWith(
+              _HomeLocationPreferencesController.new,
+            ),
+            browseSessionsControllerProvider.overrideWith(
+              _ScrollableSessionsController.new,
+            ),
+          ],
+          child: MaterialApp(
+            locale: const Locale('vi'),
+            theme: AppTheme.light,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: const HomeScreen(),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      // Initially, toggle is extended with text 'Bản đồ'
+      expect(find.text('Bản đồ'), findsOneWidget);
+
+      // Drag up (scrolling down the list)
+      await tester.drag(find.byType(ListView), const Offset(0, -300));
+      await tester.pumpAndSettle();
+
+      // Collapsed: label is hidden
+      expect(find.text('Bản đồ'), findsNothing);
+      expect(find.byKey(const Key('session-map-view-toggle')), findsOneWidget);
+
+      // Drag down (scrolling up the list)
+      await tester.drag(find.byType(ListView), const Offset(0, 200));
+      await tester.pumpAndSettle();
+
+      // Restored: label is visible again
+      expect(find.text('Bản đồ'), findsOneWidget);
+    },
+  );
+
   testWidgets('all authenticated discovery tabs expose a right-side map mode', (
     tester,
   ) async {

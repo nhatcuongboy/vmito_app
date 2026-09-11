@@ -177,7 +177,7 @@ void main() {
     expect(find.text('Kèo tham gia'), findsOneWidget);
     expect(
       tester.getSize(find.byKey(const Key('my-sessions-scope'))).height,
-      40.0,
+      kTextTabBarHeight,
     );
     expect(find.byType(SearchBar), findsNothing);
     expect(find.byKey(const Key('my-sessions-search-button')), findsOneWidget);
@@ -217,6 +217,7 @@ void main() {
     // Pending requests button should only be visible in Quản lý kèo scope
     expect(find.byKey(const Key('pending-requests-button')), findsNothing);
     expect(find.byKey(const Key('my-join-requests-button')), findsOneWidget);
+    expect(find.byKey(const Key('my-sessions-create-fab')), findsNothing);
 
     // Open filter sheet and select all
     await tester.tap(find.byKey(const Key('my-sessions-filter-button')));
@@ -229,6 +230,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('pending-requests-button')), findsOneWidget);
+    expect(find.byKey(const Key('my-sessions-create-fab')), findsOneWidget);
     expect(find.text('Xa nhất'), findsOneWidget);
 
     final scope = ProviderScope.containerOf(
@@ -261,6 +263,7 @@ void main() {
     await _pump(tester, repository);
 
     expect(find.byKey(const Key('pending-requests-button')), findsOneWidget);
+    expect(find.byIcon(AppIcons.clipboardList), findsOneWidget);
     expect(find.text('1'), findsOneWidget);
   });
 

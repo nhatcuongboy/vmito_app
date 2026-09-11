@@ -91,11 +91,32 @@ class _ClubManagementScreenState extends ConsumerState<ClubManagementScreen>
         ),
       ),
       floatingActionButton: _tabs.index == 0 && ref.watch(canCreateClubProvider)
-          ? FloatingActionButton.extended(
-              heroTag: 'club-management-create-fab',
-              onPressed: () => context.push(AppRoutes.createClub),
-              icon: const Icon(AppIcons.add),
-              label: Text(l10n.clubCreate),
+          ? SizedBox(
+              height: 44,
+              child: FloatingActionButton.extended(
+                heroTag: 'club-management-create-fab',
+                onPressed: () => context.push(AppRoutes.createClub),
+                backgroundColor:
+                    Theme.of(context).extension<AppPalette>()?.brandSurface ??
+                    (Theme.of(context).brightness == Brightness.dark
+                        ? const Color(0xFF183028)
+                        : const Color(0xFFE2F3E8)),
+                foregroundColor: Theme.of(context).colorScheme.primary,
+                elevation: 4,
+                extendedPadding: const EdgeInsets.symmetric(horizontal: 13),
+                shape: StadiumBorder(
+                  side: BorderSide(
+                    color: Theme.of(context).colorScheme.primary.withValues(
+                      alpha: 0.35,
+                    ),
+                  ),
+                ),
+                icon: const Icon(AppIcons.add, size: 18),
+                label: Text(
+                  l10n.clubCreate,
+                  style: const TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ),
             )
           : null,
       body: TabBarView(

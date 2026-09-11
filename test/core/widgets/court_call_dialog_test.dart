@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/core/widgets/court_call_dialog.dart';
+import 'package:vmito_app/core/widgets/court_call_info_card.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 void main() {
@@ -102,5 +103,56 @@ void main() {
 
     expect(acknowledged, isTrue);
     expect(find.text('Sân 5'), findsNothing);
+  });
+
+  testWidgets('shows the session name and venue when provided', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      wrap(
+        Builder(
+          builder: (context) => ElevatedButton(
+            onPressed: () => CourtCallDialog.show(
+              context,
+              courtDisplayName: 'Sân 5',
+              sessionName: 'Cầu lông tối thứ 5',
+              venueAddress: 'Sân Be Badminton • Gò Vấp',
+              onAcknowledge: () {},
+            ),
+            child: const Text('trigger'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('trigger'));
+    await tester.pump();
+
+    expect(find.text('Cầu lông tối thứ 5'), findsOneWidget);
+    expect(find.text('Sân Be Badminton • Gò Vấp'), findsOneWidget);
+  });
+
+  testWidgets('omits the info card when no session context is given', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      wrap(
+        Builder(
+          builder: (context) => ElevatedButton(
+            onPressed: () => CourtCallDialog.show(
+              context,
+              courtDisplayName: 'Sân 5',
+              onAcknowledge: () {},
+            ),
+            child: const Text('trigger'),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.text('trigger'));
+    await tester.pump();
+
+    expect(find.byType(CourtCallInfoCard), findsNothing);
   });
 }

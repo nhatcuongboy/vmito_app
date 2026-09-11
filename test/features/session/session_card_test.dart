@@ -182,6 +182,12 @@ void main() {
       expect(find.text('Yếu-'), findsOneWidget);
       expect(find.text('Yếu+'), findsOneWidget);
       expect(find.text('Yếu'), findsNothing);
+
+      final chip = tester.widget<Container>(
+        find.ancestor(of: find.text('Yếu-'), matching: find.byType(Container)).first,
+      );
+      final decoration = chip.decoration! as BoxDecoration;
+      expect(decoration.border, isNotNull);
     });
 
     testWidgets('shows a single chip when the band is one level', (

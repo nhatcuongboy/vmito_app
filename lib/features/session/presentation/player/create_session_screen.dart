@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -81,7 +82,6 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
   bool _advancedOpen = false;
   bool _feeOpen = false;
   bool _bulkOpen = false;
-  String? _localError;
 
   bool get _isEditing => widget.editingSessionId != null;
 
@@ -164,12 +164,18 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
     final snapshot = _form.toSessionFormState(base: _baseState);
     final domainErrors = validateSessionForm(snapshot, now: DateTime.now());
     if (domainErrors.isNotEmpty) {
+      unawaited(HapticFeedback.lightImpact());
       _applyDomainErrors(domainErrors);
       return;
     }
-    if (_form.invalid || _form.pending || _isUploading) return;
+    if (_form.invalid || _form.pending || _isUploading) {
+      if (_form.invalid) {
+        unawaited(HapticFeedback.lightImpact());
+        _scrollToFirstInvalidSection();
+      }
+      return;
+    }
 
-    setState(() => _localError = null);
     final controller = ref.read(createSessionControllerProvider.notifier);
     Session? session;
     if (_isEditing) {
@@ -254,7 +260,6 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
       SessionFormField.referenceVideoUrl => SessionFormControl.referenceVideo,
     };
     _form.control(target).setErrors({'domain': true});
-    setState(() => _localError = _domainErrorText(errors[field]!));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final context = _sectionKeys[field]?.currentContext;
       if (context != null) {
@@ -265,37 +270,62 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
           alignment: 0.12,
         );
       }
+      _form.focus(target);
     });
   }
 
-  String _domainErrorText(SessionFormErrorCode code) {
-    final l10n = AppLocalizations.of(context);
-    return switch (code) {
-      SessionFormErrorCode.sessionNameRequired =>
-        l10n.createSessionNameRequired,
-      SessionFormErrorCode.locationRequired =>
-        l10n.sessionFormValidationLocation,
-      SessionFormErrorCode.customLocationRequired =>
-        l10n.sessionFormValidationCustomLocation,
-      SessionFormErrorCode.hostNameRequired => l10n.sessionFormValidationHost,
-      SessionFormErrorCode.hostPhoneInvalid => l10n.sessionFormValidationPhone,
-      SessionFormErrorCode.startTimeRequired ||
-      SessionFormErrorCode.startTimeMustBeInFuture =>
-        l10n.sessionFormValidationStart,
-      SessionFormErrorCode.endTimeRequired ||
-      SessionFormErrorCode.endTimeMustBeAfterStartTime =>
-        l10n.sessionFormValidationEnd,
-      SessionFormErrorCode.atLeastOneCourt ||
-      SessionFormErrorCode.courtNumberMin ||
-      SessionFormErrorCode.courtNumberUnique =>
-        l10n.sessionFormValidationCourts,
-      SessionFormErrorCode.maxPlayersPerCourtMin ||
-      SessionFormErrorCode.maxPlayersPerCourtMax =>
-        l10n.sessionFormValidationPlayers,
-      SessionFormErrorCode.referenceVideoUrlInvalid =>
-        l10n.sessionFormValidationVideo,
-    };
+  void _scrollToFirstInvalidSection() {
+    // Returns the first invalid control name for the given field, or null.
+    String? _firstInvalidControl(SessionFormField field) {
+      final controls = switch (field) {
+        SessionFormField.name => [SessionFormControl.name],
+        SessionFormField.venue => [SessionFormControl.venueId],
+        SessionFormField.customLocation => [
+            SessionFormControl.customLocationName,
+          ],
+        SessionFormField.hostName => [SessionFormControl.hostName],
+        SessionFormField.hostPhone => [SessionFormControl.hostPhone],
+        SessionFormField.startTime => [
+            SessionFormControl.startTimeOfDay,
+            SessionFormControl.multiDayStart,
+          ],
+        SessionFormField.endTime => [
+            SessionFormControl.endTimeOfDay,
+            SessionFormControl.multiDayEnd,
+          ],
+        SessionFormField.courts => [SessionFormControl.courts],
+        SessionFormField.maxPlayersPerCourt => [SessionFormControl.maxPlayers],
+        SessionFormField.referenceVideoUrl => [
+            SessionFormControl.referenceVideo,
+          ],
+      };
+      for (final name in controls) {
+        try {
+          if (_form.control(name).invalid) return name;
+        } catch (_) {}
+      }
+      return null;
+    }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      for (final field in SessionFormField.values) {
+        final invalidControl = _firstInvalidControl(field);
+        if (invalidControl == null) continue;
+        final context = _sectionKeys[field]?.currentContext;
+        if (context != null) {
+          Scrollable.ensureVisible(
+            context,
+            duration: const Duration(milliseconds: 280),
+            curve: Curves.easeOut,
+            alignment: 0.12,
+          );
+        }
+        _form.focus(invalidControl);
+        return;
+      }
+    });
   }
+
 
   Future<void> _showVenuePicker() async {
     final l10n = AppLocalizations.of(context);
@@ -339,7 +369,11 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
                           for (final item in _venues)
                             ListTile(
                               leading: const Icon(Icons.location_on_outlined),
-                              title: Text(item.name),
+                              title: Text(
+                                item.name.trim().toLowerCase().startsWith('sân')
+                                    ? item.name.trim()
+                                    : 'Sân ${item.name.trim()}',
+                              ),
                               subtitle:
                                   item
                                       .addressLabel(
@@ -471,7 +505,11 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
         );
       }
     } on Object catch (error) {
-      if (mounted) setState(() => _localError = _safeError(error));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_safeError(error))),
+        );
+      }
     }
   }
 
@@ -927,15 +965,6 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
                       onOpenChanged: (value) =>
                           setState(() => _advancedOpen = value),
                     ),
-                    if (_localError != null || submitState.hasError) ...[
-                      const SizedBox(height: AppSpacing.md),
-                      Text(
-                        _localError ?? _safeError(submitState.error),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
-                      ),
-                    ],
                     if (wide) ...[
                       const SizedBox(height: AppSpacing.lg),
                       _SubmitBar(
@@ -1006,7 +1035,7 @@ class _FormCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Card(
     child: Padding(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -1021,7 +1050,7 @@ class _FormCard extends StatelessWidget {
               if (action != null) action!,
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.md),
           child,
         ],
       ),
@@ -1184,63 +1213,115 @@ class _BasicSection extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: AppSpacing.xs),
-                      Switch.adaptive(
-                        key: const Key('custom-location-switch'),
-                        value: custom,
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        onChanged: canEditVenue
-                            ? (value) => control.value = value
-                                  ? SessionLocationKind.custom
-                                  : SessionLocationKind.venue
-                            : null,
+                      Transform.scale(
+                        scale: 0.8,
+                        child: Switch.adaptive(
+                          key: const Key('custom-location-switch'),
+                          value: custom,
+                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          onChanged: canEditVenue
+                              ? (value) => control.value = value
+                                    ? SessionLocationKind.custom
+                                    : SessionLocationKind.venue
+                              : null,
+                        ),
                       ),
                     ],
                   ),
                   const SizedBox(height: AppSpacing.xs),
-                  if (!custom)
+                  if (!custom) ...[
                     ReactiveValueListenableBuilder<String>(
                       formControlName: SessionFormControl.venueLabel,
-                      builder: (context, labelControl, _) => InkWell(
-                        key: const Key('venue-picker'),
-                        mouseCursor: canEditVenue
-                            ? SystemMouseCursors.click
-                            : SystemMouseCursors.basic,
-                        onTap: canEditVenue ? onVenue : null,
-                        borderRadius: BorderRadius.circular(AppRadius.lg),
-                        child: InputDecorator(
-                          decoration: InputDecoration(
-                            enabled: canEditVenue,
-                            errorText:
-                                form
-                                    .control(SessionFormControl.venueId)
-                                    .hasError('domain')
-                                ? l10n.sessionFormValidationLocation
-                                : null,
-                            suffixIcon: Icon(
-                              AppIcons.chevronDown,
-                              color: canEditVenue
-                                  ? null
-                                  : Theme.of(context)
-                                        .extension<AppPalette>()!
-                                        .mutedForeground
-                                        .withValues(alpha: 0.6),
+                      builder: (context, labelControl, _) {
+                        final rawLabel = labelControl.value;
+                        final hasValue = rawLabel?.isNotEmpty ?? false;
+                        final displayLabel = hasValue
+                            ? (rawLabel!.trim().toLowerCase().startsWith('sân')
+                                ? rawLabel.trim()
+                                : 'Sân ${rawLabel.trim()}')
+                            : l10n.sessionFormSelectVenue;
+
+                        return InkWell(
+                          key: const Key('venue-picker'),
+                          mouseCursor: canEditVenue
+                              ? SystemMouseCursors.click
+                              : SystemMouseCursors.basic,
+                          onTap: canEditVenue ? onVenue : null,
+                          borderRadius: BorderRadius.circular(AppRadius.lg),
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              enabled: canEditVenue,
+                              errorText:
+                                  form
+                                      .control(SessionFormControl.venueId)
+                                      .hasError('domain')
+                                  ? l10n.sessionFormValidationLocation
+                                  : null,
+                              suffixIcon: Icon(
+                                AppIcons.chevronDown,
+                                color: canEditVenue
+                                    ? null
+                                    : Theme.of(context)
+                                          .extension<AppPalette>()!
+                                          .mutedForeground
+                                          .withValues(alpha: 0.6),
+                              ),
+                            ),
+                            child: Text(
+                              displayLabel,
+                              style: TextStyle(
+                                color: canEditVenue
+                                    ? Theme.of(context).colorScheme.onSurface
+                                    : Theme.of(
+                                        context,
+                                      ).extension<AppPalette>()!.mutedForeground,
+                              ),
                             ),
                           ),
-                          child: Text(
-                            (labelControl.value?.isNotEmpty ?? false)
-                                ? labelControl.value!
-                                : l10n.sessionFormSelectVenue,
-                            style: TextStyle(
-                              color: canEditVenue
-                                  ? Theme.of(context).colorScheme.onSurface
-                                  : Theme.of(
-                                      context,
-                                    ).extension<AppPalette>()!.mutedForeground,
-                            ),
+                        );
+                      },
+                    ),
+                    ReactiveValueListenableBuilder<String>(
+                      formControlName: SessionFormControl.venueSublabel,
+                      builder: (context, sublabelControl, _) {
+                        final sublabel = sublabelControl.value;
+                        if (sublabel == null || sublabel.trim().isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+                        final palette =
+                            Theme.of(context).extension<AppPalette>()!;
+                        return Padding(
+                          key: const Key('venue-sublabel'),
+                          padding: const EdgeInsets.only(
+                            top: AppSpacing.xs,
+                            left: AppSpacing.xs,
                           ),
-                        ),
-                      ),
-                    )
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                AppIcons.location,
+                                size: 14,
+                                color: palette.mutedForeground,
+                              ),
+                              const SizedBox(width: AppSpacing.xs),
+                              Expanded(
+                                child: Text(
+                                  sublabel,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodySmall
+                                      ?.copyWith(
+                                        color: palette.mutedForeground,
+                                      ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ]
                   else
                     Container(
                       key: const Key('custom-location-fields'),
@@ -1650,11 +1731,14 @@ class _TimeSection extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: AppSpacing.xs),
-                Switch.adaptive(
-                  key: const Key('multi-day-switch'),
-                  value: control.value ?? false,
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  onChanged: enabled ? (value) => control.value = value : null,
+                Transform.scale(
+                  scale: 0.8,
+                  child: Switch.adaptive(
+                    key: const Key('multi-day-switch'),
+                    value: control.value ?? false,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    onChanged: enabled ? (value) => control.value = value : null,
+                  ),
                 ),
               ],
             ),
@@ -2060,12 +2144,6 @@ class _FeeSection extends StatelessWidget {
                 padding: const EdgeInsets.all(AppSpacing.md),
                 child: Row(
                   children: [
-                    Icon(
-                      AppIcons.dollarCircle,
-                      color: Theme.of(context).colorScheme.primary,
-                      size: 22,
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2090,16 +2168,20 @@ class _FeeSection extends StatelessWidget {
                         ],
                       ),
                     ),
-                    Switch.adaptive(
-                      key: const Key('fee-enabled'),
-                      value: enabled,
-                      onChanged: (value) {
-                        enabledControl.value = value;
-                        if (value) onOpenChanged(true);
-                      },
+                    Transform.scale(
+                      scale: 0.8,
+                      child: Switch.adaptive(
+                        key: const Key('fee-enabled'),
+                        value: enabled,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        onChanged: (value) {
+                          enabledControl.value = value;
+                          if (value) onOpenChanged(true);
+                        },
+                      ),
                     ),
                     const SizedBox(width: AppSpacing.xs),
-                    IconButton.filledTonal(
+                    IconButton(
                       key: const Key('fee-collapse'),
                       onPressed: enabled ? () => onOpenChanged(!open) : null,
                       tooltip: open
@@ -2114,6 +2196,14 @@ class _FeeSection extends StatelessWidget {
                         enabled && open
                             ? AppIcons.chevronUp
                             : AppIcons.chevronDown,
+                        color: enabled
+                            ? Theme.of(context)
+                                .extension<AppPalette>()!
+                                .mutedForeground
+                            : Theme.of(context)
+                                .extension<AppPalette>()!
+                                .mutedForeground
+                                .withValues(alpha: 0.4),
                         size: 20,
                       ),
                     ),
@@ -2129,10 +2219,10 @@ class _FeeSection extends StatelessWidget {
                 secondChild: Padding(
                   key: const Key('fee-fields'),
                   padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.lg,
+                    AppSpacing.md,
                     0,
-                    AppSpacing.lg,
-                    AppSpacing.lg,
+                    AppSpacing.md,
+                    AppSpacing.md,
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -2338,39 +2428,128 @@ class _BulkSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final palette = Theme.of(context).extension<AppPalette>()!;
+    final colorScheme = Theme.of(context).colorScheme;
     return Card(
-      child: Column(
-        children: [
-          ReactiveSwitchListTile(
-            key: const Key('bulk-enabled'),
-            formControlName: SessionFormControl.bulkEnabled,
-            title: Text(
-              l10n.sessionFormBulk,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            subtitle: Text(l10n.sessionFormBulkDisabled),
-            secondary: const Icon(Icons.calendar_month_outlined),
-            onChanged: (control) => onOpenChanged(control.value == true),
-          ),
-          ReactiveValueListenableBuilder<bool>(
-            formControlName: SessionFormControl.bulkEnabled,
-            builder: (context, enabled, _) => enabled.value == true && open
-                ? Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                    child: Column(
-                      children: [
-                        ReactiveValueListenableBuilder<BulkCreationMode>(
+      clipBehavior: Clip.antiAlias,
+      child: ReactiveValueListenableBuilder<bool>(
+        formControlName: SessionFormControl.bulkEnabled,
+        builder: (context, enabledControl, _) {
+          final enabled = enabledControl.value ?? false;
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            l10n.sessionFormBulk,
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          ReactiveValueListenableBuilder<BulkCreationMode>(
+                            formControlName: SessionFormControl.bulkMode,
+                            builder: (context, modeControl, _) {
+                              final mode = modeControl.value;
+                              final subtext = enabled
+                                  ? (mode == BulkCreationMode.recurringWeekdays
+                                      ? l10n.sessionFormRecurring
+                                      : l10n.sessionFormSpecificDates)
+                                  : l10n.sessionFormBulkDisabled;
+                              return Text(
+                                subtext,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: palette.mutedForeground,
+                                    ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    Transform.scale(
+                      scale: 0.8,
+                      child: Switch.adaptive(
+                        key: const Key('bulk-enabled'),
+                        value: enabled,
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        onChanged: (value) {
+                          enabledControl.value = value;
+                          if (value) onOpenChanged(true);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.xs),
+                    IconButton(
+                      key: const Key('bulk-collapse'),
+                      onPressed: enabled ? () => onOpenChanged(!open) : null,
+                      tooltip: open
+                          ? MaterialLocalizations.of(
+                              context,
+                            ).expandedIconTapHint
+                          : MaterialLocalizations.of(
+                              context,
+                            ).collapsedIconTapHint,
+                      visualDensity: VisualDensity.compact,
+                      icon: Icon(
+                        enabled && open
+                            ? AppIcons.chevronUp
+                            : AppIcons.chevronDown,
+                        color: enabled
+                            ? palette.mutedForeground
+                            : palette.mutedForeground.withValues(alpha: 0.4),
+                        size: 20,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              AnimatedCrossFade(
+                duration: const Duration(milliseconds: 180),
+                crossFadeState: enabled && open
+                    ? CrossFadeState.showSecond
+                    : CrossFadeState.showFirst,
+                firstChild: const SizedBox(width: double.infinity),
+                secondChild: Padding(
+                  key: const Key('bulk-fields'),
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    0,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      SizedBox(
+                        width: double.infinity,
+                        child: ReactiveValueListenableBuilder<BulkCreationMode>(
                           formControlName: SessionFormControl.bulkMode,
                           builder: (context, mode, _) =>
                               SegmentedButton<BulkCreationMode>(
+                                showSelectedIcon: false,
                                 segments: [
                                   ButtonSegment(
                                     value: BulkCreationMode.specificDates,
-                                    label: Text(l10n.sessionFormSpecificDates),
+                                    label: Text(
+                                      l10n.sessionFormSpecificDates,
+                                      maxLines: 1,
+                                    ),
                                   ),
                                   ButtonSegment(
                                     value: BulkCreationMode.recurringWeekdays,
-                                    label: Text(l10n.sessionFormRecurring),
+                                    label: Text(
+                                      l10n.sessionFormRecurring,
+                                      maxLines: 1,
+                                    ),
                                   ),
                                 ],
                                 selected: {
@@ -2380,21 +2559,88 @@ class _BulkSection extends StatelessWidget {
                                     mode.value = value.first,
                               ),
                         ),
-                        const SizedBox(height: AppSpacing.md),
-                        ReactiveValueListenableBuilder<BulkCreationMode>(
-                          formControlName: SessionFormControl.bulkMode,
-                          builder: (context, mode, _) =>
-                              mode.value == BulkCreationMode.recurringWeekdays
-                              ? _RecurringFields(form: form)
-                              : _SpecificDateFields(form: form),
-                        ),
-                      ],
-                    ),
-                  )
-                : const SizedBox.shrink(),
-          ),
-        ],
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      ReactiveValueListenableBuilder<BulkCreationMode>(
+                        formControlName: SessionFormControl.bulkMode,
+                        builder: (context, mode, _) =>
+                            mode.value == BulkCreationMode.recurringWeekdays
+                            ? _RecurringFields(form: form)
+                            : _SpecificDateFields(form: form),
+                      ),
+                      const SizedBox(height: AppSpacing.md),
+                      const Divider(height: 1),
+                      _BulkSessionCountText(form: form),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
+    );
+  }
+}
+
+class _BulkSessionCountText extends StatelessWidget {
+  const _BulkSessionCountText({required this.form});
+  final FormGroup form;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final palette = Theme.of(context).extension<AppPalette>()!;
+    final theme = Theme.of(context);
+
+    return ReactiveFormConsumer(
+      builder: (context, formGroup, _) {
+        final mode = formGroup.control(SessionFormControl.bulkMode).value
+                as BulkCreationMode? ??
+            BulkCreationMode.specificDates;
+        final dates = formGroup.control(SessionFormControl.bulkDates).value
+                as List<DateTime>? ??
+            const [];
+        final weekdays = formGroup
+                .control(SessionFormControl.bulkWeekdays)
+                .value as List<int>? ??
+            const [];
+        final weeks = formGroup
+                .control(SessionFormControl.bulkWeeks)
+                .value as int? ??
+            1;
+
+        final safeWeeks = (weeks > 0) ? weeks : 0;
+        final count = switch (mode) {
+          BulkCreationMode.specificDates => dates.length,
+          BulkCreationMode.recurringWeekdays =>
+            weekdays.length * safeWeeks,
+        };
+
+        return Padding(
+          key: const Key('bulk-session-count'),
+          padding: const EdgeInsets.only(top: AppSpacing.sm),
+          child: Row(
+            children: [
+              Icon(
+                AppIcons.calendar,
+                size: 14,
+                color: palette.mutedForeground,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Text(
+                  l10n.sessionFormBulkWillCreate(count),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: palette.mutedForeground,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -2402,83 +2648,160 @@ class _BulkSection extends StatelessWidget {
 class _SpecificDateFields extends StatelessWidget {
   const _SpecificDateFields({required this.form});
   final FormGroup form;
+
   @override
-  Widget build(BuildContext context) =>
-      ReactiveValueListenableBuilder<List<DateTime>>(
-        formControlName: SessionFormControl.bulkDates,
-        builder: (context, dates, _) => Column(
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final palette = Theme.of(context).extension<AppPalette>()!;
+
+    return ReactiveValueListenableBuilder<List<DateTime>>(
+      formControlName: SessionFormControl.bulkDates,
+      builder: (context, dates, _) {
+        final dateList = dates.value ?? const [];
+        final hasDates = dateList.isNotEmpty;
+        final sortedDates = hasDates ? ([...dateList]..sort()) : <DateTime>[];
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             OutlinedButton.icon(
               key: const Key('bulk-pick-dates'),
               onPressed: () async {
                 final result = await showAppMultiDatePicker(
                   context: context,
-                  initialDates: dates.value ?? const [],
+                  initialDates: dateList,
                   firstDate: DateTime.now(),
                   lastDate: SessionFormSubmission.maxBulkDate(DateTime.now()),
                 );
                 if (result == null) return;
                 dates.value = result;
               },
-              icon: const Icon(AppIcons.calendar),
-              label: Text(AppLocalizations.of(context).sessionFormPickDates),
+              icon: const Icon(AppIcons.calendar, size: 18),
+              label: Text(l10n.sessionFormPickDates),
             ),
-            if (dates.value?.isNotEmpty ?? false)
+            if (hasDates) ...[
+              const SizedBox(height: AppSpacing.sm),
               Wrap(
                 spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.xs,
                 children: [
-                  for (final date in dates.value!)
+                  for (final date in sortedDates)
                     InputChip(
                       label: Text('${date.day}/${date.month}/${date.year}'),
                       onDeleted: () =>
                           dates.value = [...dates.value!]..remove(date),
+                      visualDensity: VisualDensity.compact,
                     ),
                 ],
               ),
+            ] else ...[
+              Padding(
+                padding: const EdgeInsets.only(top: AppSpacing.xs),
+                child: Text(
+                  'Chưa chọn ngày nào',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: palette.mutedForeground,
+                      ),
+                ),
+              ),
+            ],
           ],
-        ),
-      );
+        );
+      },
+    );
+  }
 }
 
 class _RecurringFields extends StatelessWidget {
   const _RecurringFields({required this.form});
   final FormGroup form;
+
+  String _weekdayLabel(BuildContext context, int weekday) {
+    final locale = Localizations.localeOf(context).languageCode;
+    if (locale == 'vi') {
+      return switch (weekday) {
+        1 => 'Thứ 2',
+        2 => 'Thứ 3',
+        3 => 'Thứ 4',
+        4 => 'Thứ 5',
+        5 => 'Thứ 6',
+        6 => 'Thứ 7',
+        _ => 'Chủ nhật',
+      };
+    }
+    if (locale == 'zh') {
+      return switch (weekday) {
+        1 => '周一',
+        2 => '周二',
+        3 => '周三',
+        4 => '周四',
+        5 => '周五',
+        6 => '周六',
+        _ => '周日',
+      };
+    }
+    return switch (weekday) {
+      1 => 'Mon',
+      2 => 'Tue',
+      3 => 'Wed',
+      4 => 'Thu',
+      5 => 'Fri',
+      6 => 'Sat',
+      _ => 'Sun',
+    };
+  }
+
   @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      ReactiveValueListenableBuilder<List<int>>(
-        formControlName: SessionFormControl.bulkWeekdays,
-        builder: (context, days, _) => Wrap(
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.xxs,
-          children: [
-            for (var value = 1; value <= 7; value++)
-              AppFilterChip(
-                key: Key('bulk-weekday-${value % 7}'),
-                label: MaterialLocalizations.of(
-                  context,
-                ).narrowWeekdays[value % 7],
-                selected: days.value?.contains(value % 7) ?? false,
-                onSelected: (selected) {
-                  final next = [...?days.value];
-                  selected ? next.add(value % 7) : next.remove(value % 7);
-                  days.value = next;
-                },
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final palette = Theme.of(context).extension<AppPalette>()!;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Chọn các thứ trong tuần:',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: palette.mutedForeground,
               ),
-          ],
         ),
-      ),
-      const SizedBox(height: AppSpacing.sm),
-      ReactiveTextField<int>(
-        formControlName: SessionFormControl.bulkWeeks,
-        valueAccessor: IntValueAccessor(),
-        keyboardType: TextInputType.number,
-        decoration: InputDecoration(
-          labelText: AppLocalizations.of(context).sessionFormWeekCount,
+        const SizedBox(height: AppSpacing.xs),
+        ReactiveValueListenableBuilder<List<int>>(
+          formControlName: SessionFormControl.bulkWeekdays,
+          builder: (context, days, _) => Center(
+            child: Wrap(
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xs,
+              alignment: WrapAlignment.center,
+              children: [
+                for (var value = 1; value <= 7; value++)
+                  AppFilterChip(
+                    key: Key('bulk-weekday-${value % 7}'),
+                    label: _weekdayLabel(context, value % 7),
+                    selected: days.value?.contains(value % 7) ?? false,
+                    onSelected: (selected) {
+                      final next = [...?days.value];
+                      selected ? next.add(value % 7) : next.remove(value % 7);
+                      days.value = next;
+                    },
+                  ),
+              ],
+            ),
+          ),
         ),
-      ),
-    ],
-  );
+        const SizedBox(height: AppSpacing.md),
+        ReactiveTextField<int>(
+          formControlName: SessionFormControl.bulkWeeks,
+          valueAccessor: IntValueAccessor(),
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+            labelText: l10n.sessionFormWeekCount,
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _AdvancedSection extends StatelessWidget {
@@ -2514,14 +2837,9 @@ class _AdvancedSection extends StatelessWidget {
             key: const Key('advanced-toggle'),
             onTap: () => onOpenChanged(!open),
             child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-                vertical: AppSpacing.sm,
-              ),
+              padding: const EdgeInsets.all(AppSpacing.md),
               child: Row(
                 children: [
-                  Icon(AppIcons.settings, color: colorScheme.primary, size: 22),
-                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
                       l10n.sessionFormAdvanced,
@@ -2529,10 +2847,13 @@ class _AdvancedSection extends StatelessWidget {
                     ),
                   ),
                   SizedBox.square(
-                    dimension: 48,
-                    child: Icon(
-                      open ? AppIcons.chevronUp : AppIcons.chevronDown,
-                      color: palette.mutedForeground,
+                    dimension: 40,
+                    child: Center(
+                      child: Icon(
+                        open ? AppIcons.chevronUp : AppIcons.chevronDown,
+                        color: palette.mutedForeground,
+                        size: 20,
+                      ),
                     ),
                   ),
                 ],
@@ -2546,7 +2867,12 @@ class _AdvancedSection extends StatelessWidget {
                 : CrossFadeState.showFirst,
             firstChild: const SizedBox(width: double.infinity),
             secondChild: Padding(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                0,
+                AppSpacing.md,
+                AppSpacing.md,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -2719,12 +3045,22 @@ class _AdvancedSection extends StatelessWidget {
                         items: [
                           DropdownMenuItem(
                             value: '',
-                            child: Text(l10n.sessionFormNoClub),
+                            child: Text(
+                              l10n.sessionFormNoClub,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
                           ),
                           for (final club in clubs)
                             DropdownMenuItem(
                               value: club.id,
-                              child: Text(club.name),
+                              child: Text(
+                                club.name,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.normal,
+                                ),
+                              ),
                             ),
                         ],
                       ),

@@ -194,7 +194,7 @@ class _AppShellState extends ConsumerState<AppShell>
                           label: l10n.navHome,
                         ),
                         NavigationDestination(
-                          icon: const Icon(AppIcons.sessions),
+                          icon: const Icon(AppIcons.calendarClock),
                           label: l10n.navSessions,
                         ),
                         NavigationDestination(

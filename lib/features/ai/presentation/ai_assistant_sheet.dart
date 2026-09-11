@@ -122,23 +122,36 @@ class _AiAssistantSheetState extends ConsumerState<AiAssistantSheet> {
           color: theme.colorScheme.surface,
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: theme.colorScheme.outlineVariant,
-                    borderRadius: BorderRadius.circular(AppRadius.pill),
+              DecoratedBox(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF7C3AED), Color(0xFF9333EA)],
                   ),
                 ),
-              ),
-              _Header(
-                hasMessages: state.messages.isNotEmpty,
-                onClear: ref
-                    .read(aiAssistantControllerProvider.notifier)
-                    .clearMessages,
-                onClose: () => Navigator.of(context).pop(),
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: AppSpacing.xs,
+                      ),
+                      child: Container(
+                        width: 36,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: .55),
+                          borderRadius: BorderRadius.circular(AppRadius.pill),
+                        ),
+                      ),
+                    ),
+                    _Header(
+                      hasMessages: state.messages.isNotEmpty,
+                      onClear: ref
+                          .read(aiAssistantControllerProvider.notifier)
+                          .clearMessages,
+                      onClose: () => Navigator.of(context).pop(),
+                    ),
+                  ],
+                ),
               ),
               Expanded(
                 child: state.messages.isEmpty
@@ -191,11 +204,6 @@ class _Header extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 12, 8, 12),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Color(0xFF7C3AED), Color(0xFF9333EA)],
-        ),
-      ),
       child: Row(
         children: [
           const CircleAvatar(

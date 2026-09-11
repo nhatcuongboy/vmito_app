@@ -2,17 +2,17 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
-import 'package:vmito_app/features/session/domain/player_statistics.dart';
 import 'package:vmito_app/features/session/domain/player_statistics_ranking.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session_hosting/application/player_statistics_providers.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/player_detail_sheet.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/player_statistics_export_sheet.dart';
+import 'package:vmito_app/features/session_hosting/presentation/widgets/player_statistics_ranking_info_sheet.dart';
+import 'package:vmito_app/features/session_hosting/presentation/widgets/player_statistics_table.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
-import 'package:vmito_app/shared/models/session_player.dart';
-import 'package:vmito_domain/vmito_domain.dart';
 
 class PlayerStatisticsSection extends ConsumerStatefulWidget {
   const PlayerStatisticsSection({required this.session, super.key});
@@ -31,6 +31,7 @@ class _PlayerStatisticsSectionState
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final palette = Theme.of(context).extension<AppPalette>()!;
     final statistics = ref.watch(playerStatisticsProvider(widget.session.id));
     final showShuttlecocks =
         ref.watch(showShuttlecockCountProvider).asData?.value ?? false;
@@ -46,16 +47,20 @@ class _PlayerStatisticsSectionState
                 style: Theme.of(context).textTheme.titleMedium,
               ),
             ),
-            IconButton(
-              key: const Key('host-player-statistics-info'),
+            _TonalIconButton(
+              icon: AppIcons.info,
               tooltip: l10n.hostPlayerStatsInfo,
-              onPressed: () => _showRankingInfo(context),
-              icon: const Icon(AppIcons.info),
+              palette: palette,
+              onPressed: () => showPlayerStatisticsRankingInfoSheet(context),
+              buttonKey: const Key('host-player-statistics-info'),
             ),
-            if (statistics.asData?.value.isNotEmpty ?? false)
-              IconButton(
-                key: const Key('host-player-statistics-export'),
+            if (statistics.asData?.value.isNotEmpty ?? false) ...[
+              const SizedBox(width: AppSpacing.xs),
+              _TonalIconButton(
+                icon: AppIcons.download,
                 tooltip: l10n.hostPlayerStatsExport,
+                palette: palette,
+                buttonKey: const Key('host-player-statistics-export'),
                 onPressed: () => showPlayerStatisticsExportSheet(
                   context,
                   session: widget.session,
@@ -65,10 +70,11 @@ class _PlayerStatisticsSectionState
                   ),
                   showShuttlecocks: showShuttlecocks,
                 ),
-                icon: const Icon(AppIcons.download),
               ),
+            ],
           ],
         ),
+        const SizedBox(height: AppSpacing.sm),
         statistics.when(
           loading: () => const Card(
             child: Padding(
@@ -105,28 +111,43 @@ class _PlayerStatisticsSectionState
               );
             }
             final sorted = sortPlayerStatistics(players, _sort);
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // The host screen tints its body, which would otherwise hide
-                // this tile's ink splashes painted on the Scaffold's Material.
-                Material(
-                  color: Colors.transparent,
-                  child: SwitchListTile.adaptive(
-                    key: const Key('host-player-statistics-gender-mvp'),
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(l10n.hostPlayerStatsGenderMvp),
-                    value: _showGenderMvp,
-                    onChanged: (value) =>
-                        setState(() => _showGenderMvp = value),
+            return Card(
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                children: [
+                  // The host screen tints its body, which would otherwise hide
+                  // this row's ink splashes painted on the Scaffold's Material.
+                  Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      key: const Key('host-player-statistics-gender-mvp'),
+                      onTap: () =>
+                          setState(() => _showGenderMvp = !_showGenderMvp),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppSpacing.md,
+                          vertical: AppSpacing.sm,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(l10n.hostPlayerStatsGenderMvp),
+                            ),
+                            Switch.adaptive(
+                              value: _showGenderMvp,
+                              onChanged: (value) =>
+                                  setState(() => _showGenderMvp = value),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                Card(
-                  clipBehavior: Clip.antiAlias,
-                  child: SingleChildScrollView(
+                  Divider(height: 1, color: palette.border),
+                  SingleChildScrollView(
                     key: const Key('host-player-statistics-scroll'),
                     scrollDirection: Axis.horizontal,
-                    child: _StatisticsTable(
+                    child: PlayerStatisticsTable(
                       players: sorted,
                       allPlayers: players,
                       sort: _sort,
@@ -142,31 +163,39 @@ class _PlayerStatisticsSectionState
                       ),
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sm,
-                    vertical: AppSpacing.sm,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(l10n.hostPlayerStatsCount(players.length)),
-                      ),
-                      OutlinedButton.icon(
-                        onPressed: () => showPlayerStatisticsExportSheet(
-                          context,
-                          session: widget.session,
-                          players: sorted,
-                          showShuttlecocks: showShuttlecocks,
+                  Container(
+                    color: palette.muted.withValues(alpha: .5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.md,
+                      vertical: AppSpacing.sm + 2,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            l10n.hostPlayerStatsCount(players.length),
+                            style: TextStyle(color: palette.mutedForeground),
+                          ),
                         ),
-                        icon: const Icon(AppIcons.image),
-                        label: Text(l10n.hostPlayerStatsExport),
-                      ),
-                    ],
+                        OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.brand,
+                            side: const BorderSide(color: AppColors.brand),
+                          ),
+                          onPressed: () => showPlayerStatisticsExportSheet(
+                            context,
+                            session: widget.session,
+                            players: sorted,
+                            showShuttlecocks: showShuttlecocks,
+                          ),
+                          icon: const Icon(AppIcons.image),
+                          label: Text(l10n.hostPlayerStatsExport),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             );
           },
         ),
@@ -191,239 +220,34 @@ class _PlayerStatisticsSectionState
       }
     });
   }
-
-  Future<void> _showRankingInfo(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (context) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                l10n.hostPlayerStatsRankingTitle,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 20),
-              Text(
-                l10n.hostPlayerStatsEligibilityTitle,
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              const SizedBox(height: 6),
-              Text(l10n.hostPlayerStatsEligibility),
-              const SizedBox(height: 18),
-              Text(
-                l10n.hostPlayerStatsOrderTitle,
-                style: Theme.of(context).textTheme.titleSmall,
-              ),
-              const SizedBox(height: 6),
-              Text(l10n.hostPlayerStatsOrder),
-              const SizedBox(height: 12),
-              Text(
-                l10n.hostPlayerStatsPointDiffHelp,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }
 
-class _StatisticsTable extends StatelessWidget {
-  const _StatisticsTable({
-    required this.players,
-    required this.allPlayers,
-    required this.sort,
-    required this.showGenderMvp,
-    required this.showShuttlecocks,
-    required this.onSort,
-    required this.onPlayerTap,
+/// Header icon button with a brand-tinted circular background, matching the
+/// web app's `variant="ghost" colorPalette="green"` icon buttons.
+class _TonalIconButton extends StatelessWidget {
+  const _TonalIconButton({
+    required this.icon,
+    required this.tooltip,
+    required this.palette,
+    required this.onPressed,
+    required this.buttonKey,
   });
-  final List<PlayerStatistics> players;
-  final List<PlayerStatistics> allPlayers;
-  final PlayerStatisticsSort? sort;
-  final bool showGenderMvp;
-  final bool showShuttlecocks;
-  final ValueChanged<PlayerStatisticsSortField> onSort;
-  final ValueChanged<PlayerStatistics> onPlayerTap;
+  final IconData icon;
+  final String tooltip;
+  final AppPalette palette;
+  final VoidCallback onPressed;
+  final Key buttonKey;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final columns = <(String, PlayerStatisticsSortField)>[
-      (l10n.hostPlayerStatsNo, PlayerStatisticsSortField.playerNumber),
-      (l10n.hostPlayerStatsName, PlayerStatisticsSortField.name),
-      (l10n.hostPlayerStatsGender, PlayerStatisticsSortField.gender),
-      (l10n.hostPlayerStatsLevel, PlayerStatisticsSortField.level),
-      (l10n.hostPlayerStatsMatches, PlayerStatisticsSortField.totalMatches),
-      (l10n.hostPlayerStatsWins, PlayerStatisticsSortField.wins),
-      (l10n.hostPlayerStatsLosses, PlayerStatisticsSortField.losses),
-      (l10n.hostPlayerStatsWinRate, PlayerStatisticsSortField.winRate),
-      (
-        l10n.hostPlayerStatsPointDiff,
-        PlayerStatisticsSortField.averagePointDifferential,
-      ),
-      if (showShuttlecocks)
-        (
-          l10n.hostPlayerStatsShuttlecocks,
-          PlayerStatisticsSortField.totalShuttlecocks,
-        ),
-    ];
-    final overall = calculateMvp(allPlayers);
-    final male = calculateMvp(allPlayers, gender: Gender.male);
-    final female = calculateMvp(allPlayers, gender: Gender.female);
-    final overallIds = overall.players.map((e) => e.playerId).toSet();
-    final maleIds = male.players.map((e) => e.playerId).toSet();
-    final femaleIds = female.players.map((e) => e.playerId).toSet();
-    final sortedColumn = sort == null
-        ? null
-        : columns.indexWhere((item) => item.$2 == sort!.field);
-
-    return DataTable(
-      key: const Key('host-player-statistics-table'),
-      showCheckboxColumn: false,
-      sortColumnIndex: sortedColumn == null || sortedColumn < 0
-          ? null
-          : sortedColumn,
-      sortAscending: sort?.direction != StatisticsSortDirection.descending,
-      columns: [
-        for (final column in columns)
-          DataColumn(
-            label: Text(column.$1),
-            onSort: (_, _) => onSort(column.$2),
-          ),
-      ],
-      rows: [
-        for (var index = 0; index < players.length; index++)
-          DataRow(
-            key: ValueKey('host-player-statistics-${players[index].playerId}'),
-            onSelectChanged: (_) => onPlayerTap(players[index]),
-            cells: [
-              DataCell(Text('${index + 1}')),
-              DataCell(
-                ConstrainedBox(
-                  constraints: const BoxConstraints(
-                    minWidth: 130,
-                    maxWidth: 220,
-                  ),
-                  child: Wrap(
-                    spacing: 5,
-                    runSpacing: 3,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    children: [
-                      Text(
-                        players[index].name ??
-                            '#${players[index].playerNumber}',
-                        style: const TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                      if (!showGenderMvp &&
-                          overallIds.contains(players[index].playerId))
-                        _MvpBadge(
-                          label: overall.players.length > 1
-                              ? l10n.hostPlayerStatsSharedMvp
-                              : l10n.hostPlayerStatsMvp,
-                          player: players[index],
-                          minMatches: overall.minMatches,
-                        ),
-                      if (showGenderMvp &&
-                          maleIds.contains(players[index].playerId))
-                        _MvpBadge(
-                          label: l10n.hostPlayerStatsMaleMvp,
-                          player: players[index],
-                          minMatches: male.minMatches,
-                          color: Colors.blue,
-                        ),
-                      if (showGenderMvp &&
-                          femaleIds.contains(players[index].playerId))
-                        _MvpBadge(
-                          label: l10n.hostPlayerStatsFemaleMvp,
-                          player: players[index],
-                          minMatches: female.minMatches,
-                          color: Colors.pink,
-                        ),
-                    ],
-                  ),
-                ),
-              ),
-              DataCell(Text(_gender(l10n, players[index].gender))),
-              DataCell(
-                Text(
-                  players[index].level == null
-                      ? '—'
-                      : levelShortLabel(players[index].level!) ?? '—',
-                ),
-              ),
-              DataCell(Text('${players[index].totalMatches}')),
-              DataCell(Text('${players[index].wins}')),
-              DataCell(Text('${players[index].losses}')),
-              DataCell(Text('${players[index].winRate.toStringAsFixed(0)}%')),
-              DataCell(
-                Tooltip(
-                  message: l10n.hostPlayerStatsPointDiffHelp,
-                  child: Text(
-                    players[index].averagePointDifferential?.toStringAsFixed(
-                          1,
-                        ) ??
-                        '—',
-                  ),
-                ),
-              ),
-              if (showShuttlecocks)
-                DataCell(
-                  Text(
-                    players[index].totalShuttlecocks?.toStringAsFixed(1) ?? '—',
-                  ),
-                ),
-            ],
-          ),
-      ],
-    );
-  }
-}
-
-class _MvpBadge extends StatelessWidget {
-  const _MvpBadge({
-    required this.label,
-    required this.player,
-    required this.minMatches,
-    this.color = Colors.amber,
-  });
-  final String label;
-  final PlayerStatistics player;
-  final int minMatches;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) => Tooltip(
-    message:
-        '${player.winRate.toStringAsFixed(0)}% · ${player.wins}/${player.totalMatches} · ≥ $minMatches',
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: .18),
-        borderRadius: BorderRadius.circular(5),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: color == Colors.amber ? Colors.orange.shade900 : color,
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+  Widget build(BuildContext context) => IconButton(
+    key: buttonKey,
+    tooltip: tooltip,
+    onPressed: onPressed,
+    icon: Icon(icon),
+    style: IconButton.styleFrom(
+      backgroundColor: palette.brandSurface,
+      foregroundColor: AppColors.brand,
+      shape: const CircleBorder(),
     ),
   );
 }
-
-String _gender(AppLocalizations l10n, Gender? gender) => switch (gender) {
-  Gender.male => l10n.hostPlayerGenderMale,
-  Gender.female => l10n.hostPlayerGenderFemale,
-  Gender.other => l10n.hostPlayerGenderOther,
-  null => '—',
-};

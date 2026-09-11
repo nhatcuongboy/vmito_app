@@ -18,6 +18,8 @@ import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_location_payload.dart';
 import 'package:vmito_app/features/session/presentation/player/create_session_screen.dart';
 import 'package:vmito_app/features/session/presentation/player/session_edit_modal.dart';
+import 'package:vmito_app/features/venue/application/venue_controller.dart';
+import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_filter_sheet.dart';
 import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
@@ -39,6 +41,7 @@ Widget _app({
   SessionFormService? sessionFormService,
   SessionRepository? sessionRepository,
   bool host = false,
+  List<Override> overrides = const [],
 }) => ProviderScope(
   overrides: [
     if (host) authControllerProvider.overrideWith(_TestAuthController.new),
@@ -46,6 +49,7 @@ Widget _app({
       sessionFormServiceProvider.overrideWithValue(sessionFormService),
     if (sessionRepository != null)
       sessionRepositoryProvider.overrideWithValue(sessionRepository),
+    ...overrides,
   ],
   child: MaterialApp(
     theme: AppTheme.light,
@@ -787,12 +791,133 @@ void main() {
         alignment: 0.5,
       );
       await tester.pump();
+      expect(tester.widget<AppFilterChip>(mondayChip).label, 'Thứ 2');
       expect(tester.widget<AppFilterChip>(mondayChip).selected, isFalse);
       await tester.tap(mondayChip);
       await tester.pump();
       expect(tester.widget<AppFilterChip>(mondayChip).selected, isTrue);
 
       expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'bulk toggle and collapse button control visibility of bulk fields',
+    (tester) async {
+      _setSize(tester, const Size(600, 844));
+      await tester.pumpWidget(_app(host: true));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      final bulkToggle = find.byKey(const Key('bulk-enabled'));
+      await tester.scrollUntilVisible(
+        bulkToggle,
+        500,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await Scrollable.ensureVisible(
+        tester.element(bulkToggle),
+        alignment: 0.5,
+      );
+      await tester.pump();
+
+      expect(find.byKey(const Key('bulk-fields')).hitTestable(), findsNothing);
+
+      await tester.tap(bulkToggle);
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.byKey(const Key('bulk-fields')).hitTestable(), findsOneWidget);
+
+      final bulkCollapse = find.byKey(const Key('bulk-collapse'));
+      await tester.tap(bulkCollapse);
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.byKey(const Key('bulk-fields')).hitTestable(), findsNothing);
+
+      await tester.tap(bulkCollapse);
+      await tester.pump(const Duration(milliseconds: 250));
+      expect(find.byKey(const Key('bulk-fields')).hitTestable(), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'venue picker displays Sân prefix and detailed address sublabel when venue is present',
+    (tester) async {
+      _setSize(tester, const Size(390, 844));
+      const testVenue = Venue(
+        id: 'v1',
+        name: 'Kỳ Hòa',
+        address: '123 Sư Vạn Hạnh, Q.10, TP.HCM',
+      );
+      await tester.pumpWidget(
+        _app(
+          overrides: [
+            venueDetailProvider('v1').overrideWith((ref) async => testVenue),
+          ],
+          home: const CreateSessionScreen(
+            editingSessionId: 's1',
+            initialSession: Session(
+              id: 's1',
+              name: 'Kèo chiều',
+              status: SessionStatus.preparing,
+              venue: SessionVenue(
+                id: 'v1',
+                name: 'Kỳ Hòa',
+                address: '123 Sư Vạn Hạnh, Q.10, TP.HCM',
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.text('Sân Kỳ Hòa'), findsOneWidget);
+      expect(find.byKey(const Key('venue-sublabel')), findsOneWidget);
+      expect(find.text('123 Sư Vạn Hạnh, Q.10, TP.HCM'), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'bulk session section displays real-time session count subtext',
+    (tester) async {
+      _setSize(tester, const Size(600, 844));
+      await tester.pumpWidget(_app(host: true));
+      await tester.pump(const Duration(milliseconds: 100));
+
+      final bulkToggle = find.byKey(const Key('bulk-enabled'));
+      await tester.scrollUntilVisible(
+        bulkToggle,
+        500,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await Scrollable.ensureVisible(
+        tester.element(bulkToggle),
+        alignment: 0.5,
+      );
+      await tester.pump();
+      await tester.tap(bulkToggle);
+      await tester.pump(const Duration(milliseconds: 250));
+
+      final countFinder = find.byKey(const Key('bulk-session-count'));
+      await tester.scrollUntilVisible(
+        countFinder,
+        500,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(countFinder, findsOneWidget);
+      expect(find.text('Số kèo sẽ tạo: 0'), findsOneWidget);
+
+      final pickDates = find.byKey(const Key('bulk-pick-dates'));
+      await tester.tap(pickDates);
+      await tester.pumpAndSettle();
+
+      final today = DateTime.now();
+      final dayKey = Key(
+        'multi-date-picker-day-${today.year}-${today.month}-${today.day}',
+      );
+      await tester.tap(find.byKey(dayKey));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('multi-date-picker-done')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Số kèo sẽ tạo: 1'), findsOneWidget);
     },
   );
 }

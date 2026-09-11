@@ -12,6 +12,7 @@ import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/favorite/application/favorite_controller.dart';
 import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_dialog.dart';
 
 enum FavoriteButtonVariant { overlayDark, card, surface }
 
@@ -212,12 +213,22 @@ class _FavoriteButtonState extends ConsumerState<FavoriteButton>
   ) async {
     if (_isMutating) return;
     final l10n = AppLocalizations.of(context);
-    final router = GoRouter.of(context);
     final wasFavorite =
         ref.read(favoriteControllerProvider(target)).value?.isFavorite ??
         widget.initialIsFavorite;
     setState(() => _isMutating = true);
     try {
+      if (wasFavorite) {
+        final confirmed = await showAppConfirmDialog(
+          context,
+          type: AppConfirmDialogType.destructive,
+          title: l10n.favoriteRemoveConfirmTitle,
+          content: l10n.favoriteRemoveConfirmMessage,
+          confirmLabel: l10n.favoriteRemoveConfirmAction,
+        );
+        if (confirmed != true || !context.mounted) return;
+      }
+
       final signedIn = await ref
           .read(favoriteControllerProvider(target).notifier)
           .toggle(fallbackIsFavorite: widget.initialIsFavorite);
@@ -225,7 +236,7 @@ class _FavoriteButtonState extends ConsumerState<FavoriteButton>
         if (wasFavorite) {
           _showRemovedToast(context, l10n, target);
         } else {
-          _showSavedToast(context, l10n, router, target.type);
+          _showSavedToast(context, l10n, GoRouter.of(context), target.type);
         }
       }
     } on ApiException {

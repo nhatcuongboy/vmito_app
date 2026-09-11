@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/widget_previews.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -49,6 +50,7 @@ class _BrowseSessionsContentState extends ConsumerState<BrowseSessionsContent> {
   final _scrollController = ScrollController();
   bool _hasLoaded = false;
   bool _showMap = false;
+  var _isMapToggleExtended = true;
   late final VoidCallback _removeReselectHandler;
 
   @override
@@ -110,6 +112,27 @@ class _BrowseSessionsContentState extends ConsumerState<BrowseSessionsContent> {
     }
   }
 
+  bool _onScrollNotification(ScrollNotification notification) {
+    if (notification.metrics.axis == Axis.vertical) {
+      if (notification.metrics.pixels <= 0) {
+        if (!_isMapToggleExtended) {
+          setState(() => _isMapToggleExtended = true);
+        }
+      } else if (notification is UserScrollNotification) {
+        if (notification.direction == ScrollDirection.reverse) {
+          if (_isMapToggleExtended) {
+            setState(() => _isMapToggleExtended = false);
+          }
+        } else if (notification.direction == ScrollDirection.forward) {
+          if (!_isMapToggleExtended) {
+            setState(() => _isMapToggleExtended = true);
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(browseSessionsControllerProvider);
@@ -121,86 +144,93 @@ class _BrowseSessionsContentState extends ConsumerState<BrowseSessionsContent> {
           unawaited(controller.loadMap());
         }
       });
-    return Column(
-      children: [
-        ?widget.discoveryHeader,
-        if (state.filters.venueId != null)
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSpacing.md,
-              0,
-              AppSpacing.md,
-              AppSpacing.sm,
-            ),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: InputChip(
-                key: const Key('session-venue-filter-chip'),
-                avatar: const Icon(AppIcons.location, size: 18),
-                label: Text(
-                  state.filters.venueName?.trim().isNotEmpty ?? false
-                      ? state.filters.venueName!
-                      : state.filters.venueId!,
-                ),
-                onDeleted: () => unawaited(
-                  controller.load(
-                    filters: state.filters.copyWith(clearVenue: true),
+    return NotificationListener<ScrollNotification>(
+      onNotification: _onScrollNotification,
+      child: Column(
+        children: [
+          ?widget.discoveryHeader,
+          if (state.filters.venueId != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                0,
+                AppSpacing.md,
+                AppSpacing.sm,
+              ),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: InputChip(
+                  key: const Key('session-venue-filter-chip'),
+                  avatar: const Icon(AppIcons.location, size: 18),
+                  label: Text(
+                    state.filters.venueName?.trim().isNotEmpty ?? false
+                        ? state.filters.venueName!
+                        : state.filters.venueId!,
+                  ),
+                  onDeleted: () => unawaited(
+                    controller.load(
+                      filters: state.filters.copyWith(clearVenue: true),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        Expanded(
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: _showMap
-                    ? _SessionMapBody(state: state, controller: controller)
-                    : RefreshIndicator(
-                        onRefresh: controller.refresh,
-                        child: switch (state) {
-                          _
-                              when (!_hasLoaded || state.isLoading) &&
-                                  state.sessions.isEmpty =>
-                            const _SessionListSkeleton(),
-                          // Only replace the list with a full-screen error when
-                          // there is nothing to show; a failed "load more" keeps
-                          // the list and reports itself through the app-wide
-                          // error listener.
-                          _
-                              when state.error != null &&
-                                  state.sessions.isEmpty =>
-                            AppErrorView(
-                              error: state.error!,
-                              onRetry: controller.refresh,
+          Expanded(
+            child: Stack(
+              children: [
+                Positioned.fill(
+                  child: _showMap
+                      ? _SessionMapBody(state: state, controller: controller)
+                      : RefreshIndicator(
+                          onRefresh: controller.refresh,
+                          child: switch (state) {
+                            _
+                                when (!_hasLoaded || state.isLoading) &&
+                                    state.sessions.isEmpty =>
+                              const _SessionListSkeleton(),
+                            // Only replace the list with a full-screen error when
+                            // there is nothing to show; a failed "load more" keeps
+                            // the list and reports itself through the app-wide
+                            // error listener.
+                            _
+                                when state.error != null &&
+                                    state.sessions.isEmpty =>
+                              AppErrorView(
+                                error: state.error!,
+                                onRetry: controller.refresh,
+                              ),
+                            _ when state.isEmpty => const _EmptyView(),
+                            _ => _SessionList(
+                              controller: _scrollController,
+                              state: state,
                             ),
-                          _ when state.isEmpty => const _EmptyView(),
-                          _ => _SessionList(
-                            controller: _scrollController,
-                            state: state,
-                          ),
-                        },
-                      ),
-              ),
-              if (widget.showMapToggle)
-                Positioned(
-                  right: AppSpacing.md,
-                  bottom: AppSpacing.md,
-                  child: DiscoveryMapToggle(
-                    key: const Key('session-map-view-toggle'),
-                    showMap: _showMap,
-                    onPressed: _toggleMap,
-                  ),
+                          },
+                        ),
                 ),
-            ],
+                if (widget.showMapToggle)
+                  Positioned(
+                    right: AppSpacing.md,
+                    bottom: AppSpacing.md,
+                    child: DiscoveryMapToggle(
+                      key: const Key('session-map-view-toggle'),
+                      showMap: _showMap,
+                      isExtended: _isMapToggleExtended,
+                      onPressed: _toggleMap,
+                    ),
+                  ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   void _toggleMap() {
-    setState(() => _showMap = !_showMap);
+    setState(() {
+      _showMap = !_showMap;
+      _isMapToggleExtended = true;
+    });
     widget.onMapModeChanged?.call(_showMap);
     if (_showMap) {
       unawaited(
