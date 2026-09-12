@@ -51,6 +51,8 @@
 	<string>Vmito uses the camera for profile photos and to scan session QR codes.</string>
 	<key>NSFaceIDUsageDescription</key>
 	<string>Vmito uses Face ID to protect and unlock your saved session.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Vmito uses your location to show nearby sessions, venues, and clubs.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Vmito uses your location to show nearby sessions, venues, and clubs.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
