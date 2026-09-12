@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:vmito_app/core/config/app_config.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
 import 'package:vmito_app/core/security/biometric_lock_storage.dart';
 import 'package:vmito_app/core/storage/token_storage.dart';
@@ -14,31 +13,22 @@ import '../../support/fake_secure_storage.dart';
 class _MockAuthService extends Mock implements AuthService {}
 
 void main() {
-  test(
-    'restores the hardcoded development user only when bypass is enabled',
-    () async {
-      final container = ProviderContainer(
-        overrides: [
-          tokenStorageProvider.overrideWithValue(
-            TokenStorage(FakeSecureStorage()),
-          ),
-        ],
-      );
-      addTearDown(container.dispose);
+  test('nothing persisted leaves the session signed out', () async {
+    final container = ProviderContainer(
+      overrides: [
+        tokenStorageProvider.overrideWithValue(
+          TokenStorage(FakeSecureStorage()),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
 
-      await container.read(authControllerProvider.notifier).restoreSession();
+    await container.read(authControllerProvider.notifier).restoreSession();
 
-      final state = container.read(authControllerProvider);
-      if (AppConfig.enableAuthBypass) {
-        expect(state.status, AuthStatus.authenticated);
-        expect(state.user?.id, 'development-bypass-user');
-        expect(state.user?.role, UserRole.admin);
-      } else {
-        expect(state.status, AuthStatus.unauthenticated);
-        expect(state.user, isNull);
-      }
-    },
-  );
+    final state = container.read(authControllerProvider);
+    expect(state.status, AuthStatus.unauthenticated);
+    expect(state.user, isNull);
+  });
 
   test(
     'restores a persisted session after the app process restarts',
@@ -74,7 +64,6 @@ void main() {
       expect(container.read(authControllerProvider).user?.id, 'user-1');
       expect(restartedTokens.accessToken, 'access');
     },
-    skip: AppConfig.enableAuthBypass,
   );
 
   test(
@@ -116,7 +105,6 @@ void main() {
       expect(restartedTokens.accessToken, 'fresh-access');
       expect(await restartedTokens.readRefreshToken(), 'rotated-refresh');
     },
-    skip: AppConfig.enableAuthBypass,
   );
 
   test('sign-out clears both tokens and biometric lock preference', () async {

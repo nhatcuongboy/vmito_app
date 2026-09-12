@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:vmito_app/core/config/app_config.dart';
 import 'package:vmito_app/core/network/api_exception.dart'
     show ApiErrorKind, ApiException;
 import 'package:vmito_app/core/security/biometric_lock_storage.dart';
@@ -16,8 +15,6 @@ import 'package:vmito_app/features/auth/domain/user.dart';
 /// The router must not bounce a signed-in user to sign-in during that window —
 /// this is the mobile equivalent of the web app's `isHydrated` flag.
 enum AuthStatus { unknown, authenticated, guest, unauthenticated }
-
-const developmentBypassUserId = 'development-bypass-user';
 
 class AuthState {
   const AuthState({
@@ -109,21 +106,6 @@ class AuthController extends Notifier<AuthState> {
   /// A stored token may be expired; `/users/me` either succeeds, or the
   /// interceptor refreshes transparently, or we fall back to signed-out.
   Future<void> restoreSession() async {
-    if (AppConfig.enableAuthBypass) {
-      // This is a UI-only development session. Do not persist invented tokens:
-      // protected backend endpoints must still require real authentication.
-      state = const AuthState(
-        status: AuthStatus.authenticated,
-        user: User(
-          id: developmentBypassUserId,
-          email: 'developer@vmito.local',
-          name: 'Development User',
-          role: UserRole.admin,
-        ),
-      );
-      return;
-    }
-
     await _tokens.hydrate();
 
     if (!_tokens.hasPersistedSession) {

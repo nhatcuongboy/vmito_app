@@ -71,11 +71,6 @@ flutter build ipa --release \
 backend running on the host machine; Android emulators reach it at
 `10.0.2.2`.
 
-The development files enable a client-side auth bypass. It starts the app as a
-hardcoded admin user and never stores fake tokens. This is intentionally
-disabled for staging and production, and protected backend APIs still require
-a real JWT.
-
 ## Checks
 
 ```sh

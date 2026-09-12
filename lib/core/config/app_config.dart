@@ -27,24 +27,6 @@ abstract final class AppConfig {
   static bool get isProduction => flavor == AppFlavor.production;
   static bool get isDev => flavor == AppFlavor.dev;
 
-  /// Lets developers exercise authenticated UI without calling `/auth/login`.
-  ///
-  /// This requires an explicit build define and is deliberately unavailable in
-  /// staging and production, even if the define is accidentally set there.
-  static const bool _authBypassRequested = bool.fromEnvironment(
-    'ENABLE_AUTH_BYPASS',
-  );
-
-  static bool get enableAuthBypass => isAuthBypassAllowed(
-    flavor: flavor,
-    requested: _authBypassRequested,
-  );
-
-  static bool isAuthBypassAllowed({
-    required AppFlavor flavor,
-    required bool requested,
-  }) => flavor == AppFlavor.dev && requested;
-
   /// REST base URL, including the `/api` suffix.
   ///
   /// Mirrors `NEXT_PUBLIC_API_URL` in vmito-fe. On Android the emulator
