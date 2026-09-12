@@ -106,6 +106,10 @@ class _FakeRankingRepository implements RankingRepository {
     if (delaySecondPage) return secondPageCompleter.future;
     return _page(2, [_entry('u1', 20), _entry('u2', 21)], period: period);
   }
+
+  @override
+  Future<MyLeaderboardRanks> myRanks() =>
+      throw UnimplementedError('not used by these tests');
 }
 
 class _StaleRankingRepository implements RankingRepository {
@@ -119,6 +123,10 @@ class _StaleRankingRepository implements RankingRepository {
     required int limit,
     String? periodKey,
   }) => period == LeaderboardPeriod.week ? week.future : month.future;
+
+  @override
+  Future<MyLeaderboardRanks> myRanks() =>
+      throw UnimplementedError('not used by these tests');
 }
 
 LeaderboardPage _page(

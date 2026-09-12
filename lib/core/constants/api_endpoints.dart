@@ -51,6 +51,7 @@ abstract final class ApiEndpoints {
   static String postShare(String id) => '/posts/$id/share';
   static String userPosts(String userId) => '/posts/user/$userId';
   static const leaderboard = '/leaderboard';
+  static const leaderboardMe = '/leaderboard/me';
   static String userAchievements(String userId) =>
       '/leaderboard/users/$userId/achievements';
 

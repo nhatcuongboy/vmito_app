@@ -430,7 +430,13 @@
   "homeSearchRemoveHistory": "Xóa khỏi lịch sử",
   "homeSearchNoRecent": "Chưa có tìm kiếm gần đây.",
   "homeSearchForQuery": "Tìm kiếm ‘{query}’",
-  "@homeSearchForQuery": {"placeholders": {"query": {"type": "String"}}},
+  "@homeSearchForQuery": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
   "homeSearchNoSuggestions": "Không có gợi ý phù hợp. Bạn vẫn có thể tìm theo từ khóa này.",
   "homeSearchSuggestionsFailed": "Không thể tải gợi ý. Bạn vẫn có thể tìm theo từ khóa này.",
   "homeSearchExitResults": "Thoát kết quả tìm kiếm",
@@ -440,15 +446,33 @@
   "homeSearchHintTournaments": "Tìm kiếm giải",
   "homeSearchSeeAll": "Xem tất cả",
   "homeSearchSeeAllCount": "Xem tất cả ({count})",
-  "@homeSearchSeeAllCount": {"placeholders": {"count": {"type": "int"}}},
+  "@homeSearchSeeAllCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "homeSearchShowLess": "Thu gọn",
   "homeSearchSeeAllResults": "Xem tất cả kết quả cho ‘{query}’",
-  "@homeSearchSeeAllResults": {"placeholders": {"query": {"type": "String"}}},
+  "@homeSearchSeeAllResults": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
   "homeSearchSuggestionsLabel": "Gợi ý",
   "homeSearchFeaturedSessions": "Kèo còn chỗ sắp diễn ra",
   "homeSearchFeaturedVenuesNearby": "Sân gần bạn",
   "homeSearchFeaturedVenuesInCity": "Sân tại {city}",
-  "@homeSearchFeaturedVenuesInCity": {"placeholders": {"city": {"type": "String"}}},
+  "@homeSearchFeaturedVenuesInCity": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
   "homeSearchFeaturedVenues": "Khám phá sân",
   "homeSearchFeaturedClubs": "Nhóm nổi bật",
   "homeSearchFeaturedTournaments": "Giải sắp diễn ra",
@@ -462,9 +486,21 @@
   "tournamentDetailTitle": "Chi tiết giải đấu",
   "tournamentDetailNotFound": "Không tìm thấy giải đấu này.",
   "tournamentDetailTeams": "{count} đội",
-  "@tournamentDetailTeams": {"placeholders": {"count": {"type": "int"}}},
+  "@tournamentDetailTeams": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentDetailAthletes": "{count} VĐV",
-  "@tournamentDetailAthletes": {"placeholders": {"count": {"type": "int"}}},
+  "@tournamentDetailAthletes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentDetailPulseLive": "Trận đấu đang diễn ra",
   "tournamentDetailPulseNext": "Trận đấu tiếp theo",
   "tournamentDetailPulseFinished": "Giải đấu đã khép lại",
@@ -479,9 +515,21 @@
   "tournamentDetailCategories": "Hạng mục",
   "tournamentDetailNoCategories": "Chưa có hạng mục nào.",
   "tournamentDetailCategoryTeams": "{count} đội",
-  "@tournamentDetailCategoryTeams": {"placeholders": {"count": {"type": "int"}}},
+  "@tournamentDetailCategoryTeams": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentDetailCategoryPlayers": "{count} VĐV",
-  "@tournamentDetailCategoryPlayers": {"placeholders": {"count": {"type": "int"}}},
+  "@tournamentDetailCategoryPlayers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentDetailCompetitionInfo": "Thể lệ thi đấu",
   "tournamentDetailCompetitionSubtitle": "Xem thể thức, cách tính điểm và thứ tự xếp hạng.",
   "tournamentDetailRoundRobin": "Vòng tròn",
@@ -489,7 +537,19 @@
   "tournamentDetailRoundRobinPlayoff": "Vòng tròn + loại trực tiếp",
   "tournamentDetailDoubleElimination": "Loại kép",
   "tournamentDetailPoints": "Thắng {win} · Hòa {tie} · Thua {loss}",
-  "@tournamentDetailPoints": {"placeholders": {"win": {"type": "int"}, "tie": {"type": "int"}, "loss": {"type": "int"}}},
+  "@tournamentDetailPoints": {
+    "placeholders": {
+      "win": {
+        "type": "int"
+      },
+      "tie": {
+        "type": "int"
+      },
+      "loss": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentDetailTiebreakers": "Thứ tự phá hòa",
   "tournamentDetailTiebreakerTotalPoints": "Tổng điểm",
   "tournamentDetailTiebreakerGameDifferential": "Hiệu game",
@@ -497,7 +557,13 @@
   "tournamentDetailTiebreakerPointDifferential": "Hiệu điểm",
   "tournamentDetailPlayoff": "Vòng loại trực tiếp",
   "tournamentDetailThirdPlace": "Tranh hạng ba: {value}",
-  "@tournamentDetailThirdPlace": {"placeholders": {"value": {"type": "String"}}},
+  "@tournamentDetailThirdPlace": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "tournamentDetailYes": "Có",
   "tournamentDetailNo": "Không",
   "tournamentDetailChampions": "Nhà vô địch",
@@ -506,7 +572,13 @@
   "tournamentDetailPodiumInProgress": "Kết quả đang được xác định.",
   "tournamentDetailPodiumEmpty": "Chưa có kết quả.",
   "tournamentDetailRank": "Hạng {rank}",
-  "@tournamentDetailRank": {"placeholders": {"rank": {"type": "int"}}},
+  "@tournamentDetailRank": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentDetailTied": "Đồng hạng",
   "tournamentDetailVenues": "Địa điểm",
   "tournamentDetailDirections": "Chỉ đường",
@@ -650,7 +722,9 @@
   "sessionHostRatingCount": "Dựa trên {count} đánh giá",
   "@sessionHostRatingCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "sessionViewDetails": "Xem chi tiết",
@@ -823,16 +897,34 @@
   "sessionFilterCity": "Tỉnh / Thành phố",
   "sessionFilterDistricts": "Phường / Xã / Đặc khu",
   "sessionFilterSelectedCount": "Đã chọn {count}",
-  "@sessionFilterSelectedCount": {"placeholders": {"count": {"type": "int"}}},
+  "@sessionFilterSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sessionFilterNoDistricts": "Không có dữ liệu phường/xã cho khu vực này.",
   "sessionFilterSport": "Môn thể thao",
   "sessionFilterCourtCount": "Số sân",
   "sessionFilterFourPlusCourts": "4+ sân",
   "sessionFilterFourPlusCourtsAccessibility": "4 sân trở lên",
   "sessionFilterCourtCountValue": "{count} sân",
-  "@sessionFilterCourtCountValue": {"placeholders": {"count": {"type": "int"}}},
+  "@sessionFilterCourtCountValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sessionFiltersSelected": "{count} bộ lọc",
-  "@sessionFiltersSelected": {"placeholders": {"count": {"type": "int"}}},
+  "@sessionFiltersSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sessionSportBadminton": "Cầu lông",
   "sessionSportPickleball": "Pickleball",
   "sessionFilterCost": "Chi phí",
@@ -866,16 +958,40 @@
   "notificationUnknownClub": "Nhóm",
   "notificationSessionRequestBadge": "Kèo",
   "notificationSessionRequestMessage": "Yêu cầu tham gia kèo “{sessionName}”",
-  "@notificationSessionRequestMessage": {"placeholders": {"sessionName": {"type": "String"}}},
+  "@notificationSessionRequestMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
   "notificationClubRequestBadge": "Nhóm",
   "notificationClubRequestMessage": "Yêu cầu tham gia nhóm “{clubName}”",
-  "@notificationClubRequestMessage": {"placeholders": {"clubName": {"type": "String"}}},
+  "@notificationClubRequestMessage": {
+    "placeholders": {
+      "clubName": {
+        "type": "String"
+      }
+    }
+  },
   "notificationSlotCount": "{count} slot",
-  "@notificationSlotCount": {"placeholders": {"count": {"type": "int"}}},
+  "@notificationSlotCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "notificationVenueRequestCreateBadge": "Sân mới",
   "notificationVenueRequestUpdateBadge": "Cập nhật sân",
   "notificationVenueRequestMessage": "{name} gửi yêu cầu sân",
-  "@notificationVenueRequestMessage": {"placeholders": {"name": {"type": "String"}}},
+  "@notificationVenueRequestMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "notificationVenueRequestUntitled": "Yêu cầu sân",
   "notificationVenueRequestDetail": "Yêu cầu về sân",
   "notificationApprove": "Duyệt",
@@ -886,7 +1002,13 @@
   "notificationLoadFailed": "Không thể tải thông báo.",
   "notificationDeleteConfirmTitle": "Xóa thông báo?",
   "notificationDeleteConfirmDescription": "Thông báo “{title}” sẽ bị xóa vĩnh viễn. Bạn có muốn tiếp tục?",
-  "@notificationDeleteConfirmDescription": {"placeholders": {"title": {"type": "String"}}},
+  "@notificationDeleteConfirmDescription": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
   "notificationStartReminderTitle": "Kèo sắp bắt đầu!",
   "notificationStartReminderMessage": "Đã đến giờ cho kèo \"{sessionName}\". Bạn đã có mặt tại sân chưa? Nhấn để bắt đầu.",
   "@notificationStartReminderMessage": {
@@ -1195,9 +1317,24 @@
   "sessionFormGalleryError": "Không thể tải thư viện ảnh. Vui lòng thử lại.",
   "sessionFormGalleryEmpty": "Thư viện ảnh của bạn đang trống.",
   "sessionFormGallerySelection": "Đã chọn {count}/{max} ảnh",
-  "@sessionFormGallerySelection": {"placeholders": {"count": {"type": "int"}, "max": {"type": "int"}}},
+  "@sessionFormGallerySelection": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "sessionFormGalleryImage": "Ảnh thư viện {index}",
-  "@sessionFormGalleryImage": {"placeholders": {"index": {"type": "int"}}},
+  "@sessionFormGalleryImage": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "sessionFormBanner": "Ảnh bìa",
   "sessionFormCourtAppearance": "Giao diện sân",
   "sessionFormSelectCourtColor": "Chọn màu sắc cho sân của bạn.",
@@ -1229,9 +1366,21 @@
   "sessionFormAiFailed": "Không thể phân tích bài đăng. Vui lòng thử lại.",
   "sessionFormUploadFailed": "Không thể tải ảnh lên. Vui lòng thử lại.",
   "sessionFormBulkCreated": "Đã tạo {count} kèo",
-  "@sessionFormBulkCreated": {"placeholders": {"count": {"type": "int"}}},
+  "@sessionFormBulkCreated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sessionFormBulkWillCreate": "Số kèo sẽ tạo: {count}",
-  "@sessionFormBulkWillCreate": {"placeholders": {"count": {"type": "int"}}},
+  "@sessionFormBulkWillCreate": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sessionFormValidationLocation": "Vui lòng chọn địa điểm",
   "sessionFormValidationCustomLocation": "Tên địa điểm phải có ít nhất 2 ký tự",
   "sessionFormValidationHost": "Vui lòng nhập tên Host",
@@ -1324,7 +1473,13 @@
   "hostManageConfirmReject": "Từ chối thanh toán",
   "hostManageActionFailed": "Không thể thực hiện. Vui lòng thử lại.",
   "hostAddPlayerTitle": "Thêm người chơi ({count})",
-  "@hostAddPlayerTitle": {"placeholders": {"count": {"type": "int"}}},
+  "@hostAddPlayerTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hostAddPlayerNewPlayer": "Người chơi mới",
   "hostAddPlayerSelectExisting": "Chọn người chơi có sẵn",
   "hostAddPlayerSearchExisting": "Tìm theo tên hoặc email",
@@ -1339,18 +1494,48 @@
   "hostAddPlayerClubRequired": "Vui lòng chọn CLB",
   "hostAddPlayerNoClubFee": "Chưa có CLB nào cấu hình phí cố định theo buổi cho tháng này.",
   "hostAddPlayerClubFeeAmount": "{amount} VNĐ / buổi",
-  "@hostAddPlayerClubFeeAmount": {"placeholders": {"amount": {"type": "String"}}},
+  "@hostAddPlayerClubFeeAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "hostAddPlayerClubFeeHint": "Khoản thu của người chơi này sẽ dùng phí cố định theo buổi mà CLB đã cấu hình cho tháng diễn ra kèo.",
   "hostAddPlayerAddAnother": "Thêm người chơi",
   "hostAddPlayerRemove": "Xóa người chơi",
   "hostAddPlayerSaveAll": "Thêm ({count})",
-  "@hostAddPlayerSaveAll": {"placeholders": {"count": {"type": "int"}}},
+  "@hostAddPlayerSaveAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hostAddPlayerAlreadySelected": "Đã có trong kèo hoặc đã được chọn",
   "hostAddPlayerSuccess": "Đã thêm {count} người chơi thành công",
-  "@hostAddPlayerSuccess": {"placeholders": {"count": {"type": "int"}}},
+  "@hostAddPlayerSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hostAddPlayerLimitTitle": "Cảnh báo giới hạn người chơi",
   "hostAddPlayerLimitDescription": "Bạn hiện có {current} người chơi cho {courts} sân ({perCourt} người chơi mỗi sân). Thêm người chơi có thể làm thời gian chờ lâu hơn và lịch đấu phức tạp hơn.",
-  "@hostAddPlayerLimitDescription": {"placeholders": {"current": {"type": "int"}, "courts": {"type": "int"}, "perCourt": {"type": "int"}}},
+  "@hostAddPlayerLimitDescription": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "courts": {
+        "type": "int"
+      },
+      "perCourt": {
+        "type": "int"
+      }
+    }
+  },
   "hostAddPlayerAddAnyway": "Vẫn thêm",
   "hostManageStartRequiresPlayer": "Không thể bắt đầu buổi chơi vì chưa có người chơi nào.",
   "hostManageStartSession": "Bắt đầu kèo",
@@ -1386,7 +1571,13 @@
   "hostManageFixedFee": "Phí cố định",
   "hostManageRecalculate": "Áp dụng lại phí mới",
   "hostManageRecalculated": "Đã cập nhật {count} khoản thanh toán",
-  "@hostManageRecalculated": {"placeholders": {"count": {"type": "int"}}},
+  "@hostManageRecalculated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hostManageEnableFee": "Thu phí người chơi",
   "hostManageFeeType": "Cách tính phí",
   "hostManageSplitDescription": "Tổng chi phí sẽ được chia đều cho người chơi sau khi bạn nhập tổng tiền.",
@@ -1400,16 +1591,34 @@
   "hostManageUnknownPlayer": "Người chơi chưa rõ",
   "hostManageHasProof": "Có chứng từ",
   "hostManageSlots": "{count} slot",
-  "@hostManageSlots": {"placeholders": {"count": {"type": "int"}}},
+  "@hostManageSlots": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hostManageMemberType": "Loại thành viên",
   "hostManageReminderCount": "Đã nhắc {count} lần",
-  "@hostManageReminderCount": {"placeholders": {"count": {"type": "int"}}},
+  "@hostManageReminderCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hostManageViewAllTransactions": "Xem tất cả giao dịch",
   "hostManageExpenseNameRequired": "Vui lòng nhập tên khoản chi.",
   "hostManageAddAnotherExpense": "Thêm khoản chi khác",
   "hostManageDeleteExpenseTitle": "Xóa khoản chi",
   "hostManageDeleteExpenseMessage": "Xóa khoản chi “{name}”?",
-  "@hostManageDeleteExpenseMessage": {"placeholders": {"name": {"type": "String"}}},
+  "@hostManageDeleteExpenseMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sessionExpensesTitle": "Chi phí buổi chơi",
   "sessionExpenseAdd": "Thêm chi phí",
   "sessionExpenseName": "Tên chi phí",
@@ -1454,7 +1663,9 @@
   "socialImageSelection": "Đã chọn {count}/5 ảnh",
   "@socialImageSelection": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "socialPostDiscardTitle": "Bỏ bài viết?",
@@ -1539,11 +1750,29 @@
   "clubAwaitingApproval": "Đang chờ duyệt",
   "clubAdminApprovalTitle": "Duyệt nhóm",
   "clubHostedBy": "Chủ nhóm: {name}",
-  "@clubHostedBy": {"placeholders": {"name": {"type": "String"}}},
+  "@clubHostedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "clubRequestSubmitted": "Đã gửi {date}",
-  "@clubRequestSubmitted": {"placeholders": {"date": {"type": "String"}}},
+  "@clubRequestSubmitted": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "clubSessionsPlayed": "Đã chơi {count} buổi",
-  "@clubSessionsPlayed": {"placeholders": {"count": {"type": "int"}}},
+  "@clubSessionsPlayed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "clubJoinRequestDetailTitle": "Yêu cầu tham gia nhóm",
   "sessionJoinRequestDetailTitle": "Yêu cầu tham gia kèo",
   "joinRequestDetailViewDetail": "Xem chi tiết yêu cầu",
@@ -1565,7 +1794,13 @@
   "clubWithdrawShort": "Thu hồi",
   "clubWithdrawTitle": "Thu hồi yêu cầu tham gia?",
   "clubWithdrawConfirm": "Yêu cầu tham gia {name} sẽ bị thu hồi. Bạn có thể gửi lại yêu cầu sau.",
-  "@clubWithdrawConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "@clubWithdrawConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "clubWithdrawSuccess": "Đã thu hồi yêu cầu tham gia",
   "clubApprove": "Duyệt",
   "clubReject": "Từ chối",
@@ -1621,7 +1856,13 @@
   "tournamentCreateClearLocation": "Xóa",
   "tournamentCreateLocationSearchTitle": "Chọn địa điểm",
   "tournamentCreateUseManualLocation": "Dùng “{location}”",
-  "@tournamentCreateUseManualLocation": {"placeholders": {"location": {"type": "String"}}},
+  "@tournamentCreateUseManualLocation": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
+  },
   "tournamentCreateNextStepsTitle": "Bạn có thể hoàn thiện sau",
   "tournamentCreateNextStepsDescription": "Sau khi tạo, hãy bổ sung hạng mục, thể thức, vận động viên và lịch thi đấu trong trang quản lý.",
   "tournamentCreateCancel": "Hủy",
@@ -1906,14 +2147,32 @@
   "mySessionsPendingRequests": "Yêu cầu tham gia",
   "myJoinRequestsTitle": "Yêu cầu đã gửi",
   "myJoinRequestsDescription": "{count} kèo đã gửi yêu cầu tham gia",
-  "@myJoinRequestsDescription": {"placeholders": {"count": {"type": "int"}}},
+  "@myJoinRequestsDescription": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "myJoinRequestsEmpty": "Chưa có yêu cầu tham gia",
   "myJoinRequestsEmptyDescription": "Các yêu cầu bạn gửi sẽ hiển thị tại đây.",
   "myJoinRequestsLocationNotUpdated": "Địa điểm chưa cập nhật",
   "myJoinRequestsPlayerNumber": "Người chơi {number}",
-  "@myJoinRequestsPlayerNumber": {"placeholders": {"number": {"type": "int"}}},
+  "@myJoinRequestsPlayerNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "myJoinRequestsLevel": "Trình độ {level}",
-  "@myJoinRequestsLevel": {"placeholders": {"level": {"type": "int"}}},
+  "@myJoinRequestsLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
   "myJoinRequestsViewSession": "Vào sân",
   "myJoinRequestsWithdraw": "Thu hồi yêu cầu",
   "myJoinRequestsWithdrawTitle": "Thu hồi yêu cầu",
@@ -1922,7 +2181,16 @@
   "myJoinRequestsPrevious": "Trước",
   "myJoinRequestsNext": "Sau",
   "myJoinRequestsPage": "Trang {page} / {totalPages}",
-  "@myJoinRequestsPage": {"placeholders": {"page": {"type": "int"}, "totalPages": {"type": "int"}}},
+  "@myJoinRequestsPage": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "totalPages": {
+        "type": "int"
+      }
+    }
+  },
   "pendingRequestsEmptySub": "Các yêu cầu xin tham gia từ người chơi khác sẽ hiển thị tại đây.",
   "mySessionsSearchHint": "Tìm theo tên kèo hoặc sân...",
   "mySessionsEmpty": "Không có kèo phù hợp",
@@ -1958,7 +2226,13 @@
   "hostPlayerStatsPointDiff": "Hiệu điểm TB/trận",
   "hostPlayerStatsShuttlecocks": "Số lượng cầu",
   "hostPlayerStatsCount": "{count} người chơi",
-  "@hostPlayerStatsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@hostPlayerStatsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hostPlayerStatsMvp": "MVP",
   "hostPlayerStatsSharedMvp": "Đồng MVP",
   "hostPlayerStatsMaleMvp": "MVP Nam",
@@ -2003,7 +2277,16 @@
   "hostPlayerDetailError": "Không thể tải chi tiết người chơi.",
   "hostRosterFilter": "Bộ lọc",
   "hostRosterTitle": "Người chơi ({count}/{capacity})",
-  "@hostRosterTitle": {"placeholders": {"count": {"type": "int"}, "capacity": {"type": "int"}}},
+  "@hostRosterTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "capacity": {
+        "type": "int"
+      }
+    }
+  },
   "hostRosterAdd": "Thêm người",
   "hostRosterPending": "Chờ duyệt",
   "hostRosterReject": "Từ chối",
@@ -2018,18 +2301,36 @@
   "hostRosterDeletePlayer": "Xóa người chơi",
   "hostRosterDeleteTitle": "Xóa người chơi?",
   "hostRosterDeleteMessage": "Xóa {name} khỏi kèo?",
-  "@hostRosterDeleteMessage": {"placeholders": {"name": {"type": "String"}}},
+  "@hostRosterDeleteMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "hostRosterEmpty": "Chưa có người chơi.",
   "hostRosterEmptyFiltered": "Không tìm thấy người chơi phù hợp.",
   "hostRosterFilterTitle": "Lọc người chơi",
   "hostRosterClearFilter": "Xóa lọc",
   "hostRosterApplyFilter": "Áp dụng",
   "hostPlayerEditTitle": "Sửa người chơi #{number}",
-  "@hostPlayerEditTitle": {"placeholders": {"number": {"type": "int"}}},
+  "@hostPlayerEditTitle": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "hostPlayerEditSave": "Lưu thay đổi",
   "hostPlayerEditSuccess": "Đã cập nhật người chơi",
   "hostPlayerStatsMinutes": "{count} phút",
-  "@hostPlayerStatsMinutes": {"placeholders": {"count": {"type": "int"}}},
+  "@hostPlayerStatsMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "loginRequired": "Yêu cầu đăng nhập",
   "@loginRequired": {
     "description": "Title of the login required dialog."
@@ -2070,11 +2371,29 @@
   },
   "addressNewBadge": "Mới",
   "venueGenericName": "Sân {name}",
-  "@venueGenericName": {"placeholders": {"name": {"type": "String"}}},
+  "@venueGenericName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "venueBadmintonName": "Sân cầu lông {name}",
-  "@venueBadmintonName": {"placeholders": {"name": {"type": "String"}}},
+  "@venueBadmintonName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "venuePickleballName": "Sân pickleball {name}",
-  "@venuePickleballName": {"placeholders": {"name": {"type": "String"}}},
+  "@venuePickleballName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "venueAbout": "Giới thiệu về sân",
   "venueNoDescription": "Chưa có mô tả.",
   "venueReadMore": "Xem thêm",
@@ -2095,7 +2414,13 @@
   "venueOpeningHours": "Giờ mở cửa",
   "venueCourtsLabel": "Số sân",
   "venueCourtsValue": "{count} sân",
-  "@venueCourtsValue": {"placeholders": {"count": {"type": "int"}}},
+  "@venueCourtsValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "venueWebsite": "Website",
   "venuePhone": "Điện thoại",
   "venueZalo": "Nhắn Zalo",
@@ -2103,9 +2428,22 @@
   "venueTemporarilyClosed": "Tạm ngưng hoạt động",
   "venuePermanentlyClosed": "Đã đóng cửa",
   "venueDistance": "Cách bạn {distance} km",
-  "@venueDistance": {"placeholders": {"distance": {"type": "double", "format": "compact"}}},
+  "@venueDistance": {
+    "placeholders": {
+      "distance": {
+        "type": "double",
+        "format": "compact"
+      }
+    }
+  },
   "venuePriceFrom": "Từ {price}đ",
-  "@venuePriceFrom": {"placeholders": {"price": {"type": "String"}}},
+  "@venuePriceFrom": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "venuePerHour": "/ giờ",
   "venueCallNow": "Gọi ngay",
   "venueFindSessions": "Tìm kèo tại sân",
@@ -2122,9 +2460,24 @@
   "venueHoliday": "Ngày lễ",
   "venueOtherDay": "Khác",
   "venueWeekdayShort": "{day, select, 1{T2} 2{T3} 3{T4} 4{T5} 5{T6} 6{T7} 7{CN} other{?}}",
-  "@venueWeekdayShort": {"placeholders": {"day": {"type": "String"}}},
+  "@venueWeekdayShort": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
   "venueShareText": "Khám phá {name} trên Vmito: {url}",
-  "@venueShareText": {"placeholders": {"name": {"type": "String"}, "url": {"type": "String"}}},
+  "@venueShareText": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "url": {
+        "type": "String"
+      }
+    }
+  },
   "venueRequestSent": "Đã gửi yêu cầu.",
   "venueEditTitle": "Báo sửa thông tin sân",
   "venueEditDescription": "Chỉnh các thông tin chưa chính xác. Quản trị viên sẽ duyệt trước khi áp dụng.",
@@ -2185,7 +2538,13 @@
   "transactionOverallSummary": "Tổng quan",
   "transactionPlayers": "người chơi",
   "transactionPercentCollected": "{percent}% đã thu",
-  "@transactionPercentCollected": {"placeholders": {"percent": {"type": "int"}}},
+  "@transactionPercentCollected": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
   "transactionIncome": "Phải thu",
   "transactionCollected": "Đã thu",
   "transactionOutstanding": "Còn thiếu",
@@ -2193,7 +2552,13 @@
   "transactionNetActual": "Tổng kết",
   "transactionNetExpected": "Tổng kết dự kiến",
   "transactionNetExpectedHint": "Nếu thu đủ, tổng kết sẽ là {amount}",
-  "@transactionNetExpectedHint": {"placeholders": {"amount": {"type": "String"}}},
+  "@transactionNetExpectedHint": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "transactionVsPrevious": "so với kỳ trước",
   "transactionChartTitle": "Biểu đồ thu chi",
   "transactionNoData": "Không có dữ liệu trong khoảng thời gian này.",
@@ -2233,7 +2598,13 @@
   "transactionReminderFailed": "Không thể gửi nhắc thanh toán.",
   "transactionTotal": "Tổng",
   "transactionApproveSubmitted": "Duyệt {count} khoản đã nộp",
-  "@transactionApproveSubmitted": {"placeholders": {"count": {"type": "int"}}},
+  "@transactionApproveSubmitted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "transactionActionSuccess": "Đã cập nhật giao dịch.",
   "transactionNoPayments": "Chưa có khoản thanh toán.",
   "transactionReviewPayment": "Kiểm tra thanh toán",
@@ -2264,24 +2635,81 @@
   "leaderboardCurrentMonth": "Tháng này",
   "leaderboardCurrentSeason": "Mùa này",
   "leaderboardWeekLabel": "Tuần {week}",
-  "@leaderboardWeekLabel": {"placeholders": {"week": {"type": "int"}}},
+  "@leaderboardWeekLabel": {
+    "placeholders": {
+      "week": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardMonthLabel": "Tháng {month}/{year}",
-  "@leaderboardMonthLabel": {"placeholders": {"month": {"type": "int"}, "year": {"type": "int"}}},
+  "@leaderboardMonthLabel": {
+    "placeholders": {
+      "month": {
+        "type": "int"
+      },
+      "year": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardSpringLabel": "Mùa Xuân {year}",
-  "@leaderboardSpringLabel": {"placeholders": {"year": {"type": "int"}}},
+  "@leaderboardSpringLabel": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardSummerLabel": "Mùa Hè {year}",
-  "@leaderboardSummerLabel": {"placeholders": {"year": {"type": "int"}}},
+  "@leaderboardSummerLabel": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardAutumnLabel": "Mùa Thu {year}",
-  "@leaderboardAutumnLabel": {"placeholders": {"year": {"type": "int"}}},
+  "@leaderboardAutumnLabel": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardWinterLabel": "Mùa Đông {year}",
-  "@leaderboardWinterLabel": {"placeholders": {"year": {"type": "int"}}},
+  "@leaderboardWinterLabel": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardCountdownEndsIn": "Kết thúc sau:",
   "leaderboardCountdownDays": "{count} ngày",
-  "@leaderboardCountdownDays": {"placeholders": {"count": {"type": "int"}}},
+  "@leaderboardCountdownDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardCountdownHours": "{count} giờ",
-  "@leaderboardCountdownHours": {"placeholders": {"count": {"type": "int"}}},
+  "@leaderboardCountdownHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardCountdownMinutes": "{count} phút",
-  "@leaderboardCountdownMinutes": {"placeholders": {"count": {"type": "int"}}},
+  "@leaderboardCountdownMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardCountdownClosed": "Đã chốt",
   "leaderboardEmptyTitle": "Chưa có dữ liệu xếp hạng",
   "leaderboardEmptyDescription": "Hãy tham gia và hoàn thành vài trận đấu để xuất hiện trên bảng xếp hạng này.",
@@ -2289,13 +2717,69 @@
   "leaderboardYou": "Bạn",
   "leaderboardNoMatches": "Chưa đấu trận nào",
   "leaderboardWinRate": "Tỉ lệ thắng: {rate}%",
-  "@leaderboardWinRate": {"placeholders": {"rate": {"type": "int"}}},
+  "@leaderboardWinRate": {
+    "placeholders": {
+      "rate": {
+        "type": "int"
+      }
+    }
+  },
+  "leaderboardWinRateCompact": "{rate}% thắng",
+  "@leaderboardWinRateCompact": {
+    "placeholders": {
+      "rate": {
+        "type": "int"
+      }
+    }
+  },
+  "leaderboardCelebrationTitle": "Chúc mừng!",
+  "leaderboardCelebrationRank": "Bạn đang xếp thứ {rank} trên bảng xếp hạng",
+  "@leaderboardCelebrationRank": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
+  "leaderboardCelebrationPoints": "Đã giành {points} điểm",
+  "@leaderboardCelebrationPoints": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "leaderboardCelebrationShare": "Chia sẻ",
+  "leaderboardCelebrationDismiss": "Tuyệt vời!",
+  "leaderboardMyRankTitle": "Vị trí của bạn",
+  "leaderboardMyRankUnranked": "Chưa có hạng",
   "leaderboardMatchRecord": "({won}/{played} trận)",
-  "@leaderboardMatchRecord": {"placeholders": {"won": {"type": "int"}, "played": {"type": "int"}}},
+  "@leaderboardMatchRecord": {
+    "placeholders": {
+      "won": {
+        "type": "int"
+      },
+      "played": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardTotalPointsCaption": "Tổng {points} điểm",
-  "@leaderboardTotalPointsCaption": {"placeholders": {"points": {"type": "int"}}},
+  "@leaderboardTotalPointsCaption": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardTierName": "Hạng {name}",
-  "@leaderboardTierName": {"placeholders": {"name": {"type": "String"}}},
+  "@leaderboardTierName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "leaderboardTierBronze": "Đồng",
   "leaderboardTierSilver": "Bạc",
   "leaderboardTierGold": "Vàng",
@@ -2308,7 +2792,13 @@
   "leaderboardRulesTournamentGroup": "Giải đấu",
   "leaderboardRulesTierGroup": "Các hạng",
   "leaderboardRulesFromPoints": "Từ {points} điểm",
-  "@leaderboardRulesFromPoints": {"placeholders": {"points": {"type": "int"}}},
+  "@leaderboardRulesFromPoints": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardRulesNote": "Giá trị điểm có thể được điều chỉnh khi hệ thống xếp hạng phát triển.",
   "leaderboardReasonSessionWin": "Thắng trận giao lưu",
   "leaderboardReasonSessionDraw": "Hòa trận giao lưu",
@@ -2324,10 +2814,25 @@
   "leaderboardViewLeaderboard": "Xem bảng xếp hạng",
   "achievementLoadError": "Không tải được thành tích",
   "achievementRank": "Hạng {rank}",
-  "@achievementRank": {"placeholders": {"rank": {"type": "int"}}},
+  "@achievementRank": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
   "achievementPeriodYear": "Năm",
   "achievementToNextTier": "Còn {points} điểm để lên hạng {tier}",
-  "@achievementToNextTier": {"placeholders": {"points": {"type": "int"}, "tier": {"type": "String"}}},
+  "@achievementToNextTier": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      },
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
   "achievementMaxTier": "Bạn đã đạt hạng cao nhất!",
   "achievementWins": "Thắng",
   "achievementDraws": "Hòa",
@@ -2345,7 +2850,19 @@
   "achievementReasonAdjustment": "Điều chỉnh",
   "achievementReasonSessionHosted": "Tổ chức kèo",
   "leaderboardRankSemantics": "Hạng {rank}, {name}, {points} điểm",
-  "@leaderboardRankSemantics": {"placeholders": {"rank": {"type": "int"}, "name": {"type": "String"}, "points": {"type": "int"}}},
+  "@leaderboardRankSemantics": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      },
+      "points": {
+        "type": "int"
+      }
+    }
+  },
   "authSignOutConfirmation": "Bạn có chắc chắn muốn đăng xuất?",
   "menuExplore": "Khám phá",
   "menuManage": "Quản lý",
@@ -2356,7 +2873,13 @@
   "menuRoleReferee": "Trọng tài",
   "menuHelpFeedback": "Trợ giúp & phản hồi",
   "menuFooterYear": "© {year}",
-  "@menuFooterYear": {"placeholders": {"year": {"type": "int"}}},
+  "@menuFooterYear": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
   "hostResultsEditMatch": "Chỉnh sửa trận đấu",
   "hostResultsActions": "Tác vụ trận đấu",
   "hostResultsEditAction": "Sửa trận đấu",
@@ -2376,9 +2899,21 @@
   "hostResultsPair2": "Cặp 2",
   "hostResultsWinner": "Thắng",
   "hostResultsMatchTitle": "Trận {number}",
-  "@hostResultsMatchTitle": {"placeholders": {"number": {"type": "int"}}},
+  "@hostResultsMatchTitle": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "hostResultsPlayerPosition": "Vị trí {position}",
-  "@hostResultsPlayerPosition": {"placeholders": {"position": {"type": "int"}}},
+  "@hostResultsPlayerPosition": {
+    "placeholders": {
+      "position": {
+        "type": "int"
+      }
+    }
+  },
   "hostResultsSelectPlayer": "Chọn người chơi",
   "hostResultsDuplicatePlayers": "Mỗi vị trí phải là một người chơi khác nhau.",
   "hostResultsInvalidNumber": "Nhập một số hợp lệ không nhỏ hơn 0.",
@@ -2392,7 +2927,13 @@
   "hostResultsFilterPlayers": "Lọc theo người chơi",
   "hostResultsAllPlayers": "Tất cả người chơi",
   "hostResultsSelectedPlayers": "Đã chọn {count} người chơi",
-  "@hostResultsSelectedPlayers": {"placeholders": {"count": {"type": "int"}}},
+  "@hostResultsSelectedPlayers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "clubBasicInformation": "Thông tin nhóm",
   "clubNamePlaceholder": "Ví dụ: Nhóm cầu lông Vmito",
   "clubNameTooLong": "Tên nhóm tối đa 50 ký tự",
@@ -2408,7 +2949,13 @@
   "clubAboutLocation": "Địa điểm",
   "clubRequiredLevels": "Trình độ yêu cầu",
   "clubLevelLabel": "Trình độ {level}",
-  "@clubLevelLabel": {"placeholders": {"level": {"type": "int"}}},
+  "@clubLevelLabel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
   "clubAllLevels": "Tất cả trình độ",
   "clubDescriptionPlaceholder": "Nhập mô tả nhóm...",
   "clubDescriptionTooLong": "Mô tả tối đa 5.000 ký tự",
@@ -2574,13 +3121,37 @@
   "citySelectorReset": "Đặt lại",
   "citySelectorApply": "Áp dụng",
   "citySelectorWardCountWard": "{count} phường",
-  "@citySelectorWardCountWard": {"placeholders": {"count": {"type": "int"}}},
+  "@citySelectorWardCountWard": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "citySelectorWardCountCommune": "{count} xã",
-  "@citySelectorWardCountCommune": {"placeholders": {"count": {"type": "int"}}},
+  "@citySelectorWardCountCommune": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "citySelectorWardCountSpecialZone": "{count} đặc khu",
-  "@citySelectorWardCountSpecialZone": {"placeholders": {"count": {"type": "int"}}},
+  "@citySelectorWardCountSpecialZone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "citySelectorWardsSelectedSummary": "Đã chọn {list}",
-  "@citySelectorWardsSelectedSummary": {"placeholders": {"list": {"type": "String"}}},
+  "@citySelectorWardsSelectedSummary": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
   "cityOnboardingDescription": "Chọn thành phố để xem các kèo và sân gần bạn nhất.",
   "cityOnboardingSkip": "Bỏ qua, dùng TP. Hồ Chí Minh",
   "tournamentStandingsTitle": "Bảng xếp hạng",
@@ -2605,19 +3176,64 @@
   "tournamentStandingsRankingsExplanation": "Bảng xếp hạng được sắp theo điểm, sau đó lần lượt xét hiệu số, điểm ghi được, số trận thắng và số trận đã chơi. Mục Tổng thể gộp các đội trong những bảng đang hiển thị và xếp lại theo cùng thứ tự này.",
   "tournamentStandingsEmptyPlayoffs": "Chưa có trận vòng loại trực tiếp nào để hiển thị.",
   "tournamentStandingsMatchNumber": "Trận {number}",
-  "@tournamentStandingsMatchNumber": {"placeholders": {"number": {"type": "int"}}},
+  "@tournamentStandingsMatchNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentStandingsGroupFallback": "Bảng {number}",
-  "@tournamentStandingsGroupFallback": {"placeholders": {"number": {"type": "int"}}},
+  "@tournamentStandingsGroupFallback": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentStandingsGroupNamed": "Bảng {name}",
-  "@tournamentStandingsGroupNamed": {"placeholders": {"name": {"type": "String"}}},
+  "@tournamentStandingsGroupNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "tournamentStandingsTeamsCount": "{count} đội",
-  "@tournamentStandingsTeamsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@tournamentStandingsTeamsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentStandingsWinnerOf": "Thắng trận {match}",
-  "@tournamentStandingsWinnerOf": {"placeholders": {"match": {"type": "int"}}},
+  "@tournamentStandingsWinnerOf": {
+    "placeholders": {
+      "match": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentStandingsLoserOf": "Thua trận {match}",
-  "@tournamentStandingsLoserOf": {"placeholders": {"match": {"type": "int"}}},
+  "@tournamentStandingsLoserOf": {
+    "placeholders": {
+      "match": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentStandingsPoolSeed": "{rank} Bảng {pool}",
-  "@tournamentStandingsPoolSeed": {"placeholders": {"rank": {"type": "String"}, "pool": {"type": "String"}}},
+  "@tournamentStandingsPoolSeed": {
+    "placeholders": {
+      "rank": {
+        "type": "String"
+      },
+      "pool": {
+        "type": "String"
+      }
+    }
+  },
   "tournamentStandingsBye": "Miễn đấu",
   "tournamentStandingsTbd": "Chưa xác định",
   "tournamentStandingsQuarterFinals": "Tứ kết",
@@ -2628,9 +3244,21 @@
   "tournamentStandingsLowerBracket": "Nhánh thua",
   "tournamentStandingsPreQuarterFinals": "Vòng 1/8",
   "tournamentStandingsRoundOf": "Vòng {count} đội",
-  "@tournamentStandingsRoundOf": {"placeholders": {"count": {"type": "int"}}},
+  "@tournamentStandingsRoundOf": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentStandingsLowerRound": "Nhánh thua V{number}",
-  "@tournamentStandingsLowerRound": {"placeholders": {"number": {"type": "int"}}},
+  "@tournamentStandingsLowerRound": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentStandingsLowerFinal": "Chung kết nhánh thua",
   "tournamentStandingsGrandFinal": "Chung kết tổng",
   "tournamentStandingsIfNecessary": "Nếu cần",

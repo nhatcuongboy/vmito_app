@@ -107,7 +107,7 @@ class _PointsRulesSheet extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(vertical: 7),
                           child: Row(
                             children: [
-                              Text(tierVisuals[entry.key]!.emoji),
+                              Text(tierEmojiFor(context, entry.key)),
                               const SizedBox(width: AppSpacing.sm),
                               TierBadge(tier: entry.key),
                               const Spacer(),

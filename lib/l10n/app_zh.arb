@@ -415,7 +415,13 @@
   "homeSearchRemoveHistory": "从历史记录中移除",
   "homeSearchNoRecent": "暂无最近搜索。",
   "homeSearchForQuery": "搜索“{query}”",
-  "@homeSearchForQuery": {"placeholders": {"query": {"type": "String"}}},
+  "@homeSearchForQuery": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
   "homeSearchNoSuggestions": "没有匹配的建议，仍可搜索此关键词。",
   "homeSearchSuggestionsFailed": "无法加载建议，仍可搜索此关键词。",
   "homeSearchExitResults": "退出搜索结果",
@@ -425,15 +431,33 @@
   "homeSearchHintTournaments": "搜索赛事",
   "homeSearchSeeAll": "查看全部",
   "homeSearchSeeAllCount": "查看全部（{count}）",
-  "@homeSearchSeeAllCount": {"placeholders": {"count": {"type": "int"}}},
+  "@homeSearchSeeAllCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "homeSearchShowLess": "收起",
   "homeSearchSeeAllResults": "查看“{query}”的全部结果",
-  "@homeSearchSeeAllResults": {"placeholders": {"query": {"type": "String"}}},
+  "@homeSearchSeeAllResults": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
   "homeSearchSuggestionsLabel": "建议",
   "homeSearchFeaturedSessions": "即将开始且有空位的球局",
   "homeSearchFeaturedVenuesNearby": "附近的场馆",
   "homeSearchFeaturedVenuesInCity": "{city}的场馆",
-  "@homeSearchFeaturedVenuesInCity": {"placeholders": {"city": {"type": "String"}}},
+  "@homeSearchFeaturedVenuesInCity": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
   "homeSearchFeaturedVenues": "探索场馆",
   "homeSearchFeaturedClubs": "精选群组",
   "homeSearchFeaturedTournaments": "即将开始的赛事",
@@ -447,9 +471,21 @@
   "tournamentDetailTitle": "赛事详情",
   "tournamentDetailNotFound": "找不到此赛事。",
   "tournamentDetailTeams": "{count} 支队伍",
-  "@tournamentDetailTeams": {"placeholders": {"count": {"type": "int"}}},
+  "@tournamentDetailTeams": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentDetailAthletes": "{count} 名选手",
-  "@tournamentDetailAthletes": {"placeholders": {"count": {"type": "int"}}},
+  "@tournamentDetailAthletes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentDetailPulseLive": "比赛进行中",
   "tournamentDetailPulseNext": "下一场比赛",
   "tournamentDetailPulseFinished": "赛事已结束",
@@ -464,9 +500,21 @@
   "tournamentDetailCategories": "比赛项目",
   "tournamentDetailNoCategories": "暂无比赛项目。",
   "tournamentDetailCategoryTeams": "{count} 支队伍",
-  "@tournamentDetailCategoryTeams": {"placeholders": {"count": {"type": "int"}}},
+  "@tournamentDetailCategoryTeams": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentDetailCategoryPlayers": "{count} 名选手",
-  "@tournamentDetailCategoryPlayers": {"placeholders": {"count": {"type": "int"}}},
+  "@tournamentDetailCategoryPlayers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentDetailCompetitionInfo": "竞赛规则",
   "tournamentDetailCompetitionSubtitle": "查看赛制、计分和排名规则。",
   "tournamentDetailRoundRobin": "循环赛",
@@ -474,7 +522,19 @@
   "tournamentDetailRoundRobinPlayoff": "循环赛 + 淘汰赛",
   "tournamentDetailDoubleElimination": "双败淘汰",
   "tournamentDetailPoints": "胜 {win} · 平 {tie} · 负 {loss}",
-  "@tournamentDetailPoints": {"placeholders": {"win": {"type": "int"}, "tie": {"type": "int"}, "loss": {"type": "int"}}},
+  "@tournamentDetailPoints": {
+    "placeholders": {
+      "win": {
+        "type": "int"
+      },
+      "tie": {
+        "type": "int"
+      },
+      "loss": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentDetailTiebreakers": "同分排序",
   "tournamentDetailTiebreakerTotalPoints": "总积分",
   "tournamentDetailTiebreakerGameDifferential": "局分差",
@@ -482,7 +542,13 @@
   "tournamentDetailTiebreakerPointDifferential": "得分差",
   "tournamentDetailPlayoff": "淘汰赛",
   "tournamentDetailThirdPlace": "季军赛：{value}",
-  "@tournamentDetailThirdPlace": {"placeholders": {"value": {"type": "String"}}},
+  "@tournamentDetailThirdPlace": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "tournamentDetailYes": "是",
   "tournamentDetailNo": "否",
   "tournamentDetailChampions": "冠军",
@@ -491,7 +557,13 @@
   "tournamentDetailPodiumInProgress": "结果仍在确定中。",
   "tournamentDetailPodiumEmpty": "暂无结果。",
   "tournamentDetailRank": "第 {rank} 名",
-  "@tournamentDetailRank": {"placeholders": {"rank": {"type": "int"}}},
+  "@tournamentDetailRank": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentDetailTied": "并列",
   "tournamentDetailVenues": "场地",
   "tournamentDetailDirections": "导航",
@@ -635,7 +707,9 @@
   "sessionHostRatingCount": "基于 {count} 条评分",
   "@sessionHostRatingCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "sessionViewDetails": "查看详情",
@@ -808,16 +882,34 @@
   "sessionFilterCity": "省 / 城市",
   "sessionFilterDistricts": "坊 / 社 / 特区",
   "sessionFilterSelectedCount": "已选择 {count} 个",
-  "@sessionFilterSelectedCount": {"placeholders": {"count": {"type": "int"}}},
+  "@sessionFilterSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sessionFilterNoDistricts": "该地区暂无坊社数据。",
   "sessionFilterSport": "运动项目",
   "sessionFilterCourtCount": "场地数",
   "sessionFilterFourPlusCourts": "4 个以上场地",
   "sessionFilterFourPlusCourtsAccessibility": "4 个以上场地",
   "sessionFilterCourtCountValue": "{count} 个场地",
-  "@sessionFilterCourtCountValue": {"placeholders": {"count": {"type": "int"}}},
+  "@sessionFilterCourtCountValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sessionFiltersSelected": "已选 {count} 个筛选条件",
-  "@sessionFiltersSelected": {"placeholders": {"count": {"type": "int"}}},
+  "@sessionFiltersSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sessionSportBadminton": "羽毛球",
   "sessionSportPickleball": "匹克球",
   "sessionFilterCost": "费用",
@@ -851,16 +943,40 @@
   "notificationUnknownClub": "俱乐部",
   "notificationSessionRequestBadge": "场次",
   "notificationSessionRequestMessage": "申请加入场次“{sessionName}”",
-  "@notificationSessionRequestMessage": {"placeholders": {"sessionName": {"type": "String"}}},
+  "@notificationSessionRequestMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
   "notificationClubRequestBadge": "俱乐部",
   "notificationClubRequestMessage": "申请加入俱乐部“{clubName}”",
-  "@notificationClubRequestMessage": {"placeholders": {"clubName": {"type": "String"}}},
+  "@notificationClubRequestMessage": {
+    "placeholders": {
+      "clubName": {
+        "type": "String"
+      }
+    }
+  },
   "notificationSlotCount": "{count} 个位置",
-  "@notificationSlotCount": {"placeholders": {"count": {"type": "int"}}},
+  "@notificationSlotCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "notificationVenueRequestCreateBadge": "新场馆",
   "notificationVenueRequestUpdateBadge": "场馆更新",
   "notificationVenueRequestMessage": "{name} 提交了场馆请求",
-  "@notificationVenueRequestMessage": {"placeholders": {"name": {"type": "String"}}},
+  "@notificationVenueRequestMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "notificationVenueRequestUntitled": "场馆请求",
   "notificationVenueRequestDetail": "场馆请求",
   "notificationApprove": "批准",
@@ -871,7 +987,13 @@
   "notificationLoadFailed": "无法加载通知。",
   "notificationDeleteConfirmTitle": "删除通知？",
   "notificationDeleteConfirmDescription": "通知“{title}”将被永久删除。是否继续？",
-  "@notificationDeleteConfirmDescription": {"placeholders": {"title": {"type": "String"}}},
+  "@notificationDeleteConfirmDescription": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
   "notificationStartReminderTitle": "即将开始!",
   "notificationStartReminderMessage": "\"{sessionName}\" 即将开始。您到达场地了吗？点击开始。",
   "@notificationStartReminderMessage": {
@@ -1180,9 +1302,24 @@
   "sessionFormGalleryError": "无法加载图片库，请重试。",
   "sessionFormGalleryEmpty": "您的图片库为空。",
   "sessionFormGallerySelection": "已选择 {count}/{max} 张图片",
-  "@sessionFormGallerySelection": {"placeholders": {"count": {"type": "int"}, "max": {"type": "int"}}},
+  "@sessionFormGallerySelection": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "sessionFormGalleryImage": "图库图片 {index}",
-  "@sessionFormGalleryImage": {"placeholders": {"index": {"type": "int"}}},
+  "@sessionFormGalleryImage": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "sessionFormBanner": "封面",
   "sessionFormCourtAppearance": "场地外观",
   "sessionFormSelectCourtColor": "为您的场地选择颜色。",
@@ -1214,9 +1351,21 @@
   "sessionFormAiFailed": "无法分析帖子，请重试。",
   "sessionFormUploadFailed": "无法上传图片，请重试。",
   "sessionFormBulkCreated": "已创建 {count} 个场次",
-  "@sessionFormBulkCreated": {"placeholders": {"count": {"type": "int"}}},
+  "@sessionFormBulkCreated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sessionFormBulkWillCreate": "预计创建场次: {count}",
-  "@sessionFormBulkWillCreate": {"placeholders": {"count": {"type": "int"}}},
+  "@sessionFormBulkWillCreate": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sessionFormValidationLocation": "请选择地点",
   "sessionFormValidationCustomLocation": "地点名称至少需要 2 个字符",
   "sessionFormValidationHost": "请输入主办人姓名",
@@ -1309,7 +1458,13 @@
   "hostManageConfirmReject": "拒绝付款",
   "hostManageActionFailed": "操作失败，请重试。",
   "hostAddPlayerTitle": "添加玩家 ({count})",
-  "@hostAddPlayerTitle": {"placeholders": {"count": {"type": "int"}}},
+  "@hostAddPlayerTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hostAddPlayerNewPlayer": "新玩家",
   "hostAddPlayerSelectExisting": "选择现有玩家（可选）",
   "hostAddPlayerSearchExisting": "按姓名或邮箱搜索",
@@ -1324,18 +1479,48 @@
   "hostAddPlayerClubRequired": "请选择俱乐部",
   "hostAddPlayerNoClubFee": "本月尚无俱乐部配置固定单场费用。",
   "hostAddPlayerClubFeeAmount": "{amount} 越南盾 / 场",
-  "@hostAddPlayerClubFeeAmount": {"placeholders": {"amount": {"type": "String"}}},
+  "@hostAddPlayerClubFeeAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "hostAddPlayerClubFeeHint": "该玩家的付款将采用俱乐部为活动月份配置的固定费用。",
   "hostAddPlayerAddAnother": "添加玩家",
   "hostAddPlayerRemove": "移除玩家",
   "hostAddPlayerSaveAll": "添加 ({count})",
-  "@hostAddPlayerSaveAll": {"placeholders": {"count": {"type": "int"}}},
+  "@hostAddPlayerSaveAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hostAddPlayerAlreadySelected": "已在此活动中或已被选择",
   "hostAddPlayerSuccess": "已成功添加 {count} 名玩家",
-  "@hostAddPlayerSuccess": {"placeholders": {"count": {"type": "int"}}},
+  "@hostAddPlayerSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hostAddPlayerLimitTitle": "玩家上限警告",
   "hostAddPlayerLimitDescription": "当前 {courts} 块场地共有 {current} 名玩家（每块 {perCourt} 名）。继续添加可能增加等待时间和排赛复杂度。",
-  "@hostAddPlayerLimitDescription": {"placeholders": {"current": {"type": "int"}, "courts": {"type": "int"}, "perCourt": {"type": "int"}}},
+  "@hostAddPlayerLimitDescription": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "courts": {
+        "type": "int"
+      },
+      "perCourt": {
+        "type": "int"
+      }
+    }
+  },
   "hostAddPlayerAddAnyway": "仍然添加",
   "hostManageStartRequiresPlayer": "无法开始活动，因为还没有参与者。",
   "hostManageStartSession": "开始活动",
@@ -1371,7 +1556,13 @@
   "hostManageFixedFee": "固定费用",
   "hostManageRecalculate": "重新应用最新费用",
   "hostManageRecalculated": "已更新 {count} 笔付款",
-  "@hostManageRecalculated": {"placeholders": {"count": {"type": "int"}}},
+  "@hostManageRecalculated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hostManageEnableFee": "向球员收费",
   "hostManageFeeType": "费用类型",
   "hostManageSplitDescription": "输入最终总额后，费用将由球员平均分摊。",
@@ -1385,16 +1576,34 @@
   "hostManageUnknownPlayer": "未知球员",
   "hostManageHasProof": "已附凭证",
   "hostManageSlots": "{count} 个名额",
-  "@hostManageSlots": {"placeholders": {"count": {"type": "int"}}},
+  "@hostManageSlots": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hostManageMemberType": "会员类型",
   "hostManageReminderCount": "已提醒 {count} 次",
-  "@hostManageReminderCount": {"placeholders": {"count": {"type": "int"}}},
+  "@hostManageReminderCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hostManageViewAllTransactions": "查看全部交易",
   "hostManageExpenseNameRequired": "请输入支出名称。",
   "hostManageAddAnotherExpense": "添加另一项支出",
   "hostManageDeleteExpenseTitle": "删除支出",
   "hostManageDeleteExpenseMessage": "删除“{name}”？",
-  "@hostManageDeleteExpenseMessage": {"placeholders": {"name": {"type": "String"}}},
+  "@hostManageDeleteExpenseMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sessionExpensesTitle": "活动支出",
   "sessionExpenseAdd": "添加支出",
   "sessionExpenseName": "支出名称",
@@ -1439,7 +1648,9 @@
   "socialImageSelection": "已选择 {count}/5 张图片",
   "@socialImageSelection": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "socialPostDiscardTitle": "放弃动态？",
@@ -1524,11 +1735,29 @@
   "clubAwaitingApproval": "等待审核",
   "clubAdminApprovalTitle": "审核群组",
   "clubHostedBy": "群主：{name}",
-  "@clubHostedBy": {"placeholders": {"name": {"type": "String"}}},
+  "@clubHostedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "clubRequestSubmitted": "提交于 {date}",
-  "@clubRequestSubmitted": {"placeholders": {"date": {"type": "String"}}},
+  "@clubRequestSubmitted": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "clubSessionsPlayed": "已参加 {count} 场",
-  "@clubSessionsPlayed": {"placeholders": {"count": {"type": "int"}}},
+  "@clubSessionsPlayed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "clubJoinRequestDetailTitle": "加入俱乐部申请",
   "sessionJoinRequestDetailTitle": "加入场次申请",
   "joinRequestDetailViewDetail": "查看申请详情",
@@ -1550,7 +1779,13 @@
   "clubWithdrawShort": "撤回",
   "clubWithdrawTitle": "撤回加入申请？",
   "clubWithdrawConfirm": "加入 {name} 的申请将被撤回，之后可再次提交。",
-  "@clubWithdrawConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "@clubWithdrawConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "clubWithdrawSuccess": "已撤回加入申请",
   "clubApprove": "批准",
   "clubReject": "拒绝",
@@ -1606,7 +1841,13 @@
   "tournamentCreateClearLocation": "清除",
   "tournamentCreateLocationSearchTitle": "选择地点",
   "tournamentCreateUseManualLocation": "使用“{location}”",
-  "@tournamentCreateUseManualLocation": {"placeholders": {"location": {"type": "String"}}},
+  "@tournamentCreateUseManualLocation": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
+  },
   "tournamentCreateNextStepsTitle": "稍后继续完善",
   "tournamentCreateNextStepsDescription": "创建后，可在管理页面添加组别、赛制、选手和赛程。",
   "tournamentCreateCancel": "取消",
@@ -1891,14 +2132,32 @@
   "mySessionsPendingRequests": "参加申请",
   "myJoinRequestsTitle": "已提交的请求",
   "myJoinRequestsDescription": "已提交 {count} 个会话请求",
-  "@myJoinRequestsDescription": {"placeholders": {"count": {"type": "int"}}},
+  "@myJoinRequestsDescription": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "myJoinRequestsEmpty": "暂无加入请求",
   "myJoinRequestsEmptyDescription": "您提交的请求会显示在这里。",
   "myJoinRequestsLocationNotUpdated": "地点尚未更新",
   "myJoinRequestsPlayerNumber": "球员 {number}",
-  "@myJoinRequestsPlayerNumber": {"placeholders": {"number": {"type": "int"}}},
+  "@myJoinRequestsPlayerNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "myJoinRequestsLevel": "水平 {level}",
-  "@myJoinRequestsLevel": {"placeholders": {"level": {"type": "int"}}},
+  "@myJoinRequestsLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
   "myJoinRequestsViewSession": "进入会话",
   "myJoinRequestsWithdraw": "撤回请求",
   "myJoinRequestsWithdrawTitle": "撤回请求",
@@ -1907,7 +2166,16 @@
   "myJoinRequestsPrevious": "上一页",
   "myJoinRequestsNext": "下一页",
   "myJoinRequestsPage": "第 {page} / {totalPages} 页",
-  "@myJoinRequestsPage": {"placeholders": {"page": {"type": "int"}, "totalPages": {"type": "int"}}},
+  "@myJoinRequestsPage": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "totalPages": {
+        "type": "int"
+      }
+    }
+  },
   "mySessionsSearchHint": "搜索约球或场馆...",
   "mySessionsEmpty": "没有符合条件的约球",
   "mySessionsHostedEmpty": "你还没有创建任何约球",
@@ -1942,7 +2210,13 @@
   "hostPlayerStatsPointDiff": "场均净胜分",
   "hostPlayerStatsShuttlecocks": "羽毛球数",
   "hostPlayerStatsCount": "{count} 位球员",
-  "@hostPlayerStatsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@hostPlayerStatsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hostPlayerStatsMvp": "MVP",
   "hostPlayerStatsSharedMvp": "并列 MVP",
   "hostPlayerStatsMaleMvp": "男子 MVP",
@@ -1987,7 +2261,16 @@
   "hostPlayerDetailError": "无法加载球员详情。",
   "hostRosterFilter": "筛选",
   "hostRosterTitle": "球员 ({count}/{capacity})",
-  "@hostRosterTitle": {"placeholders": {"count": {"type": "int"}, "capacity": {"type": "int"}}},
+  "@hostRosterTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "capacity": {
+        "type": "int"
+      }
+    }
+  },
   "hostRosterAdd": "添加球员",
   "hostRosterPending": "待审批",
   "hostRosterReject": "拒绝",
@@ -2002,18 +2285,36 @@
   "hostRosterDeletePlayer": "删除球员",
   "hostRosterDeleteTitle": "删除球员？",
   "hostRosterDeleteMessage": "从本场活动中移除{name}？",
-  "@hostRosterDeleteMessage": {"placeholders": {"name": {"type": "String"}}},
+  "@hostRosterDeleteMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "hostRosterEmpty": "暂无球员。",
   "hostRosterEmptyFiltered": "未找到匹配的球员。",
   "hostRosterFilterTitle": "筛选球员",
   "hostRosterClearFilter": "清除筛选",
   "hostRosterApplyFilter": "应用",
   "hostPlayerEditTitle": "编辑球员 #{number}",
-  "@hostPlayerEditTitle": {"placeholders": {"number": {"type": "int"}}},
+  "@hostPlayerEditTitle": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "hostPlayerEditSave": "保存更改",
   "hostPlayerEditSuccess": "球员已更新",
   "hostPlayerStatsMinutes": "{count} 分钟",
-  "@hostPlayerStatsMinutes": {"placeholders": {"count": {"type": "int"}}},
+  "@hostPlayerStatsMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "loginRequired": "需要登录",
   "@loginRequired": {
     "description": "Title of the login required dialog."
@@ -2054,11 +2355,29 @@
   },
   "addressNewBadge": "新",
   "venueGenericName": "{name}场",
-  "@venueGenericName": {"placeholders": {"name": {"type": "String"}}},
+  "@venueGenericName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "venueBadmintonName": "{name}羽毛球场",
-  "@venueBadmintonName": {"placeholders": {"name": {"type": "String"}}},
+  "@venueBadmintonName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "venuePickleballName": "{name}匹克球场",
-  "@venuePickleballName": {"placeholders": {"name": {"type": "String"}}},
+  "@venuePickleballName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "venueAbout": "场馆介绍",
   "venueNoDescription": "暂无介绍。",
   "venueReadMore": "查看更多",
@@ -2103,7 +2422,13 @@
   "venueHoliday": "节假日",
   "venueOtherDay": "其他",
   "venueWeekdayShort": "{day, select, 1{周一} 2{周二} 3{周三} 4{周四} 5{周五} 6{周六} 7{周日} other{?}}",
-  "@venueWeekdayShort": {"placeholders": {"day": {"type": "String"}}},
+  "@venueWeekdayShort": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
   "venueShareText": "在 Vmito 上查看 {name}：{url}",
   "venueRequestSent": "请求已发送。",
   "venueEditTitle": "建议修改场馆信息",
@@ -2257,6 +2582,14 @@
   "leaderboardYou": "你",
   "leaderboardNoMatches": "暂无比赛",
   "leaderboardWinRate": "胜率：{rate}%",
+  "leaderboardWinRateCompact": "胜率 {rate}%",
+  "leaderboardCelebrationTitle": "恭喜！",
+  "leaderboardCelebrationRank": "你在排行榜上排名第 {rank}",
+  "leaderboardCelebrationPoints": "已获得 {points} 分",
+  "leaderboardCelebrationShare": "分享",
+  "leaderboardCelebrationDismiss": "太棒了！",
+  "leaderboardMyRankTitle": "你的位置",
+  "leaderboardMyRankUnranked": "暂无排名",
   "leaderboardMatchRecord": "（{won}/{played} 场）",
   "leaderboardTotalPointsCaption": "总计 {points} 分",
   "leaderboardTierName": "{name}段位",
@@ -2287,10 +2620,25 @@
   "leaderboardViewLeaderboard": "查看排行榜",
   "achievementLoadError": "加载成就失败",
   "achievementRank": "第 {rank} 名",
-  "@achievementRank": {"placeholders": {"rank": {"type": "int"}}},
+  "@achievementRank": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
   "achievementPeriodYear": "本年",
   "achievementToNextTier": "还差 {points} 分升至{tier}",
-  "@achievementToNextTier": {"placeholders": {"points": {"type": "int"}, "tier": {"type": "String"}}},
+  "@achievementToNextTier": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      },
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
   "achievementMaxTier": "你已达到最高段位！",
   "achievementWins": "胜",
   "achievementDraws": "平",
@@ -2318,7 +2666,13 @@
   "menuRoleReferee": "裁判",
   "menuHelpFeedback": "帮助与反馈",
   "menuFooterYear": "© {year}",
-  "@menuFooterYear": {"placeholders": {"year": {"type": "int"}}},
+  "@menuFooterYear": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
   "hostResultsEditMatch": "编辑比赛",
   "hostResultsActions": "比赛操作",
   "hostResultsEditAction": "编辑比赛",
@@ -2338,9 +2692,21 @@
   "hostResultsPair2": "组合 2",
   "hostResultsWinner": "获胜",
   "hostResultsMatchTitle": "第 {number} 场",
-  "@hostResultsMatchTitle": {"placeholders": {"number": {"type": "int"}}},
+  "@hostResultsMatchTitle": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "hostResultsPlayerPosition": "位置 {position}",
-  "@hostResultsPlayerPosition": {"placeholders": {"position": {"type": "int"}}},
+  "@hostResultsPlayerPosition": {
+    "placeholders": {
+      "position": {
+        "type": "int"
+      }
+    }
+  },
   "hostResultsSelectPlayer": "选择球员",
   "hostResultsDuplicatePlayers": "每个位置必须选择不同的球员。",
   "hostResultsInvalidNumber": "请输入不小于 0 的有效数字。",
@@ -2354,7 +2720,13 @@
   "hostResultsFilterPlayers": "按球员筛选",
   "hostResultsAllPlayers": "所有球员",
   "hostResultsSelectedPlayers": "已选择 {count} 名球员",
-  "@hostResultsSelectedPlayers": {"placeholders": {"count": {"type": "int"}}},
+  "@hostResultsSelectedPlayers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "clubBasicInformation": "群组信息",
   "clubNamePlaceholder": "例如：Vmito 羽毛球群组",
   "clubNameTooLong": "群组名称不能超过 50 个字符",
@@ -2370,7 +2742,13 @@
   "clubAboutLocation": "地点",
   "clubRequiredLevels": "要求水平",
   "clubLevelLabel": "水平 {level}",
-  "@clubLevelLabel": {"placeholders": {"level": {"type": "int"}}},
+  "@clubLevelLabel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
   "clubAllLevels": "所有水平",
   "clubDescriptionPlaceholder": "输入群组介绍...",
   "clubDescriptionTooLong": "介绍不能超过 5,000 个字符",
@@ -2536,13 +2914,37 @@
   "citySelectorReset": "重置",
   "citySelectorApply": "应用",
   "citySelectorWardCountWard": "{count} 坊",
-  "@citySelectorWardCountWard": {"placeholders": {"count": {"type": "int"}}},
+  "@citySelectorWardCountWard": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "citySelectorWardCountCommune": "{count} 社",
-  "@citySelectorWardCountCommune": {"placeholders": {"count": {"type": "int"}}},
+  "@citySelectorWardCountCommune": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "citySelectorWardCountSpecialZone": "{count} 特区",
-  "@citySelectorWardCountSpecialZone": {"placeholders": {"count": {"type": "int"}}},
+  "@citySelectorWardCountSpecialZone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "citySelectorWardsSelectedSummary": "已选择 {list}",
-  "@citySelectorWardsSelectedSummary": {"placeholders": {"list": {"type": "String"}}},
+  "@citySelectorWardsSelectedSummary": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
   "cityOnboardingDescription": "选择城市以查看附近的球局和场馆。",
   "cityOnboardingSkip": "跳过并使用胡志明市",
   "tournamentStandingsTitle": "排名",
@@ -2567,19 +2969,64 @@
   "tournamentStandingsRankingsExplanation": "排名按积分排序，然后依次比较净胜分、得分、胜场和已赛场次。总排名会合并当前显示的小组队伍，并按相同规则重新排序。",
   "tournamentStandingsEmptyPlayoffs": "暂无可显示的淘汰赛比赛。",
   "tournamentStandingsMatchNumber": "比赛 {number}",
-  "@tournamentStandingsMatchNumber": {"placeholders": {"number": {"type": "int"}}},
+  "@tournamentStandingsMatchNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentStandingsGroupFallback": "小组 {number}",
-  "@tournamentStandingsGroupFallback": {"placeholders": {"number": {"type": "int"}}},
+  "@tournamentStandingsGroupFallback": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentStandingsGroupNamed": "{name}组",
-  "@tournamentStandingsGroupNamed": {"placeholders": {"name": {"type": "String"}}},
+  "@tournamentStandingsGroupNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "tournamentStandingsTeamsCount": "{count} 支队伍",
-  "@tournamentStandingsTeamsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@tournamentStandingsTeamsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentStandingsWinnerOf": "{match} 胜者",
-  "@tournamentStandingsWinnerOf": {"placeholders": {"match": {"type": "int"}}},
+  "@tournamentStandingsWinnerOf": {
+    "placeholders": {
+      "match": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentStandingsLoserOf": "{match} 负者",
-  "@tournamentStandingsLoserOf": {"placeholders": {"match": {"type": "int"}}},
+  "@tournamentStandingsLoserOf": {
+    "placeholders": {
+      "match": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentStandingsPoolSeed": "{pool}组第{rank}",
-  "@tournamentStandingsPoolSeed": {"placeholders": {"rank": {"type": "String"}, "pool": {"type": "String"}}},
+  "@tournamentStandingsPoolSeed": {
+    "placeholders": {
+      "rank": {
+        "type": "String"
+      },
+      "pool": {
+        "type": "String"
+      }
+    }
+  },
   "tournamentStandingsBye": "轮空",
   "tournamentStandingsTbd": "待定",
   "tournamentStandingsQuarterFinals": "四分之一决赛",
@@ -2590,9 +3037,21 @@
   "tournamentStandingsLowerBracket": "败者组",
   "tournamentStandingsPreQuarterFinals": "预四分之一决赛",
   "tournamentStandingsRoundOf": "{count}强赛",
-  "@tournamentStandingsRoundOf": {"placeholders": {"count": {"type": "int"}}},
+  "@tournamentStandingsRoundOf": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentStandingsLowerRound": "败者组第{number}轮",
-  "@tournamentStandingsLowerRound": {"placeholders": {"number": {"type": "int"}}},
+  "@tournamentStandingsLowerRound": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentStandingsLowerFinal": "败者组决赛",
   "tournamentStandingsGrandFinal": "总决赛",
   "tournamentStandingsIfNecessary": "如有需要",

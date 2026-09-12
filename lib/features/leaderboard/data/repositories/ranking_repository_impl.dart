@@ -30,6 +30,14 @@ class RankingRepositoryImpl implements RankingRepository {
     );
     return unwrap(response.data, LeaderboardPage.fromJson);
   }
+
+  @override
+  Future<MyLeaderboardRanks> myRanks() async {
+    final response = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.leaderboardMe,
+    );
+    return unwrap(response.data, MyLeaderboardRanks.fromJson);
+  }
 }
 
 final rankingRepositoryProvider = Provider<RankingRepository>(

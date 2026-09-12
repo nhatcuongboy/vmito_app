@@ -28,6 +28,16 @@ abstract final class AppRadius {
 /// both platforms, and courts/player chips are dense enough to tempt it.
 abstract final class AppSizes {
   static const double minTapTarget = 48;
+
+  /// Apple HIG's 44pt floor. For secondary controls whose tap area is wide
+  /// enough that the extra 4pt of height buys nothing — never for primary
+  /// actions, which keep [minTapTarget].
+  static const double compactTapTarget = 44;
+
+  /// Row height for a line of secondary controls (period picker + countdown).
+  /// Matches [compactTapTarget] so a control on this row keeps a hittable
+  /// height; the visible pill inside it is deliberately smaller.
+  static const double compactRow = compactTapTarget;
   static const double appBarHeight = 56;
 
   /// `NavigationBar` gives its label no `maxLines`, so a label that wraps is

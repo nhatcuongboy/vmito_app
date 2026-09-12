@@ -1,7 +1,5 @@
 import 'package:vmito_app/features/leaderboard/domain/leaderboard.dart';
 
-// The interface is intentional: controllers can be tested without HTTP.
-// ignore: one_member_abstracts
 abstract interface class RankingRepository {
   Future<LeaderboardPage> leaderboard({
     required LeaderboardPeriod period,
@@ -9,4 +7,8 @@ abstract interface class RankingRepository {
     required int limit,
     String? periodKey,
   });
+
+  /// The signed-in user's rank in every period. Authenticated; current periods
+  /// only.
+  Future<MyLeaderboardRanks> myRanks();
 }

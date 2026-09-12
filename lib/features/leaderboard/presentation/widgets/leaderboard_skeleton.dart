@@ -22,17 +22,17 @@ class LeaderboardSkeleton extends StatelessWidget {
             const Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Expanded(child: _SkeletonBox(height: 174)),
+                Expanded(flex: 30, child: _SkeletonBox(height: 176)),
                 SizedBox(width: AppSpacing.sm),
-                Expanded(child: _SkeletonBox(height: 202)),
+                Expanded(flex: 40, child: _SkeletonBox(height: 216)),
                 SizedBox(width: AppSpacing.sm),
-                Expanded(child: _SkeletonBox(height: 174)),
+                Expanded(flex: 30, child: _SkeletonBox(height: 176)),
               ],
             ),
             const SizedBox(height: AppSpacing.md),
-            for (var index = 0; index < 7; index++) ...[
-              const _SkeletonBox(height: 76),
-              const SizedBox(height: AppSpacing.sm),
+            for (var index = 0; index < 8; index++) ...[
+              const _SkeletonBox(height: 64),
+              const SizedBox(height: 1),
             ],
           ],
         ),

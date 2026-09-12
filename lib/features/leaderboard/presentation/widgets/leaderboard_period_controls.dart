@@ -1,6 +1,3 @@
-import 'dart:async';
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
@@ -9,97 +6,14 @@ import 'package:vmito_app/features/leaderboard/domain/leaderboard.dart';
 import 'package:vmito_app/features/leaderboard/domain/leaderboard_periods.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
-class LeaderboardPeriodTabs extends StatelessWidget {
-  const LeaderboardPeriodTabs({
-    required this.selected,
-    required this.onSelected,
-    super.key,
-  });
-
-  final LeaderboardPeriod selected;
-  final ValueChanged<LeaderboardPeriod> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    final palette = Theme.of(context).extension<AppPalette>()!;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final itemWidth = math.max(constraints.maxWidth / 4, 96);
-        return DecoratedBox(
-          decoration: BoxDecoration(
-            color: palette.muted,
-            border: Border.all(color: palette.border),
-            borderRadius: BorderRadius.circular(AppRadius.pill),
-          ),
-          child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.xs),
-              child: Row(
-                children: [
-                  for (final period in leaderboardPeriods)
-                    SizedBox(
-                      width: itemWidth - 8,
-                      child: _PeriodTab(
-                        period: period,
-                        selected: selected == period,
-                        onTap: () => onSelected(period),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _PeriodTab extends StatelessWidget {
-  const _PeriodTab({
-    required this.period,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final LeaderboardPeriod period;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Material(
-      color: selected ? theme.colorScheme.surface : Colors.transparent,
-      borderRadius: BorderRadius.circular(AppRadius.pill),
-      elevation: selected ? 1 : 0,
-      child: InkWell(
-        key: ValueKey('leaderboard-period-${period.wireValue}'),
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(AppRadius.pill),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: AppSizes.minTapTarget),
-          child: Center(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-              child: Text(
-                periodLabel(AppLocalizations.of(context), period),
-                maxLines: 1,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: selected
-                      ? theme.colorScheme.primary
-                      : theme.extension<AppPalette>()!.mutedForeground,
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
+/// Visible pill height. The tap area around it is [AppSizes.compactTapTarget]
+/// tall, so the control stays hittable at a smaller visual size.
+///
+/// It is filled, not outlined: the countdown beside it is a *filled* chip, and
+/// an outlined control next to a filled one reads as the lesser of the two —
+/// backwards, since this is the interactive element and the countdown is only
+/// information.
+const _pillHeight = 32.0;
 
 class LeaderboardPeriodButton extends StatelessWidget {
   const LeaderboardPeriodButton({
@@ -115,111 +29,76 @@ class LeaderboardPeriodButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final palette = theme.extension<AppPalette>()!;
     final options = recentLeaderboardPeriods(period);
     final selected = options.firstWhere(
       (option) => option.key == periodKey,
       orElse: () => options.first,
     );
-    return OutlinedButton.icon(
+    final radius = BorderRadius.circular(AppRadius.pill);
+    return InkWell(
       key: const ValueKey('leaderboard-period-picker'),
-      onPressed: onTap,
-      iconAlignment: IconAlignment.end,
-      icon: const Icon(AppIcons.arrowDownward, size: 16),
-      label: Text(
-        periodOptionLabel(AppLocalizations.of(context), period, selected),
-      ),
-    );
-  }
-}
-
-class LeaderboardCountdown extends StatefulWidget {
-  const LeaderboardCountdown({
-    required this.endsAt,
-    required this.isCurrent,
-    super.key,
-  });
-
-  final DateTime? endsAt;
-  final bool isCurrent;
-
-  @override
-  State<LeaderboardCountdown> createState() => _LeaderboardCountdownState();
-}
-
-class _LeaderboardCountdownState extends State<LeaderboardCountdown> {
-  Timer? _timer;
-  Duration? _remaining;
-
-  @override
-  void initState() {
-    super.initState();
-    _restart();
-  }
-
-  @override
-  void didUpdateWidget(covariant LeaderboardCountdown oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.endsAt != widget.endsAt ||
-        oldWidget.isCurrent != widget.isCurrent) {
-      _restart();
-    }
-  }
-
-  void _restart() {
-    _timer?.cancel();
-    _tick();
-    if (widget.endsAt != null && widget.isCurrent) {
-      _timer = Timer.periodic(const Duration(minutes: 1), (_) => _tick());
-    }
-  }
-
-  void _tick() {
-    final end = widget.endsAt;
-    final next = end?.difference(DateTime.now());
-    if (mounted) setState(() => _remaining = next);
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final muted = Theme.of(context).extension<AppPalette>()!.mutedForeground;
-    if (widget.endsAt == null) return const SizedBox.shrink();
-    if (!widget.isCurrent) {
-      return Text(
-        l10n.leaderboardCountdownClosed,
-        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: muted),
-      );
-    }
-    final remaining = _remaining;
-    if (remaining == null) return const SizedBox.shrink();
-    final safe = remaining.isNegative ? Duration.zero : remaining;
-    final days = safe.inDays;
-    final value = days > 0
-        ? '${l10n.leaderboardCountdownDays(days)} '
-              '${l10n.leaderboardCountdownHours(safe.inHours % 24)}'
-        : '${l10n.leaderboardCountdownHours(safe.inHours)} '
-              '${l10n.leaderboardCountdownMinutes(safe.inMinutes % 60)}';
-    return Text.rich(
-      TextSpan(
-        children: [
-          TextSpan(
-            text: '${l10n.leaderboardCountdownEndsIn} ',
-            style: TextStyle(color: muted, fontWeight: FontWeight.w400),
+      onTap: onTap,
+      borderRadius: radius,
+      child: SizedBox(
+        height: AppSizes.compactTapTarget,
+        child: Center(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              color: palette.brandSurface,
+              border: Border.all(
+                color: theme.colorScheme.primary.withValues(alpha: .30),
+              ),
+              borderRadius: radius,
+            ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: _pillHeight),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      AppIcons.calendar,
+                      size: 14,
+                      color: theme.colorScheme.primary,
+                    ),
+                    const SizedBox(width: 5),
+                    // Period labels vary in length ("Tuần này" vs "Tháng
+                    // 12/2026"); let the label give way instead of the row
+                    // overflowing at large text scales.
+                    Flexible(
+                      child: Text(
+                        periodOptionLabel(
+                          AppLocalizations.of(context),
+                          period,
+                          selected,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: AppSpacing.xxs),
+                    Icon(
+                      AppIcons.chevronDown,
+                      size: 16,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ],
+                ),
+              ),
+            ),
           ),
-          TextSpan(
-            text: value,
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
-        ],
+        ),
       ),
-      textAlign: TextAlign.end,
-      style: Theme.of(context).textTheme.bodySmall,
     );
   }
 }

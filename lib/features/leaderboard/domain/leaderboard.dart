@@ -135,3 +135,50 @@ class LeaderboardPage {
   final int totalPages;
   final List<LeaderboardEntry> entries;
 }
+
+/// One row of `GET /leaderboard/me`. `rank` is null when the user has no point
+/// transactions in the period at all.
+class MyPeriodRank {
+  const MyPeriodRank({
+    required this.period,
+    required this.points,
+    this.rank,
+  });
+
+  factory MyPeriodRank.fromJson(Map<String, dynamic> json) => MyPeriodRank(
+    period: LeaderboardPeriod.fromWire(json['period'] as String?),
+    points: (json['points'] as num?)?.toInt() ?? 0,
+    rank: (json['rank'] as num?)?.toInt(),
+  );
+
+  final LeaderboardPeriod period;
+  final int points;
+  final int? rank;
+}
+
+/// `GET /leaderboard/me` answers for every period at once, and only ever for
+/// the *current* one — `LeaderboardService.getUserRank` derives its window from
+/// `periodStart(period)` and takes no `periodKey`. There is no tier in this
+/// payload either, so callers that fall back to it cannot show a tier badge.
+class MyLeaderboardRanks {
+  const MyLeaderboardRanks({required this.sport, required this.ranks});
+
+  factory MyLeaderboardRanks.fromJson(Map<String, dynamic> json) =>
+      MyLeaderboardRanks(
+        sport: json['sport'] as String? ?? 'BADMINTON',
+        ranks: (json['ranks'] as List<dynamic>? ?? const [])
+            .whereType<Map<String, dynamic>>()
+            .map(MyPeriodRank.fromJson)
+            .toList(growable: false),
+      );
+
+  final String sport;
+  final List<MyPeriodRank> ranks;
+
+  MyPeriodRank? forPeriod(LeaderboardPeriod period) {
+    for (final rank in ranks) {
+      if (rank.period == period) return rank;
+    }
+    return null;
+  }
+}

@@ -416,7 +416,13 @@
   "homeSearchRemoveHistory": "Remove from history",
   "homeSearchNoRecent": "No recent searches yet.",
   "homeSearchForQuery": "Search for ‘{query}’",
-  "@homeSearchForQuery": {"placeholders": {"query": {"type": "String"}}},
+  "@homeSearchForQuery": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
   "homeSearchNoSuggestions": "No matching suggestions. You can still search for this term.",
   "homeSearchSuggestionsFailed": "Suggestions could not be loaded. You can still search for this term.",
   "homeSearchExitResults": "Exit search results",
@@ -426,15 +432,33 @@
   "homeSearchHintTournaments": "Search tournaments",
   "homeSearchSeeAll": "See all",
   "homeSearchSeeAllCount": "See all ({count})",
-  "@homeSearchSeeAllCount": {"placeholders": {"count": {"type": "int"}}},
+  "@homeSearchSeeAllCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "homeSearchShowLess": "Show less",
   "homeSearchSeeAllResults": "See all results for ‘{query}’",
-  "@homeSearchSeeAllResults": {"placeholders": {"query": {"type": "String"}}},
+  "@homeSearchSeeAllResults": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
   "homeSearchSuggestionsLabel": "Suggestions",
   "homeSearchFeaturedSessions": "Upcoming sessions with open spots",
   "homeSearchFeaturedVenuesNearby": "Venues near you",
   "homeSearchFeaturedVenuesInCity": "Venues in {city}",
-  "@homeSearchFeaturedVenuesInCity": {"placeholders": {"city": {"type": "String"}}},
+  "@homeSearchFeaturedVenuesInCity": {
+    "placeholders": {
+      "city": {
+        "type": "String"
+      }
+    }
+  },
   "homeSearchFeaturedVenues": "Explore venues",
   "homeSearchFeaturedClubs": "Featured groups",
   "homeSearchFeaturedTournaments": "Upcoming tournaments",
@@ -448,9 +472,21 @@
   "tournamentDetailTitle": "Tournament details",
   "tournamentDetailNotFound": "This tournament could not be found.",
   "tournamentDetailTeams": "{count} teams",
-  "@tournamentDetailTeams": {"placeholders": {"count": {"type": "int"}}},
+  "@tournamentDetailTeams": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentDetailAthletes": "{count} athletes",
-  "@tournamentDetailAthletes": {"placeholders": {"count": {"type": "int"}}},
+  "@tournamentDetailAthletes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentDetailPulseLive": "Match in progress",
   "tournamentDetailPulseNext": "Next match",
   "tournamentDetailPulseFinished": "The tournament has concluded",
@@ -465,9 +501,21 @@
   "tournamentDetailCategories": "Categories",
   "tournamentDetailNoCategories": "No categories yet.",
   "tournamentDetailCategoryTeams": "{count} teams",
-  "@tournamentDetailCategoryTeams": {"placeholders": {"count": {"type": "int"}}},
+  "@tournamentDetailCategoryTeams": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentDetailCategoryPlayers": "{count} athletes",
-  "@tournamentDetailCategoryPlayers": {"placeholders": {"count": {"type": "int"}}},
+  "@tournamentDetailCategoryPlayers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentDetailCompetitionInfo": "Competition rules",
   "tournamentDetailCompetitionSubtitle": "View formats, scoring and ranking rules.",
   "tournamentDetailRoundRobin": "Round robin",
@@ -475,7 +523,19 @@
   "tournamentDetailRoundRobinPlayoff": "Round robin + playoffs",
   "tournamentDetailDoubleElimination": "Double elimination",
   "tournamentDetailPoints": "Win {win} · Tie {tie} · Loss {loss}",
-  "@tournamentDetailPoints": {"placeholders": {"win": {"type": "int"}, "tie": {"type": "int"}, "loss": {"type": "int"}}},
+  "@tournamentDetailPoints": {
+    "placeholders": {
+      "win": {
+        "type": "int"
+      },
+      "tie": {
+        "type": "int"
+      },
+      "loss": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentDetailTiebreakers": "Tiebreaker order",
   "tournamentDetailTiebreakerTotalPoints": "Total points",
   "tournamentDetailTiebreakerGameDifferential": "Game differential",
@@ -483,7 +543,13 @@
   "tournamentDetailTiebreakerPointDifferential": "Point differential",
   "tournamentDetailPlayoff": "Playoffs",
   "tournamentDetailThirdPlace": "Third-place match: {value}",
-  "@tournamentDetailThirdPlace": {"placeholders": {"value": {"type": "String"}}},
+  "@tournamentDetailThirdPlace": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
   "tournamentDetailYes": "Yes",
   "tournamentDetailNo": "No",
   "tournamentDetailChampions": "Champions",
@@ -492,7 +558,13 @@
   "tournamentDetailPodiumInProgress": "Results are still being decided.",
   "tournamentDetailPodiumEmpty": "No results yet.",
   "tournamentDetailRank": "Rank {rank}",
-  "@tournamentDetailRank": {"placeholders": {"rank": {"type": "int"}}},
+  "@tournamentDetailRank": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentDetailTied": "Tied",
   "tournamentDetailVenues": "Venues",
   "tournamentDetailDirections": "Directions",
@@ -636,7 +708,9 @@
   "sessionHostRatingCount": "Based on {count} ratings",
   "@sessionHostRatingCount": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "sessionViewDetails": "View Details",
@@ -809,16 +883,34 @@
   "sessionFilterCity": "Province / City",
   "sessionFilterDistricts": "Ward / Commune / Special zone",
   "sessionFilterSelectedCount": "{count} selected",
-  "@sessionFilterSelectedCount": {"placeholders": {"count": {"type": "int"}}},
+  "@sessionFilterSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sessionFilterNoDistricts": "No ward data is available for this area.",
   "sessionFilterSport": "Sport",
   "sessionFilterCourtCount": "Courts",
   "sessionFilterFourPlusCourts": "4+ courts",
   "sessionFilterFourPlusCourtsAccessibility": "4 or more courts",
   "sessionFilterCourtCountValue": "{count, plural, =1{1 court} other{{count} courts}}",
-  "@sessionFilterCourtCountValue": {"placeholders": {"count": {"type": "int"}}},
+  "@sessionFilterCourtCountValue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sessionFiltersSelected": "{count} filters",
-  "@sessionFiltersSelected": {"placeholders": {"count": {"type": "int"}}},
+  "@sessionFiltersSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sessionSportBadminton": "Badminton",
   "sessionSportPickleball": "Pickleball",
   "sessionFilterCost": "Cost",
@@ -852,16 +944,40 @@
   "notificationUnknownClub": "Club",
   "notificationSessionRequestBadge": "Session",
   "notificationSessionRequestMessage": "Request to join session “{sessionName}”",
-  "@notificationSessionRequestMessage": {"placeholders": {"sessionName": {"type": "String"}}},
+  "@notificationSessionRequestMessage": {
+    "placeholders": {
+      "sessionName": {
+        "type": "String"
+      }
+    }
+  },
   "notificationClubRequestBadge": "Club",
   "notificationClubRequestMessage": "Request to join “{clubName}”",
-  "@notificationClubRequestMessage": {"placeholders": {"clubName": {"type": "String"}}},
+  "@notificationClubRequestMessage": {
+    "placeholders": {
+      "clubName": {
+        "type": "String"
+      }
+    }
+  },
   "notificationSlotCount": "{count} slots",
-  "@notificationSlotCount": {"placeholders": {"count": {"type": "int"}}},
+  "@notificationSlotCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "notificationVenueRequestCreateBadge": "New venue",
   "notificationVenueRequestUpdateBadge": "Venue update",
   "notificationVenueRequestMessage": "{name} submitted a venue request",
-  "@notificationVenueRequestMessage": {"placeholders": {"name": {"type": "String"}}},
+  "@notificationVenueRequestMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "notificationVenueRequestUntitled": "Venue request",
   "notificationVenueRequestDetail": "Venue request",
   "notificationApprove": "Approve",
@@ -872,7 +988,13 @@
   "notificationLoadFailed": "Notifications could not be loaded.",
   "notificationDeleteConfirmTitle": "Delete notification?",
   "notificationDeleteConfirmDescription": "The notification “{title}” will be permanently deleted. Do you want to continue?",
-  "@notificationDeleteConfirmDescription": {"placeholders": {"title": {"type": "String"}}},
+  "@notificationDeleteConfirmDescription": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
   "notificationStartReminderTitle": "Session starting soon!",
   "notificationStartReminderMessage": "It's time for session \"{sessionName}\". Are you at the venue? Tap to start.",
   "@notificationStartReminderMessage": {
@@ -1181,9 +1303,24 @@
   "sessionFormGalleryError": "Could not load your image gallery. Please try again.",
   "sessionFormGalleryEmpty": "Your image gallery is empty.",
   "sessionFormGallerySelection": "Selected {count}/{max} images",
-  "@sessionFormGallerySelection": {"placeholders": {"count": {"type": "int"}, "max": {"type": "int"}}},
+  "@sessionFormGallerySelection": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
   "sessionFormGalleryImage": "Gallery image {index}",
-  "@sessionFormGalleryImage": {"placeholders": {"index": {"type": "int"}}},
+  "@sessionFormGalleryImage": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
   "sessionFormBanner": "Cover",
   "sessionFormCourtAppearance": "Court appearance",
   "sessionFormSelectCourtColor": "Select the color for your courts.",
@@ -1215,9 +1352,21 @@
   "sessionFormAiFailed": "Could not analyze the post. Please try again.",
   "sessionFormUploadFailed": "Could not upload the image. Please try again.",
   "sessionFormBulkCreated": "Created {count} sessions",
-  "@sessionFormBulkCreated": {"placeholders": {"count": {"type": "int"}}},
+  "@sessionFormBulkCreated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sessionFormBulkWillCreate": "Sessions to create: {count}",
-  "@sessionFormBulkWillCreate": {"placeholders": {"count": {"type": "int"}}},
+  "@sessionFormBulkWillCreate": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "sessionFormValidationLocation": "Please select a location",
   "sessionFormValidationCustomLocation": "Location name must contain at least 2 characters",
   "sessionFormValidationHost": "Please enter the host name",
@@ -1310,7 +1459,13 @@
   "hostManageConfirmReject": "Reject payment",
   "hostManageActionFailed": "Could not complete the action. Please try again.",
   "hostAddPlayerTitle": "Add Players ({count})",
-  "@hostAddPlayerTitle": {"placeholders": {"count": {"type": "int"}}},
+  "@hostAddPlayerTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hostAddPlayerNewPlayer": "New Player",
   "hostAddPlayerSelectExisting": "Select existing player (optional)",
   "hostAddPlayerSearchExisting": "Search by name or email",
@@ -1325,18 +1480,48 @@
   "hostAddPlayerClubRequired": "Please select a club",
   "hostAddPlayerNoClubFee": "No club has a fixed per-session fee configured for this month.",
   "hostAddPlayerClubFeeAmount": "{amount} VND / session",
-  "@hostAddPlayerClubFeeAmount": {"placeholders": {"amount": {"type": "String"}}},
+  "@hostAddPlayerClubFeeAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
   "hostAddPlayerClubFeeHint": "This player's payment will use the club's fixed fee for the session month.",
   "hostAddPlayerAddAnother": "Add Player",
   "hostAddPlayerRemove": "Remove player",
   "hostAddPlayerSaveAll": "Add ({count})",
-  "@hostAddPlayerSaveAll": {"placeholders": {"count": {"type": "int"}}},
+  "@hostAddPlayerSaveAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hostAddPlayerAlreadySelected": "Already in this session or selected",
   "hostAddPlayerSuccess": "Added {count} player(s) successfully",
-  "@hostAddPlayerSuccess": {"placeholders": {"count": {"type": "int"}}},
+  "@hostAddPlayerSuccess": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hostAddPlayerLimitTitle": "Player Limit Warning",
   "hostAddPlayerLimitDescription": "You currently have {current} players for {courts} courts ({perCourt} players per court). Adding more players can increase waiting times and scheduling complexity.",
-  "@hostAddPlayerLimitDescription": {"placeholders": {"current": {"type": "int"}, "courts": {"type": "int"}, "perCourt": {"type": "int"}}},
+  "@hostAddPlayerLimitDescription": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "courts": {
+        "type": "int"
+      },
+      "perCourt": {
+        "type": "int"
+      }
+    }
+  },
   "hostAddPlayerAddAnyway": "Add Anyway",
   "hostManageStartRequiresPlayer": "Cannot start the session because it has no players.",
   "hostManageStartSession": "Start session",
@@ -1372,7 +1557,13 @@
   "hostManageFixedFee": "Fixed fee",
   "hostManageRecalculate": "Reapply latest fees",
   "hostManageRecalculated": "Updated {count} payments",
-  "@hostManageRecalculated": {"placeholders": {"count": {"type": "int"}}},
+  "@hostManageRecalculated": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hostManageEnableFee": "Charge players",
   "hostManageFeeType": "Fee type",
   "hostManageSplitDescription": "The total cost will be split evenly after you enter the final amount.",
@@ -1386,16 +1577,34 @@
   "hostManageUnknownPlayer": "Unknown player",
   "hostManageHasProof": "Proof attached",
   "hostManageSlots": "{count} slots",
-  "@hostManageSlots": {"placeholders": {"count": {"type": "int"}}},
+  "@hostManageSlots": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hostManageMemberType": "Member type",
   "hostManageReminderCount": "Reminded {count} times",
-  "@hostManageReminderCount": {"placeholders": {"count": {"type": "int"}}},
+  "@hostManageReminderCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hostManageViewAllTransactions": "View all transactions",
   "hostManageExpenseNameRequired": "Enter an expense name.",
   "hostManageAddAnotherExpense": "Add another expense",
   "hostManageDeleteExpenseTitle": "Delete expense",
   "hostManageDeleteExpenseMessage": "Delete “{name}”?",
-  "@hostManageDeleteExpenseMessage": {"placeholders": {"name": {"type": "String"}}},
+  "@hostManageDeleteExpenseMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sessionExpensesTitle": "Session expenses",
   "sessionExpenseAdd": "Add expense",
   "sessionExpenseName": "Expense name",
@@ -1440,7 +1649,9 @@
   "socialImageSelection": "{count}/5 images selected",
   "@socialImageSelection": {
     "placeholders": {
-      "count": { "type": "int" }
+      "count": {
+        "type": "int"
+      }
     }
   },
   "socialPostDiscardTitle": "Discard post?",
@@ -1525,11 +1736,29 @@
   "clubAwaitingApproval": "Awaiting approval",
   "clubAdminApprovalTitle": "Group approval",
   "clubHostedBy": "Hosted by: {name}",
-  "@clubHostedBy": {"placeholders": {"name": {"type": "String"}}},
+  "@clubHostedBy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "clubRequestSubmitted": "Submitted {date}",
-  "@clubRequestSubmitted": {"placeholders": {"date": {"type": "String"}}},
+  "@clubRequestSubmitted": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
   "clubSessionsPlayed": "Played {count} sessions",
-  "@clubSessionsPlayed": {"placeholders": {"count": {"type": "int"}}},
+  "@clubSessionsPlayed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "clubJoinRequestDetailTitle": "Group join request",
   "sessionJoinRequestDetailTitle": "Session join request",
   "joinRequestDetailViewDetail": "View request detail",
@@ -1551,7 +1780,13 @@
   "clubWithdrawShort": "Withdraw",
   "clubWithdrawTitle": "Withdraw join request?",
   "clubWithdrawConfirm": "Your request to join {name} will be withdrawn. You can submit another request later.",
-  "@clubWithdrawConfirm": {"placeholders": {"name": {"type": "String"}}},
+  "@clubWithdrawConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "clubWithdrawSuccess": "Join request withdrawn",
   "clubApprove": "Approve",
   "clubReject": "Reject",
@@ -1607,7 +1842,13 @@
   "tournamentCreateClearLocation": "Clear",
   "tournamentCreateLocationSearchTitle": "Choose a location",
   "tournamentCreateUseManualLocation": "Use “{location}”",
-  "@tournamentCreateUseManualLocation": {"placeholders": {"location": {"type": "String"}}},
+  "@tournamentCreateUseManualLocation": {
+    "placeholders": {
+      "location": {
+        "type": "String"
+      }
+    }
+  },
   "tournamentCreateNextStepsTitle": "Finish the Setup Later",
   "tournamentCreateNextStepsDescription": "After creating the tournament, add categories, formats, players, and schedules from the management page.",
   "tournamentCreateCancel": "Cancel",
@@ -1892,14 +2133,32 @@
   "mySessionsPendingRequests": "Join requests",
   "myJoinRequestsTitle": "Submitted requests",
   "myJoinRequestsDescription": "{count} session request(s) submitted",
-  "@myJoinRequestsDescription": {"placeholders": {"count": {"type": "int"}}},
+  "@myJoinRequestsDescription": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "myJoinRequestsEmpty": "No join requests yet",
   "myJoinRequestsEmptyDescription": "Requests you submit will appear here.",
   "myJoinRequestsLocationNotUpdated": "Location not updated",
   "myJoinRequestsPlayerNumber": "Player {number}",
-  "@myJoinRequestsPlayerNumber": {"placeholders": {"number": {"type": "int"}}},
+  "@myJoinRequestsPlayerNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "myJoinRequestsLevel": "Level {level}",
-  "@myJoinRequestsLevel": {"placeholders": {"level": {"type": "int"}}},
+  "@myJoinRequestsLevel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
   "myJoinRequestsViewSession": "View session",
   "myJoinRequestsWithdraw": "Withdraw request",
   "myJoinRequestsWithdrawTitle": "Withdraw request",
@@ -1908,7 +2167,16 @@
   "myJoinRequestsPrevious": "Previous",
   "myJoinRequestsNext": "Next",
   "myJoinRequestsPage": "Page {page} / {totalPages}",
-  "@myJoinRequestsPage": {"placeholders": {"page": {"type": "int"}, "totalPages": {"type": "int"}}},
+  "@myJoinRequestsPage": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "totalPages": {
+        "type": "int"
+      }
+    }
+  },
   "pendingRequestsEmptySub": "Join requests from other players will appear here.",
   "mySessionsSearchHint": "Search matches or venues...",
   "mySessionsEmpty": "No matching sessions",
@@ -1944,7 +2212,13 @@
   "hostPlayerStatsPointDiff": "Avg. point diff",
   "hostPlayerStatsShuttlecocks": "Shuttlecocks",
   "hostPlayerStatsCount": "{count} players",
-  "@hostPlayerStatsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@hostPlayerStatsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "hostPlayerStatsMvp": "MVP",
   "hostPlayerStatsSharedMvp": "Shared MVP",
   "hostPlayerStatsMaleMvp": "Male MVP",
@@ -1989,7 +2263,16 @@
   "hostPlayerDetailError": "Could not load player details.",
   "hostRosterFilter": "Filter",
   "hostRosterTitle": "Players ({count}/{capacity})",
-  "@hostRosterTitle": {"placeholders": {"count": {"type": "int"}, "capacity": {"type": "int"}}},
+  "@hostRosterTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "capacity": {
+        "type": "int"
+      }
+    }
+  },
   "hostRosterAdd": "Add player",
   "hostRosterPending": "Pending approval",
   "hostRosterReject": "Reject",
@@ -2004,18 +2287,36 @@
   "hostRosterDeletePlayer": "Delete player",
   "hostRosterDeleteTitle": "Delete player?",
   "hostRosterDeleteMessage": "Remove {name} from this session?",
-  "@hostRosterDeleteMessage": {"placeholders": {"name": {"type": "String"}}},
+  "@hostRosterDeleteMessage": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "hostRosterEmpty": "No players yet.",
   "hostRosterEmptyFiltered": "No matching players found.",
   "hostRosterFilterTitle": "Filter players",
   "hostRosterClearFilter": "Clear filters",
   "hostRosterApplyFilter": "Apply",
   "hostPlayerEditTitle": "Edit player #{number}",
-  "@hostPlayerEditTitle": {"placeholders": {"number": {"type": "int"}}},
+  "@hostPlayerEditTitle": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "hostPlayerEditSave": "Save changes",
   "hostPlayerEditSuccess": "Player updated",
   "hostPlayerStatsMinutes": "{count} min",
-  "@hostPlayerStatsMinutes": {"placeholders": {"count": {"type": "int"}}},
+  "@hostPlayerStatsMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "loginRequired": "Login Required",
   "@loginRequired": {
     "description": "Title of the login required dialog."
@@ -2056,11 +2357,29 @@
   },
   "addressNewBadge": "New",
   "venueGenericName": "{name} Court",
-  "@venueGenericName": {"placeholders": {"name": {"type": "String"}}},
+  "@venueGenericName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "venueBadmintonName": "{name} Badminton Court",
-  "@venueBadmintonName": {"placeholders": {"name": {"type": "String"}}},
+  "@venueBadmintonName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "venuePickleballName": "{name} Pickleball Court",
-  "@venuePickleballName": {"placeholders": {"name": {"type": "String"}}},
+  "@venuePickleballName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "venueAbout": "About the venue",
   "venueNoDescription": "No description yet.",
   "venueReadMore": "Read more",
@@ -2105,7 +2424,13 @@
   "venueHoliday": "Holiday",
   "venueOtherDay": "Other",
   "venueWeekdayShort": "{day, select, 1{Mon} 2{Tue} 3{Wed} 4{Thu} 5{Fri} 6{Sat} 7{Sun} other{?}}",
-  "@venueWeekdayShort": {"placeholders": {"day": {"type": "String"}}},
+  "@venueWeekdayShort": {
+    "placeholders": {
+      "day": {
+        "type": "String"
+      }
+    }
+  },
   "venueShareText": "Discover {name} on Vmito: {url}",
   "venueRequestSent": "Request sent.",
   "venueEditTitle": "Suggest venue edits",
@@ -2243,24 +2568,81 @@
   "leaderboardCurrentMonth": "This month",
   "leaderboardCurrentSeason": "This season",
   "leaderboardWeekLabel": "Week {week}",
-  "@leaderboardWeekLabel": {"placeholders": {"week": {"type": "int"}}},
+  "@leaderboardWeekLabel": {
+    "placeholders": {
+      "week": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardMonthLabel": "Month {month}/{year}",
-  "@leaderboardMonthLabel": {"placeholders": {"month": {"type": "int"}, "year": {"type": "int"}}},
+  "@leaderboardMonthLabel": {
+    "placeholders": {
+      "month": {
+        "type": "int"
+      },
+      "year": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardSpringLabel": "Spring {year}",
-  "@leaderboardSpringLabel": {"placeholders": {"year": {"type": "int"}}},
+  "@leaderboardSpringLabel": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardSummerLabel": "Summer {year}",
-  "@leaderboardSummerLabel": {"placeholders": {"year": {"type": "int"}}},
+  "@leaderboardSummerLabel": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardAutumnLabel": "Autumn {year}",
-  "@leaderboardAutumnLabel": {"placeholders": {"year": {"type": "int"}}},
+  "@leaderboardAutumnLabel": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardWinterLabel": "Winter {year}",
-  "@leaderboardWinterLabel": {"placeholders": {"year": {"type": "int"}}},
+  "@leaderboardWinterLabel": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardCountdownEndsIn": "Ends in:",
   "leaderboardCountdownDays": "{count}d",
-  "@leaderboardCountdownDays": {"placeholders": {"count": {"type": "int"}}},
+  "@leaderboardCountdownDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardCountdownHours": "{count}h",
-  "@leaderboardCountdownHours": {"placeholders": {"count": {"type": "int"}}},
+  "@leaderboardCountdownHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardCountdownMinutes": "{count}m",
-  "@leaderboardCountdownMinutes": {"placeholders": {"count": {"type": "int"}}},
+  "@leaderboardCountdownMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardCountdownClosed": "Closed",
   "leaderboardEmptyTitle": "No ranking data yet",
   "leaderboardEmptyDescription": "Join and finish a few matches to appear on this leaderboard.",
@@ -2268,13 +2650,74 @@
   "leaderboardYou": "You",
   "leaderboardNoMatches": "No matches yet",
   "leaderboardWinRate": "Win rate: {rate}%",
-  "@leaderboardWinRate": {"placeholders": {"rate": {"type": "int"}}},
+  "@leaderboardWinRate": {
+    "placeholders": {
+      "rate": {
+        "type": "int"
+      }
+    }
+  },
+  "leaderboardWinRateCompact": "{rate}% win",
+  "@leaderboardWinRateCompact": {
+    "placeholders": {
+      "rate": {
+        "type": "int"
+      }
+    }
+  },
+  "leaderboardCelebrationTitle": "Congratulations!",
+  "@leaderboardCelebrationTitle": {},
+  "leaderboardCelebrationRank": "You're #{rank} on the leaderboard",
+  "@leaderboardCelebrationRank": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
+  "leaderboardCelebrationPoints": "{points} points earned",
+  "@leaderboardCelebrationPoints": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "leaderboardCelebrationShare": "Share",
+  "@leaderboardCelebrationShare": {},
+  "leaderboardCelebrationDismiss": "Awesome!",
+  "@leaderboardCelebrationDismiss": {},
+  "leaderboardMyRankTitle": "Your position",
+  "@leaderboardMyRankTitle": {},
+  "leaderboardMyRankUnranked": "Not ranked yet",
+  "@leaderboardMyRankUnranked": {},
   "leaderboardMatchRecord": "({won}/{played} matches)",
-  "@leaderboardMatchRecord": {"placeholders": {"won": {"type": "int"}, "played": {"type": "int"}}},
+  "@leaderboardMatchRecord": {
+    "placeholders": {
+      "won": {
+        "type": "int"
+      },
+      "played": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardTotalPointsCaption": "{points} total points",
-  "@leaderboardTotalPointsCaption": {"placeholders": {"points": {"type": "int"}}},
+  "@leaderboardTotalPointsCaption": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardTierName": "{name} tier",
-  "@leaderboardTierName": {"placeholders": {"name": {"type": "String"}}},
+  "@leaderboardTierName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "leaderboardTierBronze": "Bronze",
   "leaderboardTierSilver": "Silver",
   "leaderboardTierGold": "Gold",
@@ -2287,7 +2730,13 @@
   "leaderboardRulesTournamentGroup": "Tournaments",
   "leaderboardRulesTierGroup": "Ranking tiers",
   "leaderboardRulesFromPoints": "From {points} points",
-  "@leaderboardRulesFromPoints": {"placeholders": {"points": {"type": "int"}}},
+  "@leaderboardRulesFromPoints": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
   "leaderboardRulesNote": "Point values may be adjusted as the ranking system evolves.",
   "leaderboardReasonSessionWin": "Win a session match",
   "leaderboardReasonSessionDraw": "Draw a session match",
@@ -2303,10 +2752,25 @@
   "leaderboardViewLeaderboard": "View leaderboard",
   "achievementLoadError": "Failed to load achievements",
   "achievementRank": "Rank {rank}",
-  "@achievementRank": {"placeholders": {"rank": {"type": "int"}}},
+  "@achievementRank": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      }
+    }
+  },
   "achievementPeriodYear": "Year",
   "achievementToNextTier": "{points} pts to reach {tier}",
-  "@achievementToNextTier": {"placeholders": {"points": {"type": "int"}, "tier": {"type": "String"}}},
+  "@achievementToNextTier": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      },
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
   "achievementMaxTier": "You reached the highest tier!",
   "achievementWins": "Wins",
   "achievementDraws": "Draws",
@@ -2324,7 +2788,19 @@
   "achievementReasonAdjustment": "Adjustment",
   "achievementReasonSessionHosted": "Hosted a session",
   "leaderboardRankSemantics": "Rank {rank}, {name}, {points} points",
-  "@leaderboardRankSemantics": {"placeholders": {"rank": {"type": "int"}, "name": {"type": "String"}, "points": {"type": "int"}}},
+  "@leaderboardRankSemantics": {
+    "placeholders": {
+      "rank": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      },
+      "points": {
+        "type": "int"
+      }
+    }
+  },
   "authSignOutConfirmation": "Are you sure you want to sign out?",
   "menuExplore": "Explore",
   "menuManage": "Manage",
@@ -2335,7 +2811,13 @@
   "menuRoleReferee": "Referee",
   "menuHelpFeedback": "Help and feedback",
   "menuFooterYear": "© {year}",
-  "@menuFooterYear": {"placeholders": {"year": {"type": "int"}}},
+  "@menuFooterYear": {
+    "placeholders": {
+      "year": {
+        "type": "int"
+      }
+    }
+  },
   "hostResultsEditMatch": "Edit match",
   "hostResultsActions": "Match actions",
   "hostResultsEditAction": "Edit match",
@@ -2355,9 +2837,21 @@
   "hostResultsPair2": "Pair 2",
   "hostResultsWinner": "Winner",
   "hostResultsMatchTitle": "Match {number}",
-  "@hostResultsMatchTitle": {"placeholders": {"number": {"type": "int"}}},
+  "@hostResultsMatchTitle": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "hostResultsPlayerPosition": "Position {position}",
-  "@hostResultsPlayerPosition": {"placeholders": {"position": {"type": "int"}}},
+  "@hostResultsPlayerPosition": {
+    "placeholders": {
+      "position": {
+        "type": "int"
+      }
+    }
+  },
   "hostResultsSelectPlayer": "Select player",
   "hostResultsDuplicatePlayers": "Each position must have a different player.",
   "hostResultsInvalidNumber": "Enter a valid number no less than 0.",
@@ -2371,7 +2865,13 @@
   "hostResultsFilterPlayers": "Filter by player",
   "hostResultsAllPlayers": "All players",
   "hostResultsSelectedPlayers": "{count} players selected",
-  "@hostResultsSelectedPlayers": {"placeholders": {"count": {"type": "int"}}},
+  "@hostResultsSelectedPlayers": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "clubBasicInformation": "Group information",
   "clubNamePlaceholder": "For example: Vmito badminton group",
   "clubNameTooLong": "Group name must be 50 characters or fewer",
@@ -2387,7 +2887,13 @@
   "clubAboutLocation": "Location",
   "clubRequiredLevels": "Required skill levels",
   "clubLevelLabel": "Level {level}",
-  "@clubLevelLabel": {"placeholders": {"level": {"type": "int"}}},
+  "@clubLevelLabel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
   "clubAllLevels": "All levels",
   "clubDescriptionPlaceholder": "Describe the group...",
   "clubDescriptionTooLong": "Description must be 5,000 characters or fewer",
@@ -2553,13 +3059,37 @@
   "citySelectorReset": "Reset",
   "citySelectorApply": "Apply",
   "citySelectorWardCountWard": "{count} ward",
-  "@citySelectorWardCountWard": {"placeholders": {"count": {"type": "int"}}},
+  "@citySelectorWardCountWard": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "citySelectorWardCountCommune": "{count} commune",
-  "@citySelectorWardCountCommune": {"placeholders": {"count": {"type": "int"}}},
+  "@citySelectorWardCountCommune": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "citySelectorWardCountSpecialZone": "{count} special zone",
-  "@citySelectorWardCountSpecialZone": {"placeholders": {"count": {"type": "int"}}},
+  "@citySelectorWardCountSpecialZone": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "citySelectorWardsSelectedSummary": "Selected {list}",
-  "@citySelectorWardsSelectedSummary": {"placeholders": {"list": {"type": "String"}}},
+  "@citySelectorWardsSelectedSummary": {
+    "placeholders": {
+      "list": {
+        "type": "String"
+      }
+    }
+  },
   "cityOnboardingDescription": "Choose a city to see nearby sessions and venues.",
   "cityOnboardingSkip": "Skip and use Ho Chi Minh City",
   "tournamentStandingsTitle": "Standings",
@@ -2584,19 +3114,64 @@
   "tournamentStandingsRankingsExplanation": "Standings are sorted by points, then point difference, points for, wins, and matches played. Overall combines the teams in the visible pools and ranks them again using the same order.",
   "tournamentStandingsEmptyPlayoffs": "There are no playoff matches to show yet.",
   "tournamentStandingsMatchNumber": "Match {number}",
-  "@tournamentStandingsMatchNumber": {"placeholders": {"number": {"type": "int"}}},
+  "@tournamentStandingsMatchNumber": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentStandingsGroupFallback": "Group {number}",
-  "@tournamentStandingsGroupFallback": {"placeholders": {"number": {"type": "int"}}},
+  "@tournamentStandingsGroupFallback": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentStandingsGroupNamed": "Group {name}",
-  "@tournamentStandingsGroupNamed": {"placeholders": {"name": {"type": "String"}}},
+  "@tournamentStandingsGroupNamed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "tournamentStandingsTeamsCount": "{count} teams",
-  "@tournamentStandingsTeamsCount": {"placeholders": {"count": {"type": "int"}}},
+  "@tournamentStandingsTeamsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentStandingsWinnerOf": "Winner of {match}",
-  "@tournamentStandingsWinnerOf": {"placeholders": {"match": {"type": "int"}}},
+  "@tournamentStandingsWinnerOf": {
+    "placeholders": {
+      "match": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentStandingsLoserOf": "Loser of {match}",
-  "@tournamentStandingsLoserOf": {"placeholders": {"match": {"type": "int"}}},
+  "@tournamentStandingsLoserOf": {
+    "placeholders": {
+      "match": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentStandingsPoolSeed": "{rank} Pool {pool}",
-  "@tournamentStandingsPoolSeed": {"placeholders": {"rank": {"type": "String"}, "pool": {"type": "String"}}},
+  "@tournamentStandingsPoolSeed": {
+    "placeholders": {
+      "rank": {
+        "type": "String"
+      },
+      "pool": {
+        "type": "String"
+      }
+    }
+  },
   "tournamentStandingsBye": "BYE",
   "tournamentStandingsTbd": "TBD",
   "tournamentStandingsQuarterFinals": "Quarter Finals",
@@ -2607,9 +3182,21 @@
   "tournamentStandingsLowerBracket": "Lower Bracket",
   "tournamentStandingsPreQuarterFinals": "Pre-Quarter Finals",
   "tournamentStandingsRoundOf": "Round of {count}",
-  "@tournamentStandingsRoundOf": {"placeholders": {"count": {"type": "int"}}},
+  "@tournamentStandingsRoundOf": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentStandingsLowerRound": "Lower Bracket R{number}",
-  "@tournamentStandingsLowerRound": {"placeholders": {"number": {"type": "int"}}},
+  "@tournamentStandingsLowerRound": {
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
   "tournamentStandingsLowerFinal": "Lower Bracket Finals",
   "tournamentStandingsGrandFinal": "Grand Final",
   "tournamentStandingsIfNecessary": "If Necessary",

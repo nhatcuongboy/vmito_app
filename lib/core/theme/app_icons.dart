@@ -108,6 +108,7 @@ abstract final class AppIcons {
   static const IconData star = LucideIcons.star;
   static const IconData trophy = LucideIcons.trophy;
   static const IconData award = LucideIcons.award;
+  static const IconData crown = LucideIcons.crown;
   static const IconData layers = LucideIcons.layers;
   static const IconData gavel = LucideIcons.gavel;
   static const IconData sparkles = LucideIcons.sparkles;

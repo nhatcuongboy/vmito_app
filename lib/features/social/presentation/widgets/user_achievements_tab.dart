@@ -12,6 +12,7 @@ import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/core/widgets/emoji_safe_text.dart';
 import 'package:vmito_app/features/leaderboard/presentation/widgets/points_rules_sheet.dart';
+import 'package:vmito_app/features/leaderboard/presentation/widgets/rank_visuals.dart';
 import 'package:vmito_app/features/leaderboard/presentation/widgets/tier_badge.dart';
 import 'package:vmito_app/features/social/application/achievement_share_service.dart';
 import 'package:vmito_app/features/social/data/profile_tabs_service.dart';
@@ -245,7 +246,7 @@ class _AchievementHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final visuals = tierVisuals[data.tier]!;
+    final visuals = tierVisualsFor(Theme.of(context).brightness, data.tier);
     final l10n = AppLocalizations.of(context);
     final progress = data.nextTier == null
         ? 1.0
@@ -706,7 +707,8 @@ class _AchievementShareCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final visuals = tierVisuals[data.tier]!;
+    // The share card always rasterizes on white, so it keeps the light tier.
+    final visuals = tierVisualsFor(Brightness.light, data.tier);
     final shareStats = [
       (l10n.achievementWins, data.stats.wins),
       (l10n.achievementLosses, data.stats.losses),
@@ -766,7 +768,10 @@ class _AchievementShareCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: AppSpacing.sm),
-                    TierBadge(tier: data.tier),
+                    TierBadge(
+                      tier: data.tier,
+                      brightness: Brightness.light,
+                    ),
                     const SizedBox(height: AppSpacing.sm),
                     Text(
                       '${data.totalPoints}',
