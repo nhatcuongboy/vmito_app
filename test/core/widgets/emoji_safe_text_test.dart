@@ -3,37 +3,30 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vmito_app/core/widgets/emoji_safe_text.dart';
 
 void main() {
-  test('keeps regular text separate from emoji font spans', () {
-    final spans = emojiSafeTextSpans('Khải 🦈 2️⃣');
-
-    expect(spans, hasLength(4));
-    expect((spans.first as TextSpan).text, 'Khải ');
-    expect((spans.first as TextSpan).style?.fontFamily, isNull);
-    expect((spans[1] as TextSpan).text, '🦈');
-    expect((spans.last as TextSpan).text, '2️⃣');
-    expect(
-      (spans.last as TextSpan).style?.fontFamily,
-      appEmojiFontFamily,
-    );
-    expect((spans.last as TextSpan).style?.fontWeight, FontWeight.w400);
-  });
-
-  testWidgets('renders an emoji user name without changing app typography', (
+  testWidgets('leaves emoji rendering to the platform fallback font', (
     tester,
   ) async {
+    const name = 'Host To Mồm 🏸🔥';
+
     await tester.pumpWidget(
       const MaterialApp(
         home: Scaffold(
           body: EmojiSafeText(
-            'Khải 🦈',
+            name,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
+            style: TextStyle(fontWeight: FontWeight.w600),
           ),
         ),
       ),
     );
 
-    expect(find.text('Khải 🦈', findRichText: true), findsOneWidget);
+    final text = tester.widget<Text>(find.text(name));
+
+    expect(text.data, name);
+    expect(text.style?.fontFamily, isNull);
+    expect(text.style?.fontFamilyFallback, isNull);
+    expect(text.style?.fontWeight, FontWeight.w600);
     expect(tester.takeException(), isNull);
   });
 }
