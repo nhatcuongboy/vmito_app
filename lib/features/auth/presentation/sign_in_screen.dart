@@ -254,9 +254,13 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
         ],
       ),
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          // Align(topCenter) instead of Center: centers the form horizontally
+          // without vertically centering short content in the viewport,
+          // which was pushing the logo far down the screen on tall devices.
+          child: Align(
+            alignment: Alignment.topCenter,
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
               child: AppReactiveForm<Object>(
@@ -264,13 +268,17 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    const SizedBox(height: AppSpacing.xl),
                     Center(
                       child: AppLogo(
-                        height: 78,
+                        height: 100,
+                        axis: Axis.vertical,
+                        vmitoFontSize: 48,
+                        sloganFontSize: 11,
                         semanticLabel: l10n.appName,
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.xl),
+                    const SizedBox(height: AppSpacing.xxl),
 
                     if (biometricOffer != null) ...[
                       BiometricAccountCard(

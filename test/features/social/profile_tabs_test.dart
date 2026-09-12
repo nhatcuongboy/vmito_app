@@ -1,9 +1,11 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vmito_app/features/leaderboard/domain/leaderboard.dart';
 import 'package:vmito_app/features/social/domain/profile_tabs.dart';
 import 'package:vmito_app/features/social/domain/social_post.dart';
 import 'package:vmito_app/features/social/presentation/public_profile_screen.dart';
 import 'package:vmito_app/features/social/presentation/widgets/profile_header_geometry.dart';
+import 'package:vmito_app/l10n/app_localizations.dart';
 
 void main() {
   group('ProfileHeaderGeometry', () {
@@ -178,8 +180,49 @@ void main() {
     expect(page.posts[2].originalPost?.id, 'original-1');
   });
 
-  test('favorite tab is not present in the profile', () {
-    expect(publicProfileTabLabels(), hasLength(5));
-    expect(publicProfileTabLabels(), isNot(contains('Yêu thích')));
+  testWidgets('profile tab labels follow the active locale', (tester) async {
+    late AppLocalizations vietnamese;
+    late AppLocalizations english;
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('vi'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) {
+            vietnamese = AppLocalizations.of(context);
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
+    );
+    expect(publicProfileTabLabels(vietnamese), [
+      'Bài viết',
+      'Thành tích',
+      'Kèo đã host',
+      'Nhóm',
+      'Đánh giá',
+    ]);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Builder(
+          builder: (context) {
+            english = AppLocalizations.of(context);
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
+    );
+    expect(publicProfileTabLabels(english), [
+      'Posts',
+      'Achievements',
+      'Hosted sessions',
+      'Groups',
+      'Reviews',
+    ]);
   });
 }

@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
+import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
@@ -91,6 +93,7 @@ class _HostRosterTabState extends ConsumerState<HostRosterTab> {
                 const SizedBox(height: AppSpacing.xs),
                 for (final player in pending)
                   _PendingPlayerCard(
+                    sessionId: widget.session.id,
                     player: player,
                     onApprove: () => unawaited(
                       controller.updateRegistration(player.id, approved: true),
@@ -256,10 +259,12 @@ class _HostRosterTabState extends ConsumerState<HostRosterTab> {
 
 class _PendingPlayerCard extends StatelessWidget {
   const _PendingPlayerCard({
+    required this.sessionId,
     required this.player,
     required this.onApprove,
     required this.onReject,
   });
+  final String sessionId;
   final SessionPlayer player;
   final VoidCallback onApprove;
   final VoidCallback onReject;
@@ -267,6 +272,9 @@ class _PendingPlayerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Card(
     child: ListTile(
+      onTap: () => context.push(
+        AppRoutes.sessionJoinRequestDetail(sessionId, player.id),
+      ),
       leading: const CircleAvatar(child: Icon(AppIcons.userPlus)),
       title: Text(
         player.displayName ?? AppLocalizations.of(context).playerName(player),

@@ -35,6 +35,30 @@ import 'package:vmito_app/features/venue/presentation/venue_filter_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_paginated_list_view.dart';
 
+/// Opens the location selector from the toolbar chip, picks [city] from the
+/// province picker, and applies.
+Future<void> _pickDiscoveryCity(WidgetTester tester, String city) async {
+  await tester.tap(find.byKey(const Key('discovery-city-selector')));
+  await tester.pumpAndSettle();
+  await tester.tap(find.byKey(const Key('city-selector-province-field')));
+  await tester.pumpAndSettle();
+  await tester.tap(find.widgetWithText(ListTile, city));
+  await tester.pumpAndSettle();
+  await tester.tap(find.byKey(const Key('city-selector-apply')));
+  await tester.pumpAndSettle();
+}
+
+/// Opens the location selector from the toolbar chip, selects "Khu vực
+/// khác", and applies.
+Future<void> _pickDiscoveryOtherArea(WidgetTester tester) async {
+  await tester.tap(find.byKey(const Key('discovery-city-selector')));
+  await tester.pumpAndSettle();
+  await tester.tap(find.byKey(const Key('city-selector-other')));
+  await tester.pumpAndSettle();
+  await tester.tap(find.byKey(const Key('city-selector-apply')));
+  await tester.pumpAndSettle();
+}
+
 void main() {
   for (final entry in <String, ThemeData>{
     'light': AppTheme.light,
@@ -393,7 +417,7 @@ void main() {
               sortIcon: AppIcons.calendarClock,
               onSort: () {},
               onFilter: () {},
-              onCityChanged: (_) {},
+              onCityChanged: (_, __) {},
             ),
           ),
         ),
@@ -648,10 +672,7 @@ void main() {
     await tester.pump();
     expect(_FakeSessionsController.mapLoads, 1);
 
-    await tester.tap(find.byKey(const Key('discovery-city-selector')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('discovery-city-Hà Nội')));
-    await tester.pumpAndSettle();
+    await _pickDiscoveryCity(tester, 'Hà Nội');
 
     expect(find.text('Danh sách'), findsOneWidget);
     expect(_FakeSessionsController.lastFilters?.city, 'Hà Nội');
@@ -710,10 +731,7 @@ void main() {
       await tester.pump();
 
       // 1. Sessions tab (default): select "Khác"
-      await tester.tap(find.byKey(const Key('discovery-city-selector')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('discovery-city-other')));
-      await tester.pumpAndSettle();
+      await _pickDiscoveryOtherArea(tester);
 
       expect(_FakeSessionsController.lastFilters?.city, isNull);
       expect(_FakeSessionsController.lastFilters?.cityIsDefault, isTrue);
@@ -721,48 +739,30 @@ void main() {
       // 2. Venues tab: switch tab, select Hà Nội, then select "Khác"
       await tester.tap(find.text('Tìm sân'));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('discovery-city-selector')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('discovery-city-Hà Nội')));
-      await tester.pumpAndSettle();
+      await _pickDiscoveryCity(tester, 'Hà Nội');
       expect(_SearchVenuesController.lastFilter?.city, 'Hà Nội');
 
-      await tester.tap(find.byKey(const Key('discovery-city-selector')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('discovery-city-other')));
-      await tester.pumpAndSettle();
+      await _pickDiscoveryOtherArea(tester);
       expect(_SearchVenuesController.lastFilter?.city, isNull);
       expect(_SearchVenuesController.lastFilter?.cityIsDefault, isTrue);
 
       // 3. Clubs tab: switch tab, select Hà Nội, then select "Khác"
       await tester.tap(find.text('Tìm nhóm'));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('discovery-city-selector')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('discovery-city-Hà Nội')));
-      await tester.pumpAndSettle();
+      await _pickDiscoveryCity(tester, 'Hà Nội');
       expect(_FakeClubsController.lastFilters?.city, 'Hà Nội');
 
-      await tester.tap(find.byKey(const Key('discovery-city-selector')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('discovery-city-other')));
-      await tester.pumpAndSettle();
+      await _pickDiscoveryOtherArea(tester);
       expect(_FakeClubsController.lastFilters?.city, isNull);
       expect(_FakeClubsController.lastFilters?.cityIsDefault, isTrue);
 
       // 4. Tournaments tab: switch tab, select Hà Nội, then select "Khác"
       await tester.tap(find.text('Tìm giải'));
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('discovery-city-selector')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('discovery-city-Hà Nội')));
-      await tester.pumpAndSettle();
+      await _pickDiscoveryCity(tester, 'Hà Nội');
       expect(_FakeTournamentsController.lastCity, 'Hà Nội');
 
-      await tester.tap(find.byKey(const Key('discovery-city-selector')));
-      await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('discovery-city-other')));
-      await tester.pumpAndSettle();
+      await _pickDiscoveryOtherArea(tester);
       expect(_FakeTournamentsController.lastCity, isNull);
       expect(_FakeTournamentsController.lastClearCity, isTrue);
     },
@@ -1217,10 +1217,11 @@ class _HomeLocationPreferencesController extends LocationPreferencesController {
   );
 
   @override
-  Future<void> selectCity(String? city) async {
+  Future<void> selectCity(String? city, {Set<String> wards = const {}}) async {
     state = state.copyWith(
       preferredCity: city,
       clearPreferredCity: city == null,
+      preferredWards: wards,
       selectionType: city == null
           ? LocationSelectionType.all
           : LocationSelectionType.city,

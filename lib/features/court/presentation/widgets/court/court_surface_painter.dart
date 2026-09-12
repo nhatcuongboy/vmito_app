@@ -112,24 +112,25 @@ class CourtSurfacePainter extends CustomPainter {
   // `0xff18181b` was close enough in luminance to disappear into it.
   Color get _background => switch (status) {
     CourtStatus.inUse => courtColor ?? const Color(0xff179a3b),
-    CourtStatus.ready => isDark
-        ? const Color(0xFF422006)
-        : const Color(0xfffef3c7),
-    CourtStatus.empty => isDark
-        ? const Color(0xFF27272A)
-        : const Color(0xffe6e6e6),
+    CourtStatus.ready =>
+      isDark ? const Color(0xFF422006) : const Color(0xfffef3c7),
+    CourtStatus.empty =>
+      isDark ? const Color(0xFF27272A) : const Color(0xffe6e6e6),
   };
 
   Color get _borderColor => switch (status) {
-    CourtStatus.ready => isDark
-        ? const Color(0xFFEAB308) // yellow.500, solid — matches the slot dot
-        : const Color(0xfffacc15), // yellow.400
-    CourtStatus.inUse => isDark
-        ? const Color(0x4dffffff) // whiteAlpha.300 — same as light
-        : const Color(0x4dffffff), // whiteAlpha.300
-    CourtStatus.empty => isDark
-        ? const Color(0xFF52525B) // zinc.600 — same as the slot dot
-        : const Color(0xffe4e4e7), // border
+    CourtStatus.ready =>
+      isDark
+          ? const Color(0xFFEAB308) // yellow.500, solid — matches the slot dot
+          : const Color(0xfffacc15), // yellow.400
+    CourtStatus.inUse =>
+      isDark
+          ? const Color(0x4dffffff) // whiteAlpha.300 — same as light
+          : const Color(0x4dffffff), // whiteAlpha.300
+    CourtStatus.empty =>
+      isDark
+          ? const Color(0xFF52525B) // zinc.600 — same as the slot dot
+          : const Color(0xffe4e4e7), // border
   };
 
   @override

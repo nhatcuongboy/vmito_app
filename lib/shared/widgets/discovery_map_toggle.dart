@@ -24,7 +24,8 @@ class DiscoveryMapToggle extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final label = showMap ? l10n.discoveryMapShowList : l10n.discoveryMapShow;
     final icon = showMap ? AppIcons.list : AppIcons.mapPin;
-    final backgroundColor = palette?.brandSurface ??
+    final backgroundColor =
+        palette?.brandSurface ??
         (theme.brightness == Brightness.dark
             ? const Color(0xFF183028)
             : const Color(0xFFE2F3E8));

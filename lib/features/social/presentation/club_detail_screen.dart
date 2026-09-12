@@ -215,11 +215,19 @@ class _ClubDetailState extends ConsumerState<_ClubDetail>
                   icon: AppIcons.share,
                   tooltip: l10n.commonShare,
                   pinned: _isPinned,
-                  onPressed: () => SharePlus.instance.share(
-                    ShareParams(
-                      text: 'https://vmito.com/clubs/${club.slug ?? club.id}',
-                    ),
-                  ),
+                  onPressed: () {
+                    final box = context.findRenderObject();
+                    SharePlus.instance.share(
+                      ShareParams(
+                        text: 'https://vmito.com/clubs/${club.slug ?? club.id}',
+                        // iPad anchors the share sheet to the tapped rect;
+                        // without it the sheet throws rather than opening.
+                        sharePositionOrigin: box is RenderBox
+                            ? box.localToGlobal(Offset.zero) & box.size
+                            : null,
+                      ),
+                    );
+                  },
                 ),
               ),
               if (isMember)

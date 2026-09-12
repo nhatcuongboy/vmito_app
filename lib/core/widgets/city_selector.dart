@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
@@ -11,6 +12,8 @@ import 'package:vmito_app/l10n/app_localizations.dart';
 
 export 'package:vmito_app/core/widgets/city_onboarding_dialog.dart';
 
+typedef LocationChanged = void Function(String? city, Set<String> wards);
+
 /// Compact entry point for the device-wide discovery city preference.
 class CitySelector extends ConsumerWidget {
   const CitySelector({
@@ -20,7 +23,7 @@ class CitySelector extends ConsumerWidget {
     super.key,
   });
 
-  final ValueChanged<String?>? onChanged;
+  final LocationChanged? onChanged;
   final bool showLabel;
   final double labelMaxWidth;
 
@@ -89,7 +92,7 @@ class CitySelector extends ConsumerWidget {
     final notifier = ref.read(locationPreferencesControllerProvider.notifier);
     switch (result.type) {
       case LocationSelectionType.city:
-        await notifier.selectCity(result.city);
+        await notifier.selectCity(result.city, wards: result.wards);
       case LocationSelectionType.all:
         await notifier.selectAll();
       case LocationSelectionType.other:
@@ -97,9 +100,13 @@ class CitySelector extends ConsumerWidget {
     }
     if (before.onboardingCompleted &&
         before.selectionType == result.type &&
-        before.preferredCity == result.city) {
+        before.preferredCity == result.city &&
+        const SetEquality<String>().equals(
+          before.preferredWards,
+          result.wards,
+        )) {
       return;
     }
-    onChanged?.call(result.city);
+    onChanged?.call(result.city, result.wards);
   }
 }

@@ -65,8 +65,6 @@ class ClubBrowseFilters {
       levels.isEmpty;
 
   int get activeCount =>
-      (city != null && !cityIsDefault ? 1 : 0) +
-      (districts.isEmpty ? 0 : 1) +
       (activeDays.isEmpty ? 0 : 1) +
       (activePeriods.isEmpty ? 0 : 1) +
       (levels.isEmpty ? 0 : 1);
@@ -88,9 +86,11 @@ class ClubBrowseFilters {
     levels: levels ?? this.levels,
   );
 
-  /// Clears every filter except the ambient preferred city.
-  ClubBrowseFilters reset({String? preferredCity}) =>
-      ClubBrowseFilters(city: preferredCity);
+  /// Clears every filter except the ambient preferred city/wards.
+  ClubBrowseFilters reset({
+    String? preferredCity,
+    Set<String> preferredDistricts = const {},
+  }) => ClubBrowseFilters(city: preferredCity, districts: preferredDistricts);
 
   @override
   bool operator ==(Object other) =>

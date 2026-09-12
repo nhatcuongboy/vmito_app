@@ -136,11 +136,13 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
     _form.markAllAsTouched();
     if (_form.invalid || _form.pending) return;
     final selectedCity = _value<String>(BrowseFilterControl.city);
+    final selectedDistricts =
+        _value<Set<String>>(BrowseFilterControl.districts) ?? const {};
     final locNotifier = ref.read(
       locationPreferencesControllerProvider.notifier,
     );
     if (selectedCity != null && selectedCity.trim().isNotEmpty) {
-      unawaited(locNotifier.selectCity(selectedCity));
+      unawaited(locNotifier.selectCity(selectedCity, wards: selectedDistricts));
     } else {
       unawaited(locNotifier.selectAll());
     }
@@ -149,8 +151,12 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
 
   void _reset() {
     if (_isLocating) return;
-    final city = ref.read(locationPreferencesControllerProvider).preferredCity;
-    final reset = widget.initial.reset(preferredCity: city);
+    final preference = ref.read(locationPreferencesControllerProvider);
+    final city = preference.preferredCity;
+    final reset = widget.initial.reset(
+      preferredCity: city,
+      preferredDistricts: preference.preferredWards,
+    );
     _coordinates = null;
     _form.reset(
       value: {
@@ -160,7 +166,7 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
         BrowseFilterControl.nearMe: false,
         BrowseFilterControl.source: SessionSource.all,
         BrowseFilterControl.city: reset.city,
-        BrowseFilterControl.districts: <String>{},
+        BrowseFilterControl.districts: reset.districts,
         BrowseFilterControl.sports: <SessionSport>{},
         BrowseFilterControl.courtCount: null,
         BrowseFilterControl.levels: <int>{},
@@ -174,7 +180,7 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
       locationPreferencesControllerProvider.notifier,
     );
     if (city != null && city.trim().isNotEmpty) {
-      unawaited(locNotifier.selectCity(city));
+      unawaited(locNotifier.selectCity(city, wards: reset.districts));
     } else {
       unawaited(locNotifier.selectAll());
     }
@@ -502,9 +508,7 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                   districtsControlName: BrowseFilterControl.districts,
                   cities: cities,
                   units: units,
-                  selectedCount:
-                      pending.districts.length +
-                      (pending.city != null && !pending.cityIsDefault ? 1 : 0),
+                  selectedCount: 0,
                   cityPickerKey: const Key('session-filter-city'),
                   districtPickerKey: const Key('session-filter-districts'),
                 ),
@@ -766,8 +770,6 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
     if (!mounted || result == null) return;
     control.value = result is DateTime ? result : null;
   }
-
-
 }
 
 String _timeRangeLabel(AppLocalizations l10n, SessionTimeRange value) =>

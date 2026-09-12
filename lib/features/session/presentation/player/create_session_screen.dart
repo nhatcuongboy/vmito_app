@@ -281,23 +281,23 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
         SessionFormField.name => [SessionFormControl.name],
         SessionFormField.venue => [SessionFormControl.venueId],
         SessionFormField.customLocation => [
-            SessionFormControl.customLocationName,
-          ],
+          SessionFormControl.customLocationName,
+        ],
         SessionFormField.hostName => [SessionFormControl.hostName],
         SessionFormField.hostPhone => [SessionFormControl.hostPhone],
         SessionFormField.startTime => [
-            SessionFormControl.startTimeOfDay,
-            SessionFormControl.multiDayStart,
-          ],
+          SessionFormControl.startTimeOfDay,
+          SessionFormControl.multiDayStart,
+        ],
         SessionFormField.endTime => [
-            SessionFormControl.endTimeOfDay,
-            SessionFormControl.multiDayEnd,
-          ],
+          SessionFormControl.endTimeOfDay,
+          SessionFormControl.multiDayEnd,
+        ],
         SessionFormField.courts => [SessionFormControl.courts],
         SessionFormField.maxPlayersPerCourt => [SessionFormControl.maxPlayers],
         SessionFormField.referenceVideoUrl => [
-            SessionFormControl.referenceVideo,
-          ],
+          SessionFormControl.referenceVideo,
+        ],
       };
       for (final name in controls) {
         try {
@@ -325,7 +325,6 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
       }
     });
   }
-
 
   Future<void> _showVenuePicker() async {
     final l10n = AppLocalizations.of(context);
@@ -1218,7 +1217,8 @@ class _BasicSection extends StatelessWidget {
                         child: Switch.adaptive(
                           key: const Key('custom-location-switch'),
                           value: custom,
-                          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
                           onChanged: canEditVenue
                               ? (value) => control.value = value
                                     ? SessionLocationKind.custom
@@ -1237,8 +1237,8 @@ class _BasicSection extends StatelessWidget {
                         final hasValue = rawLabel?.isNotEmpty ?? false;
                         final displayLabel = hasValue
                             ? (rawLabel!.trim().toLowerCase().startsWith('sân')
-                                ? rawLabel.trim()
-                                : 'Sân ${rawLabel.trim()}')
+                                  ? rawLabel.trim()
+                                  : 'Sân ${rawLabel.trim()}')
                             : l10n.sessionFormSelectVenue;
 
                         return InkWell(
@@ -1273,8 +1273,10 @@ class _BasicSection extends StatelessWidget {
                                 color: canEditVenue
                                     ? Theme.of(context).colorScheme.onSurface
                                     : Theme.of(
-                                        context,
-                                      ).extension<AppPalette>()!.mutedForeground,
+                                            context,
+                                          )
+                                          .extension<AppPalette>()!
+                                          .mutedForeground,
                               ),
                             ),
                           ),
@@ -1288,8 +1290,9 @@ class _BasicSection extends StatelessWidget {
                         if (sublabel == null || sublabel.trim().isEmpty) {
                           return const SizedBox.shrink();
                         }
-                        final palette =
-                            Theme.of(context).extension<AppPalette>()!;
+                        final palette = Theme.of(
+                          context,
+                        ).extension<AppPalette>()!;
                         return Padding(
                           key: const Key('venue-sublabel'),
                           padding: const EdgeInsets.only(
@@ -1308,9 +1311,7 @@ class _BasicSection extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   sublabel,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
+                                  style: Theme.of(context).textTheme.bodySmall
                                       ?.copyWith(
                                         color: palette.mutedForeground,
                                       ),
@@ -1321,8 +1322,7 @@ class _BasicSection extends StatelessWidget {
                         );
                       },
                     ),
-                  ]
-                  else
+                  ] else
                     Container(
                       key: const Key('custom-location-fields'),
                       padding: const EdgeInsets.all(AppSpacing.md),
@@ -1737,7 +1737,9 @@ class _TimeSection extends StatelessWidget {
                     key: const Key('multi-day-switch'),
                     value: control.value ?? false,
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    onChanged: enabled ? (value) => control.value = value : null,
+                    onChanged: enabled
+                        ? (value) => control.value = value
+                        : null,
                   ),
                 ),
               ],
@@ -2197,13 +2199,13 @@ class _FeeSection extends StatelessWidget {
                             ? AppIcons.chevronUp
                             : AppIcons.chevronDown,
                         color: enabled
-                            ? Theme.of(context)
-                                .extension<AppPalette>()!
-                                .mutedForeground
+                            ? Theme.of(
+                                context,
+                              ).extension<AppPalette>()!.mutedForeground
                             : Theme.of(context)
-                                .extension<AppPalette>()!
-                                .mutedForeground
-                                .withValues(alpha: 0.4),
+                                  .extension<AppPalette>()!
+                                  .mutedForeground
+                                  .withValues(alpha: 0.4),
                         size: 20,
                       ),
                     ),
@@ -2456,16 +2458,14 @@ class _BulkSection extends StatelessWidget {
                               final mode = modeControl.value;
                               final subtext = enabled
                                   ? (mode == BulkCreationMode.recurringWeekdays
-                                      ? l10n.sessionFormRecurring
-                                      : l10n.sessionFormSpecificDates)
+                                        ? l10n.sessionFormRecurring
+                                        : l10n.sessionFormSpecificDates)
                                   : l10n.sessionFormBulkDisabled;
                               return Text(
                                 subtext,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
+                                style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
                                       color: palette.mutedForeground,
                                     ),
@@ -2595,26 +2595,25 @@ class _BulkSessionCountText extends StatelessWidget {
 
     return ReactiveFormConsumer(
       builder: (context, formGroup, _) {
-        final mode = formGroup.control(SessionFormControl.bulkMode).value
+        final mode =
+            formGroup.control(SessionFormControl.bulkMode).value
                 as BulkCreationMode? ??
             BulkCreationMode.specificDates;
-        final dates = formGroup.control(SessionFormControl.bulkDates).value
+        final dates =
+            formGroup.control(SessionFormControl.bulkDates).value
                 as List<DateTime>? ??
             const [];
-        final weekdays = formGroup
-                .control(SessionFormControl.bulkWeekdays)
-                .value as List<int>? ??
+        final weekdays =
+            formGroup.control(SessionFormControl.bulkWeekdays).value
+                as List<int>? ??
             const [];
-        final weeks = formGroup
-                .control(SessionFormControl.bulkWeeks)
-                .value as int? ??
-            1;
+        final weeks =
+            formGroup.control(SessionFormControl.bulkWeeks).value as int? ?? 1;
 
         final safeWeeks = (weeks > 0) ? weeks : 0;
         final count = switch (mode) {
           BulkCreationMode.specificDates => dates.length,
-          BulkCreationMode.recurringWeekdays =>
-            weekdays.length * safeWeeks,
+          BulkCreationMode.recurringWeekdays => weekdays.length * safeWeeks,
         };
 
         return Padding(
@@ -2701,8 +2700,8 @@ class _SpecificDateFields extends StatelessWidget {
                   'Chưa chọn ngày nào',
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: palette.mutedForeground,
-                      ),
+                    color: palette.mutedForeground,
+                  ),
                 ),
               ),
             ],
@@ -2763,8 +2762,8 @@ class _RecurringFields extends StatelessWidget {
         Text(
           'Chọn các thứ trong tuần:',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: palette.mutedForeground,
-              ),
+            color: palette.mutedForeground,
+          ),
         ),
         const SizedBox(height: AppSpacing.xs),
         ReactiveValueListenableBuilder<List<int>>(

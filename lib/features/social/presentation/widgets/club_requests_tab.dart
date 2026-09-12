@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
@@ -65,6 +67,9 @@ class _RequestCard extends ConsumerWidget {
           children: [
             ListTile(
               contentPadding: EdgeInsets.zero,
+              onTap: () => context.push(
+                AppRoutes.clubJoinRequestDetail(clubId, request.id),
+              ),
               leading: UserAvatar(
                 name: request.userName,
                 imageUrl: request.userImage,

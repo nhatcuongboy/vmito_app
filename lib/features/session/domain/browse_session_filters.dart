@@ -103,8 +103,6 @@ class BrowseSessionFilters {
       (hasSlots ? 1 : 0) +
       (nearMe ? 1 : 0) +
       (source == SessionSource.all ? 0 : 1) +
-      (city == null || cityIsDefault ? 0 : 1) +
-      (districts.isEmpty ? 0 : 1) +
       (hasCustomFeeRange ? 1 : 0) +
       (splitEvenly ? 1 : 0) +
       (venueId == null ? 0 : 1);
@@ -158,9 +156,13 @@ class BrowseSessionFilters {
     sort: sort ?? this.sort,
   );
 
-  BrowseSessionFilters reset({String? preferredCity}) => BrowseSessionFilters(
+  BrowseSessionFilters reset({
+    String? preferredCity,
+    Set<String> preferredDistricts = const {},
+  }) => BrowseSessionFilters(
     search: search,
     city: preferredCity,
+    districts: preferredDistricts,
     venueId: venueId,
     venueName: venueName,
     sort: sort,

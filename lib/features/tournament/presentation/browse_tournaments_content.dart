@@ -109,6 +109,13 @@ class _BrowseTournamentsContentState
       child: Column(
         children: [
           ?widget.discoveryHeader,
+          if (!_showMap)
+            SizedBox(
+              height: 2,
+              child: state.isRefetching
+                  ? const LinearProgressIndicator()
+                  : null,
+            ),
           Expanded(
             child: Stack(
               children: [
@@ -119,9 +126,12 @@ class _BrowseTournamentsContentState
                           emptyMessage: l10n.discoveryMapNoLocations,
                         )
                       : RefreshIndicator(
-                          onRefresh: controller.load,
+                          onRefresh: () =>
+                              controller.load(isPullToRefresh: true),
                           child: switch (state) {
-                            _ when state.isLoading && state.tournaments.isEmpty =>
+                            _
+                                when state.isLoading &&
+                                    state.tournaments.isEmpty =>
                               const _TournamentListSkeleton(),
                             _
                                 when state.error != null &&

@@ -22,7 +22,7 @@ class HomeDiscoveryToolbar extends StatelessWidget {
   final IconData sortIcon;
   final VoidCallback onSort;
   final VoidCallback onFilter;
-  final ValueChanged<String?> onCityChanged;
+  final LocationChanged onCityChanged;
   final int filterCount;
   final bool sortIsActive;
 

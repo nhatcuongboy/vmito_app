@@ -335,11 +335,19 @@ class _BankCard extends ConsumerWidget {
                 if (uri != null) const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => SharePlus.instance.share(
-                      ShareParams(
-                        text: qrUrl ?? uri?.toString() ?? '',
-                      ),
-                    ),
+                    onPressed: () {
+                      final box = context.findRenderObject();
+                      SharePlus.instance.share(
+                        ShareParams(
+                          text: qrUrl ?? uri?.toString() ?? '',
+                          // iPad anchors the share sheet to the tapped rect;
+                          // without it the sheet throws rather than opening.
+                          sharePositionOrigin: box is RenderBox
+                              ? box.localToGlobal(Offset.zero) & box.size
+                              : null,
+                        ),
+                      );
+                    },
                     icon: const Icon(Icons.share_outlined),
                     label: Text(
                       MaterialLocalizations.of(context).shareButtonLabel,

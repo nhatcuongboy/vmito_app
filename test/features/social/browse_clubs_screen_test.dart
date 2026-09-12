@@ -30,6 +30,7 @@ class _TestClubsController extends ClubsController {
     String? sortBy,
     double? latitude,
     double? longitude,
+    bool isPullToRefresh = false,
   }) async {}
 }
 

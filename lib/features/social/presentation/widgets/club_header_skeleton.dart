@@ -26,7 +26,11 @@ class ClubIdentitySkeleton extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    AppSkeletonBox(width: 180, height: 22, radius: AppRadius.md),
+                    AppSkeletonBox(
+                      width: 180,
+                      height: 22,
+                      radius: AppRadius.md,
+                    ),
                     SizedBox(height: AppSpacing.xs),
                     Row(
                       children: [

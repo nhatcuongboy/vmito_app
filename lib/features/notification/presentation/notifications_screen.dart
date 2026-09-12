@@ -249,7 +249,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       item: item,
       busy: state.actingSessionGroupKey == item.request.groupKey,
       onTap: () => context.push(
-        AppRoutes.manageSession(item.request.sessionId, tab: 'roster'),
+        AppRoutes.sessionJoinRequestDetail(
+          item.request.sessionId,
+          item.request.id,
+        ),
       ),
       onDecision: (approved) => unawaited(
         _decideSession(item, approved: approved, controller: controller),
@@ -259,7 +262,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       item: item,
       busy: state.actingClubRequestId == request.id,
       onTap: () => context.push(
-        AppRoutes.manageClub(request.clubId, tab: 'requests'),
+        AppRoutes.clubJoinRequestDetail(request.clubId, request.id),
       ),
       onDecision: (approved) => unawaited(
         _decideClub(item, approved: approved, controller: controller),

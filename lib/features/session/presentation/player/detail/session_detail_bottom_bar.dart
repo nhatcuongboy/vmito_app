@@ -54,8 +54,7 @@ class SessionDetailBottomBar extends ConsumerWidget {
     // endpoint already includes, and derive the status from the player's own
     // `registrationStatus` field. This prevents the "Đăng ký" button from
     // appearing for a user who is already in the session.
-    final hostAddedStatus =
-        isSignedIn && user != null
+    final hostAddedStatus = isSignedIn && user != null
         ? session.players
               .where((p) => p.userId == user.id)
               .firstOrNull
@@ -165,7 +164,7 @@ class SessionDetailBottomBar extends ConsumerWidget {
                   // has a slot.
                   registrationStatus: isSignedIn
                       ? (ref.watch(myRegistrationStatusProvider(session.id)) ??
-                          hostAddedStatus)
+                            hostAddedStatus)
                       : null,
                   onManage: onManage,
                   onOpenBoard: onOpenLive,

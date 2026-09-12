@@ -99,12 +99,13 @@ class AppFilterChip extends StatelessWidget {
             ),
           );
 
-    final textStyle = (theme.textTheme.bodyMedium ?? const TextStyle()).copyWith(
-      color: selected ? scheme.primary : scheme.onSurface,
-      fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-      height: 20 / 14,
-      leadingDistribution: TextLeadingDistribution.even,
-    );
+    final textStyle = (theme.textTheme.bodyMedium ?? const TextStyle())
+        .copyWith(
+          color: selected ? scheme.primary : scheme.onSurface,
+          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+          height: 20 / 14,
+          leadingDistribution: TextLeadingDistribution.even,
+        );
 
     return FilterChip(
       label: Row(
@@ -237,6 +238,8 @@ class AppFilterSheetScaffold extends StatelessWidget {
     required this.applyLabel,
     required this.onReset,
     required this.onApply,
+    this.subtitle,
+    this.showCloseButton = true,
     this.activeCount = 0,
     this.activeCountLabel,
     this.onClose,
@@ -245,15 +248,18 @@ class AppFilterSheetScaffold extends StatelessWidget {
     this.closeButtonKey,
     this.actionsEnabled = true,
     this.showActiveCount = true,
+    this.fitContent = false,
     super.key,
   });
 
   final String title;
+  final String? subtitle;
   final Widget body;
   final String resetLabel;
   final String applyLabel;
   final VoidCallback onReset;
   final VoidCallback onApply;
+  final bool showCloseButton;
   final int activeCount;
   final String? activeCountLabel;
   final VoidCallback? onClose;
@@ -263,10 +269,77 @@ class AppFilterSheetScaffold extends StatelessWidget {
   final bool actionsEnabled;
   final bool showActiveCount;
 
+  /// When true, the sheet shrinks to fit [body] (capped at the usual max
+  /// height) instead of always reserving the full fraction of the screen —
+  /// for short forms that would otherwise leave a large empty gap above the
+  /// footer.
+  final bool fitContent;
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final size = MediaQuery.sizeOf(context);
+    final maxHeight = size.height * (size.width < 600 ? .92 : .86);
+    final header = AppSheetHeader(
+      title: title,
+      subtitle: subtitle,
+      titleTrailing: showActiveCount && activeCount > 0
+          ? AppFilterCountBadge(
+              label: activeCountLabel ?? '$activeCount',
+              isRed: true,
+            )
+          : null,
+      showCloseButton: showCloseButton,
+      closeButtonKey: closeButtonKey,
+      onClose: onClose,
+      showDivider: true,
+    );
+    final footer = AppSheetActionBar(
+      child: AppSheetFooterButtons(
+        secondaryKey: resetButtonKey,
+        secondaryLabel: resetLabel,
+        secondaryIcon: AppIcons.history,
+        secondaryIsDestructive: true,
+        onSecondary: actionsEnabled ? onReset : null,
+        primaryKey: applyButtonKey,
+        primaryLabel: applyLabel,
+        primaryIcon: AppIcons.search,
+        onPrimary: actionsEnabled ? onApply : null,
+      ),
+    );
+    final content = fitContent
+        ? ConstrainedBox(
+            constraints: BoxConstraints(maxHeight: maxHeight),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                header,
+                Flexible(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: body,
+                  ),
+                ),
+                footer,
+              ],
+            ),
+          )
+        : SizedBox(
+            width: double.infinity,
+            height: maxHeight,
+            child: Column(
+              children: [
+                header,
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    child: body,
+                  ),
+                ),
+                footer,
+              ],
+            ),
+          );
     return AnimatedPadding(
       duration: const Duration(milliseconds: 180),
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
@@ -276,45 +349,7 @@ class AppFilterSheetScaffold extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(
           top: Radius.circular(AppRadius.xl),
         ),
-        child: SizedBox(
-          width: double.infinity,
-          height: size.height * (size.width < 600 ? .92 : .86),
-          child: Column(
-            children: [
-              AppSheetHeader(
-                title: title,
-                titleTrailing: showActiveCount && activeCount > 0
-                    ? AppFilterCountBadge(
-                        label: activeCountLabel ?? '$activeCount',
-                        isRed: true,
-                      )
-                    : null,
-                closeButtonKey: closeButtonKey,
-                onClose: onClose,
-                showDivider: true,
-              ),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: body,
-                ),
-              ),
-              AppSheetActionBar(
-                child: AppSheetFooterButtons(
-                  secondaryKey: resetButtonKey,
-                  secondaryLabel: resetLabel,
-                  secondaryIcon: AppIcons.history,
-                  secondaryIsDestructive: true,
-                  onSecondary: actionsEnabled ? onReset : null,
-                  primaryKey: applyButtonKey,
-                  primaryLabel: applyLabel,
-                  primaryIcon: AppIcons.search,
-                  onPrimary: actionsEnabled ? onApply : null,
-                ),
-              ),
-            ],
-          ),
-        ),
+        child: content,
       ),
     );
   }

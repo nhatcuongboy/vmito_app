@@ -20,10 +20,11 @@ class _PreferencesController extends LocationPreferencesController {
   LocationPreferences build() => initial;
 
   @override
-  Future<void> selectCity(String? city) async {
+  Future<void> selectCity(String? city, {Set<String> wards = const {}}) async {
     state = state.copyWith(
       preferredCity: city,
       clearPreferredCity: city == null,
+      preferredWards: wards,
       selectionType: city == null
           ? LocationSelectionType.all
           : LocationSelectionType.city,
@@ -35,6 +36,7 @@ class _PreferencesController extends LocationPreferencesController {
   Future<void> selectAll() async {
     state = state.copyWith(
       clearPreferredCity: true,
+      preferredWards: const {},
       selectionType: LocationSelectionType.all,
       onboardingCompleted: true,
     );
@@ -44,6 +46,7 @@ class _PreferencesController extends LocationPreferencesController {
   Future<void> selectOther() async {
     state = state.copyWith(
       clearPreferredCity: true,
+      preferredWards: const {},
       selectionType: LocationSelectionType.other,
       onboardingCompleted: true,
     );
@@ -86,7 +89,10 @@ Widget _app({
     supportedLocales: AppLocalizations.supportedLocales,
     home: Scaffold(
       appBar: AppBar(
-        title: CitySelector(onChanged: onChanged, showLabel: showLabel),
+        title: CitySelector(
+          onChanged: (city, _) => onChanged(city),
+          showLabel: showLabel,
+        ),
       ),
     ),
   ),
@@ -110,21 +116,18 @@ void main() {
       find.byKey(const Key('city-selector-current-location')),
       findsOneWidget,
     );
-    expect(find.byKey(const Key('city-selector-search')), findsOneWidget);
-    expect(find.byIcon(AppIcons.checkCircle), findsOneWidget);
-    expect(find.text('Phổ biến'), findsOneWidget);
-    expect(tester.takeException(), isNull);
-
-    await tester.drag(
-      find.byKey(const Key('city-selector-results')),
-      const Offset(0, -220),
+    expect(
+      find.byKey(const Key('city-selector-province-field')),
+      findsOneWidget,
     );
-    await tester.pumpAndSettle();
-    expect(find.text('Tất cả tỉnh / thành phố'), findsOneWidget);
+    expect(find.byKey(const Key('city-selector-ward-field')), findsOneWidget);
+    expect(find.text('Phổ biến'), findsOneWidget);
+    expect(find.byKey(const Key('city-selector-other')), findsOneWidget);
+    expect(tester.takeException(), isNull);
 
     await tester.tap(find.byKey(const Key('city-selector-close')));
     await tester.pumpAndSettle();
-    expect(find.byKey(const Key('city-selector-search')), findsNothing);
+    expect(find.byKey(const Key('city-selector-province-field')), findsNothing);
   });
 
   testWidgets('constrains sheet content on wide windows', (tester) async {
@@ -141,77 +144,129 @@ void main() {
       tester
           .getSize(find.byKey(const Key('city-selector-sheet-content')))
           .width,
-      lessThanOrEqualTo(600),
+      lessThanOrEqualTo(640),
     );
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('searches without tones and returns the selected city', (
+  testWidgets(
+    'searches without tones and picks a city from the province picker',
+    (
+      tester,
+    ) async {
+      String? changed;
+      await tester.pumpWidget(_app(onChanged: (city) => changed = city));
+
+      await tester.tap(find.byKey(const Key('discovery-city-selector')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('city-selector-province-field')));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'da nang');
+      await tester.pump();
+
+      expect(find.widgetWithText(ListTile, 'Đà Nẵng'), findsOneWidget);
+      await tester.tap(find.widgetWithText(ListTile, 'Đà Nẵng'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('city-selector-province-field')),
+          matching: find.text('Đà Nẵng'),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.byKey(const Key('city-selector-apply')));
+      await tester.pumpAndSettle();
+
+      expect(changed, 'Đà Nẵng');
+    },
+  );
+
+  testWidgets(
+    'uses device placemark to fill the province without closing the sheet',
+    (tester) async {
+      String? changed;
+      await tester.pumpWidget(
+        _app(
+          onChanged: (city) => changed = city,
+          geocoder: (_) async => const DevicePlacemark([
+            'Thành phố Hà Nội',
+          ]),
+        ),
+      );
+
+      await tester.tap(find.byKey(const Key('discovery-city-selector')));
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.byKey(const Key('city-selector-current-location')),
+      );
+      await tester.pumpAndSettle();
+
+      // Fills the province field but keeps the sheet open.
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('city-selector-province-field')),
+          matching: find.text('Hà Nội'),
+        ),
+        findsOneWidget,
+      );
+      expect(find.byKey(const Key('city-selector-apply')), findsOneWidget);
+      expect(changed, isNull);
+
+      await tester.tap(find.byKey(const Key('city-selector-apply')));
+      await tester.pumpAndSettle();
+
+      expect(changed, 'Hà Nội');
+    },
+  );
+
+  testWidgets('reset then apply reports an intentional null city', (
     tester,
   ) async {
-    String? changed;
+    String? changed = 'not-null';
     await tester.pumpWidget(_app(onChanged: (city) => changed = city));
 
     await tester.tap(find.byKey(const Key('discovery-city-selector')));
     await tester.pumpAndSettle();
-    await tester.enterText(
-      find.descendant(
-        of: find.byKey(const Key('city-selector-search')),
-        matching: find.byType(TextField),
-      ),
-      'da nang',
-    );
-    await tester.pump();
-
-    expect(find.text('Đà Nẵng'), findsOneWidget);
-    expect(find.byKey(const Key('discovery-city-all')), findsNothing);
-    await tester.tap(find.text('Đà Nẵng'));
+    await tester.tap(find.byKey(const Key('city-selector-reset')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('city-selector-apply')));
     await tester.pumpAndSettle();
 
-    expect(changed, 'Đà Nẵng');
-    expect(find.byIcon(AppIcons.location), findsOneWidget);
-  });
-
-  testWidgets('uses device placemark to select a city', (tester) async {
-    String? changed;
-    await tester.pumpWidget(
-      _app(
-        onChanged: (city) => changed = city,
-        geocoder: (_) async => const DevicePlacemark([
-          'Thành phố Hà Nội',
-        ]),
-      ),
-    );
-
-    await tester.tap(find.byKey(const Key('discovery-city-selector')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('city-selector-current-location')));
-    await tester.pumpAndSettle();
-
-    expect(changed, 'Hà Nội');
-  });
-
-  testWidgets('selecting all reports an intentional null city', (tester) async {
-    var wasCalled = false;
-    String? changed = 'not-null';
-    await tester.pumpWidget(
-      _app(
-        onChanged: (city) {
-          wasCalled = true;
-          changed = city;
-        },
-      ),
-    );
-
-    await tester.tap(find.byKey(const Key('discovery-city-selector')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('discovery-city-all')));
-    await tester.pumpAndSettle();
-
-    expect(wasCalled, isTrue);
     expect(changed, isNull);
-    expect(find.byIcon(AppIcons.location), findsOneWidget);
   });
+
+  testWidgets(
+    'selecting Khu vực khác reports an intentional null city and updates label',
+    (tester) async {
+      var wasCalled = false;
+      String? changed = 'not-null';
+      await tester.pumpWidget(
+        _app(
+          showLabel: true,
+          onChanged: (city) {
+            wasCalled = true;
+            changed = city;
+          },
+        ),
+      );
+
+      expect(find.text('Hồ Chí Minh'), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('discovery-city-selector')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byKey(const Key('city-selector-other')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('city-selector-apply')));
+      await tester.pumpAndSettle();
+
+      expect(wasCalled, isTrue);
+      expect(changed, isNull);
+      expect(find.text('Khu vực khác'), findsOneWidget);
+    },
+  );
 
   testWidgets('keeps the sheet open and reports a geocoding failure', (
     tester,
@@ -232,133 +287,42 @@ void main() {
       find.byKey(const Key('city-selector-location-error')),
       findsOneWidget,
     );
-    expect(find.byKey(const Key('city-selector-results')), findsOneWidget);
+    expect(find.byKey(const Key('city-selector-apply')), findsOneWidget);
   });
 
   testWidgets(
-    'selecting Other reports an intentional null city and updates label',
+    'GPS abroad outside the supported list falls back to Other after Apply',
     (tester) async {
       var wasCalled = false;
       String? changed = 'not-null';
       await tester.pumpWidget(
         _app(
-          showLabel: true,
           onChanged: (city) {
             wasCalled = true;
             changed = city;
           },
+          geocoder: (_) async => const DevicePlacemark([
+            'Tokyo',
+            'Japan',
+          ]),
         ),
       );
 
-      expect(find.text('Hồ Chí Minh'), findsOneWidget);
-
       await tester.tap(find.byKey(const Key('discovery-city-selector')));
       await tester.pumpAndSettle();
-
-      expect(find.byKey(const Key('discovery-city-other')), findsOneWidget);
-      await tester.tap(find.byKey(const Key('discovery-city-other')));
+      await tester.tap(find.byKey(const Key('city-selector-current-location')));
+      await tester.pumpAndSettle();
+      expect(
+        find.byKey(const Key('city-selector-location-error')),
+        findsNothing,
+      );
+      await tester.tap(find.byKey(const Key('city-selector-apply')));
       await tester.pumpAndSettle();
 
       expect(wasCalled, isTrue);
       expect(changed, isNull);
-      expect(find.text('Khác'), findsOneWidget);
     },
   );
-
-  testWidgets('displays Other as selected when preference is other', (
-    tester,
-  ) async {
-    await tester.pumpWidget(
-      _app(
-        initialPreferences: const LocationPreferences(
-          selectionType: LocationSelectionType.other,
-          onboardingCompleted: true,
-          isRestored: true,
-        ),
-        showLabel: true,
-        onChanged: (_) {},
-      ),
-    );
-
-    expect(find.text('Khác'), findsOneWidget);
-
-    await tester.tap(find.byKey(const Key('discovery-city-selector')));
-    await tester.pumpAndSettle();
-
-    final otherRow = find.byKey(const Key('discovery-city-other'));
-    expect(otherRow, findsOneWidget);
-    expect(
-      find.descendant(
-        of: otherRow,
-        matching: find.byIcon(AppIcons.checkCircle),
-      ),
-      findsOneWidget,
-    );
-  });
-
-  testWidgets('search with no results provides a button to select Other', (
-    tester,
-  ) async {
-    var wasCalled = false;
-    String? changed = 'not-null';
-    await tester.pumpWidget(
-      _app(
-        onChanged: (city) {
-          wasCalled = true;
-          changed = city;
-        },
-      ),
-    );
-
-    await tester.tap(find.byKey(const Key('discovery-city-selector')));
-    await tester.pumpAndSettle();
-
-    await tester.enterText(
-      find.descendant(
-        of: find.byKey(const Key('city-selector-search')),
-        matching: find.byType(TextField),
-      ),
-      'UnknownCityxyz',
-    );
-    await tester.pump();
-
-    expect(find.text('Không tìm thấy kết quả'), findsOneWidget);
-    expect(find.byKey(const Key('discovery-city-empty-other')), findsOneWidget);
-
-    await tester.tap(find.byKey(const Key('discovery-city-empty-other')));
-    await tester.pumpAndSettle();
-
-    expect(wasCalled, isTrue);
-    expect(changed, isNull);
-  });
-
-  testWidgets('GPS abroad outside supported list automatically selects Other', (
-    tester,
-  ) async {
-    var wasCalled = false;
-    String? changed = 'not-null';
-    await tester.pumpWidget(
-      _app(
-        onChanged: (city) {
-          wasCalled = true;
-          changed = city;
-        },
-        geocoder: (_) async => const DevicePlacemark([
-          'Tokyo',
-          'Japan',
-        ]),
-      ),
-    );
-
-    await tester.tap(find.byKey(const Key('discovery-city-selector')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('city-selector-current-location')));
-    await tester.pumpAndSettle();
-
-    expect(wasCalled, isTrue);
-    expect(changed, isNull);
-    expect(find.byKey(const Key('city-selector-location-error')), findsNothing);
-  });
 
   testWidgets(
     'shows chevron down icon and uses green primary color when non-All option is selected',

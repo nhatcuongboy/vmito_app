@@ -80,6 +80,18 @@ List<String> legacyCities() => sortCitiesWithPopularFirst(vietnamCities);
 String? matchCityFromAddress({
   required Iterable<String> cities,
   required Iterable<String?> addressParts,
+}) => _matchFromAddress(candidates: cities, addressParts: addressParts);
+
+/// Same address-matching heuristic as [matchCityFromAddress], applied to a
+/// single city's ward/commune list instead of the province catalogue.
+String? matchWardFromAddress({
+  required Iterable<String> wards,
+  required Iterable<String?> addressParts,
+}) => _matchFromAddress(candidates: wards, addressParts: addressParts);
+
+String? _matchFromAddress({
+  required Iterable<String> candidates,
+  required Iterable<String?> addressParts,
 }) {
   final haystacks = addressParts
       .whereType<String>()
@@ -89,11 +101,32 @@ String? matchCityFromAddress({
       .toList(growable: false);
   if (haystacks.isEmpty) return null;
 
-  final ordered = cities.map(normalizeCityName).toList(growable: false)
+  final ordered = candidates.map(normalizeCityName).toList(growable: false)
     ..sort((left, right) => right.length.compareTo(left.length));
-  for (final city in ordered) {
-    final key = citySearchKey(city);
-    if (haystacks.any((part) => part.contains(key))) return city;
+  for (final candidate in ordered) {
+    final key = citySearchKey(candidate);
+    if (haystacks.any((part) => part.contains(key))) return candidate;
   }
   return null;
+}
+
+/// The three post-2025 administrative unit types Vietnam uses below the
+/// province level.
+enum WardKind { ward, commune, specialZone, other }
+
+WardKind classifyWard(String name) {
+  final trimmed = name.trim();
+  if (trimmed.startsWith('Phường')) return WardKind.ward;
+  if (trimmed.startsWith('Xã')) return WardKind.commune;
+  if (trimmed.startsWith('Đặc khu')) return WardKind.specialZone;
+  return WardKind.other;
+}
+
+Map<WardKind, int> countWardsByKind(Iterable<String> wards) {
+  final counts = {for (final kind in WardKind.values) kind: 0};
+  for (final ward in wards) {
+    final kind = classifyWard(ward);
+    counts[kind] = counts[kind]! + 1;
+  }
+  return counts;
 }

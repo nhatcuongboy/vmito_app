@@ -54,6 +54,14 @@ abstract final class AppRoutes {
   static String editSession(String id) => '/sessions/$id/edit';
   static String cloneSession(String id) => '/sessions/$id/clone';
   static String rateSession(String id) => '/sessions/$id/rate';
+  static String sessionJoinRequestDetail(
+    String sessionId,
+    String requestId, {
+    bool asApplicant = false,
+  }) => Uri(
+    path: '/sessions/$sessionId/join-requests/$requestId',
+    queryParameters: asApplicant ? {'role': 'applicant'} : null,
+  ).toString();
 
   static const createSession = '/sessions/create';
 
@@ -96,6 +104,14 @@ abstract final class AppRoutes {
   ).toString();
   static String editClub(String id) => '/feed/manage/$id/edit';
   static String clubFees(String id) => '/feed/manage/$id/fees';
+  static String clubJoinRequestDetail(
+    String clubId,
+    String requestId, {
+    bool asApplicant = false,
+  }) => Uri(
+    path: '/feed/manage/$clubId/requests/$requestId',
+    queryParameters: asApplicant ? {'role': 'applicant'} : null,
+  ).toString();
   static String publicProfile(String id) => '/user/$id';
 
   /// True for the feed root and one post detail, but not club-management

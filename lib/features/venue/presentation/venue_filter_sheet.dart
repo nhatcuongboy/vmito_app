@@ -88,15 +88,17 @@ class _VenueFilterSheetState extends ConsumerState<VenueFilterSheet> {
 
   void _reset() {
     if (_isSubmitting) return;
-    final preferredCity =
-        widget.preferredCity ??
-        ref.read(locationPreferencesControllerProvider).preferredCity;
+    final preference = ref.read(locationPreferencesControllerProvider);
+    final preferredCity = widget.preferredCity ?? preference.preferredCity;
+    final preferredWards = preference.preferredWards;
     _form.reset(
       value: {
         VenueFilterControl.sports: <VenueSport>{},
         VenueFilterControl.city: preferredCity,
-        VenueFilterControl.district: null,
-        VenueFilterControl.districts: <String>{},
+        VenueFilterControl.district: preferredWards.length == 1
+            ? preferredWards.first
+            : null,
+        VenueFilterControl.districts: preferredWards,
         VenueFilterControl.courtCount: null,
       },
     );
@@ -105,7 +107,7 @@ class _VenueFilterSheetState extends ConsumerState<VenueFilterSheet> {
       locationPreferencesControllerProvider.notifier,
     );
     if (preferredCity != null && preferredCity.trim().isNotEmpty) {
-      unawaited(locNotifier.selectCity(preferredCity));
+      unawaited(locNotifier.selectCity(preferredCity, wards: preferredWards));
     } else {
       unawaited(locNotifier.selectAll());
     }
@@ -125,11 +127,14 @@ class _VenueFilterSheetState extends ConsumerState<VenueFilterSheet> {
     if (_form.invalid || _form.pending) return;
     final selectedCity =
         _form.control(VenueFilterControl.city).value as String?;
+    final selectedDistricts =
+        _form.control(VenueFilterControl.districts).value as Set<String>? ??
+        const {};
     final locNotifier = ref.read(
       locationPreferencesControllerProvider.notifier,
     );
     if (selectedCity != null && selectedCity.trim().isNotEmpty) {
-      unawaited(locNotifier.selectCity(selectedCity));
+      unawaited(locNotifier.selectCity(selectedCity, wards: selectedDistricts));
     } else {
       unawaited(locNotifier.selectAll());
     }
@@ -142,7 +147,6 @@ class _VenueFilterSheetState extends ConsumerState<VenueFilterSheet> {
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -169,9 +173,7 @@ class _VenueFilterSheetState extends ConsumerState<VenueFilterSheet> {
             initial: widget.initial,
             preferredCity: widget.preferredCity,
           );
-          final count = pending.activeCount(
-            preferredCity: widget.preferredCity,
-          );
+          final count = pending.activeCount;
           return AppFilterSheetScaffold(
             title: l10n.venueFiltersTitle,
             activeCount: count,
@@ -237,9 +239,7 @@ class _VenueFilterSheetState extends ConsumerState<VenueFilterSheet> {
                   extraDistrictControlName: VenueFilterControl.district,
                   cities: cities,
                   units: units,
-                  selectedCount:
-                      pending.districts.length +
-                      (pending.city != null && !pending.cityIsDefault ? 1 : 0),
+                  selectedCount: 0,
                   cityPickerKey: const Key('venue-filter-city'),
                   districtPickerKey: const Key('venue-filter-districts'),
                 ),

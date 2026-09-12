@@ -328,7 +328,10 @@ class _JoinRequestCard extends StatelessWidget {
               ...request.players.map(
                 (player) => Padding(
                   padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                  child: _PlayerStatusRow(player: player),
+                  child: _PlayerStatusRow(
+                    sessionId: session.id,
+                    player: player,
+                  ),
                 ),
               ),
             ],
@@ -377,8 +380,9 @@ class _JoinRequestCard extends StatelessWidget {
 }
 
 class _PlayerStatusRow extends StatelessWidget {
-  const _PlayerStatusRow({required this.player});
+  const _PlayerStatusRow({required this.sessionId, required this.player});
 
+  final String sessionId;
   final MyJoinRequestPlayer player;
 
   @override
@@ -409,66 +413,76 @@ class _PlayerStatusRow extends StatelessWidget {
       ),
     };
 
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.md,
-        vertical: AppSpacing.sm + 2,
-      ),
-      decoration: BoxDecoration(
-        color: palette.muted,
+    return Material(
+      color: palette.muted,
+      borderRadius: BorderRadius.circular(AppRadius.lg),
+      child: InkWell(
         borderRadius: BorderRadius.circular(AppRadius.lg),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  playerName,
-                  key: ValueKey('my-join-request-player-${player.id}'),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontSize: 14,
+        onTap: () => context.push(
+          AppRoutes.sessionJoinRequestDetail(
+            sessionId,
+            player.id,
+            asApplicant: true,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.md,
+            vertical: AppSpacing.sm + 2,
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      playerName,
+                      key: ValueKey('my-join-request-player-${player.id}'),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    if (player.level != null) ...[
+                      const SizedBox(height: AppSpacing.xxs),
+                      Text(
+                        levelShortLabel(player.level!) ?? '${player.level}',
+                        key: ValueKey('my-join-request-level-${player.id}'),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          fontSize: 12,
+                          color: palette.mutedForeground,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.sm),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: AppSpacing.xs,
+                ),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(AppRadius.sm),
+                ),
+                child: Text(
+                  statusText,
+                  key: ValueKey('my-join-request-status-${player.id}'),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontSize: 12,
+                    color: statusColor,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                if (player.level != null) ...[
-                  const SizedBox(height: AppSpacing.xxs),
-                  Text(
-                    levelShortLabel(player.level!) ?? '${player.level}',
-                    key: ValueKey('my-join-request-level-${player.id}'),
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      fontSize: 12,
-                      color: palette.mutedForeground,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.sm,
-              vertical: AppSpacing.xs,
-            ),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.16),
-              borderRadius: BorderRadius.circular(AppRadius.sm),
-            ),
-            child: Text(
-              statusText,
-              key: ValueKey('my-join-request-status-${player.id}'),
-              style: theme.textTheme.labelLarge?.copyWith(
-                fontSize: 12,
-                color: statusColor,
-                fontWeight: FontWeight.w600,
               ),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

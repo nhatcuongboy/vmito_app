@@ -40,14 +40,13 @@ import 'package:vmito_app/features/social/presentation/widgets/user_achievements
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_lightbox.dart';
 
-const _publicTabs = [
-  'Bài viết',
-  'Thành tích',
-  'Kèo đã host',
-  'Nhóm',
-  'Đánh giá',
+List<String> publicProfileTabLabels(AppLocalizations l10n) => [
+  l10n.profileTabPosts,
+  l10n.profileTabAchievements,
+  l10n.profileTabHosted,
+  l10n.profileTabClubs,
+  l10n.profileTabReviews,
 ];
-List<String> publicProfileTabLabels() => _publicTabs;
 
 class PublicProfileScreen extends ConsumerWidget {
   const PublicProfileScreen({
@@ -112,7 +111,7 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
   void initState() {
     super.initState();
     _controller = TabController(
-      length: publicProfileTabLabels().length,
+      length: 5,
       vsync: this,
     );
     _controller.addListener(_loadSelectedTab);
@@ -226,7 +225,8 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
 
   @override
   Widget build(BuildContext context) {
-    final labels = publicProfileTabLabels();
+    final l10n = AppLocalizations.of(context);
+    final labels = publicProfileTabLabels(l10n);
     final safeAreaTop = MediaQuery.paddingOf(context).top;
     final mutations = ref.watch(profileControllerProvider);
     return Stack(
@@ -243,21 +243,27 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
               isRootProfile: widget.isRootProfile,
               isOwner: _isOwner,
               usesCompactSystemOverlay: _usesCompactSystemOverlay,
-              menuTooltip: AppLocalizations.of(context).menuOpenTooltip,
-              shareTooltip: AppLocalizations.of(context).commonShare,
-              settingsTooltip: AppLocalizations.of(context).settingsTitle,
-              changeCoverTooltip: AppLocalizations.of(
-                context,
-              ).profileChangeCover,
+              menuTooltip: l10n.menuOpenTooltip,
+              shareTooltip: l10n.commonShare,
+              settingsTooltip: l10n.settingsTitle,
+              changeCoverTooltip: l10n.profileChangeCover,
               onMenuTap: () => ref
                   .read(appShellScaffoldKeyProvider)
                   .currentState
                   ?.openDrawer(),
-              onShare: () => SharePlus.instance.share(
-                ShareParams(
-                  text: '${AppConfig.webBaseUrl}/user/${widget.userId}',
-                ),
-              ),
+              onShare: () {
+                final box = context.findRenderObject();
+                SharePlus.instance.share(
+                  ShareParams(
+                    text: '${AppConfig.webBaseUrl}/user/${widget.userId}',
+                    // iPad anchors the share sheet to the tapped rect;
+                    // without it the sheet throws rather than opening.
+                    sharePositionOrigin: box is RenderBox
+                        ? box.localToGlobal(Offset.zero) & box.size
+                        : null,
+                  ),
+                );
+              },
               onSettings: () => context.pushNamed(AppRoutes.nameSettings),
               coverProgress: mutations.coverProgress,
               onChangeCover: _isOwner
@@ -575,13 +581,17 @@ class _ProfileHeader extends StatelessWidget {
                   children: [
                     _InlineStat(
                       value: _compactCount(bundle.hostedSessionsCount),
-                      label: 'kèo đã host',
+                      label: AppLocalizations.of(
+                        context,
+                      ).profileHostedSessionsCount,
                       onTap: () => onSelectTab(2),
                     ),
                     const _StatSeparator(),
                     _InlineStat(
                       value: _compactCount(profile.joinedSessionsCount),
-                      label: 'kèo tham gia',
+                      label: AppLocalizations.of(
+                        context,
+                      ).profileJoinedSessionsCount,
                       onTap: () => onSelectTab(2),
                     ),
                     const _StatSeparator(),
@@ -589,7 +599,7 @@ class _ProfileHeader extends StatelessWidget {
                       value: bundle.stats.total == 0
                           ? '0'
                           : bundle.stats.average.toStringAsFixed(1),
-                      label: 'đánh giá',
+                      label: AppLocalizations.of(context).profileReviewsCount,
                       onTap: () => onSelectTab(4),
                     ),
                   ],
@@ -827,7 +837,9 @@ class _PostsTabState extends ConsumerState<_PostsTab> {
                 : _posts.length + (_loadingMore ? 1 : 0),
             separatorBuilder: (_, _) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
-              if (_posts.isEmpty) return const _Empty('Chưa có bài viết.');
+              if (_posts.isEmpty) {
+                return _Empty(AppLocalizations.of(context).profileNoPosts);
+              }
               if (index == _posts.length) {
                 return const Center(
                   child: Padding(
@@ -919,7 +931,9 @@ class _HostedTabState extends ConsumerState<_HostedTab> {
             if (!snapshot.hasData) return const ProfileHostedSkeleton();
             final sessions = snapshot.data!.items;
             if (sessions.isEmpty) {
-              return const _Empty('Không có kèo đã host.');
+              return _Empty(
+                AppLocalizations.of(context).profileNoHostedSessions,
+              );
             }
             return ListView.separated(
               key: PageStorageKey(
@@ -947,16 +961,15 @@ class _HostedTabState extends ConsumerState<_HostedTab> {
 }
 
 const _hostedFilters = [
-  _HostedFilter(value: 'active', label: 'Đang mở'),
-  _HostedFilter(value: 'ended', label: 'Đã kết thúc'),
-  _HostedFilter(value: 'all', label: 'Tất cả'),
+  _HostedFilter(value: 'active'),
+  _HostedFilter(value: 'ended'),
+  _HostedFilter(value: 'all'),
 ];
 
 class _HostedFilter {
-  const _HostedFilter({required this.value, required this.label});
+  const _HostedFilter({required this.value});
 
   final String value;
-  final String label;
 }
 
 class _HostedFilterChips extends StatelessWidget {
@@ -979,7 +992,7 @@ class _HostedFilterChips extends StatelessWidget {
         children: [
           for (final filter in _hostedFilters) ...[
             _HostedFilterChip(
-              label: _label(filter),
+              label: _label(context, filter),
               selected: selected == filter.value,
               onTap: () => onSelected(filter.value),
             ),
@@ -990,9 +1003,15 @@ class _HostedFilterChips extends StatelessWidget {
     ),
   );
 
-  String _label(_HostedFilter filter) {
+  String _label(BuildContext context, _HostedFilter filter) {
     final count = counts[filter.value];
-    return count == null ? filter.label : '${filter.label} ($count)';
+    final l10n = AppLocalizations.of(context);
+    final label = switch (filter.value) {
+      'active' => l10n.profileHostedFilterActive,
+      'ended' => l10n.profileHostedFilterEnded,
+      _ => l10n.profileHostedFilterAll,
+    };
+    return count == null ? label : '$label ($count)';
   }
 }
 
@@ -1098,11 +1117,11 @@ class _ClubsTabState extends ConsumerState<_ClubsTab> {
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(AppSpacing.screenPadding),
           children: [
-            if (all.isEmpty) const _Empty('Chưa tham gia nhóm nào.'),
+            if (all.isEmpty) _Empty(l10n.profileNoClubs),
             if (hosted.isNotEmpty || widget.owner)
               _clubGroup(
                 context,
-                'Nhóm đã host',
+                l10n.profileHostedClubs,
                 hosted,
                 trailing: widget.owner
                     ? TextButton(
@@ -1119,7 +1138,7 @@ class _ClubsTabState extends ConsumerState<_ClubsTab> {
                     : null,
               ),
             if (widget.owner && member.isNotEmpty)
-              _clubGroup(context, 'Nhóm đã tham gia', member),
+              _clubGroup(context, l10n.profileJoinedClubs, member),
           ],
         ),
       );
@@ -1151,9 +1170,11 @@ Widget _clubGroup(
           ],
         ),
         if (clubs.isEmpty)
-          const Padding(
+          Padding(
             padding: EdgeInsets.all(12),
-            child: Text('Chưa có nhóm.'),
+            child: Text(
+              AppLocalizations.of(context).profileNoClubsInGroup,
+            ),
           ),
         for (final club in clubs)
           ListTile(
@@ -1164,7 +1185,9 @@ Widget _clubGroup(
               child: club.logo == null ? const Icon(AppIcons.clubs) : null,
             ),
             title: Text(club.name),
-            subtitle: Text('${club.memberCount} thành viên'),
+            subtitle: Text(
+              AppLocalizations.of(context).socialMemberCount(club.memberCount),
+            ),
             trailing: const Icon(AppIcons.chevronRight),
             onTap: () =>
                 context.push(AppRoutes.clubDetail(club.slug ?? club.id)),
@@ -1187,13 +1210,19 @@ class _ReviewsTab extends StatelessWidget {
         child: ListTile(
           leading: const Icon(AppIcons.star, color: Colors.amber),
           title: Text(
-            'Điểm trung bình: ${bundle.stats.average.toStringAsFixed(1)}',
+            AppLocalizations.of(context).profileAverageRating(
+              bundle.stats.average.toStringAsFixed(1),
+            ),
           ),
-          subtitle: Text('${bundle.stats.total} đánh giá'),
+          subtitle: Text(
+            AppLocalizations.of(context).profileRatingsCount(
+              bundle.stats.total,
+            ),
+          ),
         ),
       ),
       if (bundle.ratings.isEmpty)
-        const _Empty('Chưa có đánh giá.')
+        _Empty(AppLocalizations.of(context).profileNoReviews)
       else
         for (final rating in bundle.ratings)
           Card(
@@ -1206,7 +1235,9 @@ class _ReviewsTab extends StatelessWidget {
                     ? const Icon(AppIcons.profile)
                     : null,
               ),
-              title: Text(rating.raterName ?? 'Vmito'),
+              title: Text(
+                rating.raterName ?? AppLocalizations.of(context).appName,
+              ),
               subtitle: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [

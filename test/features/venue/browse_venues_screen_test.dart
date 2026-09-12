@@ -245,7 +245,10 @@ void main() {
       expect(controller.state.filter.city, 'Hồ Chí Minh');
       expect(controller.state.filter.districts, {'Phú Nhuận'});
       expect(controller.state.filter.sports, {VenueSport.badminton});
-      expect(controller.state.filter.courtCount, VenueCourtCountFilter.fourPlus);
+      expect(
+        controller.state.filter.courtCount,
+        VenueCourtCountFilter.fourPlus,
+      );
       expect(controller.state.filter.favoriteOnly, isTrue);
     });
 
@@ -454,7 +457,7 @@ class _RecordingVenueBrowseController extends VenueBrowseController {
   VenueBrowseState build() => _initialState;
 
   @override
-  Future<void> load({VenueFilter? filter}) async {
+  Future<void> load({VenueFilter? filter, bool isPullToRefresh = false}) async {
     loadedFilters.add(filter ?? state.filter);
     state = state.copyWithFilter(filter ?? state.filter);
   }
@@ -468,7 +471,7 @@ class _FakeVenueBrowseController extends VenueBrowseController {
   VenueBrowseState build() => _initialState;
 
   @override
-  Future<void> load({VenueFilter? filter}) async {
+  Future<void> load({VenueFilter? filter, bool isPullToRefresh = false}) async {
     state = state.copyWithFilter(filter ?? state.filter);
   }
 }

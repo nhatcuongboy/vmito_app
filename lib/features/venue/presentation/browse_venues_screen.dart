@@ -83,8 +83,9 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
   Future<void> _loadInitial() async {
     final controller = ref.read(venueBrowseControllerProvider.notifier);
     final currentState = ref.read(venueBrowseControllerProvider);
-    final preferredCity =
-        ref.read(locationPreferencesControllerProvider).preferredCity;
+    final preferredCity = ref
+        .read(locationPreferencesControllerProvider)
+        .preferredCity;
     var filter =
         widget.initialFilter ??
         VenueFilter(
@@ -110,8 +111,9 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
 
     if (needsLocation) {
       try {
-        final coordinates =
-            await ref.read(deviceLocationServiceProvider).call();
+        final coordinates = await ref
+            .read(deviceLocationServiceProvider)
+            .call();
         filter = filter.copyWith(
           latitude: coordinates.latitude,
           longitude: coordinates.longitude,
@@ -320,6 +322,13 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
                     .load(filter: filter),
               ),
             ),
+          if (!_showMap)
+            SizedBox(
+              height: 2,
+              child: state.isRefetching
+                  ? const LinearProgressIndicator()
+                  : null,
+            ),
           Expanded(
             child: Stack(
               children: [
@@ -335,11 +344,13 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
                           key: const Key('venue-refresh-indicator'),
                           onRefresh: () => ref
                               .read(venueBrowseControllerProvider.notifier)
-                              .load(),
+                              .load(isPullToRefresh: true),
                           child: switch (state) {
                             _ when state.isLoading && state.venues.isEmpty =>
                               const _VenueListSkeleton(),
-                            _ when state.error != null && state.venues.isEmpty =>
+                            _
+                                when state.error != null &&
+                                    state.venues.isEmpty =>
                               _VenueListStatus(
                                 child: AppErrorView(
                                   error: state.error!,
@@ -350,9 +361,10 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
                                       .load(),
                                 ),
                               ),
-                            _ when state.venues.isEmpty => const _VenueListStatus(
-                              child: Text('Không tìm thấy sân phù hợp.'),
-                            ),
+                            _ when state.venues.isEmpty =>
+                              const _VenueListStatus(
+                                child: Text('Không tìm thấy sân phù hợp.'),
+                              ),
                             _ => AppPaginatedListView.separated(
                               controller: _scroll,
                               padding: const EdgeInsets.all(
@@ -467,7 +479,8 @@ class _VenueFilterSummary extends StatelessWidget {
     final hasCity =
         city != null && city.isNotEmpty && city != preferredCity?.trim();
     final hasDistricts = filter.districts.isNotEmpty;
-    final hasDistrict = !hasDistricts && district != null && district.isNotEmpty;
+    final hasDistrict =
+        !hasDistricts && district != null && district.isNotEmpty;
     final hasSports = filter.sports.isNotEmpty;
     final hasCourtCount = filter.courtCount != null;
     final hasSort = filter.sortBy != VenueSortOption.distance.value;

@@ -106,9 +106,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final venueState = ref.watch(venueBrowseControllerProvider);
     final clubsState = ref.watch(clubsControllerProvider);
     final tournamentState = ref.watch(tournamentBrowseControllerProvider);
-    final preferredCity = ref
-        .watch(locationPreferencesControllerProvider)
-        .preferredCity;
     final activeOutcome = _activeOutcome;
     final activeQuery = switch (activeOutcome) {
       HomeSearchQuery(:final query) => query,
@@ -157,7 +154,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               venueState,
               clubsState,
               tournamentState,
-              preferredCity,
             ),
             sortIsActive: _hasCustomSort(
               sessionState,
@@ -227,19 +223,27 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   Future<void> _showCityOnboarding() async {
     final result = await CityOnboardingDialog.maybeShow(context, ref);
     if (result != null && mounted) {
-      await _onPreferredCityChanged(result.city);
+      await _onPreferredCityChanged(result.city, result.wards);
     }
   }
 
-  Future<void> _onPreferredCityChanged(String? city) async {
+  Future<void> _onPreferredCityChanged(String? city, Set<String> wards) async {
     switch (_selectedTab) {
       case HomeDiscoveryTab.sessions:
         final controller = ref.read(browseSessionsControllerProvider.notifier);
         final filters = ref.read(browseSessionsControllerProvider).filters;
         await controller.load(
           filters: city == null
-              ? filters.copyWith(clearCity: true, cityIsDefault: true)
-              : filters.copyWith(city: city, cityIsDefault: true),
+              ? filters.copyWith(
+                  clearCity: true,
+                  cityIsDefault: true,
+                  districts: const {},
+                )
+              : filters.copyWith(
+                  city: city,
+                  cityIsDefault: true,
+                  districts: wards,
+                ),
         );
       case HomeDiscoveryTab.venues:
         final controller = ref.read(venueBrowseControllerProvider.notifier);
@@ -253,7 +257,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 )
               : filter.copyWith(
                   city: city,
-                  clearDistrict: true,
+                  district: wards.length == 1 ? wards.first : null,
+                  districts: wards,
                   cityIsDefault: true,
                 ),
         );
@@ -262,8 +267,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         final filters = ref.read(clubsControllerProvider).filters;
         await controller.load(
           filters: city == null
-              ? filters.copyWith(clearCity: true, cityIsDefault: true)
-              : filters.copyWith(city: city, cityIsDefault: true),
+              ? filters.copyWith(
+                  clearCity: true,
+                  cityIsDefault: true,
+                  districts: const {},
+                )
+              : filters.copyWith(
+                  city: city,
+                  cityIsDefault: true,
+                  districts: wards,
+                ),
         );
       case HomeDiscoveryTab.tournaments:
         final state = ref.read(tournamentBrowseControllerProvider);
@@ -368,12 +381,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     VenueBrowseState venueState,
     ClubsState clubsState,
     TournamentBrowseState tournamentState,
-    String? preferredCity,
   ) => switch (_selectedTab) {
     HomeDiscoveryTab.sessions => sessionState.filters.activeCount,
-    HomeDiscoveryTab.venues => venueState.filter.activeCount(
-      preferredCity: preferredCity,
-    ),
+    HomeDiscoveryTab.venues => venueState.filter.activeCount,
     HomeDiscoveryTab.clubs => clubsState.activeFilterCount,
     HomeDiscoveryTab.tournaments => tournamentState.activeFilterCount,
   };

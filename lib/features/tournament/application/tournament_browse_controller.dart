@@ -24,6 +24,7 @@ class TournamentBrowseState {
     this.favoriteOnly = false,
     this.sort = TournamentBrowseSort.startAsc,
     this.isLoading = false,
+    this.isRefetching = false,
     this.error,
   });
 
@@ -35,6 +36,11 @@ class TournamentBrowseState {
   final bool favoriteOnly;
   final TournamentBrowseSort sort;
   final bool isLoading;
+
+  /// True while a search/sort/filter change is refetching the list that
+  /// already has items on screen — distinct from [isLoading], which only
+  /// covers the first fetch (nothing rendered yet).
+  final bool isRefetching;
   final Object? error;
 
   int get activeFilterCount =>
@@ -61,6 +67,7 @@ class TournamentBrowseController extends Notifier<TournamentBrowseState> {
     Set<String>? sportTypes,
     bool? favoriteOnly,
     TournamentBrowseSort? sort,
+    bool isPullToRefresh = false,
   }) async {
     final activeSearch = search ?? state.search;
     final activeCity = clearCity ? null : city ?? state.city;
@@ -68,6 +75,7 @@ class TournamentBrowseController extends Notifier<TournamentBrowseState> {
     final activeSportTypes = sportTypes ?? state.sportTypes;
     final activeFavoriteOnly = favoriteOnly ?? state.favoriteOnly;
     final activeSort = sort ?? state.sort;
+    final hasExisting = state.tournaments.isNotEmpty;
     state = TournamentBrowseState(
       tournaments: state.tournaments,
       search: activeSearch,
@@ -76,7 +84,8 @@ class TournamentBrowseController extends Notifier<TournamentBrowseState> {
       sportTypes: activeSportTypes,
       favoriteOnly: activeFavoriteOnly,
       sort: activeSort,
-      isLoading: true,
+      isLoading: !hasExisting,
+      isRefetching: !isPullToRefresh && hasExisting,
     );
     try {
       final tournaments = await ref

@@ -141,51 +141,56 @@ class PlayerSelectCard extends StatelessWidget {
           );
   }
   return switch (status) {
-    PlayerStatus.ready => isDark
-        ? (
-            background: const Color(0xFF422006).withValues(alpha: 0.5),
-            border: const Color(0xFFEAB308),
-          )
-        : (
-            background: const Color(0xFFFEF08A),
-            border: const Color(0xFFEAB308),
-          ),
-    PlayerStatus.waiting => isDark
-        ? (
-            background: const Color(0xFF431407).withValues(alpha: 0.45),
-            border: const Color(0xFFEA580C),
-          )
-        : (
-            background: const Color(0xFFFED7AA),
-            border: const Color(0xFFF97316),
-          ),
-    PlayerStatus.playing => isDark
-        ? (
-            background: const Color(0xFF052E16).withValues(alpha: 0.45),
-            border: const Color(0xFF22C55E),
-          )
-        : (
-            background: const Color(0xFFBBF7D0),
-            border: const Color(0xFF22C55E),
-          ),
-    PlayerStatus.inactive => isDark
-        ? (
-            background: const Color(0xFF27272A),
-            border: const Color(0xFF52525B),
-          )
-        : (
-            background: const Color(0xFFE5E7EB),
-            border: const Color(0xFF9CA3AF),
-          ),
-    PlayerStatus.finished => isDark
-        ? (
-            background: const Color(0xFF18181B),
-            border: const Color(0xFF3F3F46),
-          )
-        : (
-            background: const Color(0xFFF9FAFB),
-            border: const Color(0xFFE5E7EB),
-          ),
+    PlayerStatus.ready =>
+      isDark
+          ? (
+              background: const Color(0xFF422006).withValues(alpha: 0.5),
+              border: const Color(0xFFEAB308),
+            )
+          : (
+              background: const Color(0xFFFEF08A),
+              border: const Color(0xFFEAB308),
+            ),
+    PlayerStatus.waiting =>
+      isDark
+          ? (
+              background: const Color(0xFF431407).withValues(alpha: 0.45),
+              border: const Color(0xFFEA580C),
+            )
+          : (
+              background: const Color(0xFFFED7AA),
+              border: const Color(0xFFF97316),
+            ),
+    PlayerStatus.playing =>
+      isDark
+          ? (
+              background: const Color(0xFF052E16).withValues(alpha: 0.45),
+              border: const Color(0xFF22C55E),
+            )
+          : (
+              background: const Color(0xFFBBF7D0),
+              border: const Color(0xFF22C55E),
+            ),
+    PlayerStatus.inactive =>
+      isDark
+          ? (
+              background: const Color(0xFF27272A),
+              border: const Color(0xFF52525B),
+            )
+          : (
+              background: const Color(0xFFE5E7EB),
+              border: const Color(0xFF9CA3AF),
+            ),
+    PlayerStatus.finished =>
+      isDark
+          ? (
+              background: const Color(0xFF18181B),
+              border: const Color(0xFF3F3F46),
+            )
+          : (
+              background: const Color(0xFFF9FAFB),
+              border: const Color(0xFFE5E7EB),
+            ),
   };
 }
 

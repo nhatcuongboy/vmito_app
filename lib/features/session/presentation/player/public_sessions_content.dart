@@ -175,6 +175,13 @@ class _BrowseSessionsContentState extends ConsumerState<BrowseSessionsContent> {
                 ),
               ),
             ),
+          if (!_showMap)
+            SizedBox(
+              height: 2,
+              child: state.isRefetching
+                  ? const LinearProgressIndicator()
+                  : null,
+            ),
           Expanded(
             child: Stack(
               children: [

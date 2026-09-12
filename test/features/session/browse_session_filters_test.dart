@@ -30,7 +30,7 @@ void main() {
     expect(SessionCourtCountFilter.fourPlus.maxCourts, isNull);
   });
 
-  test('default city is not counted and reset preserves search', () {
+  test('city and districts are never counted and reset preserves search', () {
     const filters = BrowseSessionFilters(
       search: 'Sunday',
       city: 'Hồ Chí Minh',
@@ -38,7 +38,7 @@ void main() {
       minFee: 50000,
     );
 
-    expect(filters.activeCount, 2);
+    expect(filters.activeCount, 1);
     final reset = filters.reset(preferredCity: 'Hà Nội');
     expect(reset.search, 'Sunday');
     expect(reset.city, 'Hà Nội');

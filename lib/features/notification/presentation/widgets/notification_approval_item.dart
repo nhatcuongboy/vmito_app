@@ -122,7 +122,7 @@ class VenueApprovalListItem extends StatelessWidget {
             )
           else
             const _FallbackIcon(accent: accent, icon: AppIcons.mapPin),
-          const SizedBox(width: AppSpacing.sm),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -224,7 +224,7 @@ class _ApprovalTile extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           PostAvatar(name: name, imageUrl: imageUrl, size: 44),
-          const SizedBox(width: AppSpacing.sm),
+          const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -304,6 +304,14 @@ class _ApprovalTile extends StatelessWidget {
                             l10n.notificationReject,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.labelLarge?.copyWith(
+                              fontSize: 13,
+                              height: 16 / 13,
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? const Color(0xFFFCA5A5)
+                                  : Colors.red.shade700,
+                            ),
                           ),
                         ),
                         FilledButton(
@@ -334,6 +342,14 @@ class _ApprovalTile extends StatelessWidget {
                                   l10n.notificationApprove,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.labelLarge?.copyWith(
+                                    fontSize: 13,
+                                    height: 16 / 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark
+                                        ? AppColors.primaryForegroundDark
+                                        : Colors.white,
+                                  ),
                                 ),
                         ),
                       ],
@@ -404,22 +420,22 @@ class _RequestBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-    decoration: BoxDecoration(
-      color: isDark
-          ? Colors.white.withValues(alpha: 0.12)
-          : Colors.black.withValues(alpha: 0.08),
-      borderRadius: BorderRadius.circular(6),
-    ),
-    child: Text(
-      label,
-      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+      decoration: BoxDecoration(
         color: isDark
-            ? Colors.white.withValues(alpha: 0.70)
-            : Colors.black.withValues(alpha: 0.55),
-        fontWeight: FontWeight.w600,
+            ? Colors.white.withValues(alpha: 0.12)
+            : Colors.black.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(6),
       ),
-    ),
+      child: Text(
+        label,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.70)
+              : Colors.black.withValues(alpha: 0.55),
+          fontWeight: FontWeight.w600,
+        ),
+      ),
     );
   }
 }

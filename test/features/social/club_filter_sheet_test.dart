@@ -16,8 +16,8 @@ class _LocationPreferencesController extends LocationPreferencesController {
   );
 
   @override
-  Future<void> selectCity(String? city) async {
-    state = state.copyWith(preferredCity: city);
+  Future<void> selectCity(String? city, {Set<String> wards = const {}}) async {
+    state = state.copyWith(preferredCity: city, preferredWards: wards);
   }
 
   @override

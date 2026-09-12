@@ -99,7 +99,7 @@ class NotificationListItem extends StatelessWidget {
                       notification: notification,
                       unread: isUnread,
                     ),
-                    const SizedBox(width: AppSpacing.sm),
+                    const SizedBox(width: AppSpacing.md),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

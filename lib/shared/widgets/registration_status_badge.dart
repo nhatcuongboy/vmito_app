@@ -5,8 +5,9 @@ import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 
-/// The player's registration status pill, shared by the browse card and the
-/// session detail hero so both surfaces read identically.
+/// A registration status pill, shared across the session browse card, the
+/// session detail hero, and any "join request" review surface (session or
+/// club) so pending/approved/rejected reads identically everywhere.
 class RegistrationStatusBadge extends StatelessWidget {
   const RegistrationStatusBadge({required this.status, super.key});
 

@@ -35,10 +35,12 @@ import 'package:vmito_app/features/session/presentation/player/edit_session_scre
 import 'package:vmito_app/features/session/presentation/player/my_sessions_search_screen.dart';
 import 'package:vmito_app/features/session/presentation/player/session_detail_screen.dart';
 import 'package:vmito_app/features/session_hosting/presentation/host_session_management_screen.dart';
+import 'package:vmito_app/features/session_hosting/presentation/session_join_request_detail_screen.dart';
 import 'package:vmito_app/features/social/presentation/browse_clubs_screen.dart';
 import 'package:vmito_app/features/social/presentation/club_detail_screen.dart';
 import 'package:vmito_app/features/social/presentation/club_fee_screen.dart';
 import 'package:vmito_app/features/social/presentation/club_form_screen.dart';
+import 'package:vmito_app/features/social/presentation/club_management/club_join_request_detail_screen.dart';
 import 'package:vmito_app/features/social/presentation/club_management_detail_screen.dart';
 import 'package:vmito_app/features/social/presentation/club_management_screen.dart';
 import 'package:vmito_app/features/social/presentation/post_detail_screen.dart';
@@ -385,6 +387,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                         ),
                       ),
                       GoRoute(
+                        path: 'join-requests/:requestId',
+                        parentNavigatorKey: rootNavigatorKey,
+                        builder: (context, state) =>
+                            SessionJoinRequestDetailScreen(
+                              sessionId: state.pathParameters['id']!,
+                              requestId: state.pathParameters['requestId']!,
+                              canDecide:
+                                  state.uri.queryParameters['role'] !=
+                                  'applicant',
+                            ),
+                      ),
+                      GoRoute(
                         path: 'live',
                         name: AppRoutes.nameLiveSession,
                         builder: (context, state) => LiveSessionScreen(
@@ -442,6 +456,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                             builder: (context, state) => ClubFeeScreen(
                               clubId: state.pathParameters['id']!,
                             ),
+                          ),
+                          GoRoute(
+                            path: 'requests/:requestId',
+                            parentNavigatorKey: rootNavigatorKey,
+                            builder: (context, state) =>
+                                ClubJoinRequestDetailScreen(
+                                  clubId: state.pathParameters['id']!,
+                                  requestId: state.pathParameters['requestId']!,
+                                  canDecide:
+                                      state.uri.queryParameters['role'] !=
+                                      'applicant',
+                                ),
                           ),
                         ],
                       ),

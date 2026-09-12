@@ -101,6 +101,19 @@ class OutgoingRequestCard extends ConsumerWidget {
                     text: clubRequestSubmittedLabel(context, request.createdAt),
                   ),
                 ),
+                IconButton(
+                  tooltip: l10n.joinRequestDetailViewDetail,
+                  visualDensity: VisualDensity.compact,
+                  color: palette.mutedForeground,
+                  onPressed: () => context.push(
+                    AppRoutes.clubJoinRequestDetail(
+                      request.clubId,
+                      request.id,
+                      asApplicant: true,
+                    ),
+                  ),
+                  icon: const Icon(AppIcons.eye, size: 18),
+                ),
                 TextButton.icon(
                   onPressed: isBusy
                       ? null

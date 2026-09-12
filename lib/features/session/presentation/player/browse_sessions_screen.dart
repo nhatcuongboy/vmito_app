@@ -242,8 +242,9 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen>
                             : const Color(0xFFE2F3E8)),
                     foregroundColor: theme.colorScheme.primary,
                     elevation: 4,
-                    shadowColor:
-                        theme.colorScheme.shadow.withValues(alpha: 0.25),
+                    shadowColor: theme.colorScheme.shadow.withValues(
+                      alpha: 0.25,
+                    ),
                     side: BorderSide(
                       color: theme.colorScheme.primary.withValues(
                         alpha: 0.35,
@@ -775,9 +776,18 @@ class _SessionsBody extends StatelessWidget {
 
   void _shareSession(BuildContext context, Session session) {
     final url = 'https://vmito.com/sessions/${session.id}';
+    final box = context.findRenderObject();
     unawaited(
       SharePlus.instance.share(
-        ShareParams(text: '${session.name}\n$url', subject: session.name),
+        ShareParams(
+          text: '${session.name}\n$url',
+          subject: session.name,
+          // iPad anchors the share sheet to the tapped rect; without it the
+          // sheet throws rather than opening.
+          sharePositionOrigin: box is RenderBox
+              ? box.localToGlobal(Offset.zero) & box.size
+              : null,
+        ),
       ),
     );
   }
@@ -789,9 +799,18 @@ class _SessionsBody extends StatelessWidget {
   void _downloadImage(BuildContext context, Session session) {
     final l10n = AppLocalizations.of(context);
     final imageUrl = sessionCoverPhoto(session);
+    final box = context.findRenderObject();
     unawaited(
       SharePlus.instance.share(
-        ShareParams(text: imageUrl, subject: session.name),
+        ShareParams(
+          text: imageUrl,
+          subject: session.name,
+          // iPad anchors the share sheet to the tapped rect; without it the
+          // sheet throws rather than opening.
+          sharePositionOrigin: box is RenderBox
+              ? box.localToGlobal(Offset.zero) & box.size
+              : null,
+        ),
       ),
     );
     ScaffoldMessenger.of(context).showSnackBar(

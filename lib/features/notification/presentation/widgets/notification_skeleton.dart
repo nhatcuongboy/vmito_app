@@ -19,7 +19,7 @@ class NotificationSkeleton extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _SkeletonBox(width: 40, height: 40, radius: 14),
-            SizedBox(width: AppSpacing.sm),
+            SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -84,7 +84,11 @@ void main() {
           id: 'badminton',
           name: 'Phú Nhuận',
           sportType: 'BADMINTON',
-        ).displayName(generic: 'Sân Phú Nhuận', bySport: candidates),
+        ).displayName(
+          generic: 'Sân Phú Nhuận',
+          bySport: candidates,
+          localeName: 'en',
+        ),
         'Sân cầu lông Phú Nhuận',
       );
       expect(
@@ -92,7 +96,11 @@ void main() {
           id: 'multi',
           name: 'Phú Nhuận',
           sportTypes: ['BADMINTON', 'PICKLEBALL'],
-        ).displayName(generic: 'Sân Phú Nhuận', bySport: candidates),
+        ).displayName(
+          generic: 'Sân Phú Nhuận',
+          bySport: candidates,
+          localeName: 'en',
+        ),
         'Sân Phú Nhuận',
       );
     });
@@ -109,6 +117,7 @@ void main() {
           Venue(id: name, name: name).displayName(
             generic: 'Sân $name',
             bySport: candidates,
+            localeName: 'en',
           ),
           name,
         );
@@ -121,7 +130,7 @@ void main() {
       expect(filter.copyWith(clearLocation: true).latitude, isNull);
     });
 
-    test('venue filter count excludes keyword, sort, and preferred city', () {
+    test('venue filter count excludes keyword, sort, city, and district', () {
       const filter = VenueFilter(
         keyword: 'thpt',
         city: 'Hồ Chí Minh',
@@ -130,8 +139,7 @@ void main() {
         favoriteOnly: true,
       );
 
-      expect(filter.activeCount(preferredCity: 'Hồ Chí Minh'), 2);
-      expect(filter.activeCount(preferredCity: 'Hà Nội'), 3);
+      expect(filter.activeCount, 1);
     });
 
     test('session venue filter counts once and clears as one unit', () {

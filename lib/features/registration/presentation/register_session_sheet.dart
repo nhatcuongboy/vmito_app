@@ -12,6 +12,7 @@ import 'package:vmito_app/features/registration/presentation/registration_player
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
+import 'package:vmito_app/shared/widgets/skill_level_badge.dart';
 import 'package:vmito_domain/vmito_domain.dart';
 
 /// The web app's `JoinSessionModal`, as a bottom sheet.
@@ -96,6 +97,7 @@ class _RegisterSessionSheetState extends ConsumerState<_RegisterSessionSheet> {
   );
 
   Future<void> _submit() async {
+    if (_drafts.isEmpty) return;
     if (!(_formKey.currentState?.validate() ?? false)) return;
 
     final l10n = AppLocalizations.of(context);
@@ -146,7 +148,7 @@ class _RegisterSessionSheetState extends ConsumerState<_RegisterSessionSheet> {
                 AppSpacing.lg,
                 0,
                 AppSpacing.lg,
-                AppSpacing.sm,
+                AppSpacing.md,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,13 +168,17 @@ class _RegisterSessionSheetState extends ConsumerState<_RegisterSessionSheet> {
                 ],
               ),
             ),
+            Divider(height: 1, color: theme.extension<AppPalette>()!.border),
             Flexible(
               child: Form(
                 key: _formKey,
                 child: ListView(
                   shrinkWrap: true,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.lg,
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.lg,
+                    AppSpacing.md,
+                    AppSpacing.lg,
+                    AppSpacing.md,
                   ),
                   children: [
                     if (widget.session.requiredLevels.isNotEmpty)
@@ -190,7 +196,7 @@ class _RegisterSessionSheetState extends ConsumerState<_RegisterSessionSheet> {
                         levelOptions: _levelOptions,
                         genderOptions: _genderOptions,
                         onChanged: (draft) => _drafts[i] = draft,
-                        onRemove: _drafts[i].isMe
+                        onRemove: i == 0
                             ? null
                             : () => setState(() => _drafts.removeAt(i)),
                       ),
@@ -199,11 +205,11 @@ class _RegisterSessionSheetState extends ConsumerState<_RegisterSessionSheet> {
                       icon: const Icon(AppIcons.userPlus),
                       label: Text(l10n.sessionAddGuest),
                     ),
-                    const SizedBox(height: AppSpacing.md),
                   ],
                 ),
               ),
             ),
+            Divider(height: 1, color: theme.extension<AppPalette>()!.border),
             Padding(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.lg,
@@ -248,18 +254,30 @@ class _RequiredLevelsBanner extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.lg),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(
-            AppIcons.shield,
-            size: 18,
-            color: theme.colorScheme.primary,
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Icon(
+              AppIcons.shield,
+              size: 18,
+              color: theme.colorScheme.primary,
+            ),
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
-            child: Text(
-              '${l10n.registrationRequiredLevels}: '
-              '${levels.map(l10n.levelName).join(', ')}',
-              style: theme.textTheme.bodySmall,
+            child: Wrap(
+              spacing: AppSpacing.xs,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  '${l10n.registrationRequiredLevels}:',
+                  style: theme.textTheme.bodySmall,
+                ),
+                for (final level in levels)
+                  SkillLevelBadge(level: level, compact: true),
+              ],
             ),
           ),
         ],

@@ -15,13 +15,13 @@ FormGroup createVenueFilterForm(VenueFilter initial) {
   final initialDistricts = initial.districts.isNotEmpty
       ? {...initial.districts}
       : (initial.district != null && initial.district!.trim().isNotEmpty
-          ? {initial.district!.trim()}
-          : <String>{});
+            ? {initial.district!.trim()}
+            : <String>{});
   final initialSports = initial.sports.isNotEmpty
       ? {...initial.sports}
       : (initial.sportType != null
-          ? {?VenueSport.fromWireValue(initial.sportType)}
-          : <VenueSport>{});
+            ? {?VenueSport.fromWireValue(initial.sportType)}
+            : <VenueSport>{});
 
   return FormGroup({
     VenueFilterControl.sports: FormControl<Set<VenueSport>>(

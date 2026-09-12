@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -339,47 +341,52 @@ class _PendingRequestCard extends StatelessWidget {
             Localizations.localeOf(context).toLanguageTag(),
           ).add_Hm().format(request.startTime!.toLocal());
     return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              request.playerName?.trim().isNotEmpty ?? false
-                  ? request.playerName!
-                  : l10n.mySessionsUnknownPlayer,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text(request.sessionName),
-            if (request.venueName != null) Text(request.venueName!),
-            if (date != null) Text(date),
-            const SizedBox(height: AppSpacing.sm),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    key: ValueKey('reject-request-${request.id}'),
-                    onPressed: busy ? null : () => onDecision(false),
-                    child: Text(l10n.hostManageReject),
+      child: InkWell(
+        onTap: () => context.push(
+          AppRoutes.sessionJoinRequestDetail(request.sessionId, request.id),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                request.playerName?.trim().isNotEmpty ?? false
+                    ? request.playerName!
+                    : l10n.mySessionsUnknownPlayer,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(request.sessionName),
+              if (request.venueName != null) Text(request.venueName!),
+              if (date != null) Text(date),
+              const SizedBox(height: AppSpacing.sm),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      key: ValueKey('reject-request-${request.id}'),
+                      onPressed: busy ? null : () => onDecision(false),
+                      child: Text(l10n.hostManageReject),
+                    ),
                   ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: FilledButton(
-                    key: ValueKey('approve-request-${request.id}'),
-                    onPressed: busy ? null : () => onDecision(true),
-                    child: busy
-                        ? const SizedBox.square(
-                            dimension: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : Text(l10n.hostManageApprove),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: FilledButton(
+                      key: ValueKey('approve-request-${request.id}'),
+                      onPressed: busy ? null : () => onDecision(true),
+                      child: busy
+                          ? const SizedBox.square(
+                              dimension: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(l10n.hostManageApprove),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

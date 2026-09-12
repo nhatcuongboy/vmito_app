@@ -210,10 +210,15 @@ final apiClientProvider = Provider<ApiClient>((ref) {
 });
 
 /// Builds the configured client. Called once, from `bootstrap.dart`.
+///
+/// [httpClientAdapter], when given, replaces the transport on both the main
+/// client and the refresh-only one — tests use it to fake `/auth/refresh`
+/// without touching the network; production never passes it.
 ApiClient buildApiClient({
   required TokenStorage tokenStorage,
   required ApiErrorBus errorBus,
   required Future<void> Function() onSessionExpired,
+  HttpClientAdapter? httpClientAdapter,
 }) {
   final dio = Dio(
     BaseOptions(
@@ -226,6 +231,7 @@ ApiClient buildApiClient({
       validateStatus: (status) => status != null && status < 400,
     ),
   );
+  if (httpClientAdapter != null) dio.httpClientAdapter = httpClientAdapter;
 
   // A second, interceptor-free client for the refresh call itself — using the
   // main one would recurse through AuthInterceptor.
@@ -237,6 +243,9 @@ ApiClient buildApiClient({
       headers: {'Content-Type': 'application/json'},
     ),
   );
+  if (httpClientAdapter != null) {
+    refreshDio.httpClientAdapter = httpClientAdapter;
+  }
 
   dio.interceptors.addAll([
     AuthInterceptor(

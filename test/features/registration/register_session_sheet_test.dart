@@ -13,6 +13,7 @@ import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
+import 'package:vmito_app/shared/widgets/app_picker_field.dart';
 
 class _FakeRepository implements RegistrationRepository {
   final registered = <List<Map<String, dynamic>>>[];
@@ -137,6 +138,22 @@ void main() {
     expect(find.text('Cường'), findsNothing);
   });
 
+  testWidgets('add-guest mode keeps the first guest mandatory', (tester) async {
+    await _openSheet(
+      tester,
+      session: _session(),
+      repository: _FakeRepository(),
+      asGuest: true,
+    );
+
+    expect(find.byIcon(AppIcons.delete), findsNothing);
+
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Add guest'));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(AppIcons.delete), findsOneWidget);
+  });
+
   testWidgets('adding a guest appends a removable row', (tester) async {
     await _openSheet(
       tester,
@@ -213,7 +230,7 @@ void main() {
       repository: _FakeRepository(),
     );
 
-    await tester.tap(find.byType(DropdownButtonFormField<Gender>));
+    await tester.tap(find.byType(AppPickerField<Gender>));
     await tester.pumpAndSettle();
 
     // The fee table has no bucket for "Other", so it must not be offered.
@@ -230,10 +247,109 @@ void main() {
       repository: _FakeRepository(),
     );
 
-    await tester.tap(find.byType(DropdownButtonFormField<int>));
+    await tester.tap(find.byType(AppPickerField<int>));
     await tester.pumpAndSettle();
 
     expect(find.text('TB'), findsNothing);
     expect(find.text('Yếu-'), findsWidgets);
+  });
+
+  testWidgets('the level picker scrolls without overflowing on mobile', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(430, 932)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    await _openSheet(
+      tester,
+      session: _session(requiredLevels: const []),
+      repository: _FakeRepository(),
+    );
+
+    await tester.tap(find.byType(AppPickerField<int>));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(ListView), findsWidgets);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('selecting a level keeps the picker height stable', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: AppPickerField<int>(
+            label: 'Level',
+            hintText: 'Select level',
+            options: const [
+              AppPickerOption(value: 1, label: 'Level 1'),
+              AppPickerOption(value: 2, label: 'Level 2'),
+            ],
+            onChanged: (_) {},
+          ),
+        ),
+      ),
+    );
+
+    final initialHeight = tester
+        .getSize(find.byType(AppPickerField<int>))
+        .height;
+    await tester.tap(find.byType(AppPickerField<int>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Level 2'));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.getSize(find.byType(AppPickerField<int>)).height,
+      initialHeight,
+    );
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('level and gender pickers use the same height', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: AppTheme.light,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        home: Scaffold(
+          body: Row(
+            children: [
+              Expanded(
+                child: AppPickerField<Gender>(
+                  label: 'Gender',
+                  options: const [
+                    AppPickerOption(value: Gender.male, label: 'Male'),
+                  ],
+                  onChanged: (_) {},
+                ),
+              ),
+              Expanded(
+                child: AppPickerField<int>(
+                  label: 'Level',
+                  hintText: 'Select level',
+                  options: const [
+                    AppPickerOption(value: 1, label: 'Level 1'),
+                  ],
+                  onChanged: (_) {},
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(
+      tester.getSize(find.byType(AppPickerField<Gender>)).height,
+      tester.getSize(find.byType(AppPickerField<int>)).height,
+    );
+    expect(tester.takeException(), isNull);
   });
 }

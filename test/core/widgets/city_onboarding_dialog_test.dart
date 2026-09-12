@@ -17,10 +17,11 @@ class _PreferencesController extends LocationPreferencesController {
   LocationPreferences build() => initial;
 
   @override
-  Future<void> selectCity(String? city) async {
+  Future<void> selectCity(String? city, {Set<String> wards = const {}}) async {
     state = state.copyWith(
       preferredCity: city,
       clearPreferredCity: city == null,
+      preferredWards: wards,
       selectionType: city == null
           ? LocationSelectionType.all
           : LocationSelectionType.city,
@@ -32,6 +33,7 @@ class _PreferencesController extends LocationPreferencesController {
   Future<void> selectAll() async {
     state = state.copyWith(
       clearPreferredCity: true,
+      preferredWards: const {},
       selectionType: LocationSelectionType.all,
       onboardingCompleted: true,
     );
@@ -41,6 +43,7 @@ class _PreferencesController extends LocationPreferencesController {
   Future<void> selectOther() async {
     state = state.copyWith(
       clearPreferredCity: true,
+      preferredWards: const {},
       selectionType: LocationSelectionType.other,
       onboardingCompleted: true,
     );
@@ -49,7 +52,7 @@ class _PreferencesController extends LocationPreferencesController {
 
 void main() {
   testWidgets(
-    'onboarding uses selector content, hides close button, and removes default Ho Chi Minh',
+    'onboarding uses selector content and hides the close button',
     (
       tester,
     ) async {
@@ -95,29 +98,30 @@ void main() {
       await tester.tap(find.text('Open Onboarding'));
       await tester.pumpAndSettle();
 
-      // Uses onboarding title and subtitle
-      expect(find.text('Bạn đang ở đâu?'), findsOneWidget);
+      // Uses the unified title and the onboarding subtitle
+      expect(find.text('Chọn khu vực của bạn'), findsOneWidget);
       expect(
         find.text('Chọn thành phố để xem các kèo và sân gần bạn nhất.'),
         findsOneWidget,
       );
 
-      // No close button in sheet header
+      // No close button in sheet header during onboarding
       expect(find.byKey(const Key('city-selector-close')), findsNothing);
 
-      // No skip button defaulting to Ho Chi Minh
-      expect(find.text('Bỏ qua, dùng TP. Hồ Chí Minh'), findsNothing);
-
-      // Has search and current location
-      expect(find.byKey(const Key('city-selector-search')), findsOneWidget);
+      // Province field, current-location action, and "other area" button
+      expect(
+        find.byKey(const Key('city-selector-province-field')),
+        findsOneWidget,
+      );
       expect(
         find.byKey(const Key('city-selector-current-location')),
         findsOneWidget,
       );
+      expect(find.byKey(const Key('city-selector-other')), findsOneWidget);
 
-      // Has "Tất cả" and "Khác"
-      expect(find.byKey(const Key('discovery-city-all')), findsOneWidget);
-      expect(find.byKey(const Key('discovery-city-other')), findsOneWidget);
+      // Footer has Reset and Apply
+      expect(find.byKey(const Key('city-selector-reset')), findsOneWidget);
+      expect(find.byKey(const Key('city-selector-apply')), findsOneWidget);
     },
   );
 
@@ -169,7 +173,9 @@ void main() {
     await tester.tap(find.text('Open Onboarding'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('discovery-city-other')));
+    await tester.tap(find.byKey(const Key('city-selector-other')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('city-selector-apply')));
     await tester.pumpAndSettle();
 
     expect(result, isNotNull);
@@ -182,7 +188,7 @@ void main() {
     expect(pref.preferredCity, isNull);
   });
 
-  testWidgets('selecting a city completes onboarding with city selection', (
+  testWidgets('picking a city completes onboarding with city selection', (
     tester,
   ) async {
     CitySelection? result;
@@ -235,7 +241,11 @@ void main() {
     await tester.tap(find.text('Open Onboarding'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Đà Nẵng'));
+    await tester.tap(find.byKey(const Key('city-selector-province-field')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(ListTile, 'Đà Nẵng'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('city-selector-apply')));
     await tester.pumpAndSettle();
 
     expect(result, isNotNull);

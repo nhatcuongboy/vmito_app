@@ -11,8 +11,8 @@ import 'package:vmito_app/features/social/presentation/club_management/club_mana
 import 'package:vmito_app/features/social/presentation/club_management/widgets/club_card_parts.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
-/// A join request waiting on the host. The requester row opens their public
-/// profile so the host can vet them before deciding.
+/// A join request waiting on the host. The row opens the full request detail
+/// screen, where the host can vet the requester and decide.
 class IncomingRequestCard extends ConsumerWidget {
   const IncomingRequestCard({required this.request, super.key});
 
@@ -40,9 +40,9 @@ class IncomingRequestCard extends ConsumerWidget {
           children: [
             InkWell(
               borderRadius: BorderRadius.circular(AppRadius.lg),
-              onTap: request.userId.isEmpty
-                  ? null
-                  : () => context.push(AppRoutes.publicProfile(request.userId)),
+              onTap: () => context.push(
+                AppRoutes.clubJoinRequestDetail(request.clubId, request.id),
+              ),
               child: Row(
                 children: [
                   UserAvatar(

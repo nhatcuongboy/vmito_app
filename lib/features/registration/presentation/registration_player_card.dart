@@ -6,6 +6,7 @@ import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/registration/domain/registration_player_draft.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
+import 'package:vmito_app/shared/widgets/app_picker_field.dart';
 import 'package:vmito_app/shared/widgets/app_required_label.dart';
 
 /// One player row of the registration form.
@@ -96,57 +97,39 @@ class RegistrationPlayerCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm + 4),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: DropdownButtonFormField<Gender>(
+                child: AppPickerField<Gender>(
+                  label: l10n.authSignUpGender,
                   initialValue: draft.gender,
-                  isExpanded: true,
-                  style: theme.textTheme.bodyLarge,
-                  decoration: InputDecoration(
-                    labelText: l10n.authSignUpGender,
-                    isDense: true,
-                  ),
-                  items: [
+                  options: [
                     for (final gender in genderOptions)
-                      DropdownMenuItem(
+                      AppPickerOption(
                         value: gender,
-                        child: Text(
-                          _genderLabel(l10n, gender),
-                          style: const TextStyle(fontWeight: FontWeight.normal),
-                        ),
+                        label: _genderLabel(l10n, gender),
                       ),
                   ],
-                  onChanged: (value) => value == null
-                      ? null
-                      : onChanged(draft.copyWith(gender: value)),
+                  onChanged: (value) =>
+                      onChanged(draft.copyWith(gender: value)),
                 ),
               ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
-                child: DropdownButtonFormField<int>(
+                child: AppPickerField<int>(
+                  label: l10n.registrationLevel,
+                  hintText: l10n.registrationLevelHint,
                   initialValue: draft.level,
-                  isExpanded: true,
-                  style: theme.textTheme.bodyLarge,
-                  decoration: InputDecoration(
-                    labelText: l10n.registrationLevel,
-                    hintText: l10n.registrationLevelHint,
-                    isDense: true,
-                  ),
-                  items: [
+                  options: [
                     for (final level in levelOptions)
-                      DropdownMenuItem(
+                      AppPickerOption(
                         value: level,
-                        child: Text(
-                          l10n.levelName(level),
-                          style: const TextStyle(fontWeight: FontWeight.normal),
-                        ),
+                        label: l10n.levelName(level),
                       ),
                   ],
                   validator: (value) =>
                       value == null ? l10n.registrationLevelRequired : null,
-                  onChanged: (value) => value == null
-                      ? null
-                      : onChanged(draft.copyWith(level: value)),
+                  onChanged: (value) => onChanged(draft.copyWith(level: value)),
                 ),
               ),
             ],

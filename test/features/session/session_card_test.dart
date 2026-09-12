@@ -184,7 +184,9 @@ void main() {
       expect(find.text('Yếu'), findsNothing);
 
       final chip = tester.widget<Container>(
-        find.ancestor(of: find.text('Yếu-'), matching: find.byType(Container)).first,
+        find
+            .ancestor(of: find.text('Yếu-'), matching: find.byType(Container))
+            .first,
       );
       final decoration = chip.decoration! as BoxDecoration;
       expect(decoration.border, isNotNull);

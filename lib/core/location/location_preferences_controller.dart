@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vmito_app/core/location/city_names.dart';
@@ -19,6 +20,7 @@ enum LocationSelectionType {
 class LocationPreferences {
   const LocationPreferences({
     this.preferredCity,
+    this.preferredWards = const {},
     this.selectionType,
     this.onboardingCompleted = false,
     this.showNewAddress = true,
@@ -26,6 +28,7 @@ class LocationPreferences {
   });
 
   final String? preferredCity;
+  final Set<String> preferredWards;
   final LocationSelectionType? selectionType;
   final bool onboardingCompleted;
   final bool showNewAddress;
@@ -34,6 +37,7 @@ class LocationPreferences {
   LocationPreferences copyWith({
     String? preferredCity,
     bool clearPreferredCity = false,
+    Set<String>? preferredWards,
     LocationSelectionType? selectionType,
     bool clearSelectionType = false,
     bool? onboardingCompleted,
@@ -43,6 +47,7 @@ class LocationPreferences {
     preferredCity: clearPreferredCity
         ? null
         : preferredCity ?? this.preferredCity,
+    preferredWards: preferredWards ?? this.preferredWards,
     selectionType: clearSelectionType
         ? null
         : selectionType ?? this.selectionType,
@@ -54,11 +59,13 @@ class LocationPreferences {
 
 abstract interface class LocationPreferencesRepository {
   String? readPreferredCity();
+  Set<String> readPreferredWards();
   LocationSelectionType? readSelectionType();
   bool? readOnboardingCompleted();
   bool? readShowNewAddress();
   Future<void> write({
     String? preferredCity,
+    Set<String> preferredWards = const {},
     LocationSelectionType? selectionType,
     required bool onboardingCompleted,
     required bool showNewAddress,
@@ -70,6 +77,7 @@ class SharedPreferencesLocationPreferencesRepository
   const SharedPreferencesLocationPreferencesRepository(this._preferences);
 
   static const _cityKey = 'vmito.preferred_city';
+  static const _wardsKey = 'vmito.preferred_wards';
   static const _selectionTypeKey = 'vmito.location_selection_type';
   static const _onboardingKey = 'vmito.location_onboarding_completed';
   static const _newAddressKey = 'vmito.show_new_address';
@@ -77,6 +85,10 @@ class SharedPreferencesLocationPreferencesRepository
 
   @override
   String? readPreferredCity() => _preferences.getString(_cityKey);
+
+  @override
+  Set<String> readPreferredWards() =>
+      _preferences.getStringList(_wardsKey)?.toSet() ?? const {};
 
   @override
   LocationSelectionType? readSelectionType() {
@@ -97,6 +109,7 @@ class SharedPreferencesLocationPreferencesRepository
   @override
   Future<void> write({
     String? preferredCity,
+    Set<String> preferredWards = const {},
     LocationSelectionType? selectionType,
     required bool onboardingCompleted,
     required bool showNewAddress,
@@ -105,6 +118,11 @@ class SharedPreferencesLocationPreferencesRepository
       await _preferences.remove(_cityKey);
     } else {
       await _preferences.setString(_cityKey, preferredCity);
+    }
+    if (preferredWards.isEmpty) {
+      await _preferences.remove(_wardsKey);
+    } else {
+      await _preferences.setStringList(_wardsKey, preferredWards.toList());
     }
     if (selectionType == null) {
       await _preferences.remove(_selectionTypeKey);
@@ -150,9 +168,13 @@ class LocationPreferencesController extends Notifier<LocationPreferences> {
     final effectiveCity = selectionType == LocationSelectionType.city
         ? normalizedCity
         : null;
+    final effectiveWards = selectionType == LocationSelectionType.city
+        ? _repository.readPreferredWards()
+        : const <String>{};
 
     state = LocationPreferences(
       preferredCity: effectiveCity,
+      preferredWards: effectiveWards,
       selectionType: selectionType,
       onboardingCompleted: onboardingCompleted,
       showNewAddress: _repository.readShowNewAddress() ?? true,
@@ -163,18 +185,28 @@ class LocationPreferencesController extends Notifier<LocationPreferences> {
     }
   }
 
-  Future<void> selectCity(String? city) async {
+  Future<void> selectCity(String? city, {Set<String> wards = const {}}) async {
     if (city == null || city.trim().isEmpty) {
       return selectAll();
     }
     final normalizedCity = normalizeCityName(city);
+    final cityChanged =
+        state.selectionType != LocationSelectionType.city ||
+        state.preferredCity != normalizedCity;
+    final effectiveWards = cityChanged
+        ? wards
+        : (wards.isEmpty ? state.preferredWards : wards);
     if (state.onboardingCompleted &&
-        state.selectionType == LocationSelectionType.city &&
-        state.preferredCity == normalizedCity) {
+        !cityChanged &&
+        const SetEquality<String>().equals(
+          state.preferredWards,
+          effectiveWards,
+        )) {
       return;
     }
     state = state.copyWith(
       preferredCity: normalizedCity,
+      preferredWards: effectiveWards,
       selectionType: LocationSelectionType.city,
       onboardingCompleted: true,
     );
@@ -189,6 +221,7 @@ class LocationPreferencesController extends Notifier<LocationPreferences> {
     }
     state = state.copyWith(
       clearPreferredCity: true,
+      preferredWards: const {},
       selectionType: LocationSelectionType.all,
       onboardingCompleted: true,
     );
@@ -203,6 +236,7 @@ class LocationPreferencesController extends Notifier<LocationPreferences> {
     }
     state = state.copyWith(
       clearPreferredCity: true,
+      preferredWards: const {},
       selectionType: LocationSelectionType.other,
       onboardingCompleted: true,
     );
@@ -216,6 +250,7 @@ class LocationPreferencesController extends Notifier<LocationPreferences> {
 
   Future<void> _persist() => _repository.write(
     preferredCity: state.preferredCity,
+    preferredWards: state.preferredWards,
     selectionType: state.selectionType,
     onboardingCompleted: state.onboardingCompleted,
     showNewAddress: state.showNewAddress,

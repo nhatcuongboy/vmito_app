@@ -73,11 +73,13 @@ class _ClubFilterSheetState extends ConsumerState<ClubFilterSheet> {
 
   void _apply() {
     final selectedCity = _value<String>(ClubBrowseFilterControl.city);
+    final selectedDistricts =
+        _value<Set<String>>(ClubBrowseFilterControl.districts) ?? const {};
     final locNotifier = ref.read(
       locationPreferencesControllerProvider.notifier,
     );
     if (selectedCity != null && selectedCity.trim().isNotEmpty) {
-      unawaited(locNotifier.selectCity(selectedCity));
+      unawaited(locNotifier.selectCity(selectedCity, wards: selectedDistricts));
     } else {
       unawaited(locNotifier.selectAll());
     }
@@ -85,11 +87,16 @@ class _ClubFilterSheetState extends ConsumerState<ClubFilterSheet> {
   }
 
   void _reset() {
-    final city = ref.read(locationPreferencesControllerProvider).preferredCity;
+    final preference = ref.read(locationPreferencesControllerProvider);
+    final city = preference.preferredCity;
+    final reset = widget.initial.reset(
+      preferredCity: city,
+      preferredDistricts: preference.preferredWards,
+    );
     _form.reset(
       value: {
-        ClubBrowseFilterControl.city: city,
-        ClubBrowseFilterControl.districts: <String>{},
+        ClubBrowseFilterControl.city: reset.city,
+        ClubBrowseFilterControl.districts: reset.districts,
         ClubBrowseFilterControl.activeDays: <int>{},
         ClubBrowseFilterControl.activePeriods: <ClubActivityPeriod>{},
         ClubBrowseFilterControl.levels: <int>{},
@@ -100,11 +107,11 @@ class _ClubFilterSheetState extends ConsumerState<ClubFilterSheet> {
       locationPreferencesControllerProvider.notifier,
     );
     if (city != null && city.trim().isNotEmpty) {
-      unawaited(locNotifier.selectCity(city));
+      unawaited(locNotifier.selectCity(city, wards: reset.districts));
     } else {
       unawaited(locNotifier.selectAll());
     }
-    Navigator.of(context).pop(widget.initial.reset(preferredCity: city));
+    Navigator.of(context).pop(reset);
   }
 
   ClubBrowseFilters _filtersFromForm(String? preferredCity) {
@@ -167,9 +174,7 @@ class _ClubFilterSheetState extends ConsumerState<ClubFilterSheet> {
                   districtsControlName: ClubBrowseFilterControl.districts,
                   cities: cities,
                   units: units,
-                  selectedCount:
-                      pending.districts.length +
-                      (pending.city != null && !pending.cityIsDefault ? 1 : 0),
+                  selectedCount: 0,
                   cityPickerKey: const Key('club-filter-city'),
                   districtPickerKey: const Key('club-filter-districts'),
                 ),

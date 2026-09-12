@@ -213,12 +213,15 @@ class _Repository implements LocationPreferencesRepository {
   _Repository({this.city, this.selectionType, this.onboardingCompleted});
 
   String? city;
+  Set<String> wards = const {};
   LocationSelectionType? selectionType;
   bool? onboardingCompleted;
   bool? showNewAddress;
 
   @override
   String? readPreferredCity() => city;
+  @override
+  Set<String> readPreferredWards() => wards;
   @override
   LocationSelectionType? readSelectionType() => selectionType;
   @override
@@ -229,11 +232,13 @@ class _Repository implements LocationPreferencesRepository {
   @override
   Future<void> write({
     String? preferredCity,
+    Set<String> preferredWards = const {},
     LocationSelectionType? selectionType,
     required bool onboardingCompleted,
     required bool showNewAddress,
   }) async {
     city = preferredCity;
+    wards = preferredWards;
     this.selectionType = selectionType;
     this.onboardingCompleted = onboardingCompleted;
     this.showNewAddress = showNewAddress;

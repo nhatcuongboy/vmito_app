@@ -3,6 +3,7 @@ import 'dart:ui' show Tristate;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:vmito_app/core/network/paginated.dart' as pagination;
@@ -824,7 +825,10 @@ void main() {
 
       await tester.tap(bulkToggle);
       await tester.pump(const Duration(milliseconds: 250));
-      expect(find.byKey(const Key('bulk-fields')).hitTestable(), findsOneWidget);
+      expect(
+        find.byKey(const Key('bulk-fields')).hitTestable(),
+        findsOneWidget,
+      );
 
       final bulkCollapse = find.byKey(const Key('bulk-collapse'));
       await tester.tap(bulkCollapse);
@@ -833,7 +837,10 @@ void main() {
 
       await tester.tap(bulkCollapse);
       await tester.pump(const Duration(milliseconds: 250));
-      expect(find.byKey(const Key('bulk-fields')).hitTestable(), findsOneWidget);
+      expect(
+        find.byKey(const Key('bulk-fields')).hitTestable(),
+        findsOneWidget,
+      );
     },
   );
 

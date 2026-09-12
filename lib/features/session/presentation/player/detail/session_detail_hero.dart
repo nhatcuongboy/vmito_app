@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
-import 'package:vmito_app/features/session/presentation/widgets/registration_status_badge.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 import 'package:vmito_app/shared/widgets/app_lightbox.dart';
+import 'package:vmito_app/shared/widgets/registration_status_badge.dart';
 
 /// Cover carousel and status badges for the session detail flexible space.
 ///

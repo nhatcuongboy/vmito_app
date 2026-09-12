@@ -10,6 +10,7 @@ class VenueBrowseState {
     this.page = 0,
     this.totalPages = 0,
     this.isLoading = false,
+    this.isRefetching = false,
     this.isLoadingMore = false,
     this.error,
   });
@@ -18,6 +19,11 @@ class VenueBrowseState {
   final int page;
   final int totalPages;
   final bool isLoading;
+
+  /// True while a search/sort/filter change is refetching the list that
+  /// already has items on screen — distinct from [isLoading], which only
+  /// covers the first fetch (nothing rendered yet).
+  final bool isRefetching;
   final bool isLoadingMore;
   final Object? error;
   bool get hasMore => page > 0 && page < totalPages;
@@ -30,12 +36,14 @@ class VenueBrowseController extends Notifier<VenueBrowseState> {
   // ignore: use_setters_to_change_properties
   void restore(VenueBrowseState snapshot) => state = snapshot;
 
-  Future<void> load({VenueFilter? filter}) async {
+  Future<void> load({VenueFilter? filter, bool isPullToRefresh = false}) async {
     final active = filter ?? state.filter;
+    final hasExisting = state.venues.isNotEmpty;
     state = VenueBrowseState(
       venues: state.venues,
       filter: active,
-      isLoading: true,
+      isLoading: !hasExisting,
+      isRefetching: !isPullToRefresh && hasExisting,
     );
     try {
       final result = await ref

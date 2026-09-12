@@ -192,6 +192,7 @@ class ClubsState {
     this.page = 0,
     this.totalPages = 0,
     this.isLoading = false,
+    this.isRefetching = false,
     this.error,
     this.filters = const ClubBrowseFilters(),
     // "Gần tôi nhất" by default, matching the web client. Coordinates are
@@ -207,6 +208,11 @@ class ClubsState {
   final int page;
   final int totalPages;
   final bool isLoading;
+
+  /// True while a search/sort/filter change is refetching the list that
+  /// already has items on screen — distinct from [isLoading], which only
+  /// covers the first fetch (nothing rendered yet).
+  final bool isRefetching;
   final Object? error;
   final ClubBrowseFilters filters;
   final String sortBy;
@@ -231,16 +237,19 @@ class ClubsController extends Notifier<ClubsState> {
     String? sortBy,
     double? latitude,
     double? longitude,
+    bool isPullToRefresh = false,
   }) async {
     final nextSearch = search ?? state.search;
     final nextFilters = filters ?? state.filters;
     final nextSort = sortBy ?? state.sortBy;
     final nextLatitude = latitude ?? state.latitude;
     final nextLongitude = longitude ?? state.longitude;
+    final hasExisting = state.clubs.isNotEmpty;
     state = ClubsState(
       clubs: state.clubs,
       search: nextSearch,
-      isLoading: true,
+      isLoading: !hasExisting,
+      isRefetching: !isPullToRefresh && hasExisting,
       filters: nextFilters,
       sortBy: nextSort,
       latitude: nextLatitude,

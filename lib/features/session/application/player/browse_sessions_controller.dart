@@ -15,6 +15,7 @@ class BrowseSessionsState {
   const BrowseSessionsState({
     this.sessions = const [],
     this.isLoading = false,
+    this.isRefetching = false,
     this.isLoadingMore = false,
     this.mapSessions = const [],
     this.isMapLoading = false,
@@ -27,6 +28,11 @@ class BrowseSessionsState {
 
   final List<Session> sessions;
   final bool isLoading;
+
+  /// True while a search/sort/filter change is refetching the list that
+  /// already has items on screen — distinct from [isLoading], which only
+  /// covers the first fetch (nothing rendered yet).
+  final bool isRefetching;
   final bool isLoadingMore;
   final List<Session> mapSessions;
   final bool isMapLoading;
@@ -47,6 +53,7 @@ class BrowseSessionsState {
   BrowseSessionsState copyWith({
     List<Session>? sessions,
     bool? isLoading,
+    bool? isRefetching,
     bool? isLoadingMore,
     List<Session>? mapSessions,
     bool? isMapLoading,
@@ -61,6 +68,7 @@ class BrowseSessionsState {
   }) => BrowseSessionsState(
     sessions: sessions ?? this.sessions,
     isLoading: isLoading ?? this.isLoading,
+    isRefetching: isRefetching ?? this.isRefetching,
     isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     mapSessions: clearMap ? const [] : mapSessions ?? this.mapSessions,
     isMapLoading: isMapLoading ?? this.isMapLoading,
@@ -94,8 +102,10 @@ class BrowseSessionsController extends Notifier<BrowseSessionsState> {
             ? state.filters
             : state.filters.copyWith(search: search));
     final filtersChanged = nextFilters != state.filters;
+    final hasExisting = state.sessions.isNotEmpty;
     state = state.copyWith(
-      isLoading: true,
+      isLoading: !hasExisting,
+      isRefetching: hasExisting,
       isMapLoading: !filtersChanged && state.isMapLoading,
       clearError: true,
       filters: nextFilters,
@@ -151,6 +161,7 @@ class BrowseSessionsController extends Notifier<BrowseSessionsState> {
       state = state.copyWith(
         sessions: replace ? result.items : [...state.sessions, ...result.items],
         isLoading: false,
+        isRefetching: false,
         isLoadingMore: false,
         page: result.page,
         totalPages: result.totalPages,
@@ -165,6 +176,7 @@ class BrowseSessionsController extends Notifier<BrowseSessionsState> {
       state = state.copyWith(
         sessions: replace ? const [] : state.sessions,
         isLoading: false,
+        isRefetching: false,
         isLoadingMore: false,
         error: error,
       );

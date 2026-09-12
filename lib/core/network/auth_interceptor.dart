@@ -73,7 +73,18 @@ class AuthInterceptor extends Interceptor {
       return;
     }
 
-    final newToken = await (_inFlightRefresh ??= _refresh(refreshToken));
+    final String? newToken;
+    try {
+      newToken = await (_inFlightRefresh ??= _refresh(refreshToken));
+    } on DioException {
+      // The refresh call itself never reached the server — offline, or a
+      // cold-start network stack that isn't ready yet (common right after
+      // Android relaunches a killed process). That says nothing about
+      // whether the refresh token is still valid, so the persisted session
+      // must survive for the next attempt. Surface the original 401 only.
+      handler.next(err);
+      return;
+    }
 
     if (newToken == null) {
       await _onSessionExpired();
@@ -94,6 +105,14 @@ class AuthInterceptor extends Interceptor {
   Future<String?> _refresh(String refreshToken) async {
     try {
       return await _onRefresh(refreshToken);
+    } on DioException catch (e) {
+      // A response the server actually sent (e.g. 401 from `/auth/refresh`)
+      // is a definitive rejection of the refresh token — that is a real
+      // session expiry. Anything without a response (timeout, no
+      // connectivity, DNS not resolved yet) is transient and must not be
+      // treated the same way; rethrow so the caller keeps the session.
+      if (e.type != DioExceptionType.badResponse) rethrow;
+      return null;
     } on Object catch (_) {
       return null;
     } finally {

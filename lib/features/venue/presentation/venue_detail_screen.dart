@@ -92,6 +92,7 @@ class _VenueDetailState extends ConsumerState<_VenueDetail> {
   Future<void> _share(Venue venue) {
     final l10n = AppLocalizations.of(context);
     final name = venueDisplayName(venue, l10n);
+    final box = context.findRenderObject();
     return SharePlus.instance.share(
       ShareParams(
         title: name,
@@ -99,6 +100,11 @@ class _VenueDetailState extends ConsumerState<_VenueDetail> {
           name,
           'https://vmito.com/venues/${venue.slug ?? venue.id}',
         ),
+        // iPad anchors the share sheet to the tapped rect; without it the
+        // sheet throws rather than opening.
+        sharePositionOrigin: box is RenderBox
+            ? box.localToGlobal(Offset.zero) & box.size
+            : null,
       ),
     );
   }

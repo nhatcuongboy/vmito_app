@@ -203,11 +203,18 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
               ),
             ),
           ?discoveryHeader,
+          if (!_showMap)
+            SizedBox(
+              height: 2,
+              child: state.isRefetching
+                  ? const LinearProgressIndicator()
+                  : null,
+            ),
           Expanded(
             child: RefreshIndicator(
               onRefresh: () => ref
                   .read(clubsControllerProvider.notifier)
-                  .load(search: state.search),
+                  .load(search: state.search, isPullToRefresh: true),
               child: Stack(
                 children: [
                   Positioned.fill(

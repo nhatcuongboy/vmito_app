@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/widgets/newsfeed_badge_icon.dart';
 import 'package:vmito_app/features/social/application/newsfeed_badge_controller.dart';
+import 'package:vmito_app/l10n/app_localizations.dart';
 
 class _FakeNewsfeedBadgeController extends NewsfeedBadgeController {
   _FakeNewsfeedBadgeController(this.count);
@@ -20,12 +21,12 @@ Widget _harness(int count) => ProviderScope(
       () => _FakeNewsfeedBadgeController(count),
     ),
   ],
-  child: const MaterialApp(
-    home: Scaffold(
-      body: NewsfeedBadgeIcon(
-        icon: AppIcons.feed,
-        semanticLabel: 'Bảng tin',
-      ),
+  child: MaterialApp(
+    locale: const Locale('vi'),
+    localizationsDelegates: AppLocalizations.localizationsDelegates,
+    supportedLocales: AppLocalizations.supportedLocales,
+    home: const Scaffold(
+      body: NewsfeedBadgeIcon(icon: AppIcons.feed),
     ),
   ),
 );
@@ -39,7 +40,7 @@ void main() {
     expect(find.text('8'), findsOneWidget);
     expect(
       tester.getSemantics(find.byType(NewsfeedBadgeIcon)).label,
-      'Bảng tin: 8',
+      '8 bài chưa đọc',
     );
   });
 
@@ -53,7 +54,7 @@ void main() {
     expect(find.text('0'), findsNothing);
     expect(
       tester.getSemantics(find.byType(NewsfeedBadgeIcon)).label,
-      'Bảng tin',
+      '',
     );
   });
 }

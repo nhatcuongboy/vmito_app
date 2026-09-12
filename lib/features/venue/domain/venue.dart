@@ -344,21 +344,8 @@ class VenueFilter {
   final Set<VenueSport> sports;
   final VenueCourtCountFilter? courtCount;
 
-  int activeCount({String? preferredCity}) {
-    final normalizedCity = city?.trim();
-    final normalizedPreferredCity = preferredCity?.trim();
-    final hasDistricts =
-        districts.isNotEmpty || (district?.trim().isNotEmpty ?? false);
-    return (normalizedCity == null ||
-                normalizedCity.isEmpty ||
-                normalizedCity == normalizedPreferredCity
-            ? 0
-            : 1) +
-        (hasDistricts ? (districts.isNotEmpty ? districts.length : 1) : 0) +
-        sports.length +
-        (courtCount != null ? 1 : 0) +
-        (favoriteOnly ? 1 : 0);
-  }
+  int get activeCount =>
+      sports.length + (courtCount != null ? 1 : 0) + (favoriteOnly ? 1 : 0);
 
   VenueFilter copyWith({
     String? keyword,

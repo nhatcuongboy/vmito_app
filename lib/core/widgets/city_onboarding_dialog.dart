@@ -17,7 +17,7 @@ class CityOnboardingDialog extends ConsumerWidget {
       final notifier = ref.read(locationPreferencesControllerProvider.notifier);
       switch (result.type) {
         case LocationSelectionType.city:
-          await notifier.selectCity(result.city);
+          await notifier.selectCity(result.city, wards: result.wards);
         case LocationSelectionType.all:
           await notifier.selectAll();
         case LocationSelectionType.other:

@@ -113,5 +113,6 @@ class _LoadingTournamentsController extends TournamentBrowseController {
     Set<String>? sportTypes,
     bool? favoriteOnly,
     TournamentBrowseSort? sort,
+    bool isPullToRefresh = false,
   }) async {}
 }

@@ -27,6 +27,7 @@ class AppLogo extends StatelessWidget {
     this.mainAxisSize = MainAxisSize.min,
     this.crossAxisAlignment = CrossAxisAlignment.center,
     this.textCrossAxisAlignment = CrossAxisAlignment.center,
+    this.axis = Axis.horizontal,
   });
 
   /// Design canvas reference height (1909×824) used to calculate proportional
@@ -86,6 +87,14 @@ class AppLogo extends StatelessWidget {
   /// Defaults to [CrossAxisAlignment.center] to match the original logo composition.
   final CrossAxisAlignment textCrossAxisAlignment;
 
+  /// Layout direction of the logo.
+  ///
+  /// [Axis.horizontal] (default) places the shuttlecock icon to the left of
+  /// the brand text — suitable for app bars and compact placements.
+  /// [Axis.vertical] stacks icon → name → slogan top-to-bottom, centred —
+  /// preferred for auth / splash screens where the logo is the hero element.
+  final Axis axis;
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -93,14 +102,21 @@ class AppLogo extends StatelessWidget {
 
     // Proportional dimensions derived from the reference canvas
     final scale = height / _kReferenceCanvasHeight;
-    final iconSpacing = height * 0.055;
+    // The vertical (hero) composition needs more breathing room between the
+    // icon and the text block than the compact horizontal one (app bar,
+    // about dialog), where the tight ratio keeps the lockup dense.
+    final iconSpacing = height * (axis == Axis.vertical ? 0.12 : 0.055);
     final effectiveVmitoFontSize =
         vmitoFontSize ?? (_kReferenceVmitoFontSize * scale);
     final effectiveSloganFontSize =
         sloganFontSize ??
         ((_kReferenceSloganFontSize * scale).clamp(6.0, 24.0));
-    final sloganLetterSpacing = effectiveSloganFontSize * 0.08;
-    final textSpacing = height * 0.035;
+    // Cap letter-spacing so the slogan remains legible at small sizes.
+    final sloganLetterSpacing = (effectiveSloganFontSize * 0.08).clamp(
+      0.0,
+      1.2,
+    );
+    final textSpacing = height * (axis == Axis.vertical ? 0.08 : 0.035);
 
     // Theme-adaptive colors
     final effectiveTextColor =
@@ -108,7 +124,8 @@ class AppLogo extends StatelessWidget {
         (isDark ? const Color(0xFFFFFFFF) : const Color(0xFF0C1F33));
     final effectiveSloganColor =
         sloganColor ??
-        (isDark ? const Color(0xFFE0E0E0) : const Color(0xFF2C415B));
+        // #1A2E45 on white → contrast ≈ 5.2:1, passes WCAG AA for small text.
+        (isDark ? const Color(0xFFE0E0E0) : const Color(0xFF1A2E45));
     final effectiveDotColor =
         dotColor ?? (isDark ? AppColors.brandDark : AppColors.brand);
 
@@ -135,44 +152,55 @@ class AppLogo extends StatelessWidget {
       height: 1.1,
     );
 
+    final Widget icon = Image.asset(
+      'assets/icons/main-logo.png',
+      height: height,
+      fit: BoxFit.contain,
+      excludeFromSemantics: true,
+    );
+
+    final Widget brandText = showGreenDot
+        ? _VmitoTextWithDot(
+            style: vmitoTextStyle,
+            dotColor: effectiveDotColor,
+          )
+        : Text('vmito', style: vmitoTextStyle);
+
+    final Widget textBlock = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: textCrossAxisAlignment,
+      children: [
+        brandText,
+        if (showSlogan) ...[
+          SizedBox(height: textSpacing),
+          Text(sloganText, style: sloganTextStyle),
+        ],
+      ],
+    );
+
+    final Widget logo = axis == Axis.vertical
+        ? Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              icon,
+              SizedBox(height: iconSpacing),
+              textBlock,
+            ],
+          )
+        : Row(
+            mainAxisSize: mainAxisSize,
+            crossAxisAlignment: crossAxisAlignment,
+            children: [
+              icon,
+              SizedBox(width: iconSpacing),
+              textBlock,
+            ],
+          );
+
     return Semantics(
       label: semanticLabel ?? l10n?.appName ?? 'Vmito',
-      child: Row(
-        mainAxisSize: mainAxisSize,
-        crossAxisAlignment: crossAxisAlignment,
-        children: [
-          Image.asset(
-            'assets/icons/main-logo.png',
-            height: height,
-            fit: BoxFit.contain,
-            excludeFromSemantics: true,
-          ),
-          SizedBox(width: iconSpacing),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: textCrossAxisAlignment,
-            children: [
-              if (showGreenDot)
-                _VmitoTextWithDot(
-                  style: vmitoTextStyle,
-                  dotColor: effectiveDotColor,
-                )
-              else
-                Text(
-                  'vmito',
-                  style: vmitoTextStyle,
-                ),
-              if (showSlogan) ...[
-                SizedBox(height: textSpacing),
-                Text(
-                  sloganText,
-                  style: sloganTextStyle,
-                ),
-              ],
-            ],
-          ),
-        ],
-      ),
+      child: logo,
     );
   }
 }
