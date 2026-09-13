@@ -106,6 +106,11 @@ abstract interface class SessionRepository {
 
   Future<Session> byId(String id);
 
+  /// Live wait time in minutes per waiting player id, computed server-side
+  /// from `waitingSince` — accurate even though `Session.players` carries a
+  /// stale `currentWaitTime` counter (see `docs/REALTIME.md`).
+  Future<Map<String, int>> waitTimeMinutes(String sessionId);
+
   /// Sessions similar to [sessionId], ranked by the backend.
   ///
   /// [userId] personalises the ranking; omit it for a signed-out viewer.

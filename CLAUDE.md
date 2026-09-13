@@ -164,6 +164,16 @@ gets **redesigned for mobile, not transliterated**. Named offenders include
 
 ## Testing
 
+**Do not write test files for new features.** When implementing or changing a
+feature, do not create or update unit, widget, or integration tests for it
+unless the user explicitly asks for tests in that request. Verify behaviour by
+running the app (`flutter run`, hot reload/restart) instead. This does not
+apply to existing tests that a change breaks — keep those passing, or update
+them if the change makes their assertions stale.
+
+The sections below describe the testing strategy for when tests *are*
+requested:
+
 - Pure logic (scoring, scheduling, standings, brackets) is tested against
   **fixtures shared with the web app** — see [docs/TESTING.md](docs/TESTING.md).
   Both languages read the same corpus so business rules cannot drift.

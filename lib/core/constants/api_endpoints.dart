@@ -147,6 +147,11 @@ abstract final class ApiEndpoints {
   static String sessionPlayerStatistics(String id) =>
       '/sessions/$id/players/statistics';
 
+  /// Read-only, computed from each waiting player's `waitingSince` — unlike
+  /// `currentWaitTime` on [session], which is a stored counter that only
+  /// advances via the (unported) host wait-time heartbeat.
+  static String sessionWaitTimes(String id) => '/sessions/$id/wait-times';
+
   /// Self-service registration. Body is wrapped: `{"players": [...]}`.
   static String sessionRegister(String id) => '/sessions/$id/players/register';
 
