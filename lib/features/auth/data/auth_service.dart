@@ -104,9 +104,11 @@ class AuthService {
     );
   }
 
-  Future<User> currentUser() async {
+  /// [userId] is the access token's subject. The backend lets a user read
+  /// only their own record through `GET /users/:id`.
+  Future<User> currentUser(String userId) async {
     final response = await _client.get<Map<String, dynamic>>(
-      ApiEndpoints.currentUser,
+      ApiEndpoints.user(userId),
     );
     return unwrap(response.data, User.fromJson);
   }

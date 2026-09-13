@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
@@ -35,6 +37,15 @@ class TokenStorage {
   String? _cachedRefreshToken;
 
   String? get accessToken => _cachedAccessToken;
+
+  /// The `sub` claim of the stored access token.
+  ///
+  /// vmito-be has no `GET /users/me`: that path falls through to
+  /// `GET /users/:id` with id `"me"` and answers 403, so restoring a session
+  /// must address the user by id. The token is not verified here — the server
+  /// verifies it on the request this id is used for.
+  String? get userId => _subjectOf(_cachedAccessToken);
+
   bool get hasAccessToken => _cachedAccessToken?.isNotEmpty ?? false;
   bool get hasRefreshToken => _cachedRefreshToken?.isNotEmpty ?? false;
   bool get hasPersistedSession => hasAccessToken || hasRefreshToken;
@@ -117,6 +128,22 @@ class TokenStorage {
       _storage.delete(key: _refreshTokenKey),
       _storage.delete(key: _biometricRefreshTokenKey),
     ]);
+  }
+
+  static String? _subjectOf(String? token) {
+    final parts = token?.split('.');
+    if (parts == null || parts.length != 3) return null;
+    try {
+      final payload = jsonDecode(
+        utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
+      );
+      return switch (payload) {
+        {'sub': final String sub} when sub.isNotEmpty => sub,
+        _ => null,
+      };
+    } on FormatException {
+      return null;
+    }
   }
 }
 

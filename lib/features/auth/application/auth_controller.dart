@@ -98,12 +98,24 @@ class AuthController extends Notifier<AuthState> {
     }
   }
 
+  Future<User> _fetchSignedInUser() async {
+    final userId = _tokens.userId;
+    if (userId == null) {
+      throw const ApiException(
+        kind: ApiErrorKind.unauthorized,
+        message: 'Access token carries no subject.',
+        statusCode: 401,
+      );
+    }
+    return _service.currentUser(userId);
+  }
+
   /// Drops the saved session so the sign-in screen stops offering Face ID.
   Future<void> forgetBiometricSignIn() => _clearPersistedSession();
 
   /// Reads persisted tokens and revalidates them against the backend.
   ///
-  /// A stored token may be expired; `/users/me` either succeeds, or the
+  /// A stored token may be expired; the user fetch either succeeds, or the
   /// interceptor refreshes transparently, or we fall back to signed-out.
   Future<void> restoreSession() async {
     await _tokens.hydrate();
@@ -116,8 +128,9 @@ class AuthController extends Notifier<AuthState> {
     try {
       // The two secure-storage values are separate native writes. If the OS
       // kills the process between them, a durable refresh token is still
-      // enough to reconstruct the session on the next launch.
-      if (!_tokens.hasAccessToken) {
+      // enough to reconstruct the session on the next launch. An access token
+      // whose subject cannot be read is just as unusable as a missing one.
+      if (_tokens.userId == null) {
         final refreshToken = await _tokens.readRefreshToken();
         if (refreshToken == null || refreshToken.isEmpty) {
           state = const AuthState(status: AuthStatus.unauthenticated);
@@ -129,7 +142,7 @@ class AuthController extends Notifier<AuthState> {
           refreshToken: refreshed.refreshToken,
         );
       }
-      final user = await _service.currentUser();
+      final user = await _fetchSignedInUser();
       state = AuthState(status: AuthStatus.authenticated, user: user);
     } on ApiException catch (error) {
       AppLogger.warn('session restore failed', error: error);
@@ -169,7 +182,7 @@ class AuthController extends Notifier<AuthState> {
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
       );
-      final user = await _service.currentUser();
+      final user = await _fetchSignedInUser();
       state = AuthState(status: AuthStatus.authenticated, user: user);
       await rememberBiometricAccount(user);
     } on ApiException catch (error) {

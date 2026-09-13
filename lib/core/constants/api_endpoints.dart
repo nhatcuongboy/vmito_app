@@ -29,7 +29,6 @@ abstract final class ApiEndpoints {
   static const appleSignIn = '/auth/apple';
 
   // --- Users ----------------------------------------------------------------
-  static const currentUser = '/users/me';
   static const users = '/users';
   static const unreadFeedCount = '/users/unread-feed-count';
   static const markFeedAsRead = '/users/mark-feed-as-read';
