@@ -1944,6 +1944,7 @@
   "clubMemberAddFailed": "Không thể thêm thành viên",
   "clubMemberRemovedSuccess": "Đã xóa thành viên khỏi nhóm",
   "clubMemberRemoveFailed": "Không thể xóa thành viên",
+  "clubRoleHost": "Trưởng nhóm",
   "clubRoleAdmin": "Quản trị viên",
   "clubRoleModerator": "Điều hành viên",
   "clubRoleMember": "Thành viên",

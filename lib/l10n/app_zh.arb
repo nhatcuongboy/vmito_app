@@ -1929,6 +1929,7 @@
   "clubMemberAddFailed": "无法添加成员",
   "clubMemberRemovedSuccess": "已从群组中移除成员",
   "clubMemberRemoveFailed": "无法移除成员",
+  "clubRoleHost": "群主",
   "clubRoleAdmin": "管理员",
   "clubRoleModerator": "协管员",
   "clubRoleMember": "成员",

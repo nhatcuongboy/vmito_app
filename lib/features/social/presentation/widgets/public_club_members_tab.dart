@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
@@ -16,6 +15,7 @@ import 'package:vmito_app/features/social/application/club_management_controller
 import 'package:vmito_app/features/social/domain/club.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/shared/widgets/skill_level_badge.dart';
 
 class PublicClubMembersTab extends ConsumerStatefulWidget {
@@ -50,8 +50,24 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
 
   @override
   Widget build(BuildContext context) {
-    final members = widget.club.members.take(_visibleCount).toList();
-    final hasMore = widget.club.members.length > members.length;
+    final sortedMembers = [...widget.club.members]
+      ..sort((a, b) {
+        final aIsHost = _isHostMember(a);
+        final bIsHost = _isHostMember(b);
+        if (aIsHost != bIsHost) return aIsHost ? -1 : 1;
+
+        final aIsModerator = a.role == 'MODERATOR';
+        final bIsModerator = b.role == 'MODERATOR';
+        if (aIsModerator != bIsModerator) return aIsModerator ? -1 : 1;
+
+        final aIsAdmin = a.role == 'ADMIN';
+        final bIsAdmin = b.role == 'ADMIN';
+        if (aIsAdmin != bIsAdmin) return aIsAdmin ? -1 : 1;
+
+        return a.name.compareTo(b.name);
+      });
+    final members = sortedMembers.take(_visibleCount).toList();
+    final hasMore = sortedMembers.length > members.length;
     final theme = Theme.of(context);
     final palette = theme.extension<AppPalette>()!;
 
@@ -217,6 +233,9 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
     );
   }
 
+  bool _isHostMember(ClubMember member) =>
+      member.userId == widget.club.hostId || member.userId == widget.club.hostUserId;
+
   Widget _memberCard(
     BuildContext context,
     ClubMember member,
@@ -224,6 +243,7 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
   ) {
     final l10n = AppLocalizations.of(context);
     final removing = _removingMemberId == member.userId;
+    final isHost = _isHostMember(member);
     return Material(
       key: ValueKey('club-member-${member.userId}'),
       color: palette.muted.withValues(alpha: .7),
@@ -262,7 +282,7 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    if (member.role != 'MEMBER' || member.level != null) ...[
+                    if ((isHost || member.role == 'MODERATOR') || member.level != null) ...[
                       const SizedBox(height: 4),
                       Wrap(
                         spacing: AppSpacing.xs,
@@ -273,7 +293,9 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
                               level: member.level!,
                               compact: true,
                             ),
-                          if (member.role != 'MEMBER')
+                          if (isHost)
+                            const _RoleBadge(role: 'HOST', isHost: true)
+                          else if (member.role == 'MODERATOR')
                             _RoleBadge(role: member.role),
                         ],
                       ),
@@ -369,22 +391,23 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
 }
 
 class _RoleBadge extends StatelessWidget {
-  const _RoleBadge({required this.role});
+  const _RoleBadge({required this.role, this.isHost = false});
 
   final String role;
+  final bool isHost;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final palette = Theme.of(context).extension<AppPalette>()!;
     final color = switch (role) {
-      'ADMIN' => palette.warning,
+      'HOST' => palette.brandSurface,
       'MODERATOR' => palette.info,
       _ => palette.mutedForeground,
     };
     final label = switch (role) {
-      'ADMIN' => l10n.clubRoleAdmin,
-      'MODERATOR' => 'Mod',
+      'HOST' => isHost ? l10n.clubRoleHost : l10n.clubRoleMember,
+      'MODERATOR' => l10n.clubRoleModerator,
       _ => l10n.clubRoleMember,
     };
     return Container(
@@ -700,7 +723,7 @@ class _ClubMemberSearchSheetState
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
-                AppReactiveForm(
+                AppReactiveForm<void>(
                   formGroup: _form,
                   child: LayoutBuilder(
                     builder: (context, constraints) {

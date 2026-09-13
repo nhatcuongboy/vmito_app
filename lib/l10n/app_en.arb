@@ -1930,6 +1930,7 @@
   "clubMemberAddFailed": "Couldn't add the member",
   "clubMemberRemovedSuccess": "Member removed from the club",
   "clubMemberRemoveFailed": "Couldn't remove the member",
+  "clubRoleHost": "Club owner",
   "clubRoleAdmin": "Administrator",
   "clubRoleModerator": "Moderator",
   "clubRoleMember": "Member",
