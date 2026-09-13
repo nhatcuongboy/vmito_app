@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/features/tournament/application/tournament_schedule_controller.dart';
 import 'package:vmito_app/features/tournament/domain/form/tournament_schedule_forms.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_detail.dart';
@@ -12,23 +11,28 @@ import 'package:vmito_app/features/tournament/domain/tournament_schedule.dart';
 import 'package:vmito_app/features/tournament/presentation/widgets/tournament_schedule_sheets.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 
 typedef TournamentRefereeOpener =
     void Function(String tournamentId, String matchId);
 
-/// Dormant native port of `/tournament/[id]/schedule`.
+/// Native port of `/tournament/[id]/schedule`.
 ///
-/// This widget is intentionally not registered with the router yet. Consumers
-/// may embed it later and inject the native referee destination independently.
+/// Set [embedded] when hosting this inside a tab: it drops the screen's own
+/// `Scaffold`/`AppBar` so the surrounding shell supplies them. [onOpenReferee]
+/// stays null until a native referee destination exists — the affordance hides
+/// itself when it is not wired.
 class TournamentScheduleScreen extends ConsumerStatefulWidget {
   const TournamentScheduleScreen({
     required this.idOrSlug,
     this.onOpenReferee,
+    this.embedded = false,
     super.key,
   });
 
   final String idOrSlug;
   final TournamentRefereeOpener? onOpenReferee;
+  final bool embedded;
 
   @override
   ConsumerState<TournamentScheduleScreen> createState() =>
@@ -103,127 +107,129 @@ class _TournamentScheduleScreenState
     final controller = ref.read(
       tournamentScheduleControllerProvider(widget.idOrSlug).notifier,
     );
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.tournamentScheduleTitle)),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final wide = constraints.maxWidth >= 700;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) controller.setPageSize(wide ? 100 : 50);
-          });
-          if (!state.hasLoaded) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (state.error != null && state.matches.isEmpty) {
-            return _ScheduleError(
-              message: l10n.tournamentScheduleUnknownError,
-              retryLabel: l10n.tournamentScheduleRetry,
-              onRetry: () => controller.load(force: true),
-            );
-          }
-          final tournament = state.tournament;
-          if (tournament == null) {
-            return _ScheduleError(
-              message: l10n.tournamentScheduleUnknownError,
-              retryLabel: l10n.tournamentScheduleRetry,
-              onRetry: () => controller.load(force: true),
-            );
-          }
-          return Column(
-            children: [
-              _ScheduleToolbar(
-                form: _searchForm,
-                state: state,
-                wide: wide,
-                onFilters: () async {
-                  final filters = await showTournamentFilterSheet(
-                    context,
-                    state: state,
-                  );
-                  if (filters != null) {
-                    controller.setFilters(filters);
-                    _searchForm
-                            .control(
-                              TournamentScheduleFilterControl.query,
-                            )
-                            .value =
-                        filters.query;
-                  }
-                },
-                onRefereeOnly: (value) =>
-                    controller.setRefereeOnly(value: value),
-                onShowPlayers: (value) =>
-                    unawaited(controller.setShowPlayerNames(value: value)),
-                onViewMode: controller.setViewMode,
-                onOverlay: state.canEdit
-                    ? () => showTournamentOverlaySheet(
-                        context,
-                        tournamentId: tournament.id,
-                        courts: state.courts,
-                      )
-                    : null,
-              ),
-              if (state.courtsError != null ||
-                  state.groupsError != null ||
-                  state.umpiresError != null)
-                _SupportingWarning(
-                  text: l10n.tournamentScheduleSupportingWarning,
-                ),
-              for (final category in tournament.categories)
-                if (state.canEdit &&
-                    tournamentCategoryReadyForBracket(
-                      category,
-                      state.matches,
-                    ))
-                  _BracketBanner(
-                    category: category,
-                    busy: state.busyCategoryIds.contains(category.id),
-                    onFinalize: () => _confirmFinalize(
-                      controller,
-                      category,
-                    ),
-                  ),
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: controller.refresh,
-                  child: state.viewMode == TournamentScheduleViewMode.list
-                      ? _ScheduleList(
-                          state: state,
-                          onLoadMore: () =>
-                              controller.loadMore(wide ? 100 : 50),
-                          onMatch: (match) => _openMatch(
-                            state,
-                            controller,
-                            match,
-                            wide,
-                          ),
-                        )
-                      : wide
-                      ? _ScheduleGrid(
-                          state: state,
-                          onMatch: (match) => _openMatch(
-                            state,
-                            controller,
-                            match,
-                            wide,
-                          ),
-                        )
-                      : _ScheduleAgenda(
-                          state: state,
-                          onMatch: (match) => _openMatch(
-                            state,
-                            controller,
-                            match,
-                            wide,
-                          ),
-                        ),
-                ),
-              ),
-            ],
+    final body = LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 700;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) controller.setPageSize(wide ? 100 : 50);
+        });
+        if (!state.hasLoaded) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (state.error != null && state.matches.isEmpty) {
+          return _ScheduleError(
+            message: l10n.tournamentScheduleUnknownError,
+            retryLabel: l10n.tournamentScheduleRetry,
+            onRetry: () => controller.load(force: true),
           );
-        },
-      ),
+        }
+        final tournament = state.tournament;
+        if (tournament == null) {
+          return _ScheduleError(
+            message: l10n.tournamentScheduleUnknownError,
+            retryLabel: l10n.tournamentScheduleRetry,
+            onRetry: () => controller.load(force: true),
+          );
+        }
+        return Column(
+          children: [
+            _ScheduleToolbar(
+              form: _searchForm,
+              state: state,
+              wide: wide,
+              onFilters: () async {
+                final filters = await showTournamentFilterSheet(
+                  context,
+                  state: state,
+                );
+                if (filters != null) {
+                  controller.setFilters(filters);
+                  _searchForm
+                          .control(
+                            TournamentScheduleFilterControl.query,
+                          )
+                          .value =
+                      filters.query;
+                }
+              },
+              onRefereeOnly: (value) => controller.setRefereeOnly(value: value),
+              onShowPlayers: (value) =>
+                  unawaited(controller.setShowPlayerNames(value: value)),
+              onViewMode: controller.setViewMode,
+              onOverlay: state.canEdit
+                  ? () => showTournamentOverlaySheet(
+                      context,
+                      tournamentId: tournament.id,
+                      courts: state.courts,
+                    )
+                  : null,
+            ),
+            if (state.courtsError != null ||
+                state.groupsError != null ||
+                state.umpiresError != null)
+              _SupportingWarning(
+                text: l10n.tournamentScheduleSupportingWarning,
+              ),
+            for (final category in tournament.categories)
+              if (state.canEdit &&
+                  tournamentCategoryReadyForBracket(
+                    category,
+                    state.matches,
+                  ))
+                _BracketBanner(
+                  category: category,
+                  busy: state.busyCategoryIds.contains(category.id),
+                  onFinalize: () => _confirmFinalize(
+                    controller,
+                    category,
+                  ),
+                ),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: controller.refresh,
+                child: state.viewMode == TournamentScheduleViewMode.list
+                    ? _ScheduleList(
+                        state: state,
+                        onLoadMore: () => controller.loadMore(wide ? 100 : 50),
+                        onMatch: (match) => _openMatch(
+                          state,
+                          controller,
+                          match,
+                          wide,
+                        ),
+                      )
+                    : wide
+                    ? _ScheduleGrid(
+                        state: state,
+                        onMatch: (match) => _openMatch(
+                          state,
+                          controller,
+                          match,
+                          wide,
+                        ),
+                      )
+                    : _ScheduleAgenda(
+                        state: state,
+                        onMatch: (match) => _openMatch(
+                          state,
+                          controller,
+                          match,
+                          wide,
+                        ),
+                      ),
+              ),
+            ),
+          ],
+        );
+      },
     );
+
+    return widget.embedded
+        ? body
+        : Scaffold(
+            appBar: AppBar(title: Text(l10n.tournamentScheduleTitle)),
+            body: body,
+          );
   }
 
   Future<void> _openMatch(
@@ -329,7 +335,6 @@ class _TournamentScheduleScreenState
       title: l10n.tournamentScheduleFinalizeTitle,
       body: l10n.tournamentScheduleFinalizeBody,
       action: l10n.tournamentScheduleFinalize,
-      type: AppConfirmDialogType.submit,
     )) {
       return;
     }

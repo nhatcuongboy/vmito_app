@@ -107,11 +107,13 @@ class TournamentManagementService {
         .toList(growable: false);
   }
 
-  Future<List<TournamentImageAsset>> images() async {
+  Future<List<TournamentImageAsset>> images({
+    String? category = 'SESSION_COVER',
+  }) async {
     final response = await _client.get<dynamic>(
       ApiEndpoints.userImages,
-      queryParameters: const {
-        'category': 'SESSION_COVER',
+      queryParameters: {
+        'category': ?category,
         'page': 1,
         'limit': 100,
       },

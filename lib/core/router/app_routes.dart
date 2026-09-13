@@ -143,18 +143,40 @@ abstract final class AppRoutes {
   }
 
   static const tournaments = '/tournaments';
-  static String tournamentDetail(String id) => '/tournaments/$id';
+
+  /// Which tab the tournament shell opens on. A query parameter, matching
+  /// [homeDiscoveryTabQuery] and [manageSession] — no route uses a `/:tab`
+  /// path segment.
+  static const tournamentDetailTabQuery = 'tab';
+  // An empty (but non-null) query map still renders a trailing '?', so pass
+  // null when there is no tab.
+  static String tournamentDetail(String id, {String? tab}) => Uri(
+    path: '/tournaments/$id',
+    queryParameters: tab == null ? null : {tournamentDetailTabQuery: tab},
+  ).toString();
+
+  /// Maps a web path segment (`/tournament/{id}/schedule`) onto a tab index.
+  /// Unknown segments fall back to the first tab rather than erroring; the
+  /// shell also falls back when `dashboard` is out of range for a non-host.
+  static int tournamentDetailTabIndex(String? tab) => switch (tab) {
+    'teams' => 1,
+    'schedule' || 'results' || 'matches' => 2,
+    'standings' => 3,
+    'dashboard' => 4,
+    _ => 0,
+  };
   static String manageTournament(
     String id, {
     String? option,
     String? categoryId,
-  }) => Uri(
-    path: '/tournaments/$id/manage',
-    queryParameters: {
-      'option': ?option,
-      'categoryId': ?categoryId,
-    },
-  ).toString();
+  }) {
+    final query = {'option': ?option, 'categoryId': ?categoryId};
+    return Uri(
+      path: '/tournaments/$id/manage',
+      queryParameters: query.isEmpty ? null : query,
+    ).toString();
+  }
+
   static const createTournament = '/tournaments/create';
 
   /// Tournaments the user hosts, manages or umpires. Mirrors the web path so

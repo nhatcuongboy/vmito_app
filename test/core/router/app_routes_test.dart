@@ -248,4 +248,31 @@ void main() {
       '/tournaments/open/manage?option=results',
     );
   });
+
+  test('tournament tab segments map onto shell tab indices', () {
+    expect(AppRoutes.tournamentDetailTabIndex('teams'), 1);
+    expect(AppRoutes.tournamentDetailTabIndex('schedule'), 2);
+    expect(AppRoutes.tournamentDetailTabIndex('results'), 2);
+    expect(AppRoutes.tournamentDetailTabIndex('matches'), 2);
+    expect(AppRoutes.tournamentDetailTabIndex('standings'), 3);
+    expect(AppRoutes.tournamentDetailTabIndex('dashboard'), 4);
+    expect(AppRoutes.tournamentDetailTabIndex('winners'), 0);
+    expect(AppRoutes.tournamentDetailTabIndex(null), 0);
+  });
+
+  test('tournamentDetail carries the tab as a query parameter', () {
+    expect(AppRoutes.tournamentDetail('open'), '/tournaments/open');
+    expect(
+      AppRoutes.tournamentDetail('open', tab: 'standings'),
+      '/tournaments/open?tab=standings',
+    );
+    // The shell path must stay one segment so hidesBottomNavigation keeps
+    // matching it.
+    expect(
+      AppRoutes.hidesBottomNavigation(
+        AppRoutes.tournamentDetail('open', tab: 'schedule'),
+      ),
+      isTrue,
+    );
+  });
 }

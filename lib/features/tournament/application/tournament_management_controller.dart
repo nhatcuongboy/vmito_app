@@ -111,8 +111,10 @@ class TournamentManagementController
         changes,
       );
       state = state.copyWith(isMutating: false, tournament: updated);
+      // The shell's Home tab and title read from the detail controller, so a
+      // manage mutation must invalidate it — these changes have no socket event.
       ref
-        ..invalidate(tournamentTitleProvider(idOrSlug))
+        ..invalidate(tournamentDetailControllerProvider(idOrSlug))
         ..invalidate(tournamentBrowseControllerProvider);
       return updated;
     } on Object catch (error) {
@@ -186,6 +188,11 @@ final tournamentImageLibraryProvider =
     FutureProvider<List<TournamentImageAsset>>(
       (ref) => ref.watch(tournamentManagementServiceProvider).images(),
     );
+
+final tournamentAllImagesProvider = FutureProvider<List<TournamentImageAsset>>(
+  (ref) =>
+      ref.watch(tournamentManagementServiceProvider).images(category: null),
+);
 
 // Riverpod's generated family type is intentionally inferred at the boundary.
 // ignore: specify_nonobvious_property_types

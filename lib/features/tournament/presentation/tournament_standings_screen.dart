@@ -12,20 +12,21 @@ import 'package:vmito_app/l10n/app_localizations.dart';
 typedef TournamentRegistrationOpener =
     void Function(String tournamentId, String registrationId);
 
-/// Dormant native port of `/tournament/[id]/standings`.
+/// Native port of `/tournament/[id]/standings`.
 ///
-/// This screen is intentionally not registered with the router. The public
-/// tournament route continues to use its web view until the native
-/// tournament shell is ready.
+/// Set [embedded] when hosting this inside a tab: it drops the screen's own
+/// `Scaffold`/`AppBar` so the surrounding shell supplies them.
 class TournamentStandingsScreen extends ConsumerStatefulWidget {
   const TournamentStandingsScreen({
     required this.idOrSlug,
     this.onOpenRegistration,
+    this.embedded = false,
     super.key,
   });
 
   final String idOrSlug;
   final TournamentRegistrationOpener? onOpenRegistration;
+  final bool embedded;
 
   @override
   ConsumerState<TournamentStandingsScreen> createState() =>
@@ -67,126 +68,130 @@ class _TournamentStandingsScreenState
     final controller = ref.read(
       tournamentStandingsControllerProvider(widget.idOrSlug).notifier,
     );
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.tournamentStandingsTitle)),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          final wide = constraints.maxWidth >= 700;
-          if (!state.hasLoaded) return const _StandingsSkeleton();
-          if (state.error != null && state.tournament == null) {
-            return _StandingsError(onRetry: () => controller.load(force: true));
-          }
-          final tournament = state.tournament;
-          if (tournament == null) {
-            return _StandingsError(onRetry: () => controller.load(force: true));
-          }
-          return RefreshIndicator(
-            onRefresh: controller.refresh,
-            child: ListView(
-              key: const Key('tournament-standings-content'),
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.fromLTRB(
-                wide ? AppSpacing.lg : AppSpacing.md,
-                AppSpacing.md,
-                wide ? AppSpacing.lg : AppSpacing.md,
-                AppSpacing.xxl,
-              ),
-              children: [
-                Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1200),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _StandingsToolbar(
-                          state: state,
-                          wide: constraints.maxWidth >= 900,
-                          onCategory: controller.selectCategory,
-                          onStage: controller.setStage,
-                          onView: controller.setView,
-                          onShowPlayers: (value) => unawaited(
-                            controller.setShowPlayerNames(value: value),
+    final body = LayoutBuilder(
+      builder: (context, constraints) {
+        final wide = constraints.maxWidth >= 700;
+        if (!state.hasLoaded) return const _StandingsSkeleton();
+        if (state.error != null && state.tournament == null) {
+          return _StandingsError(onRetry: () => controller.load(force: true));
+        }
+        final tournament = state.tournament;
+        if (tournament == null) {
+          return _StandingsError(onRetry: () => controller.load(force: true));
+        }
+        return RefreshIndicator(
+          onRefresh: controller.refresh,
+          child: ListView(
+            key: const Key('tournament-standings-content'),
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.fromLTRB(
+              wide ? AppSpacing.lg : AppSpacing.md,
+              AppSpacing.md,
+              wide ? AppSpacing.lg : AppSpacing.md,
+              AppSpacing.xxl,
+            ),
+            children: [
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 1200),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _StandingsToolbar(
+                        state: state,
+                        wide: constraints.maxWidth >= 900,
+                        onCategory: controller.selectCategory,
+                        onStage: controller.setStage,
+                        onView: controller.setView,
+                        onShowPlayers: (value) => unawaited(
+                          controller.setShowPlayerNames(value: value),
+                        ),
+                      ),
+                      const SizedBox(height: AppSpacing.lg),
+                      if (state.error != null)
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            bottom: AppSpacing.md,
+                          ),
+                          child: _InlineWarning(
+                            onRetry: controller.refresh,
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.lg),
-                        if (state.error != null)
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              bottom: AppSpacing.md,
-                            ),
-                            child: _InlineWarning(
-                              onRetry: controller.refresh,
-                            ),
-                          ),
-                        if (state.stage == TournamentStandingsStage.playoffs)
-                          TournamentPlayoffsView(
-                            categories: state.visibleCategories,
-                            matches: state.matches,
-                            showPlayerNames: state.showPlayerNames,
-                          )
-                        else
-                          _PoolStandings(
-                            state: state,
-                            wide: wide,
-                            onOpenRegistration: widget.onOpenRegistration,
-                            onRecalculate: (categoryId, groupId) async {
-                              try {
-                                await controller.recalculate(
-                                  categoryId,
-                                  groupId,
+                      if (state.stage == TournamentStandingsStage.playoffs)
+                        TournamentPlayoffsView(
+                          categories: state.visibleCategories,
+                          matches: state.matches,
+                          showPlayerNames: state.showPlayerNames,
+                        )
+                      else
+                        _PoolStandings(
+                          state: state,
+                          wide: wide,
+                          onOpenRegistration: widget.onOpenRegistration,
+                          onRecalculate: (categoryId, groupId) async {
+                            try {
+                              await controller.recalculate(
+                                categoryId,
+                                groupId,
+                              );
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      l10n.tournamentStandingsRecalculated,
+                                    ),
+                                  ),
                                 );
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        l10n.tournamentStandingsRecalculated,
-                                      ),
-                                    ),
-                                  );
-                                }
-                              } on Object {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        l10n.tournamentStandingsRecalculateFailed,
-                                      ),
-                                    ),
-                                  );
-                                }
                               }
-                            },
+                            } on Object {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      l10n.tournamentStandingsRecalculateFailed,
+                                    ),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                        ),
+                      if (state.stage == TournamentStandingsStage.pool &&
+                          state.hasAnyStandings) ...[
+                        const SizedBox(height: AppSpacing.lg),
+                        OutlinedButton.icon(
+                          key: const Key(
+                            'tournament-standings-ranking-info',
                           ),
-                        if (state.stage == TournamentStandingsStage.pool &&
-                            state.hasAnyStandings) ...[
-                          const SizedBox(height: AppSpacing.lg),
-                          OutlinedButton.icon(
-                            key: const Key(
-                              'tournament-standings-ranking-info',
-                            ),
-                            onPressed: () => _showRankingInfo(
-                              context,
-                              state.visibleCategories,
-                            ),
-                            icon: const Icon(Icons.calculate_outlined),
-                            label: Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                l10n.tournamentStandingsRankingsExplained,
-                              ),
+                          onPressed: () => _showRankingInfo(
+                            context,
+                            state.visibleCategories,
+                          ),
+                          icon: const Icon(Icons.calculate_outlined),
+                          label: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(
+                              l10n.tournamentStandingsRankingsExplained,
                             ),
                           ),
-                        ],
+                        ),
                       ],
-                    ),
+                    ],
                   ),
                 ),
-              ],
-            ),
-          );
-        },
-      ),
+              ),
+            ],
+          ),
+        );
+      },
     );
+
+    return widget.embedded
+        ? body
+        : Scaffold(
+            appBar: AppBar(title: Text(l10n.tournamentStandingsTitle)),
+            body: body,
+          );
   }
 }
 

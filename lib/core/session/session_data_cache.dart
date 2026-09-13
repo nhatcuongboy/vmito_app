@@ -90,7 +90,6 @@ void invalidateSessionData(ProviderContainer container) {
     reminderUserSearchProvider,
     playerSessionPaymentsProvider,
     tournamentBrowseControllerProvider,
-    tournamentTitleProvider,
     tournamentDetailControllerProvider,
     tournamentStandingsControllerProvider,
     tournamentScheduleControllerProvider,

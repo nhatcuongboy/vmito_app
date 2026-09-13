@@ -50,7 +50,7 @@ import 'package:vmito_app/features/social/presentation/social_hub_screen.dart';
 import 'package:vmito_app/features/splash/presentation/splash_screen.dart';
 import 'package:vmito_app/features/tournament/presentation/create_tournament_screen.dart';
 import 'package:vmito_app/features/tournament/presentation/host_tournaments_screen.dart';
-import 'package:vmito_app/features/tournament/presentation/tournament_detail_screen.dart';
+import 'package:vmito_app/features/tournament/presentation/tournament_shell_screen.dart';
 import 'package:vmito_app/features/tournament/presentation/tournament_management_screen.dart';
 import 'package:vmito_app/features/venue/presentation/browse_venues_screen.dart';
 import 'package:vmito_app/features/venue/presentation/venue_detail_screen.dart';
@@ -241,8 +241,20 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '${AppRoutes.tournaments}/:id',
         parentNavigatorKey: rootNavigatorKey,
-        builder: (context, state) => TournamentDetailScreen(
+        builder: (context, state) => TournamentShellScreen(
           idOrSlug: state.pathParameters['id']!,
+          initialTab: AppRoutes.tournamentDetailTabIndex(
+            state.uri.queryParameters[AppRoutes.tournamentDetailTabQuery],
+          ),
+        ),
+      ),
+      // Web deep links carry the tab as a path segment. Declared after
+      // `/manage` so it never swallows that route.
+      GoRoute(
+        path: '${AppRoutes.tournaments}/:id/:tab',
+        redirect: (context, state) => AppRoutes.tournamentDetail(
+          state.pathParameters['id']!,
+          tab: state.pathParameters['tab'],
         ),
       ),
       GoRoute(
@@ -251,9 +263,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             AppRoutes.tournamentDetail(state.pathParameters['id']!),
       ),
       GoRoute(
+        path: '/tournament/:id/:tab',
+        redirect: (context, state) => AppRoutes.tournamentDetail(
+          state.pathParameters['id']!,
+          tab: state.pathParameters['tab'],
+        ),
+      ),
+      GoRoute(
         path: '/:locale/tournament/:id',
         redirect: (context, state) =>
             AppRoutes.tournamentDetail(state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/:locale/tournament/:id/:tab',
+        redirect: (context, state) => AppRoutes.tournamentDetail(
+          state.pathParameters['id']!,
+          tab: state.pathParameters['tab'],
+        ),
       ),
 
       // Branch order must match AppRoutes.shellDestinations — go_router

@@ -272,6 +272,13 @@ abstract final class ApiEndpoints {
   static String tournamentCourts(String id) => '/tournaments/$id/courts';
   static String tournamentUmpires(String id) => '/tournaments/$id/umpires';
   static String tournamentSponsors(String id) => '/tournaments/$id/sponsors';
+  static String tournamentSponsor(String id) => '/sponsors/$id';
+  static String tournamentPlayers(String id) => '/tournaments/$id/players';
+  static String tournamentPlayer(String id) => '/tournament-players/$id';
+  static String tournamentPlayerMatches(String id) =>
+      '${tournamentPlayer(id)}/matches';
+  static String tournamentPlayersBulk(String id) =>
+      '${tournamentPlayers(id)}/bulk-create';
   static String tournamentMyAccess(String id) => '/tournaments/$id/my-access';
   static String tournamentManagers(String id) => '/tournaments/$id/managers';
   static String tournamentManager(String id, String userId) =>
@@ -281,6 +288,32 @@ abstract final class ApiEndpoints {
       '/categories/$categoryId/groups';
   static String tournamentStandings(String categoryId) =>
       '/categories/$categoryId/standings';
+  static String tournamentCategories(String tournamentId) =>
+      '/tournaments/$tournamentId/categories';
+
+  /// `PUT` here carries every category change — identity, format,
+  /// formatConfig and scoring rules share one endpoint.
+  static String category(String id) => '/categories/$id';
+  static String categoryRegistrations(String categoryId) =>
+      '/categories/$categoryId/registrations';
+  static String categoryRegistration(
+    String categoryId,
+    String registrationId,
+  ) => '${categoryRegistrations(categoryId)}/$registrationId';
+  static String categoryRegistrationsBulk(String categoryId) =>
+      '${categoryRegistrations(categoryId)}/bulk';
+
+  /// Turns a legacy single-player registration in a team category into a pair.
+  static String categoryRegistrationConvertToPair(
+    String categoryId,
+    String registrationId,
+  ) => '${categoryRegistration(categoryId, registrationId)}/convert-to-pair';
+  static String tournamentPairs(String tournamentId) =>
+      '/tournaments/$tournamentId/pairs';
+
+  /// `PUT` replaces the whole pair: members are recreated in array order and
+  /// `name` is written even when omitted, so always send it.
+  static String tournamentPair(String id) => '/tournament-pairs/$id';
   static String calculateTournamentStandings(
     String categoryId,
     String groupId,

@@ -151,6 +151,13 @@ class TournamentService {
     return unwrapList(response.data, TournamentStandingGroup.fromJson);
   }
 
+  Future<List<TournamentRegistration>> registrations(String categoryId) async {
+    final response = await _client.get<dynamic>(
+      ApiEndpoints.categoryRegistrations(categoryId),
+    );
+    return unwrapList(response.data, TournamentRegistration.fromJson);
+  }
+
   Future<void> calculateStandings(String categoryId, String groupId) async {
     await _client.post<dynamic>(
       ApiEndpoints.calculateTournamentStandings(categoryId, groupId),

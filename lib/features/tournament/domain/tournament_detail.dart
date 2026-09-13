@@ -1,12 +1,23 @@
 import 'package:vmito_app/core/location/address_display.dart';
+import 'package:vmito_app/features/tournament/domain/tournament_player.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
 import 'package:vmito_domain/vmito_domain.dart' as scoring;
+
+export 'package:vmito_app/features/tournament/domain/tournament_player.dart';
 
 enum TournamentCategoryFormat {
   roundRobin,
   singleElimination,
   roundRobinToSingleElimination,
   doubleElimination;
+
+  String get wireValue => switch (this) {
+    roundRobin => 'ROUND_ROBIN',
+    singleElimination => 'SINGLE_ELIMINATION',
+    // The backend enum is abbreviated; the long Dart name is only local.
+    roundRobinToSingleElimination => 'ROUND_ROBIN_TO_SE',
+    doubleElimination => 'DOUBLE_ELIMINATION',
+  };
 
   static TournamentCategoryFormat fromWire(String? value) => switch (value) {
     'SINGLE_ELIMINATION' => TournamentCategoryFormat.singleElimination,
@@ -20,6 +31,8 @@ enum TournamentCategoryFormat {
 enum TournamentRegistrationMode {
   individual,
   team;
+
+  String get wireValue => this == individual ? 'INDIVIDUAL' : 'TEAM';
 
   static TournamentRegistrationMode fromWire(String? value) =>
       value == 'INDIVIDUAL' ? individual : team;
@@ -53,6 +66,7 @@ class TournamentDetail {
     required this.venues,
     required this.playerCount,
     required this.pairCount,
+    this.scheduledMatchesCount = 0,
     this.description,
     this.coverPhoto,
     this.coverPhotoPublicId,
@@ -106,6 +120,7 @@ class TournamentDetail {
       venues: resolvedVenues,
       playerCount: _integer(counts?['players']),
       pairCount: _integer(counts?['pairs']),
+      scheduledMatchesCount: _integer(json['scheduledMatchesCount']),
     );
   }
 
@@ -131,6 +146,10 @@ class TournamentDetail {
   final List<TournamentVenue> venues;
   final int playerCount;
   final int pairCount;
+
+  /// Matches with a start time or court. Computed server-side for the setup
+  /// checklist, so the app never has to fetch the full schedule to know it.
+  final int scheduledMatchesCount;
 
   TournamentVenue? get primaryVenue {
     if (venues.isEmpty) return null;
@@ -229,6 +248,7 @@ class TournamentCategory {
     required this.registrationMode,
     required this.format,
     required this.registrationCount,
+    this.matchCount = 0,
     this.formatConfig = const {},
     this.winnersPerGroup,
     this.matchFormat,
@@ -259,6 +279,7 @@ class TournamentCategory {
       ),
       format: TournamentCategoryFormat.fromWire(json['format'] as String?),
       registrationCount: _integer(counts?['registrations']),
+      matchCount: _integer(counts?['matches']),
       formatConfig: _map(json['formatConfig']) ?? const {},
       winnersPerGroup: _nullableInteger(json['winnersPerGroup']),
       matchFormat: _nullableString(json['matchFormat']),
@@ -287,6 +308,7 @@ class TournamentCategory {
   final TournamentRegistrationMode registrationMode;
   final TournamentCategoryFormat format;
   final int registrationCount;
+  final int matchCount;
   final Map<String, dynamic> formatConfig;
   final int? winnersPerGroup;
   final String? matchFormat;
@@ -433,6 +455,7 @@ class TournamentSponsor {
     required this.id,
     required this.name,
     this.logo,
+    this.logoPublicId,
     this.website,
     this.displayOrder = 0,
   });
@@ -442,6 +465,7 @@ class TournamentSponsor {
         id: _string(json['id']),
         name: _nullableString(json['name']) ?? '',
         logo: _nullableString(json['logo']),
+        logoPublicId: _nullableString(json['logoPublicId']),
         website: _nullableString(json['website']),
         displayOrder: _integer(json['displayOrder']),
       );
@@ -449,6 +473,7 @@ class TournamentSponsor {
   final String id;
   final String name;
   final String? logo;
+  final String? logoPublicId;
   final String? website;
   final int displayOrder;
 }
@@ -833,49 +858,59 @@ class TournamentRegistration {
   const TournamentRegistration({
     required this.id,
     this.player,
+    this.tournamentPlayerId,
+    this.tournamentPairId,
     this.pairName,
     this.pairMembers = const [],
+    this.pairMemberIds = const [],
   });
 
   factory TournamentRegistration.fromJson(Map<String, dynamic> json) {
     final pair = _map(json['pair']);
-    final members = _maps(pair?['members'])
+    final rawMembers = _maps(pair?['members']);
+    final members = rawMembers
         .map((member) => _map(member['player']))
         .whereType<Map<String, dynamic>>()
         .map((player) => _nullableString(player['name']))
+        .whereType<String>()
+        .toList(growable: false);
+    final memberIds = rawMembers
+        .map(
+          (member) =>
+              _nullableString(member['playerId']) ??
+              _nullableString(_map(member['player'])?['id']),
+        )
         .whereType<String>()
         .toList(growable: false);
     final player = _map(json['player']);
     return TournamentRegistration(
       id: _string(json['id']),
       player: player == null ? null : TournamentPlayer.fromJson(player),
+      tournamentPlayerId: _nullableString(json['tournamentPlayerId']),
+      tournamentPairId:
+          _nullableString(json['tournamentPairId']) ??
+          _nullableString(pair?['id']),
       pairName: _nullableString(pair?['name']),
       pairMembers: members,
+      pairMemberIds: memberIds,
     );
   }
 
   final String id;
   final TournamentPlayer? player;
+  final String? tournamentPlayerId;
+
+  /// Null for a legacy single-player registration in a team category — those
+  /// are saved through convert-to-pair instead of a pair update.
+  final String? tournamentPairId;
   final String? pairName;
   final List<String> pairMembers;
 
+  /// Roster ids of the pair members, in position order.
+  final List<String> pairMemberIds;
+
   String get teamLabel => player?.name ?? pairName ?? pairMembers.join(' / ');
   String get playerNames => player?.name ?? pairMembers.join(' / ');
-}
-
-class TournamentPlayer {
-  const TournamentPlayer({required this.id, required this.name, this.image});
-
-  factory TournamentPlayer.fromJson(Map<String, dynamic> json) =>
-      TournamentPlayer(
-        id: _string(json['id']),
-        name: _nullableString(json['name']) ?? '',
-        image: _nullableString(json['image']),
-      );
-
-  final String id;
-  final String name;
-  final String? image;
 }
 
 class TournamentStandingGroup {

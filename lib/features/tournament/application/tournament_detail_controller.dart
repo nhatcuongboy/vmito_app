@@ -1,22 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/misc.dart';
 import 'package:vmito_app/core/realtime/socket_client.dart';
 import 'package:vmito_app/core/realtime/socket_events.dart';
-import 'package:vmito_app/core/storage/token_storage.dart';
 import 'package:vmito_app/features/tournament/data/tournament_service.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_detail.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_podium.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
-
-final FutureProviderFamily<String, String> tournamentTitleProvider =
-    FutureProvider.family<String, String>((ref, idOrSlug) async {
-      final tournament = await ref
-          .watch(tournamentServiceProvider)
-          .detail(idOrSlug);
-      return tournament.name;
-    });
 
 class TournamentDetailState {
   const TournamentDetailState({
@@ -95,7 +85,6 @@ class TournamentDetailController extends AsyncNotifier<TournamentDetailState> {
       if (_tournamentId case final tournamentId?) {
         _socket?.leaveTournament(tournamentId);
       }
-      _socket?.dispose();
     });
     final tournament = await ref
         .read(tournamentServiceProvider)
@@ -104,10 +93,7 @@ class TournamentDetailController extends AsyncNotifier<TournamentDetailState> {
     final loaded = await _loadSections(tournament);
     if (loaded.effectiveStatus == TournamentStatus.preparing ||
         loaded.effectiveStatus == TournamentStatus.inProgress) {
-      _startRealtime(
-        loaded.tournament.id,
-        ref.read(tokenStorageProvider),
-      );
+      _startRealtime(loaded.tournament.id);
     }
     return loaded;
   }
@@ -167,12 +153,11 @@ class TournamentDetailController extends AsyncNotifier<TournamentDetailState> {
     return Map.fromEntries(entries);
   }
 
-  void _startRealtime(String tournamentId, TokenStorage tokenStorage) {
-    final socket = SocketClient(
-      tokenStorage: tokenStorage,
-      namespace: SocketNamespace.tournaments,
-      observedEvents: TournamentEvent.all,
-    );
+  void _startRealtime(String tournamentId) {
+    // Shared with the schedule and standings controllers so one tournament
+    // keeps one socket, not one per mounted tab. The provider owns the client:
+    // leave the room on dispose, never dispose the client here.
+    final socket = ref.read(tournamentSocketClientProvider(idOrSlug));
     _socket = socket..connect();
     socket.joinTournament(tournamentId);
     _eventSubscription = socket.events
@@ -192,8 +177,12 @@ class TournamentDetailController extends AsyncNotifier<TournamentDetailState> {
             }
             socket.leaveTournament(tournamentId);
             _scheduleRealtimeRefresh(refreshStandings: true);
-            socket.dispose();
+            // The client is provider-owned and shared with the other tabs —
+            // stop listening, but leave the socket itself alone.
+            unawaited(_eventSubscription?.cancel());
+            _eventSubscription = null;
             _socket = null;
+            _tournamentId = null;
             return;
           }
           _scheduleRealtimeRefresh(

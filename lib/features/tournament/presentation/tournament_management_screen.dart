@@ -7,13 +7,9 @@ import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/tournament/application/tournament_management_controller.dart';
-import 'package:vmito_app/features/tournament/data/tournament_management_service.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_detail.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_management.dart';
-import 'package:vmito_app/features/tournament/presentation/tournament_schedule_screen.dart';
-import 'package:vmito_app/features/tournament/presentation/tournament_standings_screen.dart';
-import 'package:vmito_app/features/tournament/presentation/widgets/tournament_admin_panels.dart';
-import 'package:vmito_app/features/tournament/presentation/widgets/tournament_settings_panels.dart';
+import 'package:vmito_app/features/tournament/presentation/widgets/tournament_manage_panel.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 enum TournamentManageTab { organize, settings }
@@ -231,107 +227,13 @@ class _TournamentManagementScreenState
     required String? option,
     bool showPanelBack = false,
   }) {
-    final l10n = AppLocalizations.of(context);
-    Widget child;
-    Future<void> update(Map<String, dynamic> changes) async {
-      try {
-        await ref
-            .read(
-              tournamentManagementControllerProvider(widget.idOrSlug).notifier,
-            )
-            .update(changes);
-        if (mounted) _snack(l10n.tournamentManageSaved);
-      } on Object {
-        if (mounted) _snack(l10n.tournamentManageSaveFailed, error: true);
-      }
-    }
-
-    child = switch (option) {
-      'status' => TournamentStatusPanel(
-        tournament: tournament,
-        busy: state.isMutating,
-        onUpdate: update,
-      ),
-      'name' => TournamentNamePanel(
-        key: ValueKey('name-${tournament.name}-${tournament.description}'),
-        tournament: tournament,
-        busy: state.isMutating,
-        onUpdate: update,
-      ),
-      'dates' => TournamentDatesPanel(
-        key: ValueKey('dates-${tournament.startDate}-${tournament.endDate}'),
-        tournament: tournament,
-        busy: state.isMutating,
-        onUpdate: update,
-      ),
-      'visibility' => TournamentVisibilityPanel(
-        key: ValueKey('visibility-${tournament.isPublished}'),
-        tournament: tournament,
-        busy: state.isMutating,
-        onUpdate: update,
-      ),
-      'banner' => TournamentBannerPanel(
-        key: ValueKey('banner-${tournament.coverPhoto}'),
-        tournament: tournament,
-        busy: state.isMutating,
-        onUpdate: update,
-        onUpload: (file) async => ref
-            .read(tournamentManagementServiceProvider)
-            .uploadImage(
-              bytes: await file.readAsBytes(),
-              filename: file.name,
-              category: 'SESSION_COVER',
-            ),
-      ),
-      'videos' => TournamentVideosPanel(
-        key: ValueKey('videos-${tournament.youtubeVideoUrls.join(',')}'),
-        tournament: tournament,
-        busy: state.isMutating,
-        onUpdate: update,
-      ),
-      'contact' => TournamentContactPanel(
-        key: ValueKey(
-          'contact-${tournament.contactName}-${tournament.contactEmail}-${tournament.contactPhone}',
-        ),
-        tournament: tournament,
-        busy: state.isMutating,
-        onUpdate: update,
-      ),
-      'managers' => TournamentManagersPanel(tournamentId: tournament.id),
-      'duplicate' => TournamentDuplicatePanel(
-        idOrSlug: widget.idOrSlug,
-        tournament: tournament,
-      ),
-      'delete' => TournamentDeletePanel(
-        tournament: tournament,
-        busy: state.isMutating,
-        onDelete: () async {
-          try {
-            await ref
-                .read(
-                  tournamentManagementControllerProvider(
-                    widget.idOrSlug,
-                  ).notifier,
-                )
-                .delete();
-            if (mounted) {
-              context.go(AppRoutes.homeForDiscoveryTab('tournaments'));
-            }
-          } on Object {
-            if (mounted) _snack(l10n.tournamentManageSaveFailed, error: true);
-          }
-        },
-      ),
-      'schedule' || 'results' => TournamentScheduleScreen(
-        idOrSlug: widget.idOrSlug,
-      ),
-      'standings' => TournamentStandingsScreen(idOrSlug: widget.idOrSlug),
-      null => const SizedBox.shrink(),
-      _ => _Message(
-        icon: AppIcons.info,
-        text: l10n.tournamentManageComingSoon,
-      ),
-    };
+    final child = TournamentManagePanel(
+      idOrSlug: widget.idOrSlug,
+      tournament: tournament,
+      state: state,
+      option: option,
+      initialCategoryId: widget.initialCategoryId,
+    );
     if (!showPanelBack) return child;
     return Column(
       children: [
@@ -345,15 +247,6 @@ class _TournamentManagementScreenState
         ),
         Expanded(child: child),
       ],
-    );
-  }
-
-  void _snack(String text, {bool error = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(text),
-        backgroundColor: error ? Theme.of(context).colorScheme.error : null,
-      ),
     );
   }
 }

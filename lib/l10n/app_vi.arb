@@ -3598,5 +3598,360 @@
   "hostTournamentsDeleteConfirm": "Bạn có chắc chắn muốn xoá giải đấu này? Hành động này không thể hoàn tác.",
   "hostTournamentsDeleted": "Đã xoá giải đấu",
   "hostTournamentsDeleteFailed": "Xoá giải đấu thất bại",
-  "hostTournamentsClearSearch": "Xoá tìm kiếm"
+  "hostTournamentsClearSearch": "Xoá tìm kiếm",
+  "tournamentResourceAdd": "Thêm",
+  "tournamentResourceName": "Tên",
+  "tournamentResourceEmpty": "Không có dữ liệu phù hợp",
+  "tournamentResourceDeleteWarning": "Xóa mục này? Thao tác không thể hoàn tác. Mục đang được đội hoặc trận đấu sử dụng có thể không xóa được.",
+  "tournamentResourceInvalid": "Kiểm tra lại giá trị đã nhập",
+  "tournamentResourceUrlError": "Nhập URL http hoặc https hợp lệ",
+  "tournamentPlayerCode": "Mã người chơi",
+  "tournamentPlayerNotes": "Ghi chú",
+  "tournamentPlayerNotesAfterCreate": "Có thể thêm ảnh và ghi chú sau khi tạo người chơi.",
+  "tournamentPlayerAccount": "Tài khoản liên kết",
+  "tournamentPlayerUnlink": "Hủy liên kết tài khoản",
+  "tournamentPlayerAll": "Tất cả người chơi",
+  "tournamentPlayerLinked": "Đã liên kết tài khoản",
+  "tournamentPlayerUnlinked": "Chưa liên kết tài khoản",
+  "tournamentPlayerMatches": "Trận đấu của người chơi",
+  "tournamentPlayerImport": "Nhập từ văn bản",
+  "tournamentPlayerImportHelp": "Dán mỗi người chơi một dòng: mã, tên, giới tính, điện thoại (ngăn bằng dấu phẩy hoặc tab). Mã, giới tính và điện thoại không bắt buộc. Để trống mã để hệ thống tự cấp.",
+  "tournamentPlayerImportPreview": "Xem trước",
+  "tournamentPlayerImportNameError": "Thiếu tên",
+  "tournamentPlayerImportGenderError": "Giới tính không hợp lệ",
+  "tournamentPlayerImportCodeError": "Trùng mã",
+  "tournamentPlayerImportDuplicateName": "Trùng tên",
+  "tournamentPlayerImportColumnsError": "Sai số cột hoặc dấu ngoặc kép",
+  "tournamentSponsorWebsite": "Website",
+  "tournamentSponsorOrder": "Thứ tự hiển thị",
+  "tournamentTabHome": "Trang chủ",
+  "tournamentTabTeams": "VĐV",
+  "tournamentTabSchedule": "Trận đấu",
+  "tournamentTabStandings": "BXH",
+  "tournamentTabDashboard": "Bảng điều khiển",
+  "tournamentTeamsManage": "Quản lý",
+  "tournamentTeamsByCategory": "Hạng mục",
+  "tournamentTeamsAllPlayers": "VĐV",
+  "tournamentTeamsSearch": "Tìm vận động viên...",
+  "tournamentTeamsNoCategories": "Chưa có hạng mục nào.",
+  "tournamentTeamsNoTeams": "Chưa có đội nào đăng ký.",
+  "tournamentTeamsNoPlayers": "Chưa có vận động viên nào.",
+  "tournamentTeamsUnknown": "Không xác định",
+  "tournamentTeamsCount": "{count} đội",
+  "@tournamentTeamsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentTeamsPlayersCount": "{count} VĐV",
+  "@tournamentTeamsPlayersCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentDashboardGuideTitle": "Hướng dẫn thiết lập giải đấu",
+  "tournamentDashboardGuideDescription": "Hoàn thành các bước dưới đây để chuẩn bị giải đấu của bạn.",
+  "tournamentDashboardProgress": "Đã hoàn thành {completed} trong {total} bước",
+  "@tournamentDashboardProgress": {
+    "placeholders": {
+      "completed": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentSetupStepVenueTitle": "Thêm địa điểm",
+  "tournamentSetupStepVenueDescription": "Cung cấp địa điểm có sân cho giải đấu.",
+  "tournamentSetupStepVenueAction": "Quản lý địa điểm",
+  "tournamentSetupStepCategoriesTitle": "Tạo hạng mục",
+  "tournamentSetupStepCategoriesDescription": "Tạo các hạng mục thi đấu trước khi thiết lập thể thức.",
+  "tournamentSetupStepCategoriesAction": "Quản lý hạng mục",
+  "tournamentSetupStepFormatTitle": "Thiết lập thể thức",
+  "tournamentSetupStepFormatDescription": "Chọn và cấu hình thể thức cho từng hạng mục.",
+  "tournamentSetupStepFormatAction": "Quản lý thể thức",
+  "tournamentSetupStepTeamsTitle": "Thêm đội tham gia",
+  "tournamentSetupStepTeamsDescription": "Cung cấp ít nhất 2 đội tham gia.",
+  "tournamentSetupStepTeamsAction": "Quản lý đội",
+  "tournamentSetupStepRoundsTitle": "Cài đặt vòng đấu",
+  "tournamentSetupStepRoundsDescription": "Xác nhận cài đặt cho từng vòng đấu.",
+  "tournamentSetupStepRoundsAction": "Quản lý vòng đấu",
+  "tournamentSetupStepScheduleTitle": "Lên lịch trận đấu",
+  "tournamentSetupStepScheduleDescription": "Cài đặt lịch thi đấu cho các trận.",
+  "tournamentSetupStepScheduleAction": "Quản lý lịch",
+  "tournamentSetupStepPublishTitle": "Xuất bản giải đấu",
+  "tournamentSetupStepPublishDescription": "Cho phép người tham gia xem giải đấu và gửi kết quả trận đấu.",
+  "tournamentSetupStepPublishAction": "Xuất bản giải đấu",
+  "tournamentCategoriesEmptyTitle": "Chưa có hạng mục nào",
+  "tournamentCategoriesEmptyDescription": "Tạo hạng mục đầu tiên để bắt đầu thêm đội, cấu hình thể thức và tạo trận đấu.",
+  "tournamentCategoriesAdd": "Thêm hạng mục",
+  "tournamentCategoriesCreate": "Tạo hạng mục",
+  "tournamentCategoriesEdit": "Sửa hạng mục",
+  "tournamentCategoriesDelete": "Xóa hạng mục",
+  "tournamentCategoriesDeleteConfirm": "Bạn có chắc chắn muốn xóa hạng mục này?",
+  "tournamentCategoriesNameLabel": "Tên hạng mục",
+  "tournamentCategoriesNamePlaceholder": "VD: Đôi nam 3.0",
+  "tournamentCategoriesTypeLabel": "Loại hạng mục",
+  "tournamentCategoriesRegistrationModeLabel": "Cách đăng ký",
+  "tournamentCategoriesCreateFailed": "Không thể tạo hạng mục",
+  "tournamentCategoriesUpdateFailed": "Không thể cập nhật hạng mục",
+  "tournamentCategoriesDeleteFailed": "Không thể xóa hạng mục",
+  "tournamentCategoriesTeamSizeSummary": "{count} VĐV/đội",
+  "@tournamentCategoriesTeamSizeSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentCategoriesIndividual": "Cá nhân",
+  "tournamentCategoriesTeam": "Đội",
+  "tournamentCategoriesTeamSizeLabel": "Số VĐV mỗi đội",
+  "tournamentCategoriesTeamSizePlaceholder": "VD: 2",
+  "tournamentCategoriesTeamSizeHelp": "Áp dụng cho hạng mục đăng ký theo đội. Pickleball/cầu lông đôi thường là 2 VĐV mỗi đội.",
+  "tournamentCategoriesNameRequired": "Vui lòng nhập tên hạng mục.",
+  "tournamentCategoriesNameDuplicate": "Tên hạng mục này đã tồn tại trong giải đấu.",
+  "tournamentCategoriesTeamSizeMin": "Số VĐV mỗi đội phải là số nguyên từ 2 trở lên.",
+  "tournamentCategoryTypeMensSingle": "Đơn nam",
+  "tournamentCategoryTypeWomensSingle": "Đơn nữ",
+  "tournamentCategoryTypeMensDouble": "Đôi nam",
+  "tournamentCategoryTypeWomensDouble": "Đôi nữ",
+  "tournamentCategoryTypeMixedDouble": "Đôi nam nữ",
+  "tournamentCategoryTypeCustom": "Tùy chỉnh",
+  "tournamentCategoryRequiredTitle": "Tạo hạng mục trước",
+  "tournamentCategoryRequiredDescription": "Hạng mục xác định ai tham gia và cách tổ chức trận đấu. Hãy thêm một hạng mục trước khi thiết lập phần này.",
+  "tournamentCategoryRequiredAction": "Đến Hạng mục",
+  "tournamentTeamsPanelTeamAdd": "Thêm đội",
+  "tournamentTeamsPanelTeamEmpty": "Chưa có đội nào đăng ký.",
+  "tournamentTeamsPanelTeamAddTitle": "Thêm đội",
+  "tournamentTeamsPanelTeamEditTitle": "Sửa đội",
+  "tournamentTeamsPanelTeamDeleteConfirm": "Bạn có chắc chắn muốn xóa đội này?",
+  "tournamentTeamsPanelTeamNamePlaceholder": "Tên đội",
+  "tournamentTeamsPanelTeamMultiPlaceholder": "Dán danh sách đội hoặc nhập một tên đội mỗi dòng",
+  "tournamentTeamsPanelTeamEnterAtLeastOne": "Vui lòng nhập ít nhất một đội",
+  "tournamentTeamsPanelTeamAddFailed": "Không thể thêm đội",
+  "tournamentTeamsPanelTeamUpdateFailed": "Không thể cập nhật đội",
+  "tournamentTeamsPanelTeamDeleteFailed": "Không thể xóa đội",
+  "tournamentTeamsPanelPlayerAdd": "Thêm VĐV",
+  "tournamentTeamsPanelPlayerEmpty": "Chưa có VĐV nào đăng ký.",
+  "tournamentTeamsPanelPlayerAddTitle": "Thêm VĐV",
+  "tournamentTeamsPanelPlayerEditTitle": "Sửa VĐV",
+  "tournamentTeamsPanelPlayerDeleteConfirm": "Bạn có chắc chắn muốn xóa VĐV này khỏi hạng mục?",
+  "tournamentTeamsPanelPlayerNamePlaceholder": "Tên VĐV",
+  "tournamentTeamsPanelPlayerMultiPlaceholder": "Dán danh sách VĐV hoặc nhập một tên VĐV mỗi dòng",
+  "tournamentTeamsPanelPlayerEnterAtLeastOne": "Vui lòng nhập ít nhất một VĐV",
+  "tournamentTeamsPanelPlayerAddFailed": "Không thể thêm VĐV",
+  "tournamentTeamsPanelPlayerUpdateFailed": "Không thể cập nhật VĐV",
+  "tournamentTeamsPanelPlayerDeleteFailed": "Không thể xóa VĐV",
+  "tournamentTeamsPanelSingle": "Đơn lẻ",
+  "tournamentTeamsPanelMultiple": "Hàng loạt",
+  "tournamentTeamsPanelSelectFromList": "Chọn VĐV",
+  "tournamentTeamsPanelSearchPlayer": "Tìm VĐV…",
+  "tournamentTeamsPanelNoAvailablePlayers": "Tất cả VĐV đã được đăng ký vào nội dung này",
+  "tournamentTeamsPanelSelectedCount": "Đã chọn {count} VĐV",
+  "@tournamentTeamsPanelSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentTeamsPanelMemberCount": "{current}/{total} VĐV",
+  "@tournamentTeamsPanelMemberCount": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentTeamsPanelTeamNameLabel": "Tên đội",
+  "tournamentTeamsPanelSelectedMembers": "Thành viên đã chọn",
+  "tournamentTeamsPanelNoSelectedMembers": "Chưa chọn VĐV nào.",
+  "tournamentTeamsPanelUnknownPlayer": "VĐV không xác định",
+  "tournamentTeamsPanelAddMembersLabel": "Thêm thành viên",
+  "tournamentTeamsPanelRosterFullHelp": "Đội đã đủ người. Gỡ một VĐV trước khi thêm người khác.",
+  "tournamentTeamsPanelNoRosterCandidates": "Không tìm thấy VĐV phù hợp.",
+  "tournamentTeamsPanelAssignedToTeam": "Đang ở đội {teams}",
+  "@tournamentTeamsPanelAssignedToTeam": {
+    "placeholders": {
+      "teams": {
+        "type": "String"
+      }
+    }
+  },
+  "tournamentTeamsPanelAddToTeam": "Thêm vào đội",
+  "tournamentTeamsPanelQuickCreatePlayer": "Tạo nhanh VĐV mới",
+  "tournamentTeamsPanelNewPlayerNameLabel": "Tên VĐV mới",
+  "tournamentTeamsPanelNewPlayerNamePlaceholder": "Nhập tên VĐV…",
+  "tournamentTeamsPanelCreateAndAdd": "Tạo & thêm",
+  "tournamentTeamsPanelRosterConflictHelp": "Một số VĐV đang thuộc đội khác trong nội dung này. Hãy gỡ các VĐV bị xung đột trước khi lưu.",
+  "tournamentTeamsPanelDraftTeamWarning": "Đội đang ở trạng thái nháp và chưa thể xếp bảng hoặc tạo lịch.",
+  "tournamentTeamsPanelMemberCreateFailed": "Không thể tạo VĐV. Vui lòng kiểm tra tên và thử lại.",
+  "tournamentTeamsPanelMemberConflict": "Cũng đang thuộc: {teams}",
+  "@tournamentTeamsPanelMemberConflict": {
+    "placeholders": {
+      "teams": {
+        "type": "String"
+      }
+    }
+  },
+  "tournamentFormatSwitch": "Đổi thể thức",
+  "tournamentFormatDefaultHint": "Đang dùng thể thức mặc định. Nhấn \"Đổi thể thức\" để tuỳ chỉnh.",
+  "tournamentFormatSelectTitle": "Chọn thể thức",
+  "tournamentFormatSeedingMethod": "Phương pháp xếp hạt giống",
+  "tournamentFormatSeedingManual": "Thủ công",
+  "tournamentFormatSeedingRandom": "Ngẫu nhiên",
+  "tournamentFormatSeedingRanking": "Theo xếp hạng",
+  "tournamentFormatMatchFormat": "Thể thức trận đấu",
+  "tournamentFormatBestOf1": "Best of 1",
+  "tournamentFormatBestOf3": "Best of 3",
+  "tournamentFormatBestOf5": "Best of 5",
+  "tournamentFormatThirdPlaceMatch": "Trận tranh hạng ba",
+  "tournamentFormatPerRoundTitle": "Thể thức theo từng vòng (tùy chọn)",
+  "tournamentFormatPerRoundHint": "Vòng để mặc định sẽ dùng {format}.",
+  "@tournamentFormatPerRoundHint": {
+    "placeholders": {
+      "format": {
+        "type": "String"
+      }
+    }
+  },
+  "tournamentFormatUseDefault": "Mặc định",
+  "tournamentFormatTrueDoubleElimination": "Loại kép thực sự",
+  "tournamentFormatTrueDoubleEliminationDesc": "Nếu bật, nhà vô địch nhánh dưới phải thắng nhà vô địch nhánh trên hai lần để vô địch chung kết (reset nhánh).",
+  "tournamentFormatGroupStage": "Vòng bảng",
+  "tournamentFormatPlayoffs": "Vòng loại trực tiếp",
+  "tournamentFormatQualifiersPerGroup": "Số đội vượt qua mỗi bảng",
+  "tournamentFormatRoundFinal": "Chung kết",
+  "tournamentFormatRoundSemifinal": "Bán kết",
+  "tournamentFormatRoundQuarterfinal": "Tứ kết",
+  "tournamentFormatRoundOf16": "Vòng 1/8",
+  "tournamentFormatRoundThirdPlace": "Tranh hạng 3",
+  "tournamentFormatMatchWin": "Thắng trận",
+  "tournamentFormatMatchTie": "Hòa trận",
+  "tournamentFormatMatchLoss": "Thua trận",
+  "tournamentFormatPoints": "{n, plural, =0 {0 điểm} =1 {1 điểm} other {{n} điểm}}",
+  "@tournamentFormatPoints": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentFormatTiebreakers": "Phá hòa",
+  "tournamentFormatTiebreakersDesc": "Quyết định cách phá hòa trong bảng xếp hạng.",
+  "tournamentFormatSelectTiebreakers": "Chọn quy tắc phá hòa",
+  "tournamentScoringTitle": "Luật chấm điểm",
+  "tournamentScoringDescription": "Chọn nhanh một preset theo môn thi đấu, hoặc tinh chỉnh thủ công cho phù hợp với giải đấu.",
+  "tournamentScoringMatchFormat": "Số set tối đa",
+  "tournamentScoringBestOf1": "1 set",
+  "tournamentScoringBestOf3": "3 set",
+  "tournamentScoringBestOf5": "5 set",
+  "tournamentScoringPointsToWin": "Điểm thắng set",
+  "tournamentScoringWinByTwo": "Cách 2 điểm",
+  "tournamentScoringPointCap": "Điểm trần",
+  "tournamentScoringNoCap": "Không trần",
+  "tournamentScoringDisableCap": "Bỏ trần",
+  "tournamentScoringPresetTitle": "Mẫu luật nhanh",
+  "tournamentScoringCustomTitle": "Tùy chỉnh vòng đang chọn",
+  "tournamentScoringSave": "Lưu luật",
+  "tournamentScoringSaveError": "Không lưu được luật, vui lòng thử lại.",
+  "tournamentScoringInvalid": "Giá trị không hợp lệ — điểm thắng từ 1–99 và điểm trần phải lớn hơn hoặc bằng điểm thắng.",
+  "tournamentScoringInheritTitle": "Sử dụng luật của vòng trước",
+  "tournamentScoringInheritHintKnockout": "Kế thừa luật từ vòng bảng. Tắt để đặt luật riêng cho các vòng loại trực tiếp.",
+  "tournamentScoringInheritHintFinal": "Kế thừa luật từ vòng loại trực tiếp (hoặc vòng bảng). Tắt để đặt luật riêng cho chung kết.",
+  "tournamentScoringSummaryTitle": "Cấu hình hiện tại theo vòng",
+  "tournamentScoringSummaryInherited": "Kế thừa",
+  "tournamentScoringSummaryPoints": "{points} điểm",
+  "@tournamentScoringSummaryPoints": {
+    "placeholders": {
+      "points": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentScoringSummaryWinByTwo": "cách 2 điểm",
+  "tournamentScoringSummaryCap": "trần {cap}",
+  "@tournamentScoringSummaryCap": {
+    "placeholders": {
+      "cap": {
+        "type": "int"
+      }
+    }
+  },
+  "tournamentScoringSummaryNoCap": "không trần",
+  "tournamentScoringStageGroup": "Vòng bảng",
+  "tournamentScoringStageHintGroup": "Luật này áp dụng cho các trận ở vòng bảng (vòng tròn).",
+  "tournamentScoringStageKnockout": "Vòng loại trực tiếp",
+  "tournamentScoringStageHintKnockout": "Áp dụng cho các vòng loại trực tiếp (R16/Tứ kết/Bán kết/Tranh hạng 3). Để trống = dùng luật vòng bảng.",
+  "tournamentScoringStageFinal": "Chung kết",
+  "tournamentScoringStageHintFinal": "Chỉ áp dụng cho trận chung kết. Để trống = dùng luật vòng loại trực tiếp.",
+  "tournamentFormatRoundRobinName": "Vòng tròn",
+  "tournamentFormatRoundRobinDescription": "Các đội thi đấu trong bảng và được xếp hạng dựa trên kết quả.",
+  "tournamentFormatSingleEliminationName": "Loại trực tiếp",
+  "tournamentFormatSingleEliminationDescription": "Các đội được xếp vào nhánh đấu, thua một trận sẽ bị loại.",
+  "tournamentFormatDoubleEliminationName": "Loại kép",
+  "tournamentFormatDoubleEliminationDescription": "Các đội được xếp vào nhánh trên và nhánh dưới, chỉ bị loại sau khi thua hai trận.",
+  "tournamentFormatRoundRobinToSeName": "Vòng tròn sang Loại trực tiếp",
+  "tournamentFormatRoundRobinToSeDescription": "Các đội thi đấu trong bảng rồi vào nhánh đấu loại trực tiếp.",
+  "tournamentScoringPresetBwf21": "BWF 21 điểm",
+  "tournamentScoringPresetClassic15": "Cổ điển 15",
+  "tournamentScoringPresetRally15": "Rally 15 (trần 21)",
+  "tournamentScoringPresetShort11": "Nhanh 11 (trần 15)",
+  "tournamentScoringPresetCustom": "Tuỳ chỉnh",
+  "tournamentScoringPresetPickleball11": "Pickleball 11 điểm",
+  "tournamentScoringPresetPickleball15": "Pickleball 15 điểm",
+  "tournamentScoringPresetPickleball21": "Pickleball 21 điểm",
+  "tournamentTiebreakerTotalPoints": "Tổng thắng",
+  "tournamentTiebreakerTotalPointsDesc": "Tổng thể (Thắng)",
+  "tournamentTiebreakerGameDifferential": "Hiệu game",
+  "tournamentTiebreakerGameDifferentialDesc": "Tổng thể (Game thắng - Game thua)",
+  "tournamentTiebreakerTotalWins": "Tổng thắng",
+  "tournamentTiebreakerTotalWinsDesc": "Tổng thể (Thắng)",
+  "tournamentTiebreakerPointDifferential": "Hiệu điểm",
+  "tournamentTiebreakerPointDifferentialDesc": "Tổng thể (Điểm được - Điểm mất)",
+  "tournamentTiebreakerHeadToHead": "Đối đầu trực tiếp",
+  "tournamentTiebreakerHeadToHeadDesc": "Kết quả trận đấu trực tiếp giữa các đội hòa",
+  "tournamentTiebreakerMatchups": "Matchups",
+  "tournamentTiebreakerMatchupsDesc": "((Thắng x 2) + (Hòa x 1))",
+  "tournamentTiebreakerAverageGameDifferential": "Hiệu game trung bình",
+  "tournamentTiebreakerAverageGameDifferentialDesc": "((Game thắng - Game thua) / Số trận đã đấu)",
+  "tournamentTiebreakerMostGamesFor": "Nhiều game thắng nhất",
+  "tournamentTiebreakerMostGamesForDesc": "(Game thắng)",
+  "tournamentTiebreakerHighestAverageGamesFor": "Trung bình game thắng cao nhất",
+  "tournamentTiebreakerHighestAverageGamesForDesc": "(Game thắng / Số trận đã đấu)",
+  "tournamentTiebreakerLeastGamesAgainst": "Ít game thua nhất",
+  "tournamentTiebreakerLeastGamesAgainstDesc": "(Game thua)",
+  "tournamentTiebreakerLowestAverageGamesAgainst": "Trung bình game thua thấp nhất",
+  "tournamentTiebreakerLowestAverageGamesAgainstDesc": "(Game thua / Số trận đã đấu)",
+  "tournamentTiebreakerLeastMatchesForfeited": "Ít bỏ cuộc nhất",
+  "tournamentTiebreakerLeastMatchesForfeitedDesc": "(Bỏ cuộc)",
+  "tournamentTiebreakerLeastLosses": "Ít thua nhất",
+  "tournamentTiebreakerLeastLossesDesc": "(Thua)",
+  "tournamentTiebreakerHighestGameRatio": "Tỉ lệ game cao nhất",
+  "tournamentTiebreakerHighestGameRatioDesc": "(Game thắng / Game thua)",
+  "tournamentTiebreakerPointsFor": "Điểm được",
+  "tournamentTiebreakerPointsForDesc": "Tổng điểm ghi được",
+  "tournamentTiebreakerPointsAgainst": "Điểm mất",
+  "tournamentTiebreakerPointsAgainstDesc": "Tổng điểm để thua",
+  "tournamentTiebreakerPointDifferentialDetail": "Hiệu điểm",
+  "tournamentTiebreakerPointDifferentialDetailDesc": "(Điểm được - Điểm mất)",
+  "tournamentTiebreakerAveragePointDifferential": "Hiệu điểm trung bình",
+  "tournamentTiebreakerAveragePointDifferentialDesc": "(Điểm được - Điểm mất / Số hiệp đã đấu)",
+  "tournamentTiebreakerLeastPointsAgainst": "Ít điểm thua nhất",
+  "tournamentTiebreakerLeastPointsAgainstDesc": "(Điểm thua)",
+  "tournamentTiebreakerLowestAveragePointsAgainst": "Trung bình điểm thua thấp nhất",
+  "tournamentTiebreakerLowestAveragePointsAgainstDesc": "(Điểm thua / Số hiệp đã đấu)",
+  "tournamentTiebreakerMostPointsFor": "Nhiều điểm nhất",
+  "tournamentTiebreakerMostPointsForDesc": "(Điểm được)",
+  "tournamentTiebreakerHighestAveragePointsFor": "Trung bình điểm cao nhất",
+  "tournamentTiebreakerHighestAveragePointsForDesc": "(Điểm được / Số hiệp đã đấu)"
 }

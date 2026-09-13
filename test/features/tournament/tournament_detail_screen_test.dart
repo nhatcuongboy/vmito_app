@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
-import 'package:vmito_app/core/web/app_web_view.dart';
 import 'package:vmito_app/features/tournament/application/tournament_detail_controller.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_detail.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
@@ -33,42 +32,6 @@ Widget _app(TournamentDetailState state) => ProviderScope(
 );
 
 void main() {
-  testWidgets('delegates tournament detail to the localized web page', (
-    tester,
-  ) async {
-    final container = ProviderContainer(
-      overrides: [
-        tournamentTitleProvider.overrideWith(
-          (ref, idOrSlug) async => 'Vmito Open',
-        ),
-      ],
-    );
-    addTearDown(container.dispose);
-    await container.read(tournamentTitleProvider('vmito open').future);
-    await tester.pumpWidget(
-      UncontrolledProviderScope(
-        container: container,
-        child: const MaterialApp(
-          locale: Locale('vi'),
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          home: TournamentDetailScreen(idOrSlug: 'vmito open'),
-        ),
-      ),
-    );
-
-    final webViewPage = tester.widget<AppWebViewPage>(
-      find.byType(AppWebViewPage),
-    );
-    expect(webViewPage.page.title, 'Vmito Open');
-    expect(
-      webViewPage.page.path,
-      '/vi/tournament/vmito%20open',
-    );
-    expect(webViewPage.page.embedded, isTrue);
-    expect(find.byType(TournamentHomeContent), findsNothing);
-  });
-
   testWidgets(
     'renders the complete home hierarchy on a phone without overflow',
     (

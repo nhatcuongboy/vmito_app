@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -17,6 +16,7 @@ import 'package:vmito_app/features/tournament/domain/tournament_management.dart'
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 
 typedef TournamentUpdater = Future<void> Function(Map<String, dynamic> changes);
 
@@ -115,7 +115,6 @@ class TournamentStatusPanel extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final confirmed = await showAppConfirmDialog(
       context,
-      type: AppConfirmDialogType.submit,
       title: l10n.tournamentManageConfirmStatus,
       content: action,
       confirmLabel: action,
@@ -622,7 +621,7 @@ class _TournamentBannerPanelState extends ConsumerState<TournamentBannerPanel> {
       context: context,
       useSafeArea: true,
       isScrollControlled: true,
-      builder: (_) => const _TournamentImageLibrarySheet(),
+      builder: (_) => const TournamentImageLibrarySheet(),
     );
     if (selected == null || !mounted) return;
     setState(() {
@@ -633,13 +632,18 @@ class _TournamentBannerPanelState extends ConsumerState<TournamentBannerPanel> {
   }
 }
 
-class _TournamentImageLibrarySheet extends ConsumerWidget {
-  const _TournamentImageLibrarySheet();
+class TournamentImageLibrarySheet extends ConsumerWidget {
+  const TournamentImageLibrarySheet({this.allCategories = false, super.key});
+
+  final bool allCategories;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final images = ref.watch(tournamentImageLibraryProvider);
+    final provider = allCategories
+        ? tournamentAllImagesProvider
+        : tournamentImageLibraryProvider;
+    final images = ref.watch(provider);
     return SizedBox(
       height: MediaQuery.sizeOf(context).height * .82,
       child: Column(
@@ -664,8 +668,7 @@ class _TournamentImageLibrarySheet extends ConsumerWidget {
                   children: [
                     Text(l10n.sessionFormGalleryError),
                     TextButton(
-                      onPressed: () =>
-                          ref.invalidate(tournamentImageLibraryProvider),
+                      onPressed: () => ref.invalidate(provider),
                       child: Text(l10n.commonRetry),
                     ),
                   ],

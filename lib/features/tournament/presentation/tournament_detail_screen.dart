@@ -21,67 +21,16 @@ import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/session/domain/reference_video.dart';
 import 'package:vmito_app/features/tournament/application/tournament_detail_controller.dart';
-import 'package:vmito_app/features/tournament/application/tournament_management_controller.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_detail.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_podium.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_pulse.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
+import 'package:vmito_app/features/tournament/presentation/tournament_shell_screen.dart';
+import 'package:vmito_app/features/tournament/presentation/widgets/tournament_format_labels.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
-class TournamentDetailScreen extends ConsumerWidget {
-  const TournamentDetailScreen({required this.idOrSlug, super.key});
-
-  final String idOrSlug;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
-    final title =
-        ref.watch(tournamentTitleProvider(idOrSlug)).value ??
-        l10n.tournamentDetailTitle;
-    final language = Localizations.localeOf(context).languageCode;
-    final locale = language == 'zh' ? 'cn' : language;
-    final path = '/${Uri(pathSegments: [locale, 'tournament', idOrSlug])}';
-    final canManage =
-        ref.watch(tournamentManageAccessProvider(idOrSlug)).value?.canManage ??
-        false;
-    return AppWebViewPage(
-      page: AppWebPage(
-        path: path,
-        title: title,
-        embedded: true,
-      ),
-      actions: [
-        if (canManage)
-          IconButton(
-            tooltip: AppLocalizations.of(context).tournamentManageOpen,
-            onPressed: () => unawaited(
-              context.push(AppRoutes.manageTournament(idOrSlug)),
-            ),
-            icon: const Icon(AppIcons.settings),
-          ),
-      ],
-      onTrustedNavigation: (uri) {
-        final normalized = AppRoutes.stripLocale(uri.path);
-        final match = RegExp(
-          r'^/tournaments/([^/]+)/manage$',
-        ).firstMatch(normalized);
-        if (match == null || !canManage) return false;
-        unawaited(
-          context.push(
-            AppRoutes.manageTournament(
-              match.group(1)!,
-              option: uri.queryParameters['option'],
-              categoryId: uri.queryParameters['categoryId'],
-            ),
-          ),
-        );
-        return true;
-      },
-    );
-  }
-}
-
+/// The Home tab of the tournament shell. Hosted by `TournamentShellScreen`,
+/// which owns the `Scaffold` and resolves the controller's `AsyncValue`.
 class TournamentHomeContent extends ConsumerWidget {
   const TournamentHomeContent({
     required this.state,
@@ -646,11 +595,33 @@ class _QuickActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final actions = [
-      (l10n.tournamentDetailSchedule, AppIcons.calendarMonth, 'schedule'),
-      (l10n.tournamentDetailStandings, AppIcons.trendingUp, 'standings'),
-      (l10n.tournamentDetailScoreboard, AppIcons.playCircle, 'scoreboard'),
-      (l10n.tournamentDetailShowcase, AppIcons.sparkles, 'showcase'),
+    // Schedule and standings are native tabs of this shell; scoreboard and
+    // showcase have no native port yet and still open on the web.
+    final actions = <(String, IconData, VoidCallback)>[
+      (
+        l10n.tournamentDetailSchedule,
+        AppIcons.calendarMonth,
+        () => DefaultTabController.of(
+          context,
+        ).animateTo(TournamentShellTab.schedule),
+      ),
+      (
+        l10n.tournamentDetailStandings,
+        AppIcons.trendingUp,
+        () => DefaultTabController.of(
+          context,
+        ).animateTo(TournamentShellTab.standings),
+      ),
+      (
+        l10n.tournamentDetailScoreboard,
+        AppIcons.playCircle,
+        () => unawaited(_openTournamentWeb(context, tournament, 'scoreboard')),
+      ),
+      (
+        l10n.tournamentDetailShowcase,
+        AppIcons.sparkles,
+        () => unawaited(_openTournamentWeb(context, tournament, 'showcase')),
+      ),
     ];
     return LayoutBuilder(
       builder: (context, constraints) => GridView.builder(
@@ -669,7 +640,7 @@ class _QuickActions extends StatelessWidget {
             margin: EdgeInsets.zero,
             child: InkWell(
               borderRadius: BorderRadius.circular(AppRadius.xl),
-              onTap: () => _openTournamentWeb(context, tournament, action.$3),
+              onTap: action.$3,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
                 child: Row(
@@ -822,7 +793,7 @@ class _CompetitionSheet extends StatelessWidget {
                         style: const TextStyle(fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: AppSpacing.xs),
-                      Text(_formatLabel(category.format, l10n)),
+                      Text(tournamentFormatLabel(l10n, category.format)),
                       if (category.format ==
                               TournamentCategoryFormat.roundRobin ||
                           category.format ==
@@ -845,7 +816,7 @@ class _CompetitionSheet extends StatelessWidget {
                           for (final (index, item)
                               in category.tiebreakers.indexed)
                             Text(
-                              '${index + 1}. ${_tiebreakerLabel(item, l10n)}',
+                              '${index + 1}. ${tournamentTiebreakerLabel(l10n, item)}',
                             ),
                         ],
                       ],
@@ -880,30 +851,6 @@ class _CompetitionSheet extends StatelessWidget {
       ),
     );
   }
-
-  static String _formatLabel(
-    TournamentCategoryFormat format,
-    AppLocalizations l10n,
-  ) => switch (format) {
-    TournamentCategoryFormat.roundRobin => l10n.tournamentDetailRoundRobin,
-    TournamentCategoryFormat.singleElimination =>
-      l10n.tournamentDetailSingleElimination,
-    TournamentCategoryFormat.roundRobinToSingleElimination =>
-      l10n.tournamentDetailRoundRobinPlayoff,
-    TournamentCategoryFormat.doubleElimination =>
-      l10n.tournamentDetailDoubleElimination,
-  };
-
-  static String _tiebreakerLabel(
-    Map<String, dynamic> item,
-    AppLocalizations l10n,
-  ) => switch (item['id']) {
-    'total_points' => l10n.tournamentDetailTiebreakerTotalPoints,
-    'game_differential' => l10n.tournamentDetailTiebreakerGameDifferential,
-    'total_wins' => l10n.tournamentDetailTiebreakerTotalWins,
-    'point_differential' => l10n.tournamentDetailTiebreakerPointDifferential,
-    _ => item['label']?.toString() ?? item['id']?.toString() ?? '—',
-  };
 }
 
 class _PodiumSection extends StatelessWidget {
@@ -1590,17 +1537,9 @@ Future<void> _openManage(
   BuildContext context,
   TournamentDetail tournament,
   String option,
-) {
-  final path = Uri(
-    path: '${_publicPath(context, tournament)}/manage',
-    queryParameters: {'option': option},
-  ).toString();
-  return AppWebView.open(
-    context,
-    ProviderScope.containerOf(context),
-    AppWebPage(path: path, title: tournament.name, requiresAuth: true),
-  );
-}
+) => context.push(
+  AppRoutes.manageTournament(tournament.slug, option: option),
+);
 
 String _publicUrl(BuildContext context, TournamentDetail tournament) {
   return '${AppConfig.webBaseUrl}${_publicPath(context, tournament)}';
