@@ -429,6 +429,7 @@ class _ClubFeeScreenState extends ConsumerState<ClubFeeScreen> {
       valueAccessor: CurrencyValueAccessor(),
       inputFormatters: [ThousandsSeparatorFormatter()],
       keyboardType: TextInputType.number,
+      textInputAction: TextInputAction.done,
       decoration: InputDecoration(
         labelText: label,
         suffixText: l10n.clubCurrencySuffix,

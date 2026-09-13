@@ -376,6 +376,7 @@ class _TournamentContactPanelState extends State<TournamentContactPanel> {
           TournamentSettingsControl.contactPhone,
           l10n.tournamentManageContactPhone,
           keyboardType: TextInputType.phone,
+          textInputAction: TextInputAction.done,
         ),
       ],
     );
@@ -883,9 +884,11 @@ ReactiveTextField<String> _textField(
   String controlName,
   String label, {
   TextInputType? keyboardType,
+  TextInputAction? textInputAction,
 }) => ReactiveTextField<String>(
   formControlName: controlName,
   keyboardType: keyboardType,
+  textInputAction: textInputAction,
   decoration: InputDecoration(labelText: label),
 );
 

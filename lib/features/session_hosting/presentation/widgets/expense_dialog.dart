@@ -67,6 +67,7 @@ class _ExpenseDialogState extends ConsumerState<ExpenseDialog> {
                 valueAccessor: CurrencyValueAccessor(),
                 inputFormatters: [ThousandsSeparatorFormatter()],
                 keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.done,
                 decoration: InputDecoration(
                   labelText: l10n.sessionExpenseAmount,
                   suffixText: '₫',
@@ -177,6 +178,7 @@ class _ExpenseBatchSheetState extends ConsumerState<ExpenseBatchSheet> {
                           valueAccessor: CurrencyValueAccessor(),
                           inputFormatters: [ThousandsSeparatorFormatter()],
                           keyboardType: TextInputType.number,
+                          textInputAction: TextInputAction.done,
                           decoration: InputDecoration(
                             labelText: l10n.sessionExpenseAmount,
                           ),

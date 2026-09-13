@@ -98,6 +98,7 @@ class MatchResultTeamCard extends StatelessWidget {
               TextField(
                 controller: controller,
                 keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.done,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w700,

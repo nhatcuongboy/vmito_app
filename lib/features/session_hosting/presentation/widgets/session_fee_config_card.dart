@@ -365,6 +365,7 @@ class _FeeConfigSheetState extends ConsumerState<_FeeConfigSheet> {
                                   ThousandsSeparatorFormatter(),
                                 ],
                                 keyboardType: TextInputType.number,
+                                textInputAction: TextInputAction.next,
                                 decoration: InputDecoration(
                                   labelText: l10n.createSessionFeeMale,
                                   suffixText: '₫',
@@ -380,6 +381,7 @@ class _FeeConfigSheetState extends ConsumerState<_FeeConfigSheet> {
                                   ThousandsSeparatorFormatter(),
                                 ],
                                 keyboardType: TextInputType.number,
+                                textInputAction: TextInputAction.done,
                                 decoration: InputDecoration(
                                   labelText: l10n.createSessionFeeFemale,
                                   suffixText: '₫',

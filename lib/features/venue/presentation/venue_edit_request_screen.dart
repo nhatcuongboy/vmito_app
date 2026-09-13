@@ -409,6 +409,7 @@ class _AdditionalFields extends StatelessWidget {
           formControlName: VenueEditRequestControl.numberOfCourts,
           valueAccessor: IntValueAccessor(),
           keyboardType: TextInputType.number,
+          textInputAction: TextInputAction.done,
           decoration: InputDecoration(labelText: l10n.venueEditCourtCount),
           validationMessages: {
             ValidationMessage.number: (_) => l10n.venueEditWholeNumber,
@@ -448,6 +449,7 @@ class _AdditionalFields extends StatelessWidget {
           label: l10n.venueEditPhone,
           maxLength: 40,
           keyboardType: TextInputType.phone,
+          textInputAction: TextInputAction.next,
         ),
         const SizedBox(height: AppSpacing.md),
         _textField(

@@ -86,6 +86,7 @@ class RegistrationPlayerCard extends StatelessWidget {
           TextFormField(
             initialValue: draft.phone,
             keyboardType: TextInputType.phone,
+            textInputAction: TextInputAction.done,
             decoration: InputDecoration(
               labelText: l10n.authSignUpPhone,
               isDense: true,

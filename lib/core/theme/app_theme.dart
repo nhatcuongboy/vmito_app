@@ -235,6 +235,14 @@ abstract final class AppTheme {
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
+        // Clears the shell's bottom NavigationBar (AppSizes.bottomNavHeight)
+        // regardless of which nested Scaffold shows the SnackBar, since that
+        // Scaffold has no bottomNavigationBar of its own to size around.
+        insetPadding: const EdgeInsets.only(
+          left: AppSpacing.md,
+          right: AppSpacing.md,
+          bottom: AppSizes.bottomNavHeight + AppSpacing.md,
+        ),
         contentTextStyle: textTheme.bodyMedium?.copyWith(
           color: scheme.onInverseSurface,
         ),

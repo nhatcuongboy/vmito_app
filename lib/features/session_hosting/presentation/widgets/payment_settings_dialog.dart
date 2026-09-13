@@ -92,6 +92,7 @@ class _PaymentSettingsDialogState extends ConsumerState<PaymentSettingsDialog> {
                 ReactiveTextField<String>(
                   formControlName: PaymentSettingsControl.accountNumber,
                   keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.next,
                   decoration: InputDecoration(
                     labelText: l10n.hostManageAccountNumber,
                     prefixIcon: const Icon(AppIcons.creditCard),

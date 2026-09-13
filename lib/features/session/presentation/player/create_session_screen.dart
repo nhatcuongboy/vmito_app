@@ -39,6 +39,7 @@ import 'package:vmito_app/features/venue/domain/venue.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/match.dart';
 import 'package:vmito_app/shared/widgets/app_filter_sheet.dart';
+import 'package:vmito_app/shared/widgets/app_form_submit_bar.dart';
 import 'package:vmito_app/shared/widgets/app_multi_date_picker.dart';
 import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/shared/widgets/app_required_label.dart';
@@ -884,101 +885,114 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
               const SizedBox(width: AppSpacing.sm),
             ],
           ),
-          bottomNavigationBar: wide
-              ? null
-              : _SubmitBar(
-                  label: _isEditing
-                      ? l10n.editSessionSave
-                      : l10n.createSessionSubmit,
-                  busy: isSubmitting || _isUploading,
-                  isCreation: !_isEditing,
-                  onSubmit: _submit,
-                ),
           body: AppReactiveForm<void>(
             formGroup: _form,
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: _maxFormWidth),
-                child: ListView(
-                  controller: _scrollController,
-                  padding: EdgeInsets.fromLTRB(
-                    AppSpacing.screenPadding,
-                    AppSpacing.md,
-                    AppSpacing.screenPadding,
-                    wide ? AppSpacing.xxl : 120,
+            // The submit button lives in `body`, not `bottomNavigationBar`:
+            // `body` shrinks above the software keyboard (the Scaffold
+            // default `resizeToAvoidBottomInset: true`), so an
+            // `Align(bottomCenter)` here stays visible while typing.
+            // `bottomNavigationBar` does not get that treatment and would be
+            // covered by the keyboard instead.
+            child: Stack(
+              children: [
+                Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: _maxFormWidth),
+                    child: ListView(
+                      controller: _scrollController,
+                      padding: EdgeInsets.fromLTRB(
+                        AppSpacing.screenPadding,
+                        AppSpacing.md,
+                        AppSpacing.screenPadding,
+                        wide ? AppSpacing.xxl : 120,
+                      ),
+                      children: [
+                        _BasicSection(
+                          key: _sectionKeys[SessionFormField.name],
+                          form: _form,
+                          canEditVenue: _baseState.canEditTime,
+                          onVenue: _showVenuePicker,
+                          onCustomAddress: _showAddressPicker,
+                          onSportChanged: _loadVenues,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        _HostSection(
+                          key: _sectionKeys[SessionFormField.hostName],
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        _TimeSection(
+                          key: _sectionKeys[SessionFormField.startTime],
+                          form: _form,
+                          wide: wide,
+                          enabled: _baseState.canEditTime && !isSubmitting,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        _CourtsSection(
+                          key: _sectionKeys[SessionFormField.courts],
+                          form: _form,
+                          enabled: _baseState.canEditCourts && !isSubmitting,
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        _LevelSection(form: _form),
+                        const SizedBox(height: AppSpacing.lg),
+                        _FeeSection(
+                          form: _form,
+                          open: _feeOpen,
+                          onOpenChanged: (value) =>
+                              setState(() => _feeOpen = value),
+                        ),
+                        if (!_isEditing && _canAccessHostFeatures) ...[
+                          const SizedBox(height: AppSpacing.lg),
+                          _BulkSection(
+                            form: _form,
+                            open: _bulkOpen,
+                            onOpenChanged: (value) =>
+                                setState(() => _bulkOpen = value),
+                          ),
+                        ],
+                        const SizedBox(height: AppSpacing.lg),
+                        _AdvancedSection(
+                          key: _sectionKeys[SessionFormField.referenceVideoUrl],
+                          form: _form,
+                          open: _advancedOpen,
+                          canHost: _canAccessHostFeatures,
+                          clubs: clubs,
+                          uploading: _isUploading,
+                          onPickImages: _pickImages,
+                          onOpenLibrary: _showImageLibrary,
+                          onOpenChanged: (value) =>
+                              setState(() => _advancedOpen = value),
+                        ),
+                        if (wide) ...[
+                          const SizedBox(height: AppSpacing.lg),
+                          AppFormSubmitBar(
+                            label: _isEditing
+                                ? l10n.editSessionSave
+                                : l10n.createSessionSubmit,
+                            icon: _isEditing ? AppIcons.save : AppIcons.add,
+                            busy: isSubmitting || _isUploading,
+                            onSubmit: _submit,
+                            inline: true,
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
-                  children: [
-                    _BasicSection(
-                      key: _sectionKeys[SessionFormField.name],
-                      form: _form,
-                      canEditVenue: _baseState.canEditTime,
-                      onVenue: _showVenuePicker,
-                      onCustomAddress: _showAddressPicker,
-                      onSportChanged: _loadVenues,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    _HostSection(
-                      key: _sectionKeys[SessionFormField.hostName],
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    _TimeSection(
-                      key: _sectionKeys[SessionFormField.startTime],
-                      form: _form,
-                      wide: wide,
-                      enabled: _baseState.canEditTime && !isSubmitting,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    _CourtsSection(
-                      key: _sectionKeys[SessionFormField.courts],
-                      form: _form,
-                      enabled: _baseState.canEditCourts && !isSubmitting,
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    _LevelSection(form: _form),
-                    const SizedBox(height: AppSpacing.lg),
-                    _FeeSection(
-                      form: _form,
-                      open: _feeOpen,
-                      onOpenChanged: (value) =>
-                          setState(() => _feeOpen = value),
-                    ),
-                    if (!_isEditing && _canAccessHostFeatures) ...[
-                      const SizedBox(height: AppSpacing.lg),
-                      _BulkSection(
-                        form: _form,
-                        open: _bulkOpen,
-                        onOpenChanged: (value) =>
-                            setState(() => _bulkOpen = value),
-                      ),
-                    ],
-                    const SizedBox(height: AppSpacing.lg),
-                    _AdvancedSection(
-                      key: _sectionKeys[SessionFormField.referenceVideoUrl],
-                      form: _form,
-                      open: _advancedOpen,
-                      canHost: _canAccessHostFeatures,
-                      clubs: clubs,
-                      uploading: _isUploading,
-                      onPickImages: _pickImages,
-                      onOpenLibrary: _showImageLibrary,
-                      onOpenChanged: (value) =>
-                          setState(() => _advancedOpen = value),
-                    ),
-                    if (wide) ...[
-                      const SizedBox(height: AppSpacing.lg),
-                      _SubmitBar(
-                        label: _isEditing
-                            ? l10n.editSessionSave
-                            : l10n.createSessionSubmit,
-                        busy: isSubmitting || _isUploading,
-                        isCreation: !_isEditing,
-                        onSubmit: _submit,
-                        inline: true,
-                      ),
-                    ],
-                  ],
                 ),
-              ),
+                if (!wide)
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: AppFormSubmitBar(
+                      buttonKey: const Key('create-session-submit'),
+                      label: _isEditing
+                          ? l10n.editSessionSave
+                          : l10n.createSessionSubmit,
+                      icon: _isEditing ? AppIcons.save : AppIcons.add,
+                      busy: isSubmitting || _isUploading,
+                      onSubmit: _submit,
+                    ),
+                  ),
+              ],
             ),
           ),
         );
@@ -1599,6 +1613,7 @@ class _HostSection extends StatelessWidget {
                 ReactiveTextField<String>(
                   formControlName: SessionFormControl.hostPhone,
                   keyboardType: TextInputType.phone,
+                  textInputAction: TextInputAction.done,
                   validationMessages: {
                     'phone': (_) => l10n.sessionFormValidationPhone,
                     'domain': (_) => l10n.sessionFormValidationPhone,
@@ -1977,6 +1992,7 @@ class _CourtsSection extends StatelessWidget {
                         formControlName: SessionFormControl.courtNumber,
                         valueAccessor: IntValueAccessor(),
                         keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.done,
                         readOnly: !enabled,
                         style: TextStyle(
                           color: enabled ? null : palette.mutedForeground,
@@ -2403,6 +2419,7 @@ class _FeeInput extends StatelessWidget {
             valueAccessor: CurrencyValueAccessor(),
             inputFormatters: [ThousandsSeparatorFormatter()],
             keyboardType: TextInputType.number,
+            textInputAction: TextInputAction.done,
             decoration: const InputDecoration(hintText: '0'),
           ),
         ),
@@ -2794,6 +2811,7 @@ class _RecurringFields extends StatelessWidget {
           formControlName: SessionFormControl.bulkWeeks,
           valueAccessor: IntValueAccessor(),
           keyboardType: TextInputType.number,
+          textInputAction: TextInputAction.done,
           decoration: InputDecoration(
             labelText: l10n.sessionFormWeekCount,
           ),
@@ -2982,6 +3000,7 @@ class _AdvancedSection extends StatelessWidget {
                             formControlName: SessionFormControl.maxPlayers,
                             valueAccessor: IntValueAccessor(),
                             keyboardType: TextInputType.number,
+                            textInputAction: TextInputAction.done,
                             decoration: InputDecoration(
                               hintText: '0',
                               suffixText: l10n.sessionFormPlayersPerCourtUnit,
@@ -3748,43 +3767,6 @@ class _AccountImageLibrarySheetState
       ),
     );
   }
-}
-
-class _SubmitBar extends StatelessWidget {
-  const _SubmitBar({
-    required this.label,
-    required this.busy,
-    required this.isCreation,
-    required this.onSubmit,
-    this.inline = false,
-  });
-  final String label;
-  final bool busy;
-  final bool isCreation;
-  final VoidCallback onSubmit;
-  final bool inline;
-  @override
-  Widget build(BuildContext context) => Material(
-    elevation: inline ? 0 : 8,
-    color: Theme.of(context).colorScheme.surface,
-    child: SafeArea(
-      top: false,
-      child: Padding(
-        padding: EdgeInsets.all(inline ? 0 : AppSpacing.md),
-        child: FilledButton.icon(
-          key: const Key('create-session-submit'),
-          onPressed: busy ? null : onSubmit,
-          icon: busy
-              ? const SizedBox.square(
-                  dimension: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Icon(isCreation ? AppIcons.add : AppIcons.save),
-          label: Text(label),
-        ),
-      ),
-    ),
-  );
 }
 
 class _AiSessionSheet extends ConsumerStatefulWidget {

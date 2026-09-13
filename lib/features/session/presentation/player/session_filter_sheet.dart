@@ -550,6 +550,7 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                               valueAccessor: CurrencyValueAccessor(),
                               inputFormatters: [ThousandsSeparatorFormatter()],
                               keyboardType: TextInputType.number,
+                              textInputAction: TextInputAction.next,
                               decoration: InputDecoration(
                                 labelText: l10n.sessionFilterMinFee,
                                 suffixText: 'VND',
@@ -561,6 +562,7 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                               valueAccessor: CurrencyValueAccessor(),
                               inputFormatters: [ThousandsSeparatorFormatter()],
                               keyboardType: TextInputType.number,
+                              textInputAction: TextInputAction.done,
                               decoration: InputDecoration(
                                 labelText: l10n.sessionFilterMaxFee,
                                 suffixText: 'VND',

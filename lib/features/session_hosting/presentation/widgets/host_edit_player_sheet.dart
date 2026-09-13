@@ -149,6 +149,7 @@ class _HostEditPlayerSheetState extends ConsumerState<_HostEditPlayerSheet> {
                 ReactiveTextField<String>(
                   formControlName: HostPlayerFormControl.phone,
                   keyboardType: TextInputType.phone,
+                  textInputAction: TextInputAction.done,
                   decoration: InputDecoration(labelText: l10n.authSignUpPhone),
                 ),
                 const SizedBox(height: AppSpacing.sm),

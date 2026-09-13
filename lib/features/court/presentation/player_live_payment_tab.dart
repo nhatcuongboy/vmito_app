@@ -448,6 +448,7 @@ class _FastTransferSheetState extends State<_FastTransferSheet> {
             ReactiveTextField<int>(
               formControlName: FastTransferControl.amount,
               keyboardType: TextInputType.number,
+              textInputAction: TextInputAction.done,
               valueAccessor: IntValueAccessor(),
               decoration: InputDecoration(
                 labelText: l10n.playerLiveTransferAmount,

@@ -76,6 +76,26 @@ class ActivityPostContent extends StatelessWidget {
           ),
         ],
       ),
+      'TOURNAMENT_CREATED' || 'TOURNAMENT_FINISHED' => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (headline != null) headline,
+          _EntityPreviewCard(
+            isDark: isDark,
+            image: meta['coverPhoto'] as String?,
+            title: meta['tournamentName'] as String? ?? '',
+            subtitle: meta['venueName'] as String?,
+            icon: const Icon(AppIcons.trophy, size: 24, color: Colors.white),
+            onTap: () {
+              final id = meta['tournamentId'] as String?;
+              final slug = meta['tournamentSlug'] as String?;
+              if (id != null) {
+                context.push(AppRoutes.tournamentDetail(slug ?? id));
+              }
+            },
+          ),
+        ],
+      ),
       'CLUB_CREATED' || 'CLUB_UPDATED' || 'CLUB_MEMBER_JOINED' => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [

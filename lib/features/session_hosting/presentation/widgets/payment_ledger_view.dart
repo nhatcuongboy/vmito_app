@@ -297,6 +297,7 @@ class _SplitAmountCardState extends State<_SplitAmountCard> {
                       valueAccessor: CurrencyValueAccessor(),
                       inputFormatters: [ThousandsSeparatorFormatter()],
                       keyboardType: TextInputType.number,
+                      textInputAction: TextInputAction.done,
                       decoration: InputDecoration(
                         labelText: l10n.hostManagePaymentTotal,
                         suffixText: '₫',
@@ -1032,6 +1033,7 @@ class _SessionPaymentReviewSheetState
                   valueAccessor: CurrencyValueAccessor(),
                   inputFormatters: [ThousandsSeparatorFormatter()],
                   keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.done,
                   decoration: InputDecoration(
                     labelText: l10n.transactionAmount,
                     suffixText: '₫',

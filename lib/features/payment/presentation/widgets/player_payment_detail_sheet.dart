@@ -465,6 +465,7 @@ class _PaymentReviewSheetState extends ConsumerState<PaymentReviewSheet> {
                   valueAccessor: CurrencyValueAccessor(),
                   inputFormatters: [ThousandsSeparatorFormatter()],
                   keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.done,
                   decoration: InputDecoration(
                     labelText: l10n.transactionAmount,
                     suffixText: '₫',

@@ -1003,6 +1003,7 @@ class _SetEditor extends StatelessWidget {
                       child: ReactiveTextField<String>(
                         formControlName: TournamentResultControl.set1,
                         keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.next,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                         ],
@@ -1020,6 +1021,7 @@ class _SetEditor extends StatelessWidget {
                       child: ReactiveTextField<String>(
                         formControlName: TournamentResultControl.set2,
                         keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.done,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                         ],
@@ -1131,6 +1133,7 @@ class _ManualField extends StatelessWidget {
   Widget build(BuildContext context) => ReactiveTextField<String>(
     formControlName: controlName,
     keyboardType: TextInputType.number,
+    textInputAction: TextInputAction.done,
     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
     decoration: InputDecoration(
       labelText: label,

@@ -231,6 +231,9 @@ void main() {
       400,
       scrollable: find.byType(Scrollable).first,
     );
+    // The reveal scroll `scrollUntilVisible` triggers animates; settle it
+    // before tapping so the target's final on-screen position is used.
+    await tester.pumpAndSettle();
     await tester.tap(startPicker);
     await tester.pumpAndSettle();
 
@@ -434,6 +437,9 @@ void main() {
       500,
       scrollable: find.byType(Scrollable).first,
     );
+    // The reveal scroll `scrollUntilVisible` triggers animates; settle it
+    // before tapping so the target's final on-screen position is used.
+    await tester.pumpAndSettle();
     await tester.tap(level);
     await tester.pump();
     expect(

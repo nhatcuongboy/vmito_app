@@ -299,6 +299,7 @@ class _CreateCustomReminderSheetState
                 valueAccessor: CurrencyValueAccessor(),
                 inputFormatters: [ThousandsSeparatorFormatter()],
                 keyboardType: TextInputType.number,
+                textInputAction: TextInputAction.done,
                 decoration: const InputDecoration(
                   border: OutlineInputBorder(),
                   suffixText: '₫',

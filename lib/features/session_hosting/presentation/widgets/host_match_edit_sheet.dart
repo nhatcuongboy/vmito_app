@@ -188,6 +188,7 @@ class _HostMatchEditSheetState extends ConsumerState<_HostMatchEditSheet> {
                               key: const Key('host-match-edit-score-1'),
                               formControlName: MatchEditFormControl.pair1Score,
                               keyboardType: TextInputType.number,
+                              textInputAction: TextInputAction.next,
                               decoration: InputDecoration(
                                 label: AppOptionalLabel(
                                   isSingles
@@ -208,6 +209,7 @@ class _HostMatchEditSheetState extends ConsumerState<_HostMatchEditSheet> {
                               key: const Key('host-match-edit-score-2'),
                               formControlName: MatchEditFormControl.pair2Score,
                               keyboardType: TextInputType.number,
+                              textInputAction: TextInputAction.done,
                               decoration: InputDecoration(
                                 label: AppOptionalLabel(
                                   isSingles
@@ -286,6 +288,7 @@ class _HostMatchEditSheetState extends ConsumerState<_HostMatchEditSheet> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                  textInputAction: TextInputAction.done,
                   decoration: InputDecoration(
                     label: AppOptionalLabel(
                       l10n.hostResultsShuttlecockCount,

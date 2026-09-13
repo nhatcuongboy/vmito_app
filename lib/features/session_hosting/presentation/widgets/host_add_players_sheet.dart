@@ -81,6 +81,10 @@ class _HostAddPlayersSheet extends ConsumerStatefulWidget {
 class _HostAddPlayersSheetState extends ConsumerState<_HostAddPlayersSheet> {
   late final FormGroup _form;
   FormGroup? _pickerForm;
+  final Map<FormGroup, FocusNode> _nameFocusNodes = {};
+
+  FocusNode _nameFocusNode(FormGroup row) =>
+      _nameFocusNodes.putIfAbsent(row, FocusNode.new);
 
   FormArray<Map<String, Object?>> get _players =>
       _form.control(HostPlayerFormControl.players)
@@ -125,6 +129,9 @@ class _HostAddPlayersSheetState extends ConsumerState<_HostAddPlayersSheet> {
 
   @override
   void dispose() {
+    for (final node in _nameFocusNodes.values) {
+      node.dispose();
+    }
     _form.dispose();
     super.dispose();
   }
@@ -142,9 +149,11 @@ class _HostAddPlayersSheetState extends ConsumerState<_HostAddPlayersSheet> {
       );
       if (!proceed || !mounted) return;
     }
-    setState(
-      () => _players.add(hostPlayerRowForm(defaultLevel: _defaultLevel)),
-    );
+    final row = hostPlayerRowForm(defaultLevel: _defaultLevel);
+    setState(() => _players.add(row));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _nameFocusNode(row).requestFocus();
+    });
   }
 
   Future<void> _submit() async {
@@ -302,8 +311,11 @@ class _HostAddPlayersSheetState extends ConsumerState<_HostAddPlayersSheet> {
                                 levels: _levels,
                                 state: state,
                                 canRemove: array.controls.length > 1,
-                                onRemove: () =>
-                                    setState(() => array.removeAt(index)),
+                                nameFocusNode: _nameFocusNode(row),
+                                onRemove: () => setState(() {
+                                  array.removeAt(index);
+                                  _nameFocusNodes.remove(row)?.dispose();
+                                }),
                                 onPickUser: () => _showUserPicker(row),
                               ),
                             );
@@ -360,6 +372,7 @@ class _PlayerFormCard extends StatelessWidget {
     required this.levels,
     required this.state,
     required this.canRemove,
+    required this.nameFocusNode,
     required this.onRemove,
     required this.onPickUser,
     super.key,
@@ -370,6 +383,7 @@ class _PlayerFormCard extends StatelessWidget {
   final List<int> levels;
   final HostAddPlayersState state;
   final bool canRemove;
+  final FocusNode nameFocusNode;
   final VoidCallback onRemove;
   final VoidCallback onPickUser;
 
@@ -430,6 +444,8 @@ class _PlayerFormCard extends StatelessWidget {
             ReactiveTextField<String>(
               key: ValueKey('host-player-name-$index'),
               formControlName: HostPlayerFormControl.name,
+              focusNode: nameFocusNode,
+              textInputAction: TextInputAction.next,
               decoration: InputDecoration(
                 label: AppRequiredLabel(l10n.hostAddPlayerName),
               ),
@@ -442,6 +458,7 @@ class _PlayerFormCard extends StatelessWidget {
             ReactiveTextField<String>(
               formControlName: HostPlayerFormControl.phone,
               keyboardType: TextInputType.phone,
+              textInputAction: TextInputAction.done,
               decoration: InputDecoration(labelText: l10n.authSignUpPhone),
             ),
             const SizedBox(height: AppSpacing.sm),
