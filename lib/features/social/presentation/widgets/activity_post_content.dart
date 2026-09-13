@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
+import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/social/domain/social_post.dart';
 import 'package:vmito_app/shared/widgets/app_lightbox.dart';
 
@@ -45,6 +46,7 @@ class ActivityPostContent extends StatelessWidget {
             image: meta['coverPhoto'] as String?,
             title: meta['sessionName'] as String? ?? '',
             subtitle: meta['location'] as String?,
+            sportType: _parseSportType(meta['sportType']),
             icon: const Icon(AppIcons.calendar, size: 24, color: Colors.white),
             onTap: () {
               final id = meta['sessionId'] as String?;
@@ -65,6 +67,7 @@ class ActivityPostContent extends StatelessWidget {
             image: meta['coverPhoto'] as String?,
             title: meta['sessionName'] as String? ?? '',
             subtitle: meta['location'] as String?,
+            sportType: _parseSportType(meta['sportType']),
             icon: const Icon(AppIcons.award, size: 24, color: Colors.white),
             onTap: () {
               final id = meta['sessionId'] as String?;
@@ -85,6 +88,7 @@ class ActivityPostContent extends StatelessWidget {
             image: meta['coverPhoto'] as String?,
             title: meta['tournamentName'] as String? ?? '',
             subtitle: meta['venueName'] as String?,
+            sportType: _parseSportType(meta['sportType']),
             icon: const Icon(AppIcons.trophy, size: 24, color: Colors.white),
             onTap: () {
               final id = meta['tournamentId'] as String?;
@@ -190,6 +194,16 @@ class ActivityPostContent extends StatelessWidget {
     };
   }
 
+  /// Parses the raw `sportType` metadata string (`BADMINTON`/`PICKLEBALL`)
+  /// into the shared session enum, matching the web's `normalizeSportType`.
+  static SessionSportType? _parseSportType(Object? value) {
+    return switch (value) {
+      'BADMINTON' => SessionSportType.badminton,
+      'PICKLEBALL' => SessionSportType.pickleball,
+      _ => null,
+    };
+  }
+
   static String? _getAvatarImageUrl(
     Map<String, dynamic> meta,
     SocialPost post,
@@ -267,12 +281,14 @@ class _EntityPreviewCard extends StatelessWidget {
     required this.onTap,
     this.image,
     this.subtitle,
+    this.sportType,
   });
 
   final bool isDark;
   final String? image;
   final String title;
   final String? subtitle;
+  final SessionSportType? sportType;
   final Widget icon;
   final VoidCallback onTap;
 
@@ -327,17 +343,27 @@ class _EntityPreviewCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: isDark
-                            ? const Color(0xFF86EFAC)
-                            : const Color(0xFF15803D),
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: isDark
+                                  ? const Color(0xFF86EFAC)
+                                  : const Color(0xFF15803D),
+                            ),
+                          ),
+                        ),
+                        if (sportType != null) ...[
+                          const SizedBox(width: 6),
+                          _SportBadge(sportType: sportType!, isDark: isDark),
+                        ],
+                      ],
                     ),
                     if (subtitle != null && subtitle!.isNotEmpty) ...[
                       const SizedBox(height: 2),
@@ -360,6 +386,49 @@ class _EntityPreviewCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Small round sport-type indicator shown next to an entity preview title.
+///
+/// Mirrors the web's `AppSportBadge` (`iconOnly` + `soft` variant): a soft
+/// tinted circle per sport, distinguishing badminton from pickleball now
+/// that both are supported.
+class _SportBadge extends StatelessWidget {
+  const _SportBadge({required this.sportType, required this.isDark});
+
+  final SessionSportType sportType;
+  final bool isDark;
+
+  @override
+  Widget build(BuildContext context) {
+    final (emoji, light, dark) = switch (sportType) {
+      SessionSportType.badminton => (
+        '🏸',
+        const Color(0xFFF0FDF4),
+        const Color(0xFF052E16),
+      ),
+      SessionSportType.pickleball => (
+        '🏓',
+        const Color(0xFFFAF5FF),
+        const Color(0xFF3B0764),
+      ),
+    };
+    return Container(
+      width: 20,
+      height: 20,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: isDark ? dark : light,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.12)
+              : Colors.black.withValues(alpha: 0.06),
+        ),
+      ),
+      child: Text(emoji, style: const TextStyle(fontSize: 11)),
     );
   }
 }
