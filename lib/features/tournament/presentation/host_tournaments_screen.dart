@@ -75,7 +75,8 @@ class _HostTournamentsScreenState extends ConsumerState<HostTournamentsScreen>
     final l10n = AppLocalizations.of(context);
     final state = ref.watch(hostTournamentsControllerProvider);
     final user = ref.watch(currentUserProvider);
-    final canCreate = user != null && (user.isHost || user.isAdmin);
+    // Any authenticated user can create a tournament, regardless of role.
+    final canCreate = user != null;
     ref.listen(hostTournamentsControllerProvider, (previous, next) {
       if (next.error != null &&
           next.error != previous?.error &&

@@ -227,12 +227,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.createTournament,
         parentNavigatorKey: rootNavigatorKey,
-        redirect: (context, state) {
-          final role = ref.read(authControllerProvider).user?.role;
-          return role == UserRole.host || role == UserRole.admin
-              ? null
-              : AppRoutes.homeForDiscoveryTab('tournaments');
-        },
         builder: (context, state) => const CreateTournamentScreen(),
       ),
       GoRoute(

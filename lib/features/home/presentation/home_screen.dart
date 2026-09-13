@@ -12,7 +12,6 @@ import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/widgets/city_onboarding_dialog.dart';
 import 'package:vmito_app/core/widgets/notification_header_button.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
-import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/features/home/application/home_discovery_presets.dart';
 import 'package:vmito_app/features/home/domain/home_search_outcome.dart';
 import 'package:vmito_app/features/home/presentation/widgets/home_discovery_filter_sheets.dart';
@@ -98,10 +97,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final l10n = AppLocalizations.of(context);
     final authState = ref.watch(authControllerProvider);
     final isAuthenticated = authState.status == AuthStatus.authenticated;
-    final currentUser = authState.user;
-    final canCreateTournament =
-        currentUser?.role == UserRole.host ||
-        currentUser?.role == UserRole.admin;
+    // Any authenticated user can create a tournament, regardless of role.
+    final canCreateTournament = isAuthenticated;
     final sessionState = ref.watch(browseSessionsControllerProvider);
     final venueState = ref.watch(venueBrowseControllerProvider);
     final clubsState = ref.watch(clubsControllerProvider);
