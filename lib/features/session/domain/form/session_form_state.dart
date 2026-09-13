@@ -1,8 +1,8 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:vmito_app/features/session/domain/form/session_form_drafts.dart';
 import 'package:vmito_app/features/session/domain/form/session_form_utils.dart';
-import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
+import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 import 'package:vmito_app/shared/models/match.dart';
 
 part 'session_form_state.freezed.dart';

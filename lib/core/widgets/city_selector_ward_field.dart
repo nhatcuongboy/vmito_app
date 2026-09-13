@@ -3,6 +3,8 @@ import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/city_selector_field_tile.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_area_filter_section.dart'
+    show AppAreaFilterSection;
 import 'package:vmito_app/shared/widgets/ward_selection_summary.dart';
 
 /// The ward/commune/special-zone field: a trigger tile summarizing the

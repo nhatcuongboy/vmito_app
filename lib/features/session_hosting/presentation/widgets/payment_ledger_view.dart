@@ -733,7 +733,6 @@ class _PlayerAvatar extends StatelessWidget {
     return UserAvatar(
       name: name,
       imageUrl: image,
-      size: 48,
     );
   }
 }

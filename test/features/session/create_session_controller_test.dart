@@ -12,13 +12,13 @@ import 'package:vmito_app/features/session/domain/session_location_payload.dart'
 
 class _Repository extends Mock implements SessionRepository {}
 
-CreateSessionRequest _request() => CreateSessionRequest(
+CreateSessionRequest _request() => const CreateSessionRequest(
   name: 'Kèo tối',
-  location: const VenueLocation('v1'),
+  location: VenueLocation('v1'),
   hostName: 'Cường',
   maxPlayersPerCourt: 8,
-  images: const ['https://image/1.jpg'],
-  imagePublicIds: const ['image-1'],
+  images: ['https://image/1.jpg'],
+  imagePublicIds: ['image-1'],
   coverPhoto: 'https://image/1.jpg',
   coverPhotoPublicId: 'image-1',
 );

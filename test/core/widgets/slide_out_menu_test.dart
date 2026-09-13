@@ -357,7 +357,7 @@ void main() {
     await _openDrawer(tester);
 
     expect(find.text('Nhật Cường'), findsOneWidget);
-    expect(find.text('Chủ kèo'), findsOneWidget);
+    expect(find.text('Host'), findsOneWidget);
     expect(find.text('QUẢN LÝ'), findsOneWidget);
     expect(
       find.byKey(const Key('menu-explore-manage-divider')),
@@ -493,7 +493,7 @@ void main() {
 
     final avatar = tester.widget<CircleAvatar>(find.byType(CircleAvatar));
     final name = tester.widget<Text>(find.text(longName));
-    final role = tester.widget<Text>(find.text('Chủ kèo'));
+    final role = tester.widget<Text>(find.text('Host'));
     final header = tester.getRect(find.byKey(const Key('menu-profile-header')));
     expect(avatar.radius, 22);
     expect(name.maxLines, 2);
@@ -666,10 +666,12 @@ void main() {
     expect(headerRect.top, 0);
 
     final decoratedBox = tester.widget<DecoratedBox>(
-      find.ancestor(
-        of: find.byKey(const Key('menu-profile-header')),
-        matching: find.byType(DecoratedBox),
-      ),
+      find
+          .ancestor(
+            of: find.byKey(const Key('menu-profile-header')),
+            matching: find.byType(DecoratedBox),
+          )
+          .first,
     );
     final gradient =
         (decoratedBox.decoration as BoxDecoration).gradient! as LinearGradient;

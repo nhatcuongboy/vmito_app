@@ -4,6 +4,8 @@ import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_area_filter_section.dart'
+    show AppAreaFilterSection;
 import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 
 /// Wraps a [showCityPickerSheet] result so a dismiss (tap outside, back
@@ -25,7 +27,7 @@ Future<CityPick?> showCityPickerSheet(
   required List<String> cities,
   required String? selectedCity,
 }) {
-  String query = '';
+  var query = '';
 
   return showModalBottomSheet<CityPick>(
     context: context,
@@ -59,7 +61,6 @@ Future<CityPick?> showCityPickerSheet(
                 children: [
                   AppSheetHeader(
                     title: l10n.sessionFilterCity,
-                    showCloseButton: true,
                   ),
                   Padding(
                     padding: const EdgeInsets.fromLTRB(
@@ -69,7 +70,6 @@ Future<CityPick?> showCityPickerSheet(
                       AppSpacing.xs,
                     ),
                     child: TextField(
-                      autofocus: false,
                       decoration: InputDecoration(
                         hintText: l10n.citySelectorSearchHint,
                         prefixIcon: const Icon(AppIcons.search, size: 18),
@@ -223,7 +223,6 @@ Future<Set<String>?> showWardPickerSheet(
                             ),
                           )
                         : null,
-                    showCloseButton: true,
                   ),
                   const Divider(height: 1),
                   CheckboxListTile(

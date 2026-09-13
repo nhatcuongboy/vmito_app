@@ -1,9 +1,9 @@
+import 'package:vmito_app/core/location/address_display.dart';
 import 'package:vmito_app/features/session/domain/form/session_form_drafts.dart';
 import 'package:vmito_app/features/session/domain/form/session_form_state.dart';
 import 'package:vmito_app/features/session/domain/form/session_form_utils.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
-import 'package:vmito_app/core/location/address_display.dart';
 import 'package:vmito_domain/vmito_domain.dart';
 
 /// Ports `buildSessionFormDefaults` from

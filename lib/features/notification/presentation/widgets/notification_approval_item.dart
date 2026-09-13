@@ -118,7 +118,6 @@ class VenueApprovalListItem extends StatelessWidget {
             PostAvatar(
               name: submitter.name,
               imageUrl: submitter.image,
-              size: 44,
             )
           else
             const _FallbackIcon(accent: accent, icon: AppIcons.mapPin),
@@ -223,7 +222,7 @@ class _ApprovalTile extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PostAvatar(name: name, imageUrl: imageUrl, size: 44),
+          PostAvatar(name: name, imageUrl: imageUrl),
           const SizedBox(width: AppSpacing.md),
           Expanded(
             child: Column(

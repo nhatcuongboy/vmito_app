@@ -200,7 +200,6 @@ class _NotificationLeading extends StatelessWidget {
       return PostAvatar(
         name: notification.actorName!,
         imageUrl: notification.actorAvatar,
-        size: 44,
       );
     }
     final theme = Theme.of(context);

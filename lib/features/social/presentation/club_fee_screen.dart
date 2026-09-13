@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/input_formatters.dart';
@@ -10,6 +9,7 @@ import 'package:vmito_app/features/social/application/club_management_controller
 import 'package:vmito_app/features/social/domain/club.dart';
 import 'package:vmito_app/features/social/domain/form/club_fee_form.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/shared/widgets/app_required_label.dart';
 
 class ClubFeeScreen extends ConsumerStatefulWidget {

@@ -110,7 +110,6 @@ class _HostRosterTabState extends ConsumerState<HostRosterTab> {
                     child: SizedBox(
                       height: 42,
                       child: PlayerSearchField(
-                        compact: false,
                         onChanged: (value) => setState(() => _query = value),
                       ),
                     ),
@@ -164,7 +163,6 @@ class _HostRosterTabState extends ConsumerState<HostRosterTab> {
                       minimumSize: const Size(0, 42),
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
-                        vertical: 0,
                       ),
                       textStyle: const TextStyle(
                         fontSize: 14,
@@ -384,7 +382,7 @@ class _RosterListTile extends StatelessWidget {
               child: const SizedBox(width: 6),
             ),
             Expanded(
-              child: Container(
+              child: ColoredBox(
                 color: dark ? scheme.surfaceContainerLow : Colors.white,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -398,16 +396,10 @@ class _RosterListTile extends StatelessWidget {
                           0,
                         ),
                         child: Row(
-                          // Avatar and text must be direct siblings so
-                          // CrossAxisAlignment.center aligns their true
-                          // vertical centers, whether the name wraps to
-                          // one or two lines.
-                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             _PlayerAvatar(
                               player: player,
                               statusColor: colors.dot,
-                              radius: 19,
                             ),
                             const SizedBox(width: AppSpacing.sm),
                             Expanded(
@@ -492,8 +484,7 @@ class _PlayerAvatar extends StatelessWidget {
   const _PlayerAvatar({
     required this.player,
     required this.statusColor,
-    this.radius = 19,
-  });
+  }) : radius = 19;
 
   final SessionPlayer player;
   final Color statusColor;
@@ -529,7 +520,7 @@ class _PlayerAvatar extends StatelessWidget {
                     fit: BoxFit.cover,
                     width: radius * 2,
                     height: radius * 2,
-                    errorBuilder: (_, __, ___) =>
+                    errorBuilder: (_, _, _) =>
                         _InitialsFallback(initials: initials),
                   )
                 : _InitialsFallback(initials: initials),
@@ -614,9 +605,15 @@ class _ActionMenu extends StatelessWidget {
         value: _RosterAction.view,
         child: Row(
           children: [
-            Icon(AppIcons.eye, size: 20),
+            const Icon(AppIcons.eye, size: 20),
             const SizedBox(width: 12),
-            Text(AppLocalizations.of(context).hostRosterViewPlayer),
+            Expanded(
+              child: Text(
+                AppLocalizations.of(context).hostRosterViewPlayer,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
       ),
@@ -624,9 +621,15 @@ class _ActionMenu extends StatelessWidget {
         value: _RosterAction.edit,
         child: Row(
           children: [
-            Icon(AppIcons.edit, size: 20),
+            const Icon(AppIcons.edit, size: 20),
             const SizedBox(width: 12),
-            Text(AppLocalizations.of(context).hostRosterEditPlayer),
+            Expanded(
+              child: Text(
+                AppLocalizations.of(context).hostRosterEditPlayer,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
       ),
@@ -642,10 +645,14 @@ class _ActionMenu extends StatelessWidget {
               size: 20,
             ),
             const SizedBox(width: 12),
-            Text(
-              player.status == PlayerStatus.inactive
-                  ? AppLocalizations.of(context).hostRosterContinuePlayer
-                  : AppLocalizations.of(context).hostRosterPausePlayer,
+            Expanded(
+              child: Text(
+                player.status == PlayerStatus.inactive
+                    ? AppLocalizations.of(context).hostRosterContinuePlayer
+                    : AppLocalizations.of(context).hostRosterPausePlayer,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
@@ -655,9 +662,15 @@ class _ActionMenu extends StatelessWidget {
         enabled: !player.isOnCourt,
         child: Row(
           children: [
-            Icon(AppIcons.delete, size: 20),
+            const Icon(AppIcons.delete, size: 20),
             const SizedBox(width: 12),
-            Text(AppLocalizations.of(context).hostRosterDeletePlayer),
+            Expanded(
+              child: Text(
+                AppLocalizations.of(context).hostRosterDeletePlayer,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
           ],
         ),
       ),

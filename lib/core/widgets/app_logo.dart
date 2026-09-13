@@ -32,9 +32,9 @@ class AppLogo extends StatelessWidget {
 
   /// Design canvas reference height (1909×824) used to calculate proportional
   /// typography and spacing.
-  static const double _kReferenceCanvasHeight = 824.0;
-  static const double _kReferenceVmitoFontSize = 490.0;
-  static const double _kReferenceSloganFontSize = 68.0;
+  static const double _kReferenceCanvasHeight = 824;
+  static const double _kReferenceVmitoFontSize = 490;
+  static const double _kReferenceSloganFontSize = 68;
 
   /// Overall height of the logo widget in logical pixels. Defaults to `78.0`.
   final double height;
@@ -136,12 +136,10 @@ class AppLogo extends StatelessWidget {
       fontWeight: FontWeight.w800,
       color: effectiveTextColor,
       letterSpacing: -effectiveVmitoFontSize * 0.02,
-      height: 1.0,
+      height: 1,
     );
 
-    final sloganText =
-        (slogan ?? l10n?.appSlogan ?? 'KẾT NỐI ĐAM MÊ - NÂNG TẦM TRẢI NGHIỆM')
-            .toUpperCase();
+    final sloganText = (slogan ?? l10n.appSlogan).toUpperCase();
     final sloganTextStyle = TextStyle(
       fontFamily: 'Montserrat',
       fontFamilyFallback: const ['Roboto', 'sans-serif'],
@@ -181,7 +179,6 @@ class AppLogo extends StatelessWidget {
     final Widget logo = axis == Axis.vertical
         ? Column(
             mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               icon,
               SizedBox(height: iconSpacing),
@@ -199,7 +196,7 @@ class AppLogo extends StatelessWidget {
           );
 
     return Semantics(
-      label: semanticLabel ?? l10n?.appName ?? 'Vmito',
+      label: semanticLabel ?? l10n.appName,
       child: logo,
     );
   }

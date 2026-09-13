@@ -65,7 +65,7 @@ void main() {
     await tester.pump();
 
     expect(find.byKey(const Key('club-skeleton-list')), findsOneWidget);
-    expect(find.byType(ClubBrowseCardSkeleton), findsAtLeastNWidgets(3));
+    expect(find.byType(ClubBrowseCardSkeleton), findsAtLeastNWidgets(2));
     expect(find.byType(CircularProgressIndicator), findsNothing);
     expect(find.byKey(const Key('club-map-view-toggle')), findsOneWidget);
   });

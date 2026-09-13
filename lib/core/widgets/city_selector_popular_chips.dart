@@ -3,6 +3,8 @@ import 'package:vmito_app/core/location/vietnam_locations.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/city_selector_compact_chip.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_filter_sheet.dart'
+    show AppFilterChip;
 
 /// Quick-pick chips for the three cities the product wants surfaced above
 /// the full province list: [vietnamCities] indices 0, 1, 3 (Hồ Chí Minh, Hà

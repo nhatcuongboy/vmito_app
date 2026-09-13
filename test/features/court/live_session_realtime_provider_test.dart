@@ -18,7 +18,7 @@ void main() {
     final events = StreamController<SocketEvent>.broadcast();
     addTearDown(events.close);
     when(() => socket.events).thenAnswer((_) => events.stream);
-    when(() => socket.connect()).thenAnswer((_) {});
+    when(socket.connect).thenAnswer((_) {});
     when(() => socket.joinSession(any())).thenAnswer((_) {});
     when(() => socket.leaveSession(any())).thenAnswer((_) {});
     var sessionLoads = 0;

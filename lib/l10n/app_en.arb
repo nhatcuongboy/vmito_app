@@ -399,6 +399,7 @@
   "homeDiscoverySortNearest": "Nearest to me",
   "homeDiscoverySortStartSoonest": "Starting soonest",
   "homeDiscoveryClubFilters": "Filters",
+  "commonNoFilters": "No filters available",
   "clubFilterTitle": "Filter clubs",
   "clubFilterActivityTime": "Activity time",
   "clubFilterPeriodLabel": "Time of day",

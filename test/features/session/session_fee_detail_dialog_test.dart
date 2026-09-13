@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_theme.dart';
+import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_fee_detail_dialog.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -31,6 +32,7 @@ Future<void> _pump(
       ),
     ),
   );
+  await tester.pump();
   await tester.tap(find.text('Open Dialog'));
   await tester.pumpAndSettle();
 }
@@ -61,12 +63,12 @@ void main() {
 
       // Male fee card
       expect(find.text('PHÍ NAM'), findsOneWidget);
-      expect(find.text('80.000 VND'), findsOneWidget);
+      expect(find.text(Money.vnd(80000)), findsOneWidget);
       expect(find.byIcon(AppIcons.male), findsOneWidget);
 
       // Female fee card
       expect(find.text('PHÍ NỮ'), findsOneWidget);
-      expect(find.text('70.000 VND'), findsOneWidget);
+      expect(find.text(Money.vnd(70000)), findsOneWidget);
       expect(find.byIcon(AppIcons.female), findsOneWidget);
 
       // Notes card
@@ -89,9 +91,9 @@ void main() {
       expect(find.text('Fees'), findsOneWidget);
       expect(find.text('WALK-IN PRICE'), findsOneWidget);
       expect(find.text('MEN'), findsOneWidget);
-      expect(find.text('70.000 VND'), findsOneWidget);
+      expect(find.text(Money.vnd(70000)), findsOneWidget);
       expect(find.text('WOMEN'), findsOneWidget);
-      expect(find.text('60.000 VND'), findsOneWidget);
+      expect(find.text(Money.vnd(60000)), findsOneWidget);
       expect(find.text('NOTES'), findsOneWidget);
       expect(find.text('Bring shuttlecocks'), findsOneWidget);
     });
@@ -107,8 +109,8 @@ void main() {
       );
 
       expect(find.text('CHIA ĐỀU SAU BUỔI CHƠI'), findsOneWidget);
-      expect(find.text('Mỗi người: 50.000 VND'), findsOneWidget);
-      expect(find.text('Tổng chi phí: 400.000 VND'), findsOneWidget);
+      expect(find.text('Mỗi người: ${Money.vnd(50000)}'), findsOneWidget);
+      expect(find.text('Tổng chi phí: ${Money.vnd(400000)}'), findsOneWidget);
     });
 
     testWidgets('renders unpriced fixed fee empty state', (tester) async {

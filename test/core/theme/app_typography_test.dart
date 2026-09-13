@@ -51,7 +51,7 @@ void main() {
           FontWeight.w700,
         );
         _expectStyle(
-          AppTypography.chipLabel(text, isActive: false),
+          AppTypography.chipLabel(text),
           13.5,
           18,
           FontWeight.w500,

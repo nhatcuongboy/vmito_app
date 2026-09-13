@@ -47,9 +47,11 @@ class UserAvatar extends StatelessWidget {
     // For very small avatars, a single initial reads better.
     final maxCount = avatarSize < 32 ? 1 : 2;
 
-    final selected = parts.length <= maxCount
-        ? parts
-        : [parts.first, parts.last];
+    final selected = switch (maxCount) {
+      1 => [parts.first],
+      _ when parts.length <= maxCount => parts,
+      _ => [parts.first, parts.last],
+    };
     final initials = selected
         .map((part) => part.characters.firstOrNull ?? '')
         .where((initial) => initial.isNotEmpty)

@@ -16,7 +16,6 @@ void main() {
       PaymentReminder(
         id: 'rem-1',
         type: PaymentReminderType.custom,
-        status: PaymentReminderStatus.pending,
         amount: 100000,
         note: 'Tiền sân thứ 6',
         reminderCount: 1,
@@ -31,8 +30,6 @@ void main() {
     final recipientReminders = [
       PaymentReminder(
         id: 'rem-2',
-        type: PaymentReminderType.singlePayment,
-        status: PaymentReminderStatus.pending,
         amount: 80000,
         reminderCount: 1,
         lastRemindedAt: DateTime.utc(2026, 8, 30, 11),
@@ -43,7 +40,7 @@ void main() {
       ),
     ];
 
-    final hostUser = User(
+    const hostUser = User(
       id: 'u-1',
       name: 'Host Alice',
       email: 'alice@vmito.com',

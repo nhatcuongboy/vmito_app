@@ -37,7 +37,6 @@ void main() {
       name: 'Pickleball',
       status: SessionStatus.preparing,
       sportType: SessionSportType.pickleball,
-      courts: [],
       numberOfCourts: 2,
     );
 

@@ -234,7 +234,8 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
   }
 
   bool _isHostMember(ClubMember member) =>
-      member.userId == widget.club.hostId || member.userId == widget.club.hostUserId;
+      member.userId == widget.club.hostId ||
+      member.userId == widget.club.hostUserId;
 
   Widget _memberCard(
     BuildContext context,
@@ -282,7 +283,8 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    if ((isHost || member.role == 'MODERATOR') || member.level != null) ...[
+                    if ((isHost || member.role == 'MODERATOR') ||
+                        member.level != null) ...[
                       const SizedBox(height: 4),
                       Wrap(
                         spacing: AppSpacing.xs,

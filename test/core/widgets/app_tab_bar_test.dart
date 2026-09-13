@@ -12,8 +12,8 @@ void main() {
             length: 3,
             child: Scaffold(
               appBar: AppBar(
-                bottom: AppTabBar(
-                  tabs: const [
+                bottom: const AppTabBar(
+                  tabs: [
                     Tab(text: 'Tab 1'),
                     Tab(text: 'Tab 2'),
                     Tab(text: 'Tab 3'),

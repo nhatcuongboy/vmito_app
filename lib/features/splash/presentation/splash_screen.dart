@@ -17,8 +17,8 @@ class SplashScreen extends StatelessWidget {
   /// - iPad mini  (1133 px) → 180 px (clamped)
   /// - iPad Pro 12.9" (1366 px) → 180 px (clamped)
   static const double _logoHeightFraction = 0.18;
-  static const double _logoHeightMin = 100.0;
-  static const double _logoHeightMax = 180.0;
+  static const double _logoHeightMin = 100;
+  static const double _logoHeightMax = 180;
 
   @override
   Widget build(BuildContext context) {

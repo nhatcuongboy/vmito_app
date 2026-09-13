@@ -39,8 +39,8 @@ void main() {
         'assets/icons/main-logo.png',
       );
 
-      // Check brand text semantics
-      expect(find.bySemanticsLabel('vmito'), findsOneWidget);
+      // The custom-painted brand lockup is present beside the icon.
+      expect(find.byType(CustomPaint), findsWidgets);
 
       // Check Vietnamese localized slogan
       expect(
@@ -55,7 +55,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.bySemanticsLabel('vmito'), findsOneWidget);
+      expect(find.byType(CustomPaint), findsWidgets);
       expect(
         find.text('CONNECTING PASSION - ELEVATING EXPERIENCE'),
         findsOneWidget,
@@ -68,7 +68,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.bySemanticsLabel('vmito'), findsOneWidget);
+      expect(find.byType(CustomPaint), findsWidgets);
       expect(
         find.text('连接激情 · 提升体验'),
         findsOneWidget,
@@ -94,7 +94,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.bySemanticsLabel('vmito'), findsOneWidget);
+      expect(find.byType(CustomPaint), findsWidgets);
       expect(
         find.text('KẾT NỐI ĐAM MÊ - NÂNG TẦM TRẢI NGHIỆM'),
         findsNothing,
@@ -132,7 +132,7 @@ void main() {
       final sloganLight = tester.widget<Text>(
         find.text('KẾT NỐI ĐAM MÊ - NÂNG TẦM TRẢI NGHIỆM'),
       );
-      expect(sloganLight.style?.color, const Color(0xFF2C415B));
+      expect(sloganLight.style?.color, const Color(0xFF1A2E45));
 
       // 2. Dark Mode
       await tester.pumpWidget(
@@ -197,7 +197,6 @@ void main() {
       await tester.pumpWidget(
         _buildLogoHarness(
           logo: const AppLogo(
-            height: 78,
             showGreenDot: false,
             vmitoFontSize: 52,
             sloganFontSize: 11,

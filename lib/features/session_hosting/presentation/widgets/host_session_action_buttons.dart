@@ -15,7 +15,6 @@ class HostStartSessionButton extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final confirmed = await showAppConfirmDialog(
       context,
-      type: AppConfirmDialogType.submit,
       title: l10n.startSessionConfirmTitle,
       content: l10n.startSessionConfirm,
       confirmLabel: l10n.startSessionAction,

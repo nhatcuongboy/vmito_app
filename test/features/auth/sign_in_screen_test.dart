@@ -45,7 +45,7 @@ void main() {
       tester,
     ) async {
       final service = _MockAuthService();
-      await _pumpSignIn(tester, service: service, locale: const Locale('vi'));
+      await _pumpSignIn(tester, service: service);
 
       await tester.tap(find.byKey(const ValueKey('signin-submit-button')));
       await tester.pump();
@@ -103,7 +103,7 @@ void main() {
       ),
     );
 
-    await _pumpSignIn(tester, service: service, locale: const Locale('vi'));
+    await _pumpSignIn(tester, service: service);
 
     await tester.enterText(
       find.byKey(const ValueKey('signin-identifier-field')),
@@ -133,7 +133,7 @@ void main() {
       ),
     );
 
-    await _pumpSignIn(tester, service: service, locale: const Locale('vi'));
+    await _pumpSignIn(tester, service: service);
 
     await tester.enterText(
       find.byKey(const ValueKey('signin-identifier-field')),

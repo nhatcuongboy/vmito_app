@@ -275,7 +275,7 @@ void main() {
 
     expect(find.byKey(const Key('host-result-card-match-1')), findsNothing);
     expect(find.byKey(const Key('host-result-card-match-2')), findsOneWidget);
-    expect(find.text('Đã lọc'), findsOneWidget);
+    expect(find.text('2'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('host-results-filter')));
     await tester.pumpAndSettle();
@@ -509,8 +509,6 @@ void main() {
     expect(latestPosition.dy, lessThan(oldestPosition.dy));
 
     await tester.tap(find.byKey(const Key('host-results-sort')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Cũ nhất'));
     await tester.pumpAndSettle();
 
     expect(

@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/features/tournament/application/tournament_schedule_controller.dart';
 import 'package:vmito_app/features/tournament/domain/form/tournament_schedule_forms.dart';
 import 'package:vmito_app/features/tournament/domain/tournament_detail.dart';
@@ -12,6 +11,7 @@ import 'package:vmito_app/features/tournament/domain/tournament_schedule.dart';
 import 'package:vmito_app/features/tournament/presentation/widgets/tournament_schedule_sheets.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 
 typedef TournamentRefereeOpener =
     void Function(String tournamentId, String matchId);
@@ -329,7 +329,6 @@ class _TournamentScheduleScreenState
       title: l10n.tournamentScheduleFinalizeTitle,
       body: l10n.tournamentScheduleFinalizeBody,
       action: l10n.tournamentScheduleFinalize,
-      type: AppConfirmDialogType.submit,
     )) {
       return;
     }

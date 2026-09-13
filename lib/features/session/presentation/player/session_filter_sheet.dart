@@ -661,7 +661,7 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
     final tomorrow = today.add(const Duration(days: 1));
 
     // Track the selected date locally inside the sheet
-    DateTime? sheetDate = control.value;
+    var sheetDate = control.value;
 
     final result = await showModalBottomSheet<Object>(
       context: context,
@@ -695,7 +695,6 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
                   children: [
                     AppSheetHeader(
                       title: l10n.sessionFilterDate,
-                      showCloseButton: true,
                     ),
                     // Preset chips
                     Padding(
@@ -912,7 +911,6 @@ class _PresetChip extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadius.pill),
           border: Border.all(
             color: isSelected ? scheme.primary : palette.border,
-            width: 1.0,
           ),
         ),
         child: Text(

@@ -8,7 +8,6 @@ void main() {
     const current = SessionPlayer(
       id: 'p1',
       userId: 'u1',
-      status: PlayerStatus.waiting,
       currentWaitTime: 10,
     );
     const session = Session(
@@ -19,7 +18,6 @@ void main() {
         current,
         SessionPlayer(
           id: 'p2',
-          status: PlayerStatus.waiting,
           currentWaitTime: 20,
         ),
         SessionPlayer(
@@ -30,7 +28,7 @@ void main() {
       ],
     );
 
-    final view = PlayerLiveSession(session: session, player: current);
+    const view = PlayerLiveSession(session: session, player: current);
 
     expect(view.waitingPosition, 2);
   });

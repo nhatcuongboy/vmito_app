@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
+import 'package:vmito_app/shared/widgets/app_area_filter_section.dart'
+    show AppAreaFilterSection;
 
 /// The bordered "select" row used for the province and ward fields in the
 /// location selector — same visual language as [AppAreaFilterSection]'s

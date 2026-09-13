@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vmito_app/features/session/domain/create_session_request.dart';
 import 'package:vmito_app/features/session/domain/form/session_form_drafts.dart';
+import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 import 'package:vmito_app/features/session/domain/session_location_payload.dart';
-import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/shared/models/match.dart';
 
 CreateSessionRequest _request({
@@ -263,10 +263,10 @@ void main() {
   });
 
   test('sport type is sent as the backend enum', () {
-    final request = CreateSessionRequest(
+    const request = CreateSessionRequest(
       name: 'Pickleball tối',
       sportType: SessionSportType.pickleball,
-      location: const VenueLocation('venue-1'),
+      location: VenueLocation('venue-1'),
       hostName: 'Cường',
       maxPlayersPerCourt: 8,
     );

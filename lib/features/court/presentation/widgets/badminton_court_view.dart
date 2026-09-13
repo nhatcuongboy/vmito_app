@@ -78,8 +78,7 @@ class _BadmintonCourtViewState extends State<BadmintonCourtView> {
   final Map<int, GlobalKey> _seatKeys = {};
   ScrollPosition? _scrollPosition;
 
-  GlobalKey _getSeatKey(int seat) =>
-      _seatKeys.putIfAbsent(seat, () => GlobalKey());
+  GlobalKey _getSeatKey(int seat) => _seatKeys.putIfAbsent(seat, GlobalKey.new);
 
   @override
   void didChangeDependencies() {

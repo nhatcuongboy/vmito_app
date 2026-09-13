@@ -4,8 +4,6 @@ import 'package:vmito_app/core/network/api_client.dart';
 
 class NewAdminUnit {
   const NewAdminUnit({required this.city, required this.wards});
-  final String city;
-  final List<String> wards;
 
   factory NewAdminUnit.fromJson(Map<String, dynamic> json) => NewAdminUnit(
     city: json['city'] as String? ?? '',
@@ -13,6 +11,8 @@ class NewAdminUnit {
         .whereType<String>()
         .toList(growable: false),
   );
+  final String city;
+  final List<String> wards;
 }
 
 final newAdminUnitsProvider = FutureProvider<List<NewAdminUnit>>((ref) async {

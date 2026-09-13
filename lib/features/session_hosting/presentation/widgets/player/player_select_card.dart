@@ -59,7 +59,6 @@ class PlayerSelectCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(AppRadius.xl),
             border: Border.all(
               color: colors.border.withValues(alpha: isDark ? 0.6 : 0.3),
-              width: 1,
             ),
           ),
           child: Stack(

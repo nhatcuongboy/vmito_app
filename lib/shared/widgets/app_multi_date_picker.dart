@@ -88,7 +88,6 @@ class _AppMultiDatePickerSheetState extends State<_AppMultiDatePickerSheet> {
                 subtitle: _selected.isEmpty
                     ? null
                     : l10n.sessionFilterSelectedCount(_selected.length),
-                showCloseButton: true,
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(

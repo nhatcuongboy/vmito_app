@@ -204,7 +204,6 @@ class _FeeConfigHeader extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Expanded(child: titleRow),
                 const SizedBox(width: AppSpacing.xs),
@@ -219,7 +218,6 @@ class _FeeConfigHeader extends StatelessWidget {
 
       return Row(
         key: const Key('fee-config-header-wide'),
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Expanded(child: titleRow),
           const SizedBox(width: AppSpacing.sm),

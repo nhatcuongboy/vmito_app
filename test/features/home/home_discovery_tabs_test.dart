@@ -417,7 +417,7 @@ void main() {
               sortIcon: AppIcons.calendarClock,
               onSort: () {},
               onFilter: () {},
-              onCityChanged: (_, __) {},
+              onCityChanged: (_, _) {},
             ),
           ),
         ),
@@ -556,7 +556,7 @@ void main() {
       expect(find.text('Bản đồ'), findsOneWidget);
 
       // Drag up (scrolling down the list)
-      await tester.drag(find.byType(ListView), const Offset(0, -300));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, -300));
       await tester.pumpAndSettle();
 
       // Collapsed: label is hidden
@@ -564,7 +564,7 @@ void main() {
       expect(find.byKey(const Key('session-map-view-toggle')), findsOneWidget);
 
       // Drag down (scrolling up the list)
-      await tester.drag(find.byType(ListView), const Offset(0, 200));
+      await tester.drag(find.byType(CustomScrollView), const Offset(0, 200));
       await tester.pumpAndSettle();
 
       // Restored: label is visible again
@@ -1252,7 +1252,7 @@ class _FakeVenuesController extends VenueBrowseController {
   static int loads = 0;
 
   @override
-  Future<void> load({VenueFilter? filter}) async {
+  Future<void> load({VenueFilter? filter, bool isPullToRefresh = false}) async {
     loads++;
   }
 }
@@ -1261,7 +1261,7 @@ class _SearchVenuesController extends VenueBrowseController {
   static VenueFilter? lastFilter;
 
   @override
-  Future<void> load({VenueFilter? filter}) async {
+  Future<void> load({VenueFilter? filter, bool isPullToRefresh = false}) async {
     final next = filter ?? state.filter;
     lastFilter = next;
     state = VenueBrowseState(filter: next);
@@ -1290,6 +1290,7 @@ class _FakeClubsController extends ClubsController {
     String? sortBy,
     double? latitude,
     double? longitude,
+    bool isPullToRefresh = false,
   }) async {
     loads++;
     lastFilters = filters;
@@ -1310,6 +1311,7 @@ class _FakeTournamentsController extends TournamentBrowseController {
     Set<String>? sportTypes,
     bool? favoriteOnly,
     TournamentBrowseSort? sort,
+    bool isPullToRefresh = false,
   }) async {
     loads++;
     lastCity = city;

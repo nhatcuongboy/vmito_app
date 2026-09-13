@@ -40,7 +40,7 @@ class ActivityPostContent extends StatelessWidget {
       'SESSION_CREATED' => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (headline != null) headline,
+          ?headline,
           _EntityPreviewCard(
             isDark: isDark,
             image: meta['coverPhoto'] as String?,
@@ -61,7 +61,7 @@ class ActivityPostContent extends StatelessWidget {
       'SESSION_RESULTS' => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (headline != null) headline,
+          ?headline,
           _EntityPreviewCard(
             isDark: isDark,
             image: meta['coverPhoto'] as String?,
@@ -82,7 +82,7 @@ class ActivityPostContent extends StatelessWidget {
       'TOURNAMENT_CREATED' || 'TOURNAMENT_FINISHED' => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (headline != null) headline,
+          ?headline,
           _EntityPreviewCard(
             isDark: isDark,
             image: meta['coverPhoto'] as String?,
@@ -103,7 +103,7 @@ class ActivityPostContent extends StatelessWidget {
       'CLUB_CREATED' || 'CLUB_UPDATED' || 'CLUB_MEMBER_JOINED' => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (headline != null) headline,
+          ?headline,
           _EntityPreviewCard(
             isDark: isDark,
             image: meta['logo'] as String?,
@@ -125,7 +125,7 @@ class ActivityPostContent extends StatelessWidget {
       'AVATAR_UPDATED' => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (headline != null) headline,
+          ?headline,
           if (_getAvatarImageUrl(meta, post) case final imgUrl?)
             _FullImage(
               url: imgUrl,
@@ -136,7 +136,7 @@ class ActivityPostContent extends StatelessWidget {
       'COVER_PHOTO_UPDATED' => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (headline != null) headline,
+          ?headline,
           if (_getCoverPhotoUrl(meta, post) case final coverUrl?)
             _FullImage(
               url: coverUrl,
@@ -147,7 +147,7 @@ class ActivityPostContent extends StatelessWidget {
       'USER_RATED' => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (headline != null) headline,
+          ?headline,
           if (meta['ratedUserId'] != null)
             _EntityPreviewCard(
               isDark: isDark,

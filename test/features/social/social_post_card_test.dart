@@ -194,11 +194,16 @@ void main() {
     );
 
     await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('vi'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(body: SocialPostCard(post: post)),
+      ProviderScope(
+        overrides: [
+          feedControllerProvider.overrideWith(_EmptyFeedController.new),
+        ],
+        child: MaterialApp(
+          locale: const Locale('vi'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: SocialPostCard(post: post)),
+        ),
       ),
     );
 
@@ -225,11 +230,16 @@ void main() {
     );
 
     await tester.pumpWidget(
-      MaterialApp(
-        locale: const Locale('vi'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        supportedLocales: AppLocalizations.supportedLocales,
-        home: Scaffold(body: SocialPostCard(post: post)),
+      ProviderScope(
+        overrides: [
+          feedControllerProvider.overrideWith(_EmptyFeedController.new),
+        ],
+        child: MaterialApp(
+          locale: const Locale('vi'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(body: SocialPostCard(post: post)),
+        ),
       ),
     );
 

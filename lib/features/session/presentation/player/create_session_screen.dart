@@ -277,7 +277,7 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
 
   void _scrollToFirstInvalidSection() {
     // Returns the first invalid control name for the given field, or null.
-    String? _firstInvalidControl(SessionFormField field) {
+    String? firstInvalidControl(SessionFormField field) {
       final controls = switch (field) {
         SessionFormField.name => [SessionFormControl.name],
         SessionFormField.venue => [SessionFormControl.venueId],
@@ -310,7 +310,7 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       for (final field in SessionFormField.values) {
-        final invalidControl = _firstInvalidControl(field);
+        final invalidControl = firstInvalidControl(field);
         if (invalidControl == null) continue;
         final context = _sectionKeys[field]?.currentContext;
         if (context != null) {
@@ -619,8 +619,9 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
 
   Future<void> _applyAiData(ExtractedSessionData data) async {
     void setIfText(String control, String? value) {
-      if (value?.trim().isNotEmpty ?? false)
+      if (value?.trim().isNotEmpty ?? false) {
         _form.control(control).value = value;
+      }
     }
 
     setIfText(SessionFormControl.name, data.name);
@@ -1060,7 +1061,7 @@ class _FormCard extends StatelessWidget {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
               ),
-              if (action != null) action!,
+              ?action,
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -1072,7 +1073,7 @@ class _FormCard extends StatelessWidget {
 }
 
 class _DisabledLockBadge extends StatelessWidget {
-  const _DisabledLockBadge({super.key});
+  const _DisabledLockBadge();
 
   @override
   Widget build(BuildContext context) {
@@ -1494,7 +1495,7 @@ class _SportOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = Theme.of(context).extension<AppPalette>()!;
-    final selectedColor = Colors.green;
+    const selectedColor = Colors.green;
 
     final Color backgroundColor;
     final BorderSide borderSide;
@@ -1512,14 +1513,13 @@ class _SportOption extends StatelessWidget {
         backgroundColor = palette.muted.withValues(alpha: 0.45);
         borderSide = BorderSide(
           color: palette.border.withValues(alpha: 0.4),
-          width: 1,
         );
         textColor = palette.mutedForeground.withValues(alpha: 0.6);
       }
     } else {
       if (selected) {
         backgroundColor = selectedColor;
-        borderSide = BorderSide(color: selectedColor, width: 1);
+        borderSide = const BorderSide(color: selectedColor);
         textColor = Colors.white;
       } else {
         backgroundColor = Colors.transparent;

@@ -71,7 +71,6 @@ void main() {
             onPressed: () async {
               result = await showAppConfirmDialog(
                 context,
-                type: AppConfirmDialogType.submit,
                 title: 'Start Session',
                 content: 'Do you want to start?',
                 confirmLabel: 'Start',

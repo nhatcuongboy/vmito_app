@@ -63,7 +63,6 @@ void main() {
               () => _PreferencesController(
                 const LocationPreferences(
                   isRestored: true,
-                  onboardingCompleted: false,
                 ),
               ),
             ),
@@ -138,7 +137,6 @@ void main() {
             () => _PreferencesController(
               const LocationPreferences(
                 isRestored: true,
-                onboardingCompleted: false,
               ),
             ),
           ),
@@ -201,7 +199,6 @@ void main() {
             () => _PreferencesController(
               const LocationPreferences(
                 isRestored: true,
-                onboardingCompleted: false,
               ),
             ),
           ),

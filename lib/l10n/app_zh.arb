@@ -398,6 +398,7 @@
   "homeDiscoverySortNearest": "离我最近",
   "homeDiscoverySortStartSoonest": "即将开始",
   "homeDiscoveryClubFilters": "筛选",
+  "commonNoFilters": "暂无筛选条件",
   "clubFilterTitle": "筛选俱乐部",
   "clubFilterActivityTime": "活动时间",
   "clubFilterPeriodLabel": "时段",

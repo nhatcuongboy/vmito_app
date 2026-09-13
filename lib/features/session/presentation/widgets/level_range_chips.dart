@@ -68,9 +68,8 @@ class _LevelChip extends StatelessWidget {
   const _LevelChip({
     required this.label,
     required this.color,
-    this.border,
     super.key,
-  });
+  }) : border = null;
 
   final String label;
   final Color color;

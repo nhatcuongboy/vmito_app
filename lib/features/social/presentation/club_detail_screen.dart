@@ -8,7 +8,6 @@ import 'package:go_router/go_router.dart';
 import 'package:html/dom.dart' as html_dom;
 import 'package:html/parser.dart' as html_parser;
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vmito_app/core/constants/image_constants.dart';
@@ -32,6 +31,7 @@ import 'package:vmito_app/features/social/presentation/widgets/public_club_membe
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
 import 'package:vmito_app/shared/widgets/app_lightbox.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/shared/widgets/detail_hero_header.dart';
 import 'package:vmito_app/shared/widgets/login_prompt_dialog.dart';
 import 'package:vmito_app/shared/widgets/skill_level_badge.dart';

@@ -413,6 +413,7 @@
   "homeDiscoverySortNearest": "Gần tôi nhất",
   "homeDiscoverySortStartSoonest": "Sắp diễn ra",
   "homeDiscoveryClubFilters": "Bộ lọc",
+  "commonNoFilters": "Chưa có bộ lọc",
   "clubFilterTitle": "Bộ lọc",
   "clubFilterActivityTime": "Thời gian hoạt động",
   "clubFilterPeriodLabel": "Buổi",

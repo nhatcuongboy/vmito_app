@@ -1,7 +1,7 @@
 import 'package:vmito_app/features/session/domain/form/session_form_drafts.dart';
+import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/domain/session_fee_config.dart';
 import 'package:vmito_app/features/session/domain/session_location_payload.dart';
-import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/shared/models/match.dart';
 
 /// The body of `POST /sessions` and `PUT /sessions/:id`.

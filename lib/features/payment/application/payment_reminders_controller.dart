@@ -1,18 +1,23 @@
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod/src/providers/future_provider.dart';
 import 'package:vmito_app/features/payment/application/payment_providers.dart';
 import 'package:vmito_app/features/payment/data/repositories/payment_repository_impl.dart';
 import 'package:vmito_app/features/payment/domain/payment.dart';
 import 'package:vmito_app/features/payment/domain/repositories/payment_repository.dart';
 
-final remindersListProvider =
-    FutureProvider.family<List<PaymentReminder>, String>((ref, role) async {
-      final repository = ref.watch(paymentRepositoryProvider);
-      return repository.getReminders(role: role);
-    });
+final FutureProviderFamily<List<PaymentReminder>, String>
+remindersListProvider = FutureProvider.family<List<PaymentReminder>, String>((
+  ref,
+  role,
+) async {
+  final repository = ref.watch(paymentRepositoryProvider);
+  return repository.getReminders(role: role);
+});
 
-final reminderUserSearchProvider =
+final FutureProviderFamily<List<PaymentReminderUser>, String>
+reminderUserSearchProvider =
     FutureProvider.family<List<PaymentReminderUser>, String>((
       ref,
       query,

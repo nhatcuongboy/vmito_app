@@ -6,7 +6,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -17,6 +16,7 @@ import 'package:vmito_app/features/tournament/domain/tournament_management.dart'
 import 'package:vmito_app/features/tournament/domain/tournament_summary.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
+import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 
 typedef TournamentUpdater = Future<void> Function(Map<String, dynamic> changes);
 
@@ -115,7 +115,6 @@ class TournamentStatusPanel extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final confirmed = await showAppConfirmDialog(
       context,
-      type: AppConfirmDialogType.submit,
       title: l10n.tournamentManageConfirmStatus,
       content: action,
       confirmLabel: action,

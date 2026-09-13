@@ -31,7 +31,7 @@ void main() {
 
     test('rejects duplicate venues', () {
       final result = validateClubVenueSchedule([
-        _group(id: 'g1'),
+        _group(),
         _group(id: 'g2'),
       ]);
 
@@ -66,8 +66,8 @@ void main() {
       final result = validateClubVenueSchedule([
         _group(
           schedules: [
-            _schedule(id: 'first', start: '19:00', end: '20:30'),
-            _schedule(id: 'second', start: '20:00', end: '21:00'),
+            _schedule(id: 'first', end: '20:30'),
+            _schedule(id: 'second', start: '20:00'),
           ],
         ),
       ]);
@@ -79,8 +79,6 @@ void main() {
     test('allows separate venues and non-overlapping schedules', () {
       final result = validateClubVenueSchedule([
         _group(
-          id: 'g1',
-          venueId: 'v1',
           schedules: [_schedule(id: 'a')],
         ),
         _group(

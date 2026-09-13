@@ -33,7 +33,6 @@ void main() {
       buildSubject(
         showMap: false,
         onPressed: () {},
-        isExtended: true,
       ),
     );
     await tester.pumpAndSettle();
@@ -52,7 +51,6 @@ void main() {
         buildSubject(
           showMap: true,
           onPressed: () {},
-          isExtended: true,
         ),
       );
       await tester.pumpAndSettle();
@@ -91,7 +89,6 @@ void main() {
       buildSubject(
         showMap: false,
         onPressed: () => pressed = true,
-        isExtended: true,
       ),
     );
     await tester.pumpAndSettle();

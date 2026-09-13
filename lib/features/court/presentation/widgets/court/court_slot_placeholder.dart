@@ -38,12 +38,12 @@ class _CourtSlotPlaceholderState extends State<CourtSlotPlaceholder>
       duration: const Duration(seconds: 2),
     )..repeat();
 
-    _scale = Tween<double>(begin: 1.0, end: 1.2).animate(
+    _scale = Tween<double>(begin: 1, end: 1.2).animate(
       CurvedAnimation(parent: _pulse, curve: Curves.easeInOut),
     );
     _opacity = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 0.7), weight: 50),
-      TweenSequenceItem(tween: Tween(begin: 0.7, end: 1.0), weight: 50),
+      TweenSequenceItem(tween: Tween(begin: 1, end: 0.7), weight: 50),
+      TweenSequenceItem(tween: Tween(begin: 0.7, end: 1), weight: 50),
     ]).animate(_pulse);
   }
 

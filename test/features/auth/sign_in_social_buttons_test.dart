@@ -9,7 +9,6 @@ import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/data/auth_service.dart';
 import 'package:vmito_app/features/auth/data/oauth_service.dart';
-import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/features/auth/presentation/sign_in_screen.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 

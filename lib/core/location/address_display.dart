@@ -61,7 +61,7 @@ String? resolveCompactAddressArea({
 
   return area.replaceFirst(
     RegExp(
-      '^(Ph\\u01b0\\u1eddng|X\\u00e3|Th\\u1ecb tr\\u1ea5n)\\s+(?=\\D)',
+      r'^(Ph\u01b0\u1eddng|X\u00e3|Th\u1ecb tr\u1ea5n)\s+(?=\D)',
       caseSensitive: false,
     ),
     '',

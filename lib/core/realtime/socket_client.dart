@@ -31,8 +31,7 @@ class SocketClient {
     this.observedEvents = SessionEvent.all,
     SocketFactory? socketFactory,
   }) : _tokens = tokenStorage,
-       _socketFactory =
-           socketFactory ?? ((uri, options) => io.io(uri, options));
+       _socketFactory = socketFactory ?? (io.io);
 
   final TokenStorage _tokens;
   final String namespace;

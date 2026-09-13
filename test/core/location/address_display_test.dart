@@ -79,7 +79,6 @@ void main() {
         showNewAddress: false,
         address: '  ',
         district: 'Quận 1',
-        city: null,
       );
 
       expect(result.text, 'Quận 1');

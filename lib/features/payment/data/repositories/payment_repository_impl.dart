@@ -493,9 +493,8 @@ class PaymentRepositoryImpl implements PaymentRepository {
         'paymentMethod': paymentMethod == PaymentMethod.bankTransfer
             ? 'BANK_TRANSFER'
             : 'CASH',
-        if (proofImageUrl != null) 'proofImageUrl': proofImageUrl,
-        if (proofImagePublicId != null)
-          'proofImagePublicId': proofImagePublicId,
+        'proofImageUrl': ?proofImageUrl,
+        'proofImagePublicId': ?proofImagePublicId,
         if (proofNotes != null && proofNotes.trim().isNotEmpty)
           'proofNotes': proofNotes.trim(),
       },

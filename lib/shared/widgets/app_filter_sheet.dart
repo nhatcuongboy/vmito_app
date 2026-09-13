@@ -110,7 +110,6 @@ class AppFilterChip extends StatelessWidget {
     return FilterChip(
       label: Row(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           if (leading != null) ...[
             leading,
@@ -136,7 +135,6 @@ class AppFilterChip extends StatelessWidget {
       selectedColor: scheme.primary.withValues(alpha: .12),
       side: BorderSide(
         color: selected ? scheme.primary : palette.border,
-        width: 1.0,
       ),
       padding: padding,
       onSelected: onSelected,
@@ -525,7 +523,7 @@ class AppFilterOptionGroup<T> extends StatelessWidget {
               );
               final iconData = icon?.call(value);
 
-              final Widget? avatar =
+              final avatar =
                   customAvatar ??
                   (iconData != null
                       ? Icon(

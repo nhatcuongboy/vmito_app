@@ -647,7 +647,7 @@ void main() {
   ) async {
     _setSize(tester, const Size(390, 844));
     final service = _MockSessionFormService();
-    when(() => service.getMyImages(page: 1)).thenAnswer(
+    when(service.getMyImages).thenAnswer(
       (_) async => const pagination.Page<UserImageAsset>(
         items: [
           UserImageAsset(
@@ -707,7 +707,7 @@ void main() {
 
     expect(find.text('2/5'), findsOneWidget);
     expect(find.byKey(const Key('session-images-empty')), findsNothing);
-    verify(() => service.getMyImages(page: 1)).called(1);
+    verify(service.getMyImages).called(1);
     verify(() => service.getMyImages(page: 2)).called(1);
     expect(tester.takeException(), isNull);
   });

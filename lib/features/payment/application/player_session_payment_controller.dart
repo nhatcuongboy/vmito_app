@@ -33,7 +33,7 @@ final playerSessionPaymentsProvider =
       final repository = ref.watch(paymentRepositoryProvider);
       final recordsFuture = repository.mySessionPayments(sessionId);
       final settingsFuture = session.hostId == null
-          ? Future<HostPaymentSettings?>.value(null)
+          ? Future<HostPaymentSettings?>.value()
           : repository.hostSettings(session.hostId!);
       return PlayerSessionPayments(
         records: await recordsFuture,

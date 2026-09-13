@@ -48,11 +48,11 @@ void main() {
           (widget) =>
               widget is Container &&
               widget.decoration is BoxDecoration &&
-              (widget.decoration as BoxDecoration).shape == BoxShape.circle,
+              (widget.decoration! as BoxDecoration).shape == BoxShape.circle,
         ),
       ),
     );
-    final decoration = container.decoration as BoxDecoration;
+    final decoration = container.decoration! as BoxDecoration;
     expect(decoration.boxShadow, isEmpty);
   });
 
@@ -68,7 +68,7 @@ void main() {
   testWidgets('clips avatar content with ClipOval to prevent edge cut-offs', (
     tester,
   ) async {
-    await pumpAvatar(tester, const UserAvatar(name: 'Gavin', size: 48));
+    await pumpAvatar(tester, const UserAvatar(name: 'Gavin'));
 
     expect(
       find.descendant(
@@ -88,7 +88,7 @@ void main() {
         ),
       ),
     );
-    final foreground = container.foregroundDecoration as BoxDecoration;
+    final foreground = container.foregroundDecoration! as BoxDecoration;
     expect(foreground.shape, BoxShape.circle);
     expect(foreground.border, isNotNull);
   });

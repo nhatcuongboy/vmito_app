@@ -21,11 +21,11 @@ Widget _harness(int count) => ProviderScope(
       () => _FakeNewsfeedBadgeController(count),
     ),
   ],
-  child: MaterialApp(
-    locale: const Locale('vi'),
+  child: const MaterialApp(
+    locale: Locale('vi'),
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
-    home: const Scaffold(
+    home: Scaffold(
       body: NewsfeedBadgeIcon(icon: AppIcons.feed),
     ),
   ),

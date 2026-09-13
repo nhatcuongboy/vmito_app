@@ -118,12 +118,27 @@ class _BrowseSessionsContentState extends ConsumerState<BrowseSessionsContent> {
         if (!_isMapToggleExtended) {
           setState(() => _isMapToggleExtended = true);
         }
-      } else if (notification is UserScrollNotification) {
-        if (notification.direction == ScrollDirection.reverse) {
+      } else if (notification is UserScrollNotification ||
+          notification is ScrollUpdateNotification) {
+        final scrollingDown = switch (notification) {
+          UserScrollNotification(:final direction) =>
+            direction == ScrollDirection.reverse,
+          ScrollUpdateNotification(:final scrollDelta) =>
+            (scrollDelta ?? 0) > 0,
+          _ => false,
+        };
+        final scrollingUp = switch (notification) {
+          UserScrollNotification(:final direction) =>
+            direction == ScrollDirection.forward,
+          ScrollUpdateNotification(:final scrollDelta) =>
+            (scrollDelta ?? 0) < 0,
+          _ => false,
+        };
+        if (scrollingDown) {
           if (_isMapToggleExtended) {
             setState(() => _isMapToggleExtended = false);
           }
-        } else if (notification.direction == ScrollDirection.forward) {
+        } else if (scrollingUp) {
           if (!_isMapToggleExtended) {
             setState(() => _isMapToggleExtended = true);
           }

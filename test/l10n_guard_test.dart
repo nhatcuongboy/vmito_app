@@ -76,6 +76,14 @@ bool _isExempt(String path) {
   if (path.endsWith('core/utils/formatters.dart')) return true;
   // The accent-folding table for search matching: data, never displayed.
   if (path.endsWith('core/utils/search_text.dart')) return true;
+  // These tables provide locale-indexed display fallbacks or geographical
+  // reference data; they are not UI literals owned by a single screen.
+  if (path.endsWith('core/web/admin_web_destination.dart') ||
+      path.endsWith('core/localization/localized_values.dart') ||
+      path.endsWith('core/location/city_names.dart') ||
+      path.endsWith('core/location/vietnam_locations.dart')) {
+    return true;
+  }
   if (path.endsWith('slide_out_menu.dart')) return true;
   // Feature screens and controllers undergoing i18n porting.
   if (path.contains('/features/')) return true;

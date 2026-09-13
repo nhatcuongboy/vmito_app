@@ -35,7 +35,7 @@ void main() {
           invocation.positionalArguments[1],
         ));
       });
-      when(() => socket.dispose()).thenAnswer((_) {});
+      when(socket.dispose).thenAnswer((_) {});
       final client = SocketClient(
         tokenStorage: TokenStorage(FakeSecureStorage()),
         observedEvents: const [],

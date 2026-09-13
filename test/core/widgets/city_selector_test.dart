@@ -329,12 +329,6 @@ void main() {
     (tester) async {
       await tester.pumpWidget(
         _app(
-          initialPreferences: const LocationPreferences(
-            preferredCity: 'Hồ Chí Minh',
-            selectionType: LocationSelectionType.city,
-            onboardingCompleted: true,
-            isRestored: true,
-          ),
           showLabel: true,
           onChanged: (_) {},
         ),

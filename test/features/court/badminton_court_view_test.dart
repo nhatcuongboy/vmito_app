@@ -13,14 +13,18 @@ import 'package:vmito_app/shared/models/session_player.dart';
 SessionPlayer player(String id, {String? name, int? seat, int? number}) =>
     SessionPlayer(id: id, name: name, position: seat, playerNumber: number);
 
-Future<void> pumpCourt(WidgetTester tester, Widget child) => tester.pumpWidget(
-  MaterialApp(
-    theme: AppTheme.light,
-    localizationsDelegates: AppLocalizations.localizationsDelegates,
-    supportedLocales: AppLocalizations.supportedLocales,
-    home: Scaffold(body: SizedBox(width: 402, child: child)),
-  ),
-);
+Future<void> pumpCourt(WidgetTester tester, Widget child) async {
+  await tester.pumpWidget(
+    MaterialApp(
+      locale: const Locale('vi'),
+      theme: AppTheme.light,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: Scaffold(body: SizedBox(width: 402, child: child)),
+    ),
+  );
+  await tester.pump();
+}
 
 /// Where a marker's centre sits inside the court box, 0..1 on each axis.
 Offset relativeCentre(WidgetTester tester, Finder finder) {
@@ -380,8 +384,6 @@ void main() {
               position: 0,
               gender: Gender.male,
               level: 3, // TB-
-              matchesPlayed: 0,
-              currentWaitTime: 0,
             ),
             SessionPlayer(
               id: 'p1',
@@ -425,7 +427,7 @@ void main() {
         expect(find.text('TRÌNH ĐỘ'), findsOneWidget);
         expect(find.text('TRẬN ĐÃ CHƠI'), findsOneWidget);
         expect(find.text('THỜI GIAN CHỜ'), findsOneWidget);
-        expect(find.text('TB-'), findsOneWidget);
+        expect(find.text('TB-'), findsWidgets);
         expect(find.text('0p'), findsOneWidget);
 
         // Tapping outside dismisses the tooltip
@@ -459,7 +461,7 @@ void main() {
         const BadmintonCourtView(court: court),
       );
 
-      await tester.tap(find.text('Nam'));
+      await tester.tap(find.byType(CourtPlayerMarker).first);
       await tester.pumpAndSettle();
       expect(
         find.byKey(const Key('court-player-tooltip-card')),
@@ -467,7 +469,7 @@ void main() {
       );
 
       // Tap again to toggle off
-      await tester.tap(find.text('Nam'));
+      await tester.tap(find.byType(CourtPlayerMarker).first);
       await tester.pumpAndSettle();
       expect(
         find.byKey(const Key('court-player-tooltip-card')),

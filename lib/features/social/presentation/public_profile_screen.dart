@@ -1183,7 +1183,7 @@ Widget _clubGroup(
         ),
         if (clubs.isEmpty)
           Padding(
-            padding: EdgeInsets.all(12),
+            padding: const EdgeInsets.all(12),
             child: Text(
               AppLocalizations.of(context).profileNoClubsInGroup,
             ),
