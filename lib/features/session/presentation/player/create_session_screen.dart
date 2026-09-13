@@ -1614,6 +1614,9 @@ class _HostSection extends StatelessWidget {
                   formControlName: SessionFormControl.hostPhone,
                   keyboardType: TextInputType.phone,
                   textInputAction: TextInputAction.done,
+                  decoration: InputDecoration(
+                    hintText: l10n.sessionFormHostPhonePlaceholder,
+                  ),
                   validationMessages: {
                     'phone': (_) => l10n.sessionFormValidationPhone,
                     'domain': (_) => l10n.sessionFormValidationPhone,
@@ -2376,9 +2379,16 @@ class _FeeTypeOption extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: AppSizes.minTapTarget),
+          // Each option spans half the row width, wide enough that the
+          // extra 4pt to `minTapTarget` buys nothing — see AppSizes docs.
+          constraints: const BoxConstraints(
+            minHeight: AppSizes.compactTapTarget,
+          ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.xs,
+            ),
             child: Center(
               child: Text(
                 label,
@@ -3798,9 +3808,15 @@ class _AiSessionSheetState extends ConsumerState<_AiSessionSheet> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final media = MediaQuery.of(context);
+    // `showModalBottomSheet` pushes this sheet up by the keyboard's height,
+    // but a fixed `.9 * screen height` doesn't shrink to match — with the
+    // text field autofocused, that leaves the action bar clipped off the
+    // bottom the instant the keyboard opens. Cap to what's actually visible.
+    final maxHeight = media.size.height - media.viewInsets.bottom;
     return SizedBox(
       key: const Key('create-session-ai-sheet'),
-      height: MediaQuery.sizeOf(context).height * .9,
+      height: (media.size.height * .9).clamp(0, maxHeight),
       child: Column(
         children: [
           AppSheetHeader(

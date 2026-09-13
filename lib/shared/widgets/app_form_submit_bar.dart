@@ -34,21 +34,34 @@ class AppFormSubmitBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Material(
     elevation: inline ? 0 : 8,
-    color: Theme.of(context).colorScheme.surface,
+    color: Theme.of(context).scaffoldBackgroundColor,
     child: SafeArea(
       top: false,
       child: Padding(
-        padding: EdgeInsets.all(inline ? 0 : AppSpacing.md),
-        child: FilledButton.icon(
-          key: buttonKey,
-          onPressed: busy ? null : onSubmit,
-          icon: busy
-              ? const SizedBox.square(
-                  dimension: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Icon(icon),
-          label: Text(label),
+        padding: inline
+            ? EdgeInsets.zero
+            : const EdgeInsets.fromLTRB(
+                AppSpacing.screenPadding,
+                AppSpacing.sm,
+                AppSpacing.screenPadding,
+                AppSpacing.sm,
+              ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 720),
+          child: SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              key: buttonKey,
+              onPressed: busy ? null : onSubmit,
+              icon: busy
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Icon(icon),
+              label: Text(label),
+            ),
+          ),
         ),
       ),
     ),

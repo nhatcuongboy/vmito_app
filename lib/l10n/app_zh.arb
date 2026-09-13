@@ -1262,6 +1262,7 @@
   "sessionFormHostInfo": "主办人信息",
   "sessionFormHostName": "主办人姓名",
   "sessionFormHostPhone": "主办人电话",
+  "sessionFormHostPhonePlaceholder": "输入电话号码",
   "sessionFormAllowZalo": "允许通过 Zalo 联系",
   "sessionFormTime": "时间",
   "sessionFormMultiDay": "跨天",

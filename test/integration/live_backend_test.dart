@@ -247,7 +247,7 @@ void _defineTests() {
 
   test('a protected endpoint 401s for an anonymous client', () async {
     await expectLater(
-      auth.currentUser(),
+      auth.currentUser('anonymous'),
       throwsA(isA<ApiException>().having((e) => e.isUnauthorized, '401', true)),
     );
   });

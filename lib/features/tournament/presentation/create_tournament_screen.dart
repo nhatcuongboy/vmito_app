@@ -14,6 +14,7 @@ import 'package:vmito_app/features/tournament/presentation/widgets/tournament_cr
 import 'package:vmito_app/features/tournament/presentation/widgets/tournament_location_picker_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
+import 'package:vmito_app/shared/widgets/app_form_submit_bar.dart';
 import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 
 const _wideTournamentFormBreakpoint = 700.0;
@@ -215,62 +216,85 @@ class _CreateTournamentScreenState
           ),
           title: Text(l10n.tournamentCreateTitle),
         ),
-        bottomNavigationBar: LayoutBuilder(
-          builder: (context, constraints) =>
-              constraints.maxWidth < _wideTournamentFormBreakpoint
-              ? TournamentCreateActionBar(
-                  isSubmitting: isSubmitting,
-                  onSubmit: _submit,
-                )
-              : const SizedBox.shrink(),
-        ),
+        // The submit button lives in `body`, not `bottomNavigationBar`: see
+        // AppFormSubmitBar's doc comment for why.
         body: LayoutBuilder(
           builder: (context, constraints) {
             final isWide =
                 constraints.maxWidth >= _wideTournamentFormBreakpoint;
             return AppReactiveForm<void>(
               formGroup: _form,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(AppSpacing.screenPadding),
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxWidth: _maxTournamentFormWidth,
+              child: Stack(
+                children: [
+                  SingleChildScrollView(
+                    padding: EdgeInsets.fromLTRB(
+                      AppSpacing.screenPadding,
+                      AppSpacing.screenPadding,
+                      AppSpacing.screenPadding,
+                      isWide ? AppSpacing.screenPadding : 96,
                     ),
-                    child: Column(
-                      children: [
-                        const TournamentCreateHero(),
-                        const SizedBox(height: AppSpacing.md),
-                        Card(
-                          child: Padding(
-                            padding: EdgeInsets.all(
-                              isWide ? AppSpacing.lg : AppSpacing.md,
-                            ),
-                            child: Column(
-                              children: [
-                                TournamentCreateFields(
-                                  form: _form,
-                                  isWide: isWide,
-                                  onPickLocation: _pickLocation,
-                                  onClearLocation: _clearLocation,
-                                ),
-                                if (isWide) ...[
-                                  const SizedBox(height: AppSpacing.lg),
-                                  const Divider(),
-                                  TournamentCreateActionButtons(
-                                    isSubmitting: isSubmitting,
-                                    onSubmit: _submit,
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: _maxTournamentFormWidth,
                         ),
-                        const SizedBox(height: AppSpacing.lg),
-                      ],
+                        child: Column(
+                          children: [
+                            const TournamentCreateHero(),
+                            const SizedBox(height: AppSpacing.md),
+                            Card(
+                              child: Padding(
+                                padding: EdgeInsets.all(
+                                  isWide ? AppSpacing.lg : AppSpacing.md,
+                                ),
+                                child: Column(
+                                  children: [
+                                    TournamentCreateFields(
+                                      form: _form,
+                                      isWide: isWide,
+                                      onPickLocation: _pickLocation,
+                                      onClearLocation: _clearLocation,
+                                    ),
+                                    if (isWide) ...[
+                                      const SizedBox(height: AppSpacing.lg),
+                                      const Divider(),
+                                      AppFormSubmitBar(
+                                        buttonKey: const Key(
+                                          'tournament-submit-button',
+                                        ),
+                                        label: isSubmitting
+                                            ? l10n.tournamentCreateSubmitting
+                                            : l10n.tournamentCreateSubmit,
+                                        icon: AppIcons.add,
+                                        busy: isSubmitting,
+                                        onSubmit: _submit,
+                                        inline: true,
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.lg),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                ),
+                  if (!isWide)
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: AppFormSubmitBar(
+                        buttonKey: const Key('tournament-submit-button'),
+                        label: isSubmitting
+                            ? l10n.tournamentCreateSubmitting
+                            : l10n.tournamentCreateSubmit,
+                        icon: AppIcons.add,
+                        busy: isSubmitting,
+                        onSubmit: _submit,
+                      ),
+                    ),
+                ],
               ),
             );
           },

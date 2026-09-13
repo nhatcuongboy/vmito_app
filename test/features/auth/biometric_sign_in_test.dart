@@ -12,6 +12,7 @@ import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/features/auth/presentation/sign_in_screen.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
+import '../../support/fake_jwt.dart';
 import '../../support/fake_secure_storage.dart';
 
 class _MockAuthService extends Mock implements AuthService {}
@@ -94,12 +95,12 @@ void main() {
   ) async {
     final service = _MockAuthService();
     when(() => service.refreshTokens('refresh')).thenAnswer(
-      (_) async => const AuthTokens(
-        accessToken: 'fresh',
+      (_) async => AuthTokens(
+        accessToken: fakeJwt('user-1'),
         refreshToken: 'rotated',
       ),
     );
-    when(service.currentUser).thenAnswer(
+    when(() => service.currentUser('user-1')).thenAnswer(
       (_) async => const User(
         id: 'user-1',
         email: 'cuong@vmito.app',

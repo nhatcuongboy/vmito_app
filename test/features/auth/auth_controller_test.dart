@@ -8,6 +8,7 @@ import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/data/auth_service.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
 
+import '../../support/fake_jwt.dart';
 import '../../support/fake_secure_storage.dart';
 
 class _MockAuthService extends Mock implements AuthService {}
@@ -36,10 +37,10 @@ void main() {
       final secureStorage = FakeSecureStorage();
       await TokenStorage(
         secureStorage,
-      ).save(accessToken: 'access', refreshToken: 'refresh');
+      ).save(accessToken: fakeJwt('user-1'), refreshToken: 'refresh');
       final restartedTokens = TokenStorage(secureStorage);
       final service = _MockAuthService();
-      when(service.currentUser).thenAnswer(
+      when(() => service.currentUser('user-1')).thenAnswer(
         (_) async => const User(
           id: 'user-1',
           email: 'player@example.com',
@@ -62,7 +63,7 @@ void main() {
         AuthStatus.authenticated,
       );
       expect(container.read(authControllerProvider).user?.id, 'user-1');
-      expect(restartedTokens.accessToken, 'access');
+      expect(restartedTokens.accessToken, fakeJwt('user-1'));
     },
   );
 
@@ -75,12 +76,12 @@ void main() {
       final restartedTokens = TokenStorage(secureStorage);
       final service = _MockAuthService();
       when(() => service.refreshTokens('refresh')).thenAnswer(
-        (_) async => const AuthTokens(
-          accessToken: 'fresh-access',
+        (_) async => AuthTokens(
+          accessToken: fakeJwt('user-1'),
           refreshToken: 'rotated-refresh',
         ),
       );
-      when(service.currentUser).thenAnswer(
+      when(() => service.currentUser('user-1')).thenAnswer(
         (_) async => const User(
           id: 'user-1',
           email: 'player@example.com',
@@ -102,7 +103,7 @@ void main() {
         container.read(authControllerProvider).status,
         AuthStatus.authenticated,
       );
-      expect(restartedTokens.accessToken, 'fresh-access');
+      expect(restartedTokens.accessToken, fakeJwt('user-1'));
       expect(await restartedTokens.readRefreshToken(), 'rotated-refresh');
     },
   );
@@ -210,12 +211,12 @@ void main() {
 
     final service = _MockAuthService();
     when(() => service.refreshTokens('refresh')).thenAnswer(
-      (_) async => const AuthTokens(
-        accessToken: 'fresh-access',
+      (_) async => AuthTokens(
+        accessToken: fakeJwt('user-1'),
         refreshToken: 'rotated-refresh',
       ),
     );
-    when(service.currentUser).thenAnswer(
+    when(() => service.currentUser('user-1')).thenAnswer(
       (_) async => const User(
         id: 'user-1',
         email: 'player@example.com',
@@ -241,7 +242,7 @@ void main() {
       container.read(authControllerProvider).status,
       AuthStatus.authenticated,
     );
-    expect(tokens.accessToken, 'fresh-access');
+    expect(tokens.accessToken, fakeJwt('user-1'));
     // The backend revokes the presented token, so the rotated one must land.
     expect(await tokens.readRefreshToken(), 'rotated-refresh');
     expect((await biometricLock.readAccount())?.userId, 'user-1');

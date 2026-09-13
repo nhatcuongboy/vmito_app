@@ -1277,6 +1277,7 @@
   "sessionFormHostInfo": "Thông tin host",
   "sessionFormHostName": "Tên",
   "sessionFormHostPhone": "Số điện thoại",
+  "sessionFormHostPhonePlaceholder": "Nhập số điện thoại",
   "sessionFormAllowZalo": "Liên hệ qua Zalo",
   "sessionFormTime": "Thời gian",
   "sessionFormMultiDay": "Dài ngày",
