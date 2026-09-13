@@ -45,6 +45,7 @@ abstract final class ApiEndpoints {
   static const postsFeed = '/posts/feed';
   static const posts = '/posts';
   static String post(String id) => '/posts/$id';
+  static String postReport(String id) => '/posts/$id/report';
   static String postLike(String id) => '/posts/$id/like';
   static String postComments(String id) => '/posts/$id/comments';
   static String postShare(String id) => '/posts/$id/share';

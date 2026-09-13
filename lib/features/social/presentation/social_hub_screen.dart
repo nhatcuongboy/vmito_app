@@ -204,6 +204,12 @@ class _FeedTabState extends ConsumerState<_FeedTab> {
                   return SocialPostCard(
                     post: post,
                     onOpen: () => context.push(AppRoutes.socialPost(post.id)),
+                    onDeletePost: (postId) async => ref
+                        .read(feedControllerProvider.notifier)
+                        .deletePost(postId),
+                    onReportPost: (postId) async => ref
+                        .read(feedControllerProvider.notifier)
+                        .reportPost(postId),
                   );
                 },
               ),

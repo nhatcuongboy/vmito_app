@@ -125,6 +125,23 @@ class SocialService {
     return SocialPost.fromJson(_mapPayload(response.data));
   }
 
+  Future<void> deletePost(String postId) async {
+    await _client.delete<void>(
+      ApiEndpoints.post(postId),
+      options: apiOptions(skipGlobalError: true),
+    );
+  }
+
+  Future<void> reportPost(String postId, {String? reason}) async {
+    await _client.post<void>(
+      ApiEndpoints.postReport(postId),
+      data: reason == null || reason.trim().isEmpty
+          ? const {}
+          : {'reason': reason.trim()},
+      options: apiOptions(skipGlobalError: true),
+    );
+  }
+
   Future<ClubPage> browseClubs({
     required int page,
     int limit = 20,

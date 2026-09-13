@@ -158,6 +158,22 @@ class FeedController extends Notifier<FeedState> {
     state = state.copyWith(posts: [shared, ...state.posts]);
   }
 
+  Future<void> deletePost(String postId) async {
+    await _service.deletePost(postId);
+    state = state.copyWith(
+      posts: state.posts.where((post) => post.id != postId).toList(),
+    );
+    ref.invalidate(postDetailProvider(postId));
+  }
+
+  Future<void> reportPost(String postId) async {
+    await _service.reportPost(postId);
+    state = state.copyWith(
+      posts: state.posts.where((post) => post.id != postId).toList(),
+    );
+    ref.invalidate(postDetailProvider(postId));
+  }
+
   void _replace(String id, SocialPost replacement) {
     state = state.copyWith(
       posts: [

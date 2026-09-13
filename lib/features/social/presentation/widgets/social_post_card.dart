@@ -10,11 +10,13 @@ import 'package:share_plus/share_plus.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
+import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/domain/social_post.dart';
 import 'package:vmito_app/features/social/presentation/widgets/activity_post_content.dart';
 import 'package:vmito_app/features/social/presentation/widgets/post_avatar.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/widgets/app_dialog.dart';
 import 'package:vmito_app/shared/widgets/app_lightbox.dart';
 
 // ---------------------------------------------------------------------------
@@ -26,6 +28,8 @@ class SocialPostCard extends ConsumerWidget {
     required this.post,
     this.onOpen,
     this.onPostChanged,
+    this.onDeletePost,
+    this.onReportPost,
     super.key,
   }) : _shareCardKey = GlobalKey();
 
@@ -35,6 +39,8 @@ class SocialPostCard extends ConsumerWidget {
   /// Notifies an owner of an optimistic like update (e.g. a profile tab whose
   /// posts are local state rather than part of [feedControllerProvider]).
   final ValueChanged<SocialPost>? onPostChanged;
+  final Future<void> Function(String postId)? onDeletePost;
+  final Future<void> Function(String postId)? onReportPost;
   final GlobalKey _shareCardKey;
 
   @override
@@ -63,6 +69,8 @@ class SocialPostCard extends ConsumerWidget {
               isDark: isDark,
               ref: ref,
               shareCardKey: _shareCardKey,
+              onDeletePost: onDeletePost,
+              onReportPost: onReportPost,
             ),
 
             // ── Activity headline / body ────────────────────────────────────
@@ -166,22 +174,29 @@ class _PostHeader extends StatelessWidget {
     required this.isDark,
     required this.ref,
     required this.shareCardKey,
+    this.onDeletePost,
+    this.onReportPost,
   });
 
   final SocialPost post;
   final bool isDark;
   final WidgetRef ref;
   final GlobalKey shareCardKey;
+  final Future<void> Function(String postId)? onDeletePost;
+  final Future<void> Function(String postId)? onReportPost;
 
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context).languageCode;
+    final currentUserId = ref.watch(currentUserProvider)?.id;
+    final isOwner = currentUserId != null && currentUserId == post.author.id;
+    final l10n = AppLocalizations.of(context);
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 8, 0),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Avatar with gradient ring
           GestureDetector(
             onTap: post.author.id.isEmpty
                 ? null
@@ -194,7 +209,6 @@ class _PostHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          // Name + meta
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -256,8 +270,101 @@ class _PostHeader extends StatelessWidget {
               ],
             ),
           ),
-          // More button (placeholder — no delete implemented on mobile yet)
-          const SizedBox(width: 4),
+          if (currentUserId != null && currentUserId.isNotEmpty)
+            PopupMenuButton<String>(
+              tooltip: l10n.menuOpenTooltip,
+              padding: EdgeInsets.zero,
+              icon: Icon(
+                AppIcons.moreHorizontal,
+                color: isDark
+                    ? const Color(0xFF9CA3AF)
+                    : const Color(0xFF6B7280),
+              ),
+              onSelected: (value) async {
+                switch (value) {
+                  case 'delete':
+                    final confirmed = await showAppConfirmDialog(
+                      context,
+                      title: l10n.commonDelete,
+                      content: l10n.socialDeletePostConfirm,
+                      confirmLabel: l10n.commonDelete,
+                      type: AppConfirmDialogType.destructive,
+                    );
+                    if (confirmed != true) return;
+                    if (onDeletePost == null) return;
+                    try {
+                      await onDeletePost!(post.id);
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.socialDeleteSuccess)),
+                      );
+                    } on Object catch (error) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(error.toString())),
+                      );
+                    }
+                  case 'report':
+                    final confirmed = await showAppConfirmDialog(
+                      context,
+                      title: l10n.socialReportPost,
+                      content: l10n.socialReportPostConfirm,
+                      confirmLabel: l10n.socialReportPost,
+                    );
+                    if (confirmed != true) return;
+                    if (onReportPost == null) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.socialReportSent)),
+                      );
+                      return;
+                    }
+                    try {
+                      await onReportPost!(post.id);
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.socialReportSent)),
+                      );
+                    } on Object catch (error) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(error.toString())),
+                      );
+                    }
+                }
+              },
+              itemBuilder: (context) {
+                final items = <PopupMenuEntry<String>>[];
+                if (isOwner) {
+                  items.add(
+                    PopupMenuItem<String>(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          const Icon(AppIcons.delete, size: 18),
+                          const SizedBox(width: 12),
+                          Text(l10n.commonDelete),
+                        ],
+                      ),
+                    ),
+                  );
+                } else {
+                  items.add(
+                    PopupMenuItem<String>(
+                      value: 'report',
+                      child: Row(
+                        children: [
+                          const Icon(AppIcons.warning, size: 18),
+                          const SizedBox(width: 12),
+                          Text(l10n.socialReportPost),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+                return items;
+              },
+            ),
         ],
       ),
     );

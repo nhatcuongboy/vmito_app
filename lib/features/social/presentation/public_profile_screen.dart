@@ -854,6 +854,18 @@ class _PostsTabState extends ConsumerState<_PostsTab> {
                   if (!mounted) return;
                   setState(() => _posts[index] = updated);
                 },
+                onDeletePost: (postId) async {
+                  if (!mounted) return;
+                  setState(
+                    () => _posts.removeWhere((post) => post.id == postId),
+                  );
+                },
+                onReportPost: (postId) async {
+                  if (!mounted) return;
+                  setState(
+                    () => _posts.removeWhere((post) => post.id == postId),
+                  );
+                },
                 onOpen: () =>
                     context.push(AppRoutes.socialPost(_posts[index].id)),
               );
