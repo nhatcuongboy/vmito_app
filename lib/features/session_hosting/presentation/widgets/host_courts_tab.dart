@@ -6,7 +6,6 @@ import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/features/court/presentation/widgets/court_display_mode_switch.dart';
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
-import 'package:vmito_app/features/session_hosting/application/wait_time_stats_provider.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/court/host_court_card.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/host_waiting_players.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -19,12 +18,12 @@ import 'package:vmito_app/l10n/app_localizations.dart';
 /// stale on a quiet court.
 ///
 /// Deliberately **not** ported: the web's `PUT /sessions/:id/wait-times`
-/// heartbeat. It is a blind increment with no idempotency key, mounted by both
-/// the host and player pages, so a phone alongside a laptop would double-count
-/// every minute — and iOS suspending the timer would make our share lumpy.
-/// Instead, wait times are read from `GET /sessions/:id/wait-times`
-/// ([waitTimeStatsProvider]), which the backend computes fresh from each
-/// player's `waitingSince` on every call — safe to poll, no shared counter.
+/// heartbeat — it was a blind increment with no idempotency key, mounted by
+/// both the host and player pages, so a phone alongside a laptop would
+/// double-count every minute. It has since been removed on web too:
+/// `GET /sessions/:id` now computes `currentWaitTime` server-side from each
+/// player's `waitingSince` on every call, so both apps show a correct value
+/// from this same poll with no heartbeat at all.
 class HostCourtsTab extends ConsumerStatefulWidget {
   const HostCourtsTab({required this.session, super.key});
 
@@ -63,11 +62,10 @@ class _HostCourtsTabState extends ConsumerState<HostCourtsTab> {
     if (shouldPoll == (_poll != null)) return;
     _poll?.cancel();
     _poll = shouldPoll
-        ? Timer.periodic(_pollInterval, (_) {
-            ref
-              ..invalidate(sessionDetailProvider(widget.session.id))
-              ..invalidate(waitTimeStatsProvider(widget.session.id));
-          })
+        ? Timer.periodic(
+            _pollInterval,
+            (_) => ref.invalidate(sessionDetailProvider(widget.session.id)),
+          )
         : null;
   }
 
@@ -81,32 +79,9 @@ class _HostCourtsTabState extends ConsumerState<HostCourtsTab> {
     }
 
     final courts = session.orderedCourts;
-    // The stored `currentWaitTime` only advances via a heartbeat this app
-    // doesn't send (see the class doc comment); patch in the accurate,
-    // freshly-computed value so the waiting list — and the per-minute ticker
-    // that starts from it — isn't stuck at whatever it was on session load.
-    final waitTimes = session.status.isLive
-        ? ref.watch(waitTimeStatsProvider(session.id)).asData?.value
-        : null;
-    final displaySession = waitTimes == null || waitTimes.isEmpty
-        ? session
-        : session.copyWith(
-            players: [
-              for (final player in session.players)
-                if (waitTimes[player.id] case final minutes?)
-                  player.copyWith(currentWaitTime: minutes)
-                else
-                  player,
-            ],
-          );
 
     return RefreshIndicator(
-      onRefresh: () async {
-        await Future.wait([
-          ref.refresh(sessionDetailProvider(session.id).future),
-          ref.refresh(waitTimeStatsProvider(session.id).future),
-        ]);
-      },
+      onRefresh: () => ref.refresh(sessionDetailProvider(session.id).future),
       child: ListView.separated(
         padding: const EdgeInsets.all(AppSpacing.md),
         // Display toggle, every court, then the waiting queue.
@@ -122,7 +97,7 @@ class _HostCourtsTabState extends ConsumerState<HostCourtsTab> {
             );
           }
           if (index == courts.length + 1) {
-            return HostWaitingPlayers(session: displaySession);
+            return HostWaitingPlayers(session: session);
           }
           return HostCourtCard(session: session, court: courts[index - 1]);
         },

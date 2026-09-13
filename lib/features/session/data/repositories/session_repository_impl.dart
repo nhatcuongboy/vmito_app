@@ -311,19 +311,6 @@ class SessionRepositoryImpl implements SessionRepository {
   }
 
   @override
-  Future<Map<String, int>> waitTimeMinutes(String sessionId) async {
-    final response = await _client.get<Map<String, dynamic>>(
-      ApiEndpoints.sessionWaitTimes(sessionId),
-    );
-    final payload = unwrap(response.data, (json) => json);
-    final waitingPlayers = payload['waitingPlayers'] as List<dynamic>? ?? [];
-    return {
-      for (final player in waitingPlayers.cast<Map<String, dynamic>>())
-        player['id'] as String: (player['currentWaitTime'] as num).toInt(),
-    };
-  }
-
-  @override
   Future<SessionRecommendationsPage> recommendations(
     String sessionId, {
     required int limit,
