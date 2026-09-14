@@ -142,6 +142,38 @@ class SocialService {
     );
   }
 
+  Future<void> blockUser(String userId) async {
+    await _client.post<void>(
+      ApiEndpoints.userBlock(userId),
+      options: apiOptions(skipGlobalError: true),
+    );
+  }
+
+  Future<void> unblockUser(String userId) async {
+    await _client.delete<void>(
+      ApiEndpoints.userBlock(userId),
+      options: apiOptions(skipGlobalError: true),
+    );
+  }
+
+  Future<List<String>> blockedUsers() async {
+    final response = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.blockedUsers,
+    );
+    final payload = _payload(response.data);
+    final raw = switch (payload) {
+      final List<dynamic> list => list,
+      final Map<String, dynamic> map =>
+          map['data'] as List<dynamic>? ?? const <dynamic>[],
+      _ => const <dynamic>[],
+    };
+    return raw
+        .whereType<Map<String, dynamic>>()
+        .map((item) => (item['id'] as String?) ?? '')
+        .where((id) => id.isNotEmpty)
+        .toList(growable: false);
+  }
+
   Future<ClubPage> browseClubs({
     required int page,
     int limit = 20,

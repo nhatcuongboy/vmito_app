@@ -210,6 +210,9 @@ class _FeedTabState extends ConsumerState<_FeedTab> {
                     onReportPost: (postId) async => ref
                         .read(feedControllerProvider.notifier)
                         .reportPost(postId),
+                    onBlockUser: (userId) async => ref
+                        .read(feedControllerProvider.notifier)
+                        .blockUser(userId),
                   );
                 },
               ),

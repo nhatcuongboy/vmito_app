@@ -7,6 +7,7 @@ abstract final class SignUpFormControl {
   static const gender = 'gender';
   static const password = 'password';
   static const confirmPassword = 'confirmPassword';
+  static const acceptedTerms = 'acceptedTerms';
 }
 
 final _strongPassword = RegExp(
@@ -60,6 +61,10 @@ FormGroup createSignUpForm() => FormGroup(
     ),
     SignUpFormControl.confirmPassword: FormControl<String>(
       validators: [Validators.required],
+    ),
+    SignUpFormControl.acceptedTerms: FormControl<bool>(
+      value: false,
+      validators: [Validators.requiredTrue],
     ),
   },
   validators: [

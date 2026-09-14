@@ -50,49 +50,50 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.authResetHeading)),
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          // Align(topCenter) instead of Center: centers the form
+          // horizontally without vertically centering short content in the
+          // viewport, which stranded the form mid-screen on tablets. See the
+          // same fix on SignInScreen.
+          child: Align(
+            alignment: Alignment.topCenter,
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.xl),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        l10n.authResetHeading,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      if (token.isEmpty)
-                        _InvalidTokenContent(
-                          message: l10n.authResetMissingToken,
-                        )
-                      else
-                        _VerifiedResetContent(
-                          token: token,
-                          formKey: _formKey,
-                          passwordController: _passwordController,
-                          confirmController: _confirmController,
-                          obscurePassword: _obscurePassword,
-                          obscureConfirmation: _obscureConfirmation,
-                          onTogglePassword: () => setState(
-                            () => _obscurePassword = !_obscurePassword,
-                          ),
-                          onToggleConfirmation: () => setState(
-                            () => _obscureConfirmation = !_obscureConfirmation,
-                          ),
-                          onSubmit: _submit,
-                        ),
-                    ],
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: AppSpacing.xl),
+                  Text(
+                    l10n.authResetHeading,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
+                  const SizedBox(height: AppSpacing.lg),
+                  if (token.isEmpty)
+                    _InvalidTokenContent(
+                      message: l10n.authResetMissingToken,
+                    )
+                  else
+                    _VerifiedResetContent(
+                      token: token,
+                      formKey: _formKey,
+                      passwordController: _passwordController,
+                      confirmController: _confirmController,
+                      obscurePassword: _obscurePassword,
+                      obscureConfirmation: _obscureConfirmation,
+                      onTogglePassword: () => setState(
+                        () => _obscurePassword = !_obscurePassword,
+                      ),
+                      onToggleConfirmation: () => setState(
+                        () => _obscureConfirmation = !_obscureConfirmation,
+                      ),
+                      onSubmit: _submit,
+                    ),
+                ],
               ),
             ),
           ),

@@ -32,10 +32,12 @@ abstract final class ApiEndpoints {
   static const users = '/users';
   static const unreadFeedCount = '/users/unread-feed-count';
   static const markFeedAsRead = '/users/mark-feed-as-read';
+  static const blockedUsers = '/users/blocked';
 
   /// In-app account deletion. Required by App Store guideline 5.1.1(v).
   static const deleteAccount = '/users/me';
   static String user(String id) => '/users/$id';
+  static String userBlock(String id) => '/users/blocked/$id';
 
   static String publicUser(String id) => '/users/public/$id';
   static const uploadAvatar = '/upload/avatar';

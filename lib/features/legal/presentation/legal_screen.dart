@@ -68,35 +68,41 @@ class _LegalDocumentView extends StatelessWidget {
   final _LegalContent content;
 
   @override
-  Widget build(BuildContext context) => SelectionArea(
-    child: ListView(
-      key: PageStorageKey(content.title),
-      padding: const EdgeInsets.fromLTRB(
-        AppSpacing.screenPadding,
-        AppSpacing.lg,
-        AppSpacing.screenPadding,
-        AppSpacing.xxl,
-      ),
-      children: [
-        Text(content.title, style: Theme.of(context).textTheme.headlineSmall),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          content.lastUpdated,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(context).colorScheme.outline,
-          ),
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final lastUpdatedStyle = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+      fontWeight: FontWeight.w500,
+    );
+
+    return SelectionArea(
+      child: ListView(
+        key: PageStorageKey(content.title),
+        padding: const EdgeInsets.fromLTRB(
+          AppSpacing.screenPadding,
+          AppSpacing.lg,
+          AppSpacing.screenPadding,
+          AppSpacing.xxl,
         ),
-        const SizedBox(height: AppSpacing.lg),
-        Text(content.intro, style: const TextStyle(height: 1.5)),
-        for (final section in content.sections) ...[
+        children: [
+          Text(content.title, style: theme.textTheme.headlineSmall),
+          const SizedBox(height: AppSpacing.xs),
+          Text(content.lastUpdated, style: lastUpdatedStyle),
           const SizedBox(height: AppSpacing.lg),
-          Text(section.heading, style: Theme.of(context).textTheme.titleLarge),
-          const SizedBox(height: AppSpacing.sm),
-          Text(section.body, style: const TextStyle(height: 1.5)),
+          Text(content.intro, style: const TextStyle(height: 1.5)),
+          for (final section in content.sections) ...[
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              section.heading,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(section.body, style: const TextStyle(height: 1.5)),
+          ],
         ],
-      ],
-    ),
-  );
+      ),
+    );
+  }
 }
 
 _LegalContent _terms(AppLocalizations l10n) => _LegalContent(

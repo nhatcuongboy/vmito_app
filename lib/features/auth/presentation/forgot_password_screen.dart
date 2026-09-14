@@ -46,101 +46,102 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     return Scaffold(
       appBar: AppBar(title: Text(l10n.authForgotHeading)),
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          // Align(topCenter) instead of Center: centers the form
+          // horizontally without vertically centering short content in the
+          // viewport, which stranded the form mid-screen on tablets. See the
+          // same fix on SignInScreen.
+          child: Align(
+            alignment: Alignment.topCenter,
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.xl),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        l10n.authForgotHeading,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Text(
-                        l10n.authForgotDescription,
-                        textAlign: TextAlign.center,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      if (isSubmitted)
-                        AuthStatusPanel(
-                          message: l10n.authForgotSuccess,
-                          isError: false,
-                        )
-                      else
-                        Form(
-                          key: _formKey,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              if (state.hasError) ...[
-                                AuthStatusPanel(
-                                  message: _errorMessage(l10n, state.error),
-                                  isError: true,
-                                ),
-                                const SizedBox(height: AppSpacing.md),
-                              ],
-                              TextFormField(
-                                key: const ValueKey('forgot-email-field'),
-                                controller: _emailController,
-                                keyboardType: TextInputType.emailAddress,
-                                autofillHints: const [AutofillHints.email],
-                                textInputAction: TextInputAction.done,
-                                enabled: !state.isLoading,
-                                onFieldSubmitted: (_) =>
-                                    state.isLoading ? null : _submit(),
-                                decoration: InputDecoration(
-                                  labelText: l10n.authForgotEmail,
-                                  hintText: l10n.authForgotEmailPlaceholder,
-                                ),
-                                validator: (value) {
-                                  final email = value?.trim() ?? '';
-                                  if (email.isEmpty) {
-                                    return l10n.authForgotEmailRequired;
-                                  }
-                                  if (!email.contains('@')) {
-                                    return l10n.authForgotInvalidEmail;
-                                  }
-                                  return null;
-                                },
-                              ),
-                              const SizedBox(height: AppSpacing.lg),
-                              FilledButton(
-                                key: const ValueKey('forgot-submit-button'),
-                                onPressed: state.isLoading ? null : _submit,
-                                child: state.isLoading
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : Text(l10n.authForgotSubmit),
-                              ),
-                            ],
-                          ),
-                        ),
-                      const SizedBox(height: AppSpacing.lg),
-                      TextButton(
-                        onPressed: () => context.go(AppRoutes.signIn),
-                        child: Text(l10n.authBackToSignIn),
-                      ),
-                    ],
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: AppSpacing.xl),
+                  Text(
+                    l10n.authForgotHeading,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: theme.colorScheme.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    l10n.authForgotDescription,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  if (isSubmitted)
+                    AuthStatusPanel(
+                      message: l10n.authForgotSuccess,
+                      isError: false,
+                    )
+                  else
+                    Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (state.hasError) ...[
+                            AuthStatusPanel(
+                              message: _errorMessage(l10n, state.error),
+                              isError: true,
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                          ],
+                          TextFormField(
+                            key: const ValueKey('forgot-email-field'),
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            autofillHints: const [AutofillHints.email],
+                            textInputAction: TextInputAction.done,
+                            enabled: !state.isLoading,
+                            onFieldSubmitted: (_) =>
+                                state.isLoading ? null : _submit(),
+                            decoration: InputDecoration(
+                              labelText: l10n.authForgotEmail,
+                              hintText: l10n.authForgotEmailPlaceholder,
+                            ),
+                            validator: (value) {
+                              final email = value?.trim() ?? '';
+                              if (email.isEmpty) {
+                                return l10n.authForgotEmailRequired;
+                              }
+                              if (!email.contains('@')) {
+                                return l10n.authForgotInvalidEmail;
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: AppSpacing.lg),
+                          FilledButton(
+                            key: const ValueKey('forgot-submit-button'),
+                            onPressed: state.isLoading ? null : _submit,
+                            child: state.isLoading
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : Text(l10n.authForgotSubmit),
+                          ),
+                        ],
+                      ),
+                    ),
+                  const SizedBox(height: AppSpacing.lg),
+                  TextButton(
+                    onPressed: () => context.go(AppRoutes.signIn),
+                    child: Text(l10n.authBackToSignIn),
+                  ),
+                ],
               ),
             ),
           ),

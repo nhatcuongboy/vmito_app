@@ -544,12 +544,25 @@ class _MenuItem extends StatelessWidget {
     final featuredColor = theme.brightness == Brightness.dark
         ? const Color(0xFFE9D5FF)
         : const Color(0xFF6D28D9);
+    // Inactive rows: zinc-700 text / zinc-600 icon in light mode, lifted to
+    // zinc-300 / zinc-400 in dark mode to keep the same text-over-icon
+    // hierarchy legible against a dark surface.
+    final inactiveTextColor = theme.brightness == Brightness.dark
+        ? const Color(0xFFD4D4D8)
+        : const Color(0xFF3F3F46);
+    final inactiveIconColor = theme.brightness == Brightness.dark
+        ? const Color(0xFFA1A1AA)
+        : const Color(0xFF52525B);
     final color = isFeatured
         ? featuredColor
         : isActive
         ? theme.colorScheme.primary
-        : theme.colorScheme.onSurface;
-    final iconColor = isActive ? theme.colorScheme.onPrimary : color;
+        : inactiveTextColor;
+    final iconColor = isFeatured
+        ? featuredColor
+        : isActive
+        ? theme.colorScheme.onPrimary
+        : inactiveIconColor;
     final radius = BorderRadius.circular(AppRadius.xl);
 
     return Padding(

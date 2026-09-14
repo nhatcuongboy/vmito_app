@@ -30,6 +30,7 @@ class SocialPostCard extends ConsumerWidget {
     this.onPostChanged,
     this.onDeletePost,
     this.onReportPost,
+    this.onBlockUser,
     super.key,
   }) : _shareCardKey = GlobalKey();
 
@@ -41,6 +42,7 @@ class SocialPostCard extends ConsumerWidget {
   final ValueChanged<SocialPost>? onPostChanged;
   final Future<void> Function(String postId)? onDeletePost;
   final Future<void> Function(String postId)? onReportPost;
+  final Future<void> Function(String userId)? onBlockUser;
   final GlobalKey _shareCardKey;
 
   @override
@@ -71,6 +73,7 @@ class SocialPostCard extends ConsumerWidget {
               shareCardKey: _shareCardKey,
               onDeletePost: onDeletePost,
               onReportPost: onReportPost,
+              onBlockUser: onBlockUser,
             ),
 
             // ── Activity headline / body ────────────────────────────────────
@@ -176,6 +179,7 @@ class _PostHeader extends StatelessWidget {
     required this.shareCardKey,
     this.onDeletePost,
     this.onReportPost,
+    this.onBlockUser,
   });
 
   final SocialPost post;
@@ -184,6 +188,7 @@ class _PostHeader extends StatelessWidget {
   final GlobalKey shareCardKey;
   final Future<void> Function(String postId)? onDeletePost;
   final Future<void> Function(String postId)? onReportPost;
+  final Future<void> Function(String userId)? onBlockUser;
 
   @override
   Widget build(BuildContext context) {
@@ -331,6 +336,34 @@ class _PostHeader extends StatelessWidget {
                         SnackBar(content: Text(error.toString())),
                       );
                     }
+                  case 'block':
+                    final confirmed = await showAppConfirmDialog(
+                      context,
+                      title: l10n.socialBlockUser,
+                      content: l10n.socialBlockUserConfirm,
+                      confirmLabel: l10n.socialBlockUser,
+                    );
+                    if (confirmed != true) return;
+                    if (post.author.id.isEmpty) return;
+                    if (onBlockUser == null) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.socialUserBlocked)),
+                      );
+                      return;
+                    }
+                    try {
+                      await onBlockUser!(post.author.id);
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(l10n.socialUserBlocked)),
+                      );
+                    } on Object catch (error) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(error.toString())),
+                      );
+                    }
                 }
               },
               itemBuilder: (context) {
@@ -361,6 +394,20 @@ class _PostHeader extends StatelessWidget {
                       ),
                     ),
                   );
+                  if (post.author.id.isNotEmpty) {
+                    items.add(
+                      PopupMenuItem<String>(
+                        value: 'block',
+                        child: Row(
+                          children: [
+                            const Icon(AppIcons.userMinus, size: 18),
+                            const SizedBox(width: 12),
+                            Text(l10n.socialBlockUser),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
                 }
                 return items;
               },

@@ -47,17 +47,23 @@ class FeedState {
 }
 
 class FeedController extends Notifier<FeedState> {
+  final Set<String> _blockedUserIds = <String>{};
+
   @override
   FeedState build() => const FeedState();
 
   SocialService get _service => ref.read(socialServiceProvider);
+
+  List<SocialPost> _visiblePosts(Iterable<SocialPost> posts) => posts
+      .where((post) => !_blockedUserIds.contains(post.author.id))
+      .toList(growable: false);
 
   Future<void> load() async {
     state = state.copyWith(isLoading: true, clearError: true);
     try {
       final result = await _service.feed(page: 1);
       state = FeedState(
-        posts: result.posts,
+        posts: _visiblePosts(result.posts),
         page: result.page,
         hasMore: result.hasMore,
       );
@@ -70,7 +76,7 @@ class FeedController extends Notifier<FeedState> {
     try {
       final result = await _service.feed(page: 1);
       state = FeedState(
-        posts: result.posts,
+        posts: _visiblePosts(result.posts),
         page: result.page,
         hasMore: result.hasMore,
       );
@@ -93,16 +99,25 @@ class FeedController extends Notifier<FeedState> {
       final result = await _service.feed(page: state.page + 1);
       final ids = state.posts.map((post) => post.id).toSet();
       state = FeedState(
-        posts: [
+        posts: _visiblePosts([
           ...state.posts,
           ...result.posts.where((post) => !ids.contains(post.id)),
-        ],
+        ]),
         page: result.page,
         hasMore: result.hasMore,
       );
     } on Object catch (error) {
       state = state.copyWith(isLoadingMore: false, error: error);
     }
+  }
+
+  Future<void> blockUser(String userId) async {
+    if (userId.trim().isEmpty) return;
+    await _service.blockUser(userId);
+    _blockedUserIds.add(userId);
+    state = state.copyWith(
+      posts: _visiblePosts(state.posts),
+    );
   }
 
   Future<void> createPost(PostComposerDraft draft) async {
