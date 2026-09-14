@@ -299,6 +299,17 @@ abstract final class ApiEndpoints {
   static String tournamentCompleteGroupStage(String categoryId) =>
       '/categories/$categoryId/complete-group-stage';
 
+  // --- News -------------------------------------------------------------
+  static const articles = '/articles';
+  static String article(String slug) => '/articles/$slug';
+  static String articleRelated(String slug) => '/articles/$slug/related';
+  static const articleCategories = '/articles/categories';
+  static String articleView(String slug) => '/articles/$slug/view';
+
+  // --- Welcome popup ----------------------------------------------------
+  /// Public. Returns the single active popup, or null.
+  static const activeWelcomePopup = '/welcome-popups/active';
+
   // --- User images ----------------------------------------------------------
   static const userImages = '/user-images';
 

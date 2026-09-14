@@ -11,6 +11,7 @@ import 'package:vmito_app/core/widgets/court_call_listener.dart';
 import 'package:vmito_app/core/widgets/newsfeed_badge_lifecycle.dart';
 import 'package:vmito_app/core/widgets/push_notification_lifecycle.dart';
 import 'package:vmito_app/core/widgets/socket_identity_lifecycle.dart';
+import 'package:vmito_app/core/widgets/welcome_popup_lifecycle.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 /// The root widget. Wiring only — no business logic belongs here.
@@ -50,8 +51,10 @@ class VmitoApp extends ConsumerWidget {
               router: router,
               child: CourtCallListener(
                 router: router,
-                child: AppErrorListener(
-                  child: child ?? const SizedBox.shrink(),
+                child: WelcomePopupLifecycle(
+                  child: AppErrorListener(
+                    child: child ?? const SizedBox.shrink(),
+                  ),
                 ),
               ),
             ),

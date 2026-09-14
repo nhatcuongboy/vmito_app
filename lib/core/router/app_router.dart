@@ -20,6 +20,8 @@ import 'package:vmito_app/features/leaderboard/domain/leaderboard.dart';
 import 'package:vmito_app/features/leaderboard/domain/leaderboard_periods.dart';
 import 'package:vmito_app/features/leaderboard/presentation/leaderboard_screen.dart';
 import 'package:vmito_app/features/legal/presentation/legal_screen.dart';
+import 'package:vmito_app/features/news/presentation/news_detail_screen.dart';
+import 'package:vmito_app/features/news/presentation/news_list_screen.dart';
 import 'package:vmito_app/features/notification/presentation/notifications_screen.dart';
 import 'package:vmito_app/features/payment/presentation/reminders_screen.dart';
 import 'package:vmito_app/features/payment/presentation/transaction_dashboard_screen.dart';
@@ -153,6 +155,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
             path: ':id',
             builder: (context, state) =>
                 ClubDetailScreen(clubId: state.pathParameters['id']!),
+          ),
+        ],
+      ),
+      GoRoute(
+        path: AppRoutes.news,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const NewsListScreen(),
+        routes: [
+          GoRoute(
+            path: ':slug',
+            builder: (context, state) =>
+                NewsDetailScreen(slug: state.pathParameters['slug']!),
           ),
         ],
       ),

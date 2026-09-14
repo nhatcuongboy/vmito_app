@@ -10,6 +10,8 @@ abstract final class AppIcons {
   static const IconData sessions = LucideIcons.clipboard_list;
   static const IconData clipboardList = LucideIcons.clipboard_list;
   static const IconData feed = LucideIcons.newspaper;
+  static const IconData news = LucideIcons.scroll_text;
+  static const IconData megaphone = LucideIcons.megaphone;
   static const IconData notifications = LucideIcons.bell;
   static const IconData profile = LucideIcons.user;
   static const IconData venue = LucideIcons.map_pin;

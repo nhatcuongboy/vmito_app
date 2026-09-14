@@ -3400,5 +3400,33 @@
   "hostTournamentsDeleteConfirm": "您确定要删除此锦标赛吗？此操作无法撤销。",
   "hostTournamentsDeleted": "锦标赛已删除",
   "hostTournamentsDeleteFailed": "删除锦标赛失败",
-  "hostTournamentsClearSearch": "清除搜索"
+  "hostTournamentsClearSearch": "清除搜索",
+  "navNews": "资讯",
+  "newsTitle": "资讯",
+  "newsCategoryAll": "全部",
+  "newsCategoryNews": "资讯",
+  "newsCategoryTutorial": "教程",
+  "newsCategoryTournament": "锦标赛",
+  "newsCategoryEquipment": "装备",
+  "newsCategoryCommunity": "社区",
+  "newsReadingTime": "阅读需 {minutes} 分钟",
+  "@newsReadingTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "newsViews": "{count} 次浏览",
+  "@newsViews": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "newsRelatedArticles": "相关文章",
+  "newsTags": "标签",
+  "newsEmptyState": "暂无文章",
+  "newsErrorState": "无法加载文章"
 }

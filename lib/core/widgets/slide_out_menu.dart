@@ -164,6 +164,13 @@ class SlideOutMenu extends ConsumerWidget {
                               AppRoutes.homeForDiscoveryTab('tournaments'),
                             ),
                           ),
+                          _MenuItem(
+                            itemKey: const Key('menu-discovery-news'),
+                            icon: AppIcons.news,
+                            label: l10n.navNews,
+                            isActive: isActive(AppRoutes.news),
+                            onTap: () => pushTo(AppRoutes.news),
+                          ),
                           if (isSignedIn)
                             _MenuItem(
                               icon: AppIcons.award,

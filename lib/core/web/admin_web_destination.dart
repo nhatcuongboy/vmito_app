@@ -19,7 +19,9 @@ enum AdminWebDestination {
   levelDescriptions('/admin/level-descriptions', AppIcons.award),
   points('/admin/points', AppIcons.sparkles),
   venues('/admin/venues', AppIcons.location),
-  clubApproval('/admin/clubs/pending', AppIcons.shieldCheck);
+  clubApproval('/admin/clubs/pending', AppIcons.shieldCheck),
+  news('/admin/news', AppIcons.news),
+  welcomePopup('/admin/welcome-popups', AppIcons.megaphone);
 
   const AdminWebDestination(this.relativePath, this.icon);
 
@@ -38,6 +40,8 @@ enum AdminWebDestination {
       points => 'Points & Ranking',
       venues => 'Venues',
       clubApproval => 'Club Approval',
+      news => 'News Management',
+      welcomePopup => 'Welcome Popup',
     },
     'zh' => switch (this) {
       dashboard => '控制台',
@@ -50,6 +54,8 @@ enum AdminWebDestination {
       points => '积分与排名',
       venues => '场地',
       clubApproval => '审核社群',
+      news => '资讯管理',
+      welcomePopup => '欢迎弹窗',
     },
     _ => switch (this) {
       dashboard => 'Bảng điều khiển',
@@ -62,6 +68,8 @@ enum AdminWebDestination {
       points => 'Điểm & xếp hạng',
       venues => 'Sân bãi',
       clubApproval => 'Duyệt nhóm',
+      news => 'Quản lý tin tức',
+      welcomePopup => 'Popup chào mừng',
     },
   };
 

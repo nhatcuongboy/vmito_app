@@ -3550,5 +3550,33 @@
   "hostTournamentsDeleteConfirm": "Are you sure you want to delete this tournament? This action cannot be undone.",
   "hostTournamentsDeleted": "Tournament deleted",
   "hostTournamentsDeleteFailed": "Failed to delete tournament",
-  "hostTournamentsClearSearch": "Clear search"
+  "hostTournamentsClearSearch": "Clear search",
+  "navNews": "News",
+  "newsTitle": "News",
+  "newsCategoryAll": "All",
+  "newsCategoryNews": "News",
+  "newsCategoryTutorial": "Tutorials",
+  "newsCategoryTournament": "Tournaments",
+  "newsCategoryEquipment": "Equipment",
+  "newsCategoryCommunity": "Community",
+  "newsReadingTime": "{minutes, plural, =1{1 min read} other{{minutes} min read}}",
+  "@newsReadingTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "newsViews": "{count, plural, =1{1 view} other{{count} views}}",
+  "@newsViews": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "newsRelatedArticles": "Related articles",
+  "newsTags": "Tags",
+  "newsEmptyState": "No articles yet",
+  "newsErrorState": "Couldn't load articles"
 }

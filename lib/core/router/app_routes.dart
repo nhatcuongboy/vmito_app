@@ -89,6 +89,8 @@ abstract final class AppRoutes {
   static String venueDetail(String id) => '/venues/$id';
   static const clubs = '/clubs';
   static String clubDetail(String id) => '/clubs/$id';
+  static const news = '/news';
+  static String newsDetail(String slug) => '/news/$slug';
   static String socialPost(String id) => '/feed/$id';
   static String socialClub(String id) => '/feed/clubs/$id';
   static const manageClubs = '/feed/manage';
@@ -209,6 +211,7 @@ abstract final class AppRoutes {
     venues,
     clubs,
     tournaments,
+    news,
     join,
     scanQr,
   ];

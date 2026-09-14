@@ -3612,5 +3612,33 @@
   "hostTournamentsDeleteConfirm": "Bạn có chắc chắn muốn xoá giải đấu này? Hành động này không thể hoàn tác.",
   "hostTournamentsDeleted": "Đã xoá giải đấu",
   "hostTournamentsDeleteFailed": "Xoá giải đấu thất bại",
-  "hostTournamentsClearSearch": "Xoá tìm kiếm"
+  "hostTournamentsClearSearch": "Xoá tìm kiếm",
+  "navNews": "Tin tức",
+  "newsTitle": "Tin tức",
+  "newsCategoryAll": "Tất cả",
+  "newsCategoryNews": "Tin tức",
+  "newsCategoryTutorial": "Hướng dẫn",
+  "newsCategoryTournament": "Giải đấu",
+  "newsCategoryEquipment": "Dụng cụ",
+  "newsCategoryCommunity": "Cộng đồng",
+  "newsReadingTime": "{minutes} phút đọc",
+  "@newsReadingTime": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "newsViews": "{count} lượt xem",
+  "@newsViews": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "newsRelatedArticles": "Bài viết liên quan",
+  "newsTags": "Thẻ",
+  "newsEmptyState": "Chưa có bài viết nào",
+  "newsErrorState": "Không thể tải bài viết"
 }
