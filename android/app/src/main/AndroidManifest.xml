@@ -39,6 +39,22 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- App Links: opens the app instead of the browser when the
+                 install banner/popup's CTA (vmito-fe's /get-app) is tapped
+                 and the app is already installed. autoVerify requires the
+                 web app to keep serving a valid
+                 /.well-known/assetlinks.json listing this app's package
+                 name and signing certificate SHA-256 — see vmito-fe's
+                 docs/ENVIRONMENT_VARIABLES.md. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:scheme="https"
+                    android:host="vmito.com"
+                    android:pathPrefix="/get-app" />
+            </intent-filter>
         </activity>
         <activity
             android:name="com.linusu.flutter_web_auth_2.CallbackActivity"

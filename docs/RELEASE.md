@@ -372,6 +372,49 @@ early).
 3. Create an **App Store Connect API key** (Users and Access → Integrations)
    for non-interactive uploads. Store the `.p8` outside the repo.
 
+### 5.3 Universal Links / App Links (vmito.com)
+
+Lets vmito-fe's install banner/popup CTA open this app directly instead of
+the store when it's already installed — see `vmito-fe`'s
+`docs/ENVIRONMENT_VARIABLES.md` and `src/app/.well-known/*` for the web side.
+
+**Already wired in this repo:**
+
+- iOS: `com.apple.developer.associated-domains` = `applinks:vmito.com` in
+  [ios/Runner/Runner.entitlements](../ios/Runner/Runner.entitlements).
+- Android: `autoVerify="true"` intent-filter on `.MainActivity` for
+  `https://vmito.com/get-app*` in
+  [android/app/src/main/AndroidManifest.xml](../android/app/src/main/AndroidManifest.xml).
+- `vmito-fe`'s `.env.example` already has the real `APPLE_TEAM_ID`
+  (`NR2N74D46N`), `IOS_BUNDLE_ID`, and `NEXT_PUBLIC_ANDROID_PACKAGE_NAME`
+  (both `com.vmito.app`) needed to generate a correct
+  `apple-app-site-association`.
+
+**Still blocked on external setup, not on repo code:**
+
+- iOS: the **Associated Domains** capability must be enabled for the
+  `com.vmito.app` App ID in the Apple Developer portal (Certificates,
+  Identifiers & Profiles → Identifiers → capabilities) — the entitlements
+  file alone does not register it. Without this, the entitlement is
+  present but inert.
+- Android: `vmito-fe`'s `ANDROID_SHA256_FINGERPRINTS` is still empty. Once
+  Play App Signing is enrolled (§8, first upload), the real value is the
+  **Play App Signing certificate's SHA-256**, from Play Console → your app
+  → Test and release → Setup → App integrity → App signing. This is *not*
+  the local upload/debug keystore's fingerprint — Play re-signs the app
+  with its own key before distributing it, so that's the certificate an
+  installed device actually carries.
+- Until both land, tapping the web CTA simply falls through to
+  `/get-app`'s normal UA-based store redirect — no breakage either way.
+
+To verify locally with a debug build in the meantime (won't match what the
+production App Links check needs, but proves the plumbing end-to-end): get
+this machine's debug keystore fingerprint with
+`keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android`
+and set it as `ANDROID_SHA256_FINGERPRINTS` in `vmito-fe`'s `.env.local`
+only — never commit a personal debug fingerprint to `.env.example`, since
+every machine's debug keystore differs.
+
 ---
 
 ## 6. Versioning
