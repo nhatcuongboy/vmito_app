@@ -108,7 +108,7 @@ class _RegisterSessionSheetState extends ConsumerState<_RegisterSessionSheet> {
     try {
       await ref
           .read(myRegistrationProvider(widget.session.id).notifier)
-          .register(_drafts);
+          .register(_drafts, accessCode: widget.session.accessCode);
       messenger.showSnackBar(
         SnackBar(content: Text(l10n.registrationSuccessPending)),
       );

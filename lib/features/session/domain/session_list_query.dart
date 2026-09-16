@@ -8,8 +8,8 @@ class SessionListQuery {
     this.search,
     this.status,
     this.excludedStatuses = const [],
-    this.sortBy = 'startTime',
-    this.sortOrder = 'desc',
+    this.sortBy = 'date',
+    this.sortOrder = 'asc',
   });
 
   final int page;

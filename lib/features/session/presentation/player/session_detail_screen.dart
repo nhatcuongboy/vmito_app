@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:vmito_app/core/network/api_exception.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
@@ -37,21 +38,42 @@ import 'package:vmito_app/shared/widgets/detail_hero_header.dart';
 /// board keeps its own screen — see [AppRoutes.liveSession].
 ///
 /// Reachable signed-out, like browse.
-class SessionDetailScreen extends ConsumerWidget {
-  const SessionDetailScreen({required this.sessionId, super.key});
+class SessionDetailScreen extends ConsumerStatefulWidget {
+  const SessionDetailScreen({
+    required this.sessionId,
+    this.initialAccessCode,
+    super.key,
+  });
 
   final String sessionId;
+  final String? initialAccessCode;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final session = ref.watch(sessionDetailProvider(sessionId));
+  ConsumerState<SessionDetailScreen> createState() =>
+      _SessionDetailScreenState();
+}
+
+class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
+  @override
+  void initState() {
+    super.initState();
+    final initialCode = widget.initialAccessCode?.trim();
+    if (initialCode != null && initialCode.isNotEmpty) {
+      ref.read(sessionAccessCodeProvider(widget.sessionId).notifier).state =
+          initialCode;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final session = ref.watch(sessionDetailProvider(widget.sessionId));
     // Keeps the bar honest while the screen is open: the host approving on
     // another device flips "Xem vé" to "Vào sân" without a manual refresh.
-    ref.watch(registrationRealtimeProvider(sessionId));
+    ref.watch(registrationRealtimeProvider(widget.sessionId));
 
     final isSignedIn = ref.watch(isSignedInProvider);
     final registrationStatus = isSignedIn
-        ? ref.watch(myRegistrationStatusProvider(sessionId))
+        ? ref.watch(myRegistrationStatusProvider(widget.sessionId))
         : null;
 
     return Scaffold(
@@ -59,34 +81,44 @@ class SessionDetailScreen extends ConsumerWidget {
       // runs under the status bar exactly as it does on web.
       body: session.when(
         loading: () => const SessionDetailSkeleton(),
-        error: (error, _) => SafeArea(
-          child: Stack(
-            children: [
-              AppErrorView(
-                error: error,
-                onRetry: () => ref.invalidate(sessionDetailProvider(sessionId)),
-              ),
-              Positioned(
-                top: AppSpacing.md,
-                left: AppSpacing.md,
-                child: IconButton.filledTonal(
-                  icon: const Icon(AppIcons.arrowBack),
-                  onPressed: () {
-                    if (context.canPop()) {
-                      context.pop();
-                    } else {
-                      unawaited(Navigator.of(context).maybePop());
-                    }
-                  },
+        error: (error, _) {
+          if (error is ApiException && error.isAccessCodeRequired) {
+            return _AccessCodePromptView(
+              sessionId: widget.sessionId,
+              errorMessage: error.hasServerMessage ? error.message : null,
+            );
+          }
+          return SafeArea(
+            child: Stack(
+              children: [
+                AppErrorView(
+                  error: error,
+                  onRetry: () =>
+                      ref.invalidate(sessionDetailProvider(widget.sessionId)),
                 ),
-              ),
-            ],
-          ),
-        ),
+                Positioned(
+                  top: AppSpacing.md,
+                  left: AppSpacing.md,
+                  child: IconButton.filledTonal(
+                    icon: const Icon(AppIcons.arrowBack),
+                    onPressed: () {
+                      if (context.canPop()) {
+                        context.pop();
+                      } else {
+                        unawaited(Navigator.of(context).maybePop());
+                      }
+                    },
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
         data: (session) => _Body(
           session: session,
           registrationStatus: registrationStatus,
-          onRefresh: () => ref.refresh(sessionDetailProvider(sessionId).future),
+          onRefresh: () =>
+              ref.refresh(sessionDetailProvider(widget.sessionId).future),
         ),
       ),
       bottomNavigationBar: session.whenOrNull(
@@ -364,18 +396,148 @@ class _BodyState extends State<_Body> {
   Future<void> _share(BuildContext context, Session session) async {
     final l10n = AppLocalizations.of(context);
     final box = context.findRenderObject();
+    final shareUrl =
+        session.isInternal &&
+            session.accessCode != null &&
+            session.accessCode!.isNotEmpty
+        ? 'https://vmito.com/sessions/${session.slug ?? session.id}?code=${session.accessCode}'
+        : 'https://vmito.com/sessions/${session.slug ?? session.id}';
     await SharePlus.instance.share(
       ShareParams(
         title: session.name,
-        text:
-            '${session.name}\n'
-            'https://vmito.com/sessions/${session.slug ?? session.id}',
+        text: '${session.name}\n$shareUrl',
         subject: l10n.sessionShareAction,
         // iPad anchors the share sheet to the tapped rect; without it the
         // sheet throws rather than opening.
         sharePositionOrigin: box is RenderBox
             ? box.localToGlobal(Offset.zero) & box.size
             : null,
+      ),
+    );
+  }
+}
+
+class _AccessCodePromptView extends ConsumerStatefulWidget {
+  const _AccessCodePromptView({
+    required this.sessionId,
+    this.errorMessage,
+  });
+
+  final String sessionId;
+  final String? errorMessage;
+
+  @override
+  ConsumerState<_AccessCodePromptView> createState() =>
+      _AccessCodePromptViewState();
+}
+
+class _AccessCodePromptViewState extends ConsumerState<_AccessCodePromptView> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(
+      text: ref.read(sessionAccessCodeProvider(widget.sessionId)) ?? '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    final code = _controller.text.trim();
+    if (code.isEmpty) return;
+    ref.read(sessionAccessCodeProvider(widget.sessionId).notifier).state = code;
+    ref.invalidate(sessionDetailProvider(widget.sessionId));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(AppIcons.arrowBack),
+          onPressed: () => Navigator.of(context).maybePop(),
+        ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 76,
+                    height: 76,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.lock_outline,
+                      size: 38,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  Text(
+                    l10n.sessionAccessCodeRequiredTitle,
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    l10n.sessionAccessCodePrompt,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  TextField(
+                    key: const Key('session-access-code-input'),
+                    controller: _controller,
+                    textCapitalization: TextCapitalization.characters,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      labelText: l10n.sessionAccessCode,
+                      hintText: l10n.sessionAccessCodePlaceholder,
+                      prefixIcon: const Icon(Icons.key_outlined),
+                      errorText: widget.errorMessage,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(AppRadius.md),
+                      ),
+                    ),
+                    onSubmitted: (_) => _submit(),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      key: const Key('session-unlock-button'),
+                      onPressed: _submit,
+                      child: Text(l10n.sessionUnlockAction),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

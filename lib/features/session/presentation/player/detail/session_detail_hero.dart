@@ -102,6 +102,8 @@ class _SessionDetailHeroState extends State<SessionDetailHero> {
             mainAxisSize: MainAxisSize.min,
             spacing: AppSpacing.sm,
             children: [
+              if (widget.session.isInternal)
+                const _InternalBadge(),
               if (widget.session.isCrawled)
                 const _CrawledBadge()
               else
@@ -224,16 +226,29 @@ class _StatusBadge extends StatelessWidget {
   }
 }
 
+class _InternalBadge extends StatelessWidget {
+  const _InternalBadge();
+
+  @override
+  Widget build(BuildContext context) => _Pill(
+    label: AppLocalizations.of(context).sessionInternalBadge,
+    background: Colors.deepPurple,
+    icon: Icons.lock,
+  );
+}
+
 class _Pill extends StatelessWidget {
   const _Pill({
     required this.label,
     required this.background,
     this.foreground = Colors.white,
+    this.icon,
   });
 
   final String label;
   final Color background;
   final Color foreground;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -252,12 +267,21 @@ class _Pill extends StatelessWidget {
         ),
       ],
     ),
-    child: Text(
-      label,
-      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-        color: foreground,
-        fontWeight: FontWeight.w600,
-      ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (icon != null) ...[
+          Icon(icon, size: 13, color: foreground),
+          const SizedBox(width: 4),
+        ],
+        Text(
+          label,
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+            color: foreground,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
     ),
   );
 }

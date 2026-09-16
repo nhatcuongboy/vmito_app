@@ -8,6 +8,8 @@ import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/auth/domain/user.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
+import 'package:vmito_app/features/roster/application/roster_controller.dart';
+import 'package:vmito_app/features/roster/domain/player_profile.dart';
 import 'package:vmito_app/features/social/application/club_management_controller.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
@@ -168,6 +170,7 @@ Future<void> _pump(
   double textScale = 1,
   User? currentUser,
   List<ClubJoinRequest> myClubRequests = const [],
+  List<PlayerProfile> guests = const [],
 }) async {
   _TestClubManagementController.addedUserId = null;
   _TestClubManagementController.removedUserId = null;
@@ -184,6 +187,7 @@ Future<void> _pump(
       ),
       overrides: [
         clubDetailProvider.overrideWith((ref, id) async => club),
+        clubRosterProvider.overrideWith((ref, id) async => guests),
         clubAnnouncementsProvider.overrideWith((ref, id) async => const []),
         clubUserSearchProvider.overrideWith(
           (ref, search) async => search.query == 'Lan'
@@ -416,22 +420,19 @@ void main() {
     tester,
   ) async {
     await _pump(tester, club: _memberClub, currentUser: _memberUser);
-    await tester.tap(find.byType(Tab).at(1));
-    await tester.pumpAndSettle();
-    expect(find.text('TB-'), findsOneWidget);
-
-    final status = tester.widget<OutlinedButton>(
-      find.byKey(const Key('club-membership-status-button')),
-    );
-
-    expect(status.style?.backgroundColor?.resolve({}), isNotNull);
-    expect(find.text('Đã tham gia'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('club-membership-status-button')));
+    expect(find.byIcon(Icons.more_vert), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.more_vert));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('club-leave-group-button')), findsOneWidget);
-    expect(find.byIcon(AppIcons.userMinus), findsOneWidget);
     expect(find.text('Rời nhóm'), findsOneWidget);
+    await tester.tap(find.text('Rời nhóm'));
+    await tester.pumpAndSettle();
+
+    expect(find.byType(AlertDialog), findsOneWidget);
+    expect(
+      find.text('Bạn có chắc muốn rời khỏi nhóm "Nhóm của thành viên" không?'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('ports member header, badges and incremental view more', (
@@ -639,6 +640,45 @@ void main() {
     expect(find.text('Chưa có mô tả.'), findsOneWidget);
     expect(find.byType(HtmlWidget), findsNothing);
     expect(find.textContaining('ignored'), findsNothing);
+  });
+
+  testWidgets('shows guest members in members tab with normal member UI', (
+    tester,
+  ) async {
+    const guest = PlayerProfile(
+      id: 'guest-1',
+      name: 'Khách mời A',
+      phone: '0912345678',
+      level: 4,
+      clubId: 'member-club',
+    );
+    await _pump(
+      tester,
+      club: _memberClub,
+      currentUser: _adminUser,
+      guests: const [guest],
+    );
+
+    // Switch to Members tab
+    await tester.tap(find.byType(Tab).at(1));
+    await tester.pumpAndSettle();
+
+    // Verify official member and guest member are both rendered as normal members
+    expect(find.text('Thành viên'), findsWidgets);
+    expect(find.text('Khách mời A'), findsOneWidget);
+    expect(find.text('Thành viên khách'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('club-member-guest-guest-1')),
+      findsOneWidget,
+    );
+
+    // Tap on guest member card to view details
+    await tester.tap(find.byKey(const ValueKey('club-member-guest-guest-1')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Thông tin thành viên'), findsOneWidget);
+    expect(find.byKey(const Key('club-member-edit-guest')), findsOneWidget);
+    expect(find.text('Sửa'), findsOneWidget);
   });
 }
 

@@ -104,7 +104,7 @@ abstract interface class SessionRepository {
 
   Future<void> cancel(String id);
 
-  Future<Session> byId(String id);
+  Future<Session> byId(String id, {String? code});
 
   /// Sessions similar to [sessionId], ranked by the backend.
   ///

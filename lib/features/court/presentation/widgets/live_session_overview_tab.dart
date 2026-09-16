@@ -221,10 +221,13 @@ class LiveSessionOverviewTab extends ConsumerWidget {
 
   Future<void> _share(BuildContext context, Session session) async {
     final box = context.findRenderObject();
+    final accessCodeSuffix = session.isInternal && session.accessCode != null
+        ? '?code=${session.accessCode}'
+        : '';
     await SharePlus.instance.share(
       ShareParams(
         text:
-            '${session.name}\nhttps://vmito.com/vi/sessions/${session.slug ?? session.id}',
+            '${session.name}\nhttps://vmito.com/vi/sessions/${session.slug ?? session.id}$accessCodeSuffix',
         // iPad anchors the share sheet to the tapped rect; without it the
         // sheet throws rather than opening.
         sharePositionOrigin: box is RenderBox

@@ -63,11 +63,16 @@ class RegistrationRepository {
   /// backend's message inline, matching the web modal.
   Future<void> register(
     String sessionId,
-    List<Map<String, dynamic>> players,
-  ) async {
+    List<Map<String, dynamic>> players, {
+    String? accessCode,
+  }) async {
     await _client.post<dynamic>(
       ApiEndpoints.sessionRegister(sessionId),
-      data: {'players': players},
+      data: {
+        'players': players,
+        if (accessCode != null && accessCode.isNotEmpty)
+          'accessCode': accessCode,
+      },
       options: apiOptions(skipGlobalError: true),
     );
   }

@@ -12,6 +12,7 @@ class ApiException implements Exception {
     this.statusCode,
     this.raw,
     this.hasServerMessage = false,
+    this.errorCode,
   });
 
   factory ApiException.fromDio(DioException e) {
@@ -27,12 +28,14 @@ class ApiException implements Exception {
     };
 
     final serverMessage = _extractMessage(e.response?.data);
+    final errorCode = _extractErrorCode(e.response?.data);
     return ApiException(
       kind: kind,
       message: serverMessage ?? kind.defaultMessage,
       statusCode: status,
       raw: e.response?.data ?? e.message,
       hasServerMessage: serverMessage != null,
+      errorCode: errorCode,
     );
   }
 
@@ -41,6 +44,7 @@ class ApiException implements Exception {
   /// Short, user-safe text. Screens may show this directly.
   final String message;
   final int? statusCode;
+  final String? errorCode;
 
   /// Unsanitised body — for logs only, never for the UI.
   final Object? raw;
@@ -49,6 +53,11 @@ class ApiException implements Exception {
   bool get isUnauthorized => statusCode == 401;
   bool get isForbidden => statusCode == 403;
   bool get isNotFound => statusCode == 404;
+
+  bool get isAccessCodeRequired =>
+      isForbidden &&
+      (errorCode == 'SESSION_ACCESS_CODE_REQUIRED' ||
+          message.toLowerCase().contains('mã truy cập'));
 
   /// True when a retry could plausibly succeed — drives "Try again" buttons.
   bool get isRetryable =>
@@ -93,6 +102,18 @@ class ApiException implements Exception {
     }
 
     return _asText(body['message']) ?? _asText(nested);
+  }
+
+  static String? _extractErrorCode(dynamic body) {
+    if (body is! Map) return null;
+    final code = body['code'];
+    if (code is String && code.isNotEmpty) return code;
+    final nested = body['error'];
+    if (nested is Map) {
+      final nestedCode = nested['code'];
+      if (nestedCode is String && nestedCode.isNotEmpty) return nestedCode;
+    }
+    return null;
   }
 
   /// Validation failures arrive as a list; join them so the user sees every

@@ -3,6 +3,8 @@
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/features/payment/application/payment_providers.dart';
+import 'package:vmito_app/features/roster/data/roster_service.dart';
+import 'package:vmito_app/features/roster/domain/host_recent_player.dart';
 import 'package:vmito_app/features/session/application/player/session_detail_controller.dart';
 import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
 import 'package:vmito_app/features/session/domain/host_player.dart';
@@ -14,40 +16,48 @@ import 'package:vmito_app/features/social/domain/club.dart';
 class HostAddPlayersState {
   const HostAddPlayersState({
     this.users = const [],
+    this.recentPlayers = const [],
     this.clubs = const [],
     this.feesByClubId = const {},
     this.monthlyMemberUserIds = const {},
     this.loadingUsers = false,
+    this.loadingRecentPlayers = false,
     this.loadingClubData = false,
     this.submitting = false,
     this.error,
   });
 
   final List<HostPlayerUserOption> users;
+  final List<HostRecentPlayer> recentPlayers;
   final List<ClubSummary> clubs;
   final Map<String, ClubFeeConfig> feesByClubId;
   final Set<String> monthlyMemberUserIds;
   final bool loadingUsers;
+  final bool loadingRecentPlayers;
   final bool loadingClubData;
   final bool submitting;
   final Object? error;
 
   HostAddPlayersState copyWith({
     List<HostPlayerUserOption>? users,
+    List<HostRecentPlayer>? recentPlayers,
     List<ClubSummary>? clubs,
     Map<String, ClubFeeConfig>? feesByClubId,
     Set<String>? monthlyMemberUserIds,
     bool? loadingUsers,
+    bool? loadingRecentPlayers,
     bool? loadingClubData,
     bool? submitting,
     Object? error,
     bool clearError = false,
   }) => HostAddPlayersState(
     users: users ?? this.users,
+    recentPlayers: recentPlayers ?? this.recentPlayers,
     clubs: clubs ?? this.clubs,
     feesByClubId: feesByClubId ?? this.feesByClubId,
     monthlyMemberUserIds: monthlyMemberUserIds ?? this.monthlyMemberUserIds,
     loadingUsers: loadingUsers ?? this.loadingUsers,
+    loadingRecentPlayers: loadingRecentPlayers ?? this.loadingRecentPlayers,
     loadingClubData: loadingClubData ?? this.loadingClubData,
     submitting: submitting ?? this.submitting,
     error: clearError ? null : error ?? this.error,
@@ -59,6 +69,7 @@ class HostAddPlayersController extends Notifier<HostAddPlayersState> {
 
   final String sessionId;
   int _searchGeneration = 0;
+  int _recentGeneration = 0;
   bool _initialized = false;
 
   @override
@@ -128,6 +139,25 @@ class HostAddPlayersController extends Notifier<HostAddPlayersState> {
     } on Object catch (error) {
       if (generation != _searchGeneration) return;
       state = state.copyWith(loadingUsers: false, error: error);
+    }
+  }
+
+  Future<void> loadRecentPlayers({String? clubId, String? search}) async {
+    final generation = ++_recentGeneration;
+    state = state.copyWith(loadingRecentPlayers: true, clearError: true);
+    try {
+      final recent = await ref.read(rosterServiceProvider).getHostRecentPlayers(
+            clubId: clubId,
+            search: search,
+          );
+      if (generation != _recentGeneration) return;
+      state = state.copyWith(
+        recentPlayers: recent,
+        loadingRecentPlayers: false,
+      );
+    } on Object catch (error) {
+      if (generation != _recentGeneration) return;
+      state = state.copyWith(loadingRecentPlayers: false, error: error);
     }
   }
 

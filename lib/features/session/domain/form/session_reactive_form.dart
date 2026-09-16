@@ -53,6 +53,7 @@ abstract final class SessionFormControl {
   static const referenceVideo = 'referenceVideo';
   static const clubId = 'clubId';
   static const clubLabel = 'clubLabel';
+  static const isInternal = 'isInternal';
 
   static const courtId = 'id';
   static const courtKey = 'key';
@@ -178,6 +179,7 @@ FormGroup createSessionReactiveForm(SessionFormState state) => FormGroup({
   ),
   SessionFormControl.clubId: FormControl<String>(value: state.clubId),
   SessionFormControl.clubLabel: FormControl<String>(value: state.clubLabel),
+  SessionFormControl.isInternal: FormControl<bool>(value: state.isInternal),
 });
 
 FormGroup sessionCourtForm(SessionCourtDraft court) => FormGroup({
@@ -290,6 +292,8 @@ extension SessionReactiveFormValue on FormGroup {
           sessionValue<String>(SessionFormControl.referenceVideo) ?? '',
       clubId: sessionValue<String>(SessionFormControl.clubId) ?? '',
       clubLabel: sessionValue<String>(SessionFormControl.clubLabel) ?? '',
+      isInternal:
+          sessionValue<bool>(SessionFormControl.isInternal) ?? false,
     );
   }
 }

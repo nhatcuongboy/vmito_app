@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -11,9 +12,13 @@ import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/core/widgets/user_avatar.dart';
+import 'package:vmito_app/features/roster/application/roster_controller.dart';
+import 'package:vmito_app/features/roster/presentation/widgets/player_profile_form_sheet.dart';
 import 'package:vmito_app/features/social/application/club_management_controller.dart';
+import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/domain/club.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
+import 'package:vmito_app/shared/models/session_player.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
 import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
 import 'package:vmito_app/shared/widgets/skill_level_badge.dart';
@@ -50,7 +55,29 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
 
   @override
   Widget build(BuildContext context) {
-    final sortedMembers = [...widget.club.members]
+    final guests =
+        ref.watch(clubRosterProvider(widget.club.id)).value ?? const [];
+    final guestMembers = guests.map(
+      (guest) => ClubMember(
+        id: guest.id,
+        userId: guest.linkedUserId ?? 'guest-${guest.id}',
+        name: guest.name,
+        email: guest.phone ?? '',
+        role: 'GUEST',
+        gender: switch (guest.gender) {
+          Gender.male => 'MALE',
+          Gender.female => 'FEMALE',
+          Gender.other => 'OTHER',
+          null => null,
+        },
+        level: guest.level,
+        createdAt: guest.createdAt,
+      ),
+    );
+
+    final allMembers = [...widget.club.members, ...guestMembers];
+
+    final sortedMembers = [...allMembers]
       ..sort((a, b) {
         final aIsHost = _isHostMember(a);
         final bIsHost = _isHostMember(b);
@@ -63,6 +90,10 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
         final aIsAdmin = a.role == 'ADMIN';
         final bIsAdmin = b.role == 'ADMIN';
         if (aIsAdmin != bIsAdmin) return aIsAdmin ? -1 : 1;
+
+        final aIsGuest = a.role == 'GUEST';
+        final bIsGuest = b.role == 'GUEST';
+        if (aIsGuest != bIsGuest) return aIsGuest ? 1 : -1;
 
         return a.name.compareTo(b.name);
       });
@@ -108,7 +139,7 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        _header(context),
+                        _header(context, totalCount: allMembers.length),
                         const SizedBox(height: AppSpacing.sm),
                         if (members.isEmpty)
                           _emptyState(context)
@@ -161,14 +192,11 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
     );
   }
 
-  Widget _header(BuildContext context) {
+  Widget _header(BuildContext context, {required int totalCount}) {
     final theme = Theme.of(context);
     final palette = theme.extension<AppPalette>()!;
     final l10n = AppLocalizations.of(context);
-    return Wrap(
-      alignment: WrapAlignment.end,
-      spacing: AppSpacing.sm,
-      runSpacing: AppSpacing.sm,
+    return Row(
       children: [
         Container(
           key: const Key('club-members-count'),
@@ -181,17 +209,19 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
             borderRadius: BorderRadius.circular(AppRadius.pill),
           ),
           child: Text(
-            l10n.clubMembersCount(widget.club.memberCount),
+            l10n.clubMembersCount(totalCount),
             style: theme.textTheme.labelSmall,
           ),
         ),
-        if (widget.isAdmin)
+        if (widget.isAdmin) ...[
+          const Spacer(),
           FilledButton.icon(
             key: const Key('club-members-add'),
             onPressed: _showAddMemberSheet,
             icon: const Icon(AppIcons.userPlus, size: 18),
             label: Text(l10n.clubAddMember),
           ),
+        ],
       ],
     );
   }
@@ -283,7 +313,10 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    if ((isHost || member.role == 'MODERATOR') ||
+                    if ((isHost ||
+                            member.role == 'ADMIN' ||
+                            member.role == 'MODERATOR' ||
+                            member.role == 'GUEST') ||
                         member.level != null) ...[
                       const SizedBox(height: 4),
                       Wrap(
@@ -297,7 +330,9 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
                             ),
                           if (isHost)
                             const _RoleBadge(role: 'HOST', isHost: true)
-                          else if (member.role == 'MODERATOR')
+                          else if (member.role == 'ADMIN' ||
+                              member.role == 'MODERATOR' ||
+                              member.role == 'GUEST')
                             _RoleBadge(role: member.role),
                         ],
                       ),
@@ -331,30 +366,51 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
     );
   }
 
-  Future<void> _showMemberDetails(ClubMember member) =>
-      showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        showDragHandle: true,
-        builder: (sheetContext) => _MemberDetailsSheet(
-          member: member,
-          isAdmin: widget.isAdmin,
-          onViewProfile: member.userId.isEmpty
-              ? null
-              : () {
-                  Navigator.pop(sheetContext);
-                  unawaited(
-                    context.push(AppRoutes.publicProfile(member.userId)),
-                  );
-                },
-          onRemove: widget.isAdmin
-              ? () {
-                  Navigator.pop(sheetContext);
-                  unawaited(_confirmRemove(member));
+  Future<void> _showMemberDetails(ClubMember member) {
+    final guests =
+        ref.read(clubRosterProvider(widget.club.id)).value ?? const [];
+    final guestProfile = member.role == 'GUEST'
+        ? guests.firstWhereOrNull((g) => g.id == member.id)
+        : null;
+
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) => _MemberDetailsSheet(
+        member: member,
+        isAdmin: widget.isAdmin,
+        onViewProfile: (member.role == 'GUEST' || member.userId.isEmpty)
+            ? null
+            : () {
+                Navigator.pop(sheetContext);
+                unawaited(
+                  context.push(AppRoutes.publicProfile(member.userId)),
+                );
+              },
+        onEditGuest: member.role == 'GUEST' && widget.isAdmin
+            ? () async {
+                Navigator.pop(sheetContext);
+                final updated = await showPlayerProfileFormSheet(
+                  context,
+                  profile: guestProfile,
+                  defaultClubId: widget.club.id,
+                  lockClubSelection: true,
+                );
+                if (updated == true) {
+                  ref.invalidate(clubRosterProvider(widget.club.id));
                 }
-              : null,
-        ),
-      );
+              }
+            : null,
+        onRemove: widget.isAdmin
+            ? () {
+                Navigator.pop(sheetContext);
+                unawaited(_confirmRemove(member));
+              }
+            : null,
+      ),
+    );
+  }
 
   Future<void> _confirmRemove(ClubMember member) async {
     final l10n = AppLocalizations.of(context);
@@ -369,10 +425,23 @@ class _PublicClubMembersTabState extends ConsumerState<PublicClubMembersTab> {
     if (confirmed != true || !mounted) return;
     setState(() => _removingMemberId = member.userId);
     try {
-      await ref
-          .read(clubManagementControllerProvider.notifier)
-          .removeMember(widget.club.id, member.userId);
-      if (mounted) _toast(l10n.clubMemberRemovedSuccess);
+      if (member.role == 'GUEST') {
+        final success = await ref
+            .read(rosterControllerProvider.notifier)
+            .deleteProfile(member.id);
+        if (success) {
+          ref.invalidate(clubRosterProvider(widget.club.id));
+          if (mounted) _toast(l10n.clubMemberRemovedSuccess);
+        } else {
+          if (mounted) _toast(l10n.clubMemberRemoveFailed);
+        }
+      } else {
+        await ref
+            .read(clubManagementControllerProvider.notifier)
+            .removeMember(widget.club.id, member.userId);
+        ref.invalidate(clubDetailProvider(widget.club.id));
+        if (mounted) _toast(l10n.clubMemberRemovedSuccess);
+      }
     } on Object {
       if (mounted) _toast(l10n.clubMemberRemoveFailed);
     } finally {
@@ -404,12 +473,16 @@ class _RoleBadge extends StatelessWidget {
     final palette = Theme.of(context).extension<AppPalette>()!;
     final color = switch (role) {
       'HOST' => palette.brandSurface,
+      'ADMIN' => palette.brandSurface,
       'MODERATOR' => palette.info,
+      'GUEST' => palette.mutedForeground,
       _ => palette.mutedForeground,
     };
     final label = switch (role) {
-      'HOST' => isHost ? l10n.clubRoleHost : l10n.clubRoleMember,
+      'HOST' => isHost ? l10n.clubRoleHost : l10n.clubRoleAdmin,
+      'ADMIN' => l10n.clubRoleAdmin,
       'MODERATOR' => l10n.clubRoleModerator,
+      'GUEST' => l10n.clubGuestsTabTitle,
       _ => l10n.clubRoleMember,
     };
     return Container(
@@ -437,12 +510,14 @@ class _MemberDetailsSheet extends StatelessWidget {
     required this.member,
     required this.isAdmin,
     this.onViewProfile,
+    this.onEditGuest,
     this.onRemove,
   });
 
   final ClubMember member;
   final bool isAdmin;
   final VoidCallback? onViewProfile;
+  final VoidCallback? onEditGuest;
   final VoidCallback? onRemove;
 
   @override
@@ -548,11 +623,19 @@ class _MemberDetailsSheet extends StatelessWidget {
                     ),
                     const SizedBox(height: AppSpacing.sm),
                   ],
-                  FilledButton(
-                    key: const Key('club-member-view-profile'),
-                    onPressed: onViewProfile,
-                    child: Text(l10n.clubViewProfile),
-                  ),
+                  if (onEditGuest != null)
+                    FilledButton.icon(
+                      key: const Key('club-member-edit-guest'),
+                      onPressed: onEditGuest,
+                      icon: const Icon(AppIcons.edit, size: 18),
+                      label: Text(l10n.commonEdit),
+                    )
+                  else if (onViewProfile != null)
+                    FilledButton(
+                      key: const Key('club-member-view-profile'),
+                      onPressed: onViewProfile,
+                      child: Text(l10n.clubViewProfile),
+                    ),
                 ],
               ),
             ),
@@ -771,6 +854,26 @@ class _ClubMemberSearchSheetState
                       );
                     },
                   ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                OutlinedButton.icon(
+                  key: const Key('public-club-add-guest-directly-button'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size.fromHeight(40),
+                  ),
+                  onPressed: () async {
+                    Navigator.pop(context);
+                    final added = await showPlayerProfileFormSheet(
+                      context,
+                      defaultClubId: widget.club.id,
+                      lockClubSelection: true,
+                    );
+                    if (added == true) {
+                      ref.invalidate(clubRosterProvider(widget.club.id));
+                    }
+                  },
+                  icon: const Icon(AppIcons.userPlus, size: 18),
+                  label: Text(l10n.clubAddGuestAction),
                 ),
                 const SizedBox(height: AppSpacing.md),
                 Flexible(child: _searchBody(context)),

@@ -120,6 +120,7 @@ abstract final class SessionFormDefaults {
       requirePlayerInfo: session.requirePlayerInfo,
       allowGuestJoin: session.allowGuestJoin,
       allowNewPlayers: session.allowNewPlayers,
+      isInternal: session.isInternal,
     );
   }
 

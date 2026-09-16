@@ -151,6 +151,12 @@ abstract class Session with _$Session {
     /// Imported from a public Facebook post — view-only, no join flow.
     @Default(false) bool isCrawled,
     @Default(false) bool isFavorite,
+
+    /// Internal / private session (Kèo nội bộ) — hidden from public discovery.
+    @Default(false) bool isInternal,
+
+    /// Unique access code for internal session link sharing and gated access.
+    String? accessCode,
     String? externalUrl,
     String? externalAuthorAvatar,
     @Default(SessionSportType.badminton) SessionSportType sportType,

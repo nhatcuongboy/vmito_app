@@ -303,9 +303,13 @@ class SessionRepositoryImpl implements SessionRepository {
   }
 
   @override
-  Future<Session> byId(String id) async {
+  Future<Session> byId(String id, {String? code}) async {
     final response = await _client.get<Map<String, dynamic>>(
       ApiEndpoints.session(id),
+      queryParameters: {
+        if (code != null && code.trim().isNotEmpty) 'code': code.trim(),
+      },
+      options: apiOptions(skipGlobalError: true),
     );
     return unwrap(response.data, Session.fromJson);
   }

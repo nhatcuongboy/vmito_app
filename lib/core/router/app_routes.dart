@@ -45,7 +45,12 @@ abstract final class AppRoutes {
       if (query != null && query.isNotEmpty) 'q': query,
     },
   ).toString();
-  static String sessionDetail(String id) => '/sessions/$id';
+  static String sessionDetail(String id, {String? code}) => Uri(
+    path: '/sessions/$id',
+    queryParameters: {
+      if (code != null && code.isNotEmpty) 'code': code,
+    },
+  ).toString();
   static String liveSession(String id) => '/sessions/$id/live';
   static String manageSession(String id, {String? tab}) => Uri(
     path: '/sessions/$id/manage',
@@ -163,6 +168,9 @@ abstract final class AppRoutes {
   /// `/vi/host/tournaments` deep links land here after [stripLocale].
   static const hostTournaments = '/host/tournaments';
 
+  /// Managed player profiles and roster.
+  static const roster = '/roster';
+
   /// Bottom-nav destinations, in tab order. The shell's branch order must
   /// match this list — index is how go_router identifies a branch.
   static const shellDestinations = <String>[
@@ -192,6 +200,7 @@ abstract final class AppRoutes {
   static const nameLiveSession = 'liveSession';
   static const namePublicProfile = 'publicProfile';
   static const nameReminders = 'reminders';
+  static const nameRoster = 'roster';
 
   /// Routes reachable without an account.
   ///

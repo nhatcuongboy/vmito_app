@@ -183,7 +183,13 @@ void main() {
     expect(find.byKey(const Key('my-sessions-search-button')), findsOneWidget);
     expect(find.byKey(const Key('my-sessions-filter-button')), findsOneWidget);
     expect(find.byKey(const Key('my-sessions-sort-button')), findsOneWidget);
-    expect(find.text('Gần nhất'), findsOneWidget);
+    expect(find.text('Sắp diễn ra'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.byKey(const Key('my-sessions-filter-button'))).dx,
+      lessThan(
+        tester.getTopLeft(find.byKey(const Key('my-sessions-sort-button'))).dx,
+      ),
+    );
     expect(
       tester.getTopLeft(find.byKey(const Key('my-sessions-sort-button'))).dy,
       greaterThan(
@@ -203,7 +209,7 @@ void main() {
     // Open filter sheet and select ended
     await tester.tap(find.byKey(const Key('my-sessions-filter-button')));
     await tester.pumpAndSettle();
-    expect(find.text('Đang mở'), findsOneWidget);
+    expect(find.text('Đang mở'), findsWidgets);
     await tester.tap(
       find.byKey(const ValueKey('my-sessions-filter-ended')),
     );
@@ -212,7 +218,7 @@ void main() {
     // Switch to Kèo tham gia tab
     await tester.tap(find.text('Kèo tham gia'));
     await tester.pumpAndSettle();
-    expect(find.text('Gần nhất'), findsOneWidget);
+    expect(find.text('Sắp diễn ra'), findsOneWidget);
 
     // Pending requests button should only be visible in Quản lý kèo scope
     expect(find.byKey(const Key('pending-requests-button')), findsNothing);
@@ -383,7 +389,13 @@ void main() {
     );
     await _pumpWithRouter(tester, repository);
 
-    expect(find.text('Sắp diễn ra'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('session-status-badge')),
+        matching: find.text('Sắp diễn ra'),
+      ),
+      findsOneWidget,
+    );
     expect(find.byKey(const Key('session-sport-badge')), findsNothing);
     final card = tester.getTopLeft(find.byType(Card));
     final sessionStatus = tester.getTopLeft(
@@ -429,7 +441,13 @@ void main() {
       final registrationStatus = tester.getTopLeft(
         find.byKey(const Key('session-registration-status-badge')),
       );
-      expect(find.text('Sắp diễn ra'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('session-status-badge')),
+          matching: find.text('Sắp diễn ra'),
+        ),
+        findsOneWidget,
+      );
       expect(find.text('Chờ duyệt'), findsOneWidget);
       expect(find.byKey(const Key('session-sport-badge')), findsNothing);
       expect(

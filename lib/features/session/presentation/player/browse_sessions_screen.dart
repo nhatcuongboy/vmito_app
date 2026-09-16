@@ -196,12 +196,14 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen>
         child: Column(
           children: [
             _MySessionsToolbar(
+              filterLabel: _filterLabel(l10n, state.filter),
+              filterIcon: AppIcons.tune,
+              filterIsActive: state.filter != MySessionFilter.active,
               sortLabel: _sortLabel(l10n, state.sort),
               sortIcon: _sortIcon(state.sort),
               sortIsActive: state.sort != MySessionSort.dateNearest,
-              filterIsActive: state.filter != MySessionFilter.active,
-              onSort: () => _openSort(state, controller),
               onFilter: () => _openFilters(state, controller),
+              onSort: () => _openSort(state, controller),
             ),
             Expanded(
               child: RefreshIndicator(
@@ -422,6 +424,13 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen>
     onFilterSelected: (filter) => unawaited(controller.setFilter(filter)),
   );
 
+  String _filterLabel(AppLocalizations l10n, MySessionFilter filter) =>
+      switch (filter) {
+        MySessionFilter.active => l10n.mySessionsActive,
+        MySessionFilter.ended => l10n.mySessionsEnded,
+        MySessionFilter.all || MySessionFilter.pending => l10n.mySessionsAll,
+      };
+
   String _sortLabel(AppLocalizations l10n, MySessionSort sort) =>
       switch (sort) {
         MySessionSort.dateNearest => l10n.homeDiscoverySortDateNearest,
@@ -495,6 +504,7 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen>
         context: context,
         useRootNavigator: true,
         isScrollControlled: true,
+        showDragHandle: true,
         builder: (context) => _FilterBottomSheet(
           currentFilter: currentFilter,
           onFilterSelected: onFilterSelected,
@@ -506,28 +516,27 @@ class _BrowseSessionsScreenState extends ConsumerState<BrowseSessionsScreen>
 
 class _MySessionsToolbar extends StatelessWidget {
   const _MySessionsToolbar({
+    required this.filterLabel,
+    required this.filterIcon,
+    required this.filterIsActive,
     required this.sortLabel,
     required this.sortIcon,
     required this.sortIsActive,
-    required this.filterIsActive,
-    required this.onSort,
     required this.onFilter,
+    required this.onSort,
   });
 
+  final String filterLabel;
+  final IconData filterIcon;
+  final bool filterIsActive;
   final String sortLabel;
   final IconData sortIcon;
   final bool sortIsActive;
-  final bool filterIsActive;
-  final VoidCallback onSort;
   final VoidCallback onFilter;
+  final VoidCallback onSort;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final palette = Theme.of(context).extension<AppPalette>()!;
-    final filterForeground = filterIsActive
-        ? Theme.of(context).colorScheme.primary
-        : palette.mutedForeground;
     return Padding(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
@@ -538,21 +547,22 @@ class _MySessionsToolbar extends StatelessWidget {
         children: [
           Flexible(
             child: AppSortSelector(
+              buttonKey: const Key('my-sessions-filter-button'),
+              label: filterLabel,
+              icon: filterIcon,
+              isActive: filterIsActive,
+              onPressed: onFilter,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Flexible(
+            child: AppSortSelector(
               buttonKey: const Key('my-sessions-sort-button'),
               label: sortLabel,
               icon: sortIcon,
               isActive: sortIsActive,
               onPressed: onSort,
             ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          IconButton.outlined(
-            key: const Key('my-sessions-filter-button'),
-            tooltip: l10n.sessionFiltersTitle,
-            onPressed: onFilter,
-            visualDensity: VisualDensity.compact,
-            style: IconButton.styleFrom(foregroundColor: filterForeground),
-            icon: const Icon(AppIcons.tune, size: 20),
           ),
         ],
       ),
@@ -582,45 +592,41 @@ class _FilterBottomSheet extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          AppSheetHeader(title: l10n.sessionFiltersTitle),
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ...filters.map((item) {
-                  final filter = item.$1;
-                  final label = item.$2;
-                  final isSelected = filter == currentFilter;
-                  return ListTile(
-                    key: ValueKey('my-sessions-filter-${filter.name}'),
-                    title: Text(
-                      label,
-                      style: TextStyle(
-                        fontWeight: isSelected
-                            ? FontWeight.bold
-                            : FontWeight.normal,
-                        color: isSelected
-                            ? Theme.of(context).colorScheme.primary
-                            : null,
-                      ),
-                    ),
-                    trailing: isSelected
-                        ? Icon(
-                            AppIcons.check,
-                            color: Theme.of(context).colorScheme.primary,
-                          )
-                        : null,
-                    onTap: () {
-                      onFilterSelected(filter);
-                      Navigator.of(context).pop();
-                    },
-                  );
-                }),
-              ],
-            ),
+          AppSheetHeader(
+            title: l10n.homeDiscoveryStatus,
+            showCloseButton: false,
           ),
+          for (final item in filters)
+            Builder(
+              builder: (context) {
+                final filter = item.$1;
+                final label = item.$2;
+                final isSelected = filter == currentFilter;
+                return ListTile(
+                  key: ValueKey('my-sessions-filter-${filter.name}'),
+                  title: Text(
+                    label,
+                    style: TextStyle(
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.normal,
+                      color: isSelected
+                          ? Theme.of(context).colorScheme.primary
+                          : null,
+                    ),
+                  ),
+                  trailing: isSelected
+                      ? Icon(
+                          AppIcons.check,
+                          color: Theme.of(context).colorScheme.primary,
+                        )
+                      : null,
+                  onTap: () {
+                    onFilterSelected(filter);
+                    Navigator.of(context).pop();
+                  },
+                );
+              },
+            ),
         ],
       ),
     );
@@ -775,7 +781,10 @@ class _SessionsBody extends StatelessWidget {
   }
 
   void _shareSession(BuildContext context, Session session) {
-    final url = 'https://vmito.com/sessions/${session.id}';
+    final accessCodeSuffix = session.isInternal && session.accessCode != null
+        ? '?code=${session.accessCode}'
+        : '';
+    final url = 'https://vmito.com/sessions/${session.id}$accessCodeSuffix';
     final box = context.findRenderObject();
     unawaited(
       SharePlus.instance.share(

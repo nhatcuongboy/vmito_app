@@ -122,6 +122,14 @@ abstract final class ApiEndpoints {
   static const pendingJoinRequests = '/players/pending-requests';
   static const pendingJoinRequestCount = '/players/pending-requests/count';
   static const pendingJoinRequestsBatch = '/players/pending-requests/batch';
+  static const hostRecentPlayers = '/players/host-recent';
+
+  // --- Player Profiles / Roster ---------------------------------------------
+  static const playerProfiles = '/player-profiles';
+  static String playerProfile(String id) => '/player-profiles/$id';
+  static String playerProfileStats(String id) => '/player-profiles/$id/stats';
+  static String playerProfilePromote(String id) =>
+      '/player-profiles/$id/promote';
 
   // --- Sessions -------------------------------------------------------------
   static const sessions = '/sessions';

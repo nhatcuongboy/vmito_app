@@ -30,6 +30,7 @@ import 'package:vmito_app/features/profile/presentation/change_password_screen.d
 import 'package:vmito_app/features/profile/presentation/edit_profile_screen.dart';
 import 'package:vmito_app/features/profile/presentation/profile_screen.dart';
 import 'package:vmito_app/features/profile/presentation/settings_screen.dart';
+import 'package:vmito_app/features/roster/presentation/roster_screen.dart';
 import 'package:vmito_app/features/session/application/player/my_sessions_controller.dart';
 import 'package:vmito_app/features/session/presentation/player/browse_sessions_screen.dart';
 import 'package:vmito_app/features/session/presentation/player/create_session_screen.dart';
@@ -239,6 +240,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const HostTournamentsScreen(),
       ),
       GoRoute(
+        path: AppRoutes.roster,
+        name: AppRoutes.nameRoster,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const RosterScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.createTournament,
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const CreateTournamentScreen(),
@@ -360,6 +367,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
                     name: AppRoutes.nameSessionDetail,
                     builder: (context, state) => SessionDetailScreen(
                       sessionId: state.pathParameters['id']!,
+                      initialAccessCode: state.uri.queryParameters['code'],
                     ),
                     routes: [
                       GoRoute(

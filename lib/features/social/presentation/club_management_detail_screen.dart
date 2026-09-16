@@ -40,6 +40,7 @@ class ClubManagementDetailScreen extends ConsumerWidget {
               ),
             ],
             bottom: AppTabBar(
+              isScrollable: true,
               tabs: [
                 Tab(text: l10n.clubMembers),
                 Tab(text: l10n.clubRequests),

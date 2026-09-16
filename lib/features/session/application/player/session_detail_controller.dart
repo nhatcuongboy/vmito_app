@@ -6,6 +6,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/features/session/data/repositories/session_repository_impl.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 
+/// Manages the access code for unlocking an internal or private session by session ID.
+class SessionAccessCodeController extends Notifier<String?> {
+  SessionAccessCodeController(this.sessionId);
+
+  final String sessionId;
+
+  @override
+  String? build() => null;
+
+  @override
+  set state(String? value) => super.state = value;
+
+  void set(String? code) => state = code;
+}
+
+/// Access code for unlocking an internal or private session by session ID.
+final sessionAccessCodeProvider =
+    NotifierProvider.family<SessionAccessCodeController, String?, String>(
+  SessionAccessCodeController.new,
+);
+
 /// Loads one session by id.
 ///
 /// A `family` keyed on the id, so two detail screens on the navigation stack
@@ -21,5 +42,6 @@ final sessionDetailProvider = FutureProvider.family<Session, String>((
   ref,
   sessionId,
 ) {
-  return ref.watch(sessionRepositoryProvider).byId(sessionId);
+  final code = ref.watch(sessionAccessCodeProvider(sessionId));
+  return ref.watch(sessionRepositoryProvider).byId(sessionId, code: code);
 });

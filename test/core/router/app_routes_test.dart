@@ -80,6 +80,7 @@ void main() {
       expect(AppRoutes.isPublic(AppRoutes.editClub('c1')), isFalse);
       expect(AppRoutes.isPublic(AppRoutes.clubFees('c1')), isFalse);
       expect(AppRoutes.isPublic(AppRoutes.hostTournaments), isFalse);
+      expect(AppRoutes.isPublic(AppRoutes.roster), isFalse);
     });
 
     test('a protected route under a public one stays protected', () {
@@ -181,6 +182,16 @@ void main() {
     expect(uri.path, AppRoutes.homeSearch);
     expect(uri.queryParameters[AppRoutes.homeDiscoveryTabQuery], 'clubs');
     expect(uri.queryParameters['q'], 'Nhóm Quận 1');
+  });
+
+  test('mySessionsSearchFor builds correct path and query parameters', () {
+    final uri = Uri.parse(
+      AppRoutes.mySessionsSearchFor('hosted', query: 'court 1'),
+    );
+
+    expect(uri.path, AppRoutes.mySessionsSearch);
+    expect(uri.queryParameters['scope'], 'hosted');
+    expect(uri.queryParameters['q'], 'court 1');
   });
 
   test('manageClubsForTab encodes a stable tab query', () {

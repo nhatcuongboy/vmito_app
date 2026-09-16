@@ -299,9 +299,9 @@ void main() {
         query: captureAny(named: 'query'),
       ),
     ).captured.cast<SessionListQuery>();
-    expect(queries[0].sortBy, 'startTime');
+    expect(queries[0].sortBy, 'date');
     expect(queries[0].sortOrder, 'asc');
-    expect(queries[1].sortBy, 'startTime');
+    expect(queries[1].sortBy, 'date');
     expect(queries[1].sortOrder, 'desc');
     expect(queries[2].sortBy, 'created');
     expect(queries[2].sortOrder, 'desc');

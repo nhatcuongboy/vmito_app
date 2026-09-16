@@ -964,6 +964,8 @@ class _CreateSessionScreenState extends ConsumerState<CreateSessionScreen> {
                           onOpenChanged: (value) =>
                               setState(() => _advancedOpen = value),
                         ),
+                        const SizedBox(height: AppSpacing.lg),
+                        const _InternalSection(),
                         if (wide) ...[
                           const SizedBox(height: AppSpacing.lg),
                           AppFormSubmitBar(
@@ -1470,6 +1472,73 @@ class _BasicSection extends StatelessWidget {
             },
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _InternalSection extends StatelessWidget {
+  const _InternalSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return _FormCard(
+      title: l10n.sessionFormInternalTitle,
+      child: ReactiveValueListenableBuilder<bool>(
+        formControlName: SessionFormControl.isInternal,
+        builder: (context, control, _) {
+          final isInternal = control.value ?? false;
+          final palette = Theme.of(context).extension<AppPalette>()!;
+          return InkWell(
+            onTap: () => control.value = !isInternal,
+            borderRadius: BorderRadius.circular(AppRadius.md),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.xs),
+                    decoration: BoxDecoration(
+                      color: isInternal
+                          ? Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.1)
+                          : palette.muted.withValues(alpha: 0.5),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      isInternal ? Icons.lock : Icons.lock_open_outlined,
+                      size: 20,
+                      color: isInternal
+                          ? Theme.of(context).colorScheme.primary
+                          : palette.mutedForeground,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      l10n.sessionFormInternalSubtitle,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: palette.mutedForeground,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Transform.scale(
+                    scale: 0.8,
+                    child: Switch.adaptive(
+                      key: const Key('internal-session-switch'),
+                      value: isInternal,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      onChanged: (value) => control.value = value,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -3814,78 +3883,83 @@ class _AiSessionSheetState extends ConsumerState<_AiSessionSheet> {
     // text field autofocused, that leaves the action bar clipped off the
     // bottom the instant the keyboard opens. Cap to what's actually visible.
     final maxHeight = media.size.height - media.viewInsets.bottom;
-    return SizedBox(
-      key: const Key('create-session-ai-sheet'),
-      height: (media.size.height * .9).clamp(0, maxHeight),
-      child: Column(
-        children: [
-          AppSheetHeader(
-            title: l10n.sessionFormAiTitle,
-            showCloseButton: false,
-            leadingIcon: Icons.auto_awesome,
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSpacing.md),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return AnimatedPadding(
+      padding: EdgeInsets.only(bottom: media.viewInsets.bottom),
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOut,
+      child: SizedBox(
+        key: const Key('create-session-ai-sheet'),
+        height: (media.size.height * .9).clamp(0, maxHeight),
+        child: Column(
+          children: [
+            AppSheetHeader(
+              title: l10n.sessionFormAiTitle,
+              showCloseButton: false,
+              leadingIcon: Icons.auto_awesome,
+            ),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(l10n.sessionFormAiDescription),
+                    const SizedBox(height: AppSpacing.md),
+                    TextField(
+                      controller: _controller,
+                      focusNode: _focusNode,
+                      autofocus: true,
+                      minLines: 8,
+                      maxLines: 12,
+                      enabled: !_loading,
+                      decoration: InputDecoration(
+                        labelText: l10n.sessionFormAiInput,
+                        alignLabelWithHint: true,
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: _loading
+                          ? null
+                          : () => _controller.text =
+                                'Tên kèo: \nMô tả: \nHost: \nSĐT: \nTên sân: \nĐịa chỉ: \nNgày: \nThời gian: \nSố lượng sân: \nTrình độ: \nPhí: ',
+                      icon: const Icon(Icons.description_outlined),
+                      label: Text(l10n.sessionFormAiTemplate),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            AppSheetActionBar(
+              child: Row(
                 children: [
-                  Text(l10n.sessionFormAiDescription),
-                  const SizedBox(height: AppSpacing.md),
-                  TextField(
-                    controller: _controller,
-                    focusNode: _focusNode,
-                    autofocus: true,
-                    minLines: 8,
-                    maxLines: 12,
-                    enabled: !_loading,
-                    decoration: InputDecoration(
-                      labelText: l10n.sessionFormAiInput,
-                      alignLabelWithHint: true,
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _loading ? null : () => Navigator.pop(context),
+                      child: Text(l10n.sessionFormCancel),
                     ),
                   ),
-                  TextButton.icon(
-                    onPressed: _loading
-                        ? null
-                        : () => _controller.text =
-                              'Tên kèo: \nMô tả: \nHost: \nSĐT: \nTên sân: \nĐịa chỉ: \nNgày: \nThời gian: \nSố lượng sân: \nTrình độ: \nPhí: ',
-                    icon: const Icon(Icons.description_outlined),
-                    label: Text(l10n.sessionFormAiTemplate),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: _loading ? null : _generate,
+                      icon: _loading
+                          ? const SizedBox.square(
+                              dimension: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.auto_awesome),
+                      label: Text(
+                        _loading
+                            ? l10n.sessionFormAiGenerating
+                            : l10n.sessionFormAiGenerate,
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
-          ),
-          AppSheetActionBar(
-            child: Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: _loading ? null : () => Navigator.pop(context),
-                    child: Text(l10n.sessionFormCancel),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: _loading ? null : _generate,
-                    icon: _loading
-                        ? const SizedBox.square(
-                            dimension: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.auto_awesome),
-                    label: Text(
-                      _loading
-                          ? l10n.sessionFormAiGenerating
-                          : l10n.sessionFormAiGenerate,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

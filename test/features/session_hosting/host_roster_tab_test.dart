@@ -257,7 +257,7 @@ void main() {
     await tester.pump();
   });
 
-  testWidgets('existing-player picker stays in the add sheet and can go back', (
+  testWidgets('existing-player picker opens modal sheet and can close', (
     tester,
   ) async {
     final repository = _MockSessionRepository();
@@ -273,14 +273,15 @@ void main() {
     await tester.tap(find.byKey(const Key('host-player-user-0')));
     await tester.pumpAndSettle();
 
-    expect(find.byKey(const Key('host-user-picker-back')), findsOneWidget);
-    expect(find.byKey(const Key('host-add-players-close')), findsOneWidget);
-    expect(find.text('Tạo người chơi mới'), findsNothing);
-    expect(find.text('Tìm theo tên hoặc email'), findsOneWidget);
-    expect(find.byKey(const ValueKey('user-picker')), findsOneWidget);
-    expect(find.byKey(const ValueKey('player-form-list')), findsNothing);
+    expect(find.byKey(const Key('host-player-picker-header')), findsOneWidget);
+    expect(find.byKey(const Key('host-picker-tab-roster')), findsOneWidget);
+    expect(find.byKey(const Key('host-picker-tab-system')), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('host-user-picker-back')));
+    await tester.tap(find.byKey(const Key('host-picker-tab-system')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('host-user-search-field')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('host-player-picker-close')));
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('host-player-name-0')), findsOneWidget);
@@ -381,6 +382,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('host-player-user-0')));
     await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('host-picker-tab-system')));
+    await tester.pumpAndSettle();
     await tester.tap(find.text('Linh').last);
     await tester.pumpAndSettle();
 
@@ -413,6 +416,8 @@ void main() {
     await tester.tap(find.byKey(const Key('host-roster-add')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('host-player-user-0')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('host-picker-tab-system')));
     await tester.pumpAndSettle();
 
     expect(find.text('Đã có trong kèo hoặc đã được chọn'), findsOneWidget);

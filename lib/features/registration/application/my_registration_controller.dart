@@ -41,11 +41,17 @@ class MyRegistrationController extends AsyncNotifier<List<SessionPlayer>> {
 
   /// Submits the form. Throws on failure so the sheet can stay open and show
   /// the backend's message.
-  Future<void> register(List<RegistrationPlayerDraft> drafts) async {
+  Future<void> register(
+    List<RegistrationPlayerDraft> drafts, {
+    String? accessCode,
+  }) async {
     final myUserId = ref.read(currentUserProvider)?.id;
+    final effectiveCode =
+        accessCode ?? ref.read(sessionAccessCodeProvider(sessionId));
     await ref.read(registrationRepositoryProvider).register(
       sessionId,
       [for (final draft in drafts) draft.toRegisterJson(myUserId)],
+      accessCode: effectiveCode,
     );
     _refresh();
   }

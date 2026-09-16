@@ -56,6 +56,10 @@ GoRouter _buildRouter() => GoRouter(
       builder: (_, _) => _screen('Host tournaments'),
     ),
     GoRoute(
+      path: AppRoutes.roster,
+      builder: (_, _) => _screen('Roster'),
+    ),
+    GoRoute(
       path: AppRoutes.transactions,
       builder: (_, _) => _screen('Transactions'),
     ),

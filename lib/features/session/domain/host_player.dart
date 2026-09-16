@@ -4,6 +4,8 @@ import 'package:vmito_app/shared/models/session_player.dart';
 abstract final class HostPlayerFormControl {
   static const players = 'players';
   static const userId = 'userId';
+  static const profileId = 'profileId';
+  static const saveToRoster = 'saveToRoster';
   static const name = 'name';
   static const phone = 'phone';
   static const gender = 'gender';
@@ -49,6 +51,8 @@ class HostPlayerUserOption {
 class HostPlayerDraft {
   const HostPlayerDraft({
     this.userId,
+    this.profileId,
+    this.saveToRoster,
     required this.name,
     required this.phone,
     required this.gender,
@@ -60,6 +64,10 @@ class HostPlayerDraft {
 
   factory HostPlayerDraft.fromForm(FormGroup form) => HostPlayerDraft(
     userId: form.control(HostPlayerFormControl.userId).value as String?,
+    profileId:
+        form.control(HostPlayerFormControl.profileId).value as String?,
+    saveToRoster:
+        form.control(HostPlayerFormControl.saveToRoster).value as bool?,
     name: form.control(HostPlayerFormControl.name).value as String? ?? '',
     phone: form.control(HostPlayerFormControl.phone).value as String? ?? '',
     gender:
@@ -76,6 +84,8 @@ class HostPlayerDraft {
   );
 
   final String? userId;
+  final String? profileId;
+  final bool? saveToRoster;
   final String name;
   final String phone;
   final Gender gender;
@@ -86,6 +96,7 @@ class HostPlayerDraft {
 
   Map<String, dynamic> toJson() {
     final cleanUserId = userId?.trim();
+    final cleanProfileId = profileId?.trim();
     final cleanPhone = phone.trim();
     final cleanDescription = levelDescription.trim();
     final cleanClubId = clubId?.trim();
@@ -96,6 +107,9 @@ class HostPlayerDraft {
       if (cleanPhone.isNotEmpty) 'phone': cleanPhone,
       if (cleanDescription.isNotEmpty) 'levelDescription': cleanDescription,
       if (cleanUserId != null && cleanUserId.isNotEmpty) 'userId': cleanUserId,
+      if (cleanProfileId != null && cleanProfileId.isNotEmpty)
+        'profileId': cleanProfileId,
+      if (saveToRoster != null) 'saveToRoster': saveToRoster,
       if (clubFeeEnabled && cleanClubId != null && cleanClubId.isNotEmpty) ...{
         'isClubMember': true,
         'clubId': cleanClubId,
@@ -110,6 +124,8 @@ class HostPlayerDraft {
 class HostPlayerEditDraft extends HostPlayerDraft {
   const HostPlayerEditDraft({
     super.userId,
+    super.profileId,
+    super.saveToRoster,
     required super.name,
     required super.phone,
     required super.gender,
@@ -121,6 +137,10 @@ class HostPlayerEditDraft extends HostPlayerDraft {
 
   factory HostPlayerEditDraft.fromForm(FormGroup form) => HostPlayerEditDraft(
     userId: form.control(HostPlayerFormControl.userId).value as String?,
+    profileId:
+        form.control(HostPlayerFormControl.profileId).value as String?,
+    saveToRoster:
+        form.control(HostPlayerFormControl.saveToRoster).value as bool?,
     name: form.control(HostPlayerFormControl.name).value as String? ?? '',
     phone: form.control(HostPlayerFormControl.phone).value as String? ?? '',
     gender:
@@ -151,9 +171,17 @@ class HostPlayerEditDraft extends HostPlayerDraft {
   }
 }
 
-FormGroup hostPlayerRowForm({int? defaultLevel}) => FormGroup(
+FormGroup hostPlayerRowForm({
+  int? defaultLevel,
+  String? profileId,
+  bool saveToRoster = true,
+}) => FormGroup(
   {
     HostPlayerFormControl.userId: FormControl<String>(),
+    HostPlayerFormControl.profileId: FormControl<String>(value: profileId),
+    HostPlayerFormControl.saveToRoster: FormControl<bool>(
+      value: profileId == null && saveToRoster,
+    ),
     HostPlayerFormControl.name: FormControl<String>(
       validators: [Validators.required],
     ),

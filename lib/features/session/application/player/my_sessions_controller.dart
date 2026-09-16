@@ -19,8 +19,8 @@ enum MySessionScope { hosted, joined }
 enum MySessionFilter { active, ended, all, pending }
 
 enum MySessionSort {
-  dateNearest('startTime', 'asc'),
-  dateFurthest('startTime', 'desc'),
+  dateNearest('date', 'asc'),
+  dateFurthest('date', 'desc'),
   newest('created', 'desc');
 
   const MySessionSort(this.sortBy, this.sortOrder);

@@ -11,6 +11,7 @@ import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/features/session/domain/host_player.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session_hosting/application/host_add_players_controller.dart';
+import 'package:vmito_app/features/session_hosting/presentation/widgets/host_player_picker_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
@@ -80,7 +81,6 @@ class _HostAddPlayersSheet extends ConsumerStatefulWidget {
 
 class _HostAddPlayersSheetState extends ConsumerState<_HostAddPlayersSheet> {
   late final FormGroup _form;
-  FormGroup? _pickerForm;
   final Map<FormGroup, FocusNode> _nameFocusNodes = {};
 
   FocusNode _nameFocusNode(FormGroup row) =>
@@ -156,6 +156,93 @@ class _HostAddPlayersSheetState extends ConsumerState<_HostAddPlayersSheet> {
     });
   }
 
+  Future<void> _pickPlayer(FormGroup row) async {
+    final existingProfileIds = <String>{};
+    final existingUserIds = widget.session.players
+        .map((p) => p.userId)
+        .whereType<String>()
+        .toSet();
+
+    for (final control in _players.controls) {
+      final r = control as FormGroup;
+      if (identical(r, row)) continue;
+      final profileId =
+          r.control(HostPlayerFormControl.profileId).value as String?;
+      if (profileId != null && profileId.isNotEmpty) {
+        existingProfileIds.add(profileId);
+      }
+      final uId = r.control(HostPlayerFormControl.userId).value as String?;
+      if (uId != null && uId.isNotEmpty) {
+        existingUserIds.add(uId);
+      }
+    }
+
+    final selected = await showHostPlayerPickerSheet(
+      context,
+      sessionId: widget.session.id,
+      clubId: widget.session.clubId,
+      existingProfileIds: existingProfileIds,
+      existingUserIds: existingUserIds,
+    );
+
+    if (selected == null || selected.isEmpty || !mounted) return;
+
+    final sessionClubId = widget.session.clubId;
+    final state = ref.read(hostAddPlayersControllerProvider(widget.session.id));
+
+    final first = selected.first;
+    row.patchValue({
+      HostPlayerFormControl.name: first.name,
+      HostPlayerFormControl.gender: first.gender ?? Gender.male,
+      if (first.level != null) HostPlayerFormControl.level: first.level,
+      if (first.levelDescription != null)
+        HostPlayerFormControl.levelDescription: first.levelDescription,
+      HostPlayerFormControl.phone: first.phone ?? '',
+      HostPlayerFormControl.userId: first.userId,
+      HostPlayerFormControl.profileId: first.profileId,
+      if (first.profileId != null) HostPlayerFormControl.saveToRoster: false,
+    });
+
+    if (sessionClubId != null &&
+        first.isMonthlyMember &&
+        state.feesByClubId.containsKey(sessionClubId)) {
+      row.patchValue({
+        HostPlayerFormControl.clubFeeEnabled: true,
+        HostPlayerFormControl.clubId: sessionClubId,
+      });
+    }
+
+    for (final player in selected.skip(1)) {
+      final newRow = hostPlayerRowForm(
+        defaultLevel: player.level ?? _defaultLevel,
+        profileId: player.profileId,
+        saveToRoster: player.profileId == null,
+      )..patchValue({
+          HostPlayerFormControl.name: player.name,
+          HostPlayerFormControl.gender: player.gender ?? Gender.male,
+          if (player.level != null) HostPlayerFormControl.level: player.level,
+          if (player.levelDescription != null)
+            HostPlayerFormControl.levelDescription: player.levelDescription,
+          HostPlayerFormControl.phone: player.phone ?? '',
+          HostPlayerFormControl.userId: player.userId,
+          HostPlayerFormControl.profileId: player.profileId,
+          if (player.profileId != null)
+            HostPlayerFormControl.saveToRoster: false,
+        });
+
+      if (sessionClubId != null &&
+          player.isMonthlyMember &&
+          state.feesByClubId.containsKey(sessionClubId)) {
+        newRow.patchValue({
+          HostPlayerFormControl.clubFeeEnabled: true,
+          HostPlayerFormControl.clubId: sessionClubId,
+        });
+      }
+      _players.add(newRow);
+    }
+    setState(() {});
+  }
+
   Future<void> _submit() async {
     _form
       ..markAllAsTouched()
@@ -190,55 +277,14 @@ class _HostAddPlayersSheetState extends ConsumerState<_HostAddPlayersSheet> {
     );
   }
 
-  void _showUserPicker(FormGroup form) {
-    FocusManager.instance.primaryFocus?.unfocus();
-    setState(() => _pickerForm = form);
-  }
-
-  void _hideUserPicker() {
-    FocusManager.instance.primaryFocus?.unfocus();
-    setState(() => _pickerForm = null);
-  }
-
-  void _selectUser(HostPlayerUserOption user) {
-    final form = _pickerForm;
-    if (form == null) return;
-    form.patchValue({
-      HostPlayerFormControl.userId: user.id,
-      HostPlayerFormControl.name: user.name,
-      HostPlayerFormControl.gender: user.gender == Gender.female
-          ? Gender.female
-          : Gender.male,
-      if (user.level != null) HostPlayerFormControl.level: user.level,
-      HostPlayerFormControl.levelDescription: user.levelDescription ?? '',
-    });
-    final state = ref.read(
-      hostAddPlayersControllerProvider(widget.session.id),
-    );
-    final sessionClubId = widget.session.clubId;
-    if (sessionClubId != null &&
-        state.monthlyMemberUserIds.contains(user.id) &&
-        state.feesByClubId.containsKey(sessionClubId)) {
-      form.patchValue({
-        HostPlayerFormControl.clubFeeEnabled: true,
-        HostPlayerFormControl.clubId: sessionClubId,
-      });
-    }
-    _hideUserPicker();
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final state = ref.watch(
       hostAddPlayersControllerProvider(widget.session.id),
     );
-    final pickerForm = _pickerForm;
     return PopScope(
-      canPop: pickerForm == null && !state.submitting,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop && pickerForm != null) _hideUserPicker();
-      },
+      canPop: !state.submitting,
       child: AppReactiveForm<void>(
         formGroup: _form,
         child: Column(
@@ -246,118 +292,87 @@ class _HostAddPlayersSheetState extends ConsumerState<_HostAddPlayersSheet> {
           children: [
             AppSheetHeader(
               key: const Key('host-add-players-header'),
-              title: pickerForm == null
-                  ? l10n.hostAddPlayerAddAnother
-                  : l10n.hostAddPlayerSelectExisting,
-              leadingIcon: pickerForm == null ? null : AppIcons.arrowBack,
-              leadingButtonKey: const Key('host-user-picker-back'),
-              leadingTooltip: MaterialLocalizations.of(
-                context,
-              ).backButtonTooltip,
-              onLeadingPressed: pickerForm == null ? null : _hideUserPicker,
+              title: l10n.hostAddPlayerAddAnother,
               closeButtonKey: const Key('host-add-players-close'),
               closeButtonEnabled: !state.submitting,
               onClose: () => Navigator.pop(context, false),
             ),
             Expanded(
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 180),
-                child: pickerForm != null
-                    ? _UserPicker(
-                        key: const ValueKey('user-picker'),
-                        sessionId: widget.session.id,
-                        existingUserIds: widget.session.players
-                            .map((player) => player.userId)
-                            .whereType<String>()
-                            .toSet(),
-                        selectedUserIds: _players.controls
-                            .cast<FormGroup>()
-                            .where((row) => !identical(row, pickerForm))
-                            .map(
-                              (row) =>
-                                  row
-                                          .control(HostPlayerFormControl.userId)
-                                          .value
-                                      as String?,
-                            )
-                            .whereType<String>()
-                            .toSet(),
-                        onSelected: _selectUser,
-                      )
-                    : ReactiveFormArray<Map<String, Object?>>(
-                        key: const ValueKey('player-form-list'),
-                        formArrayName: HostPlayerFormControl.players,
-                        builder: (context, array, _) => ListView.separated(
-                          padding: const EdgeInsets.all(AppSpacing.md),
-                          itemCount: array.controls.length + 1,
-                          separatorBuilder: (_, _) =>
-                              const SizedBox(height: AppSpacing.md),
-                          itemBuilder: (context, index) {
-                            if (index == array.controls.length) {
-                              return OutlinedButton.icon(
-                                key: const Key('host-add-player-row'),
-                                onPressed: state.submitting ? null : _addRow,
-                                icon: const Icon(AppIcons.add),
-                                label: Text(l10n.hostAddPlayerAddAnother),
-                              );
-                            }
-                            final row = array.controls[index] as FormGroup;
-                            return AppReactiveForm<void>(
-                              formGroup: row,
-                              child: _PlayerFormCard(
-                                key: ValueKey(row),
-                                index: index,
-                                number: _firstPlayerNumber + index,
-                                levels: _levels,
-                                state: state,
-                                canRemove: array.controls.length > 1,
-                                nameFocusNode: _nameFocusNode(row),
-                                onRemove: () => setState(() {
-                                  array.removeAt(index);
-                                  _nameFocusNodes.remove(row)?.dispose();
-                                }),
-                                onPickUser: () => _showUserPicker(row),
-                              ),
-                            );
-                          },
+              child: ReactiveFormArray<Map<String, Object?>>(
+                key: const ValueKey('player-form-list'),
+                formArrayName: HostPlayerFormControl.players,
+                builder: (context, array, _) => ListView.separated(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  itemCount: array.controls.length + 1,
+                  separatorBuilder: (_, _) =>
+                      const SizedBox(height: AppSpacing.md),
+                  itemBuilder: (context, index) {
+                    if (index == array.controls.length) {
+                      return SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          key: const Key('host-add-player-row'),
+                          onPressed: state.submitting ? null : _addRow,
+                          icon: const Icon(AppIcons.add),
+                          label: Text(l10n.hostAddPlayerAddAnother),
                         ),
+                      );
+                    }
+                    final row = array.controls[index] as FormGroup;
+                    return AppReactiveForm<void>(
+                      formGroup: row,
+                      child: _PlayerFormCard(
+                        key: ValueKey(row),
+                        index: index,
+                        number: _firstPlayerNumber + index,
+                        levels: _levels,
+                        state: state,
+                        canRemove: array.controls.length > 1,
+                        nameFocusNode: _nameFocusNode(row),
+                        onRemove: () => setState(() {
+                          array.removeAt(index);
+                          _nameFocusNodes.remove(row)?.dispose();
+                        }),
+                        onPickPlayer: () => _pickPlayer(row),
                       ),
-              ),
-            ),
-            if (pickerForm == null)
-              AppSheetActionBar(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: state.submitting
-                            ? null
-                            : () => Navigator.pop(context, false),
-                        child: Text(l10n.commonCancel),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: FilledButton(
-                        key: const Key('host-add-player-submit'),
-                        onPressed: state.submitting ? null : _submit,
-                        child: state.submitting
-                            ? const SizedBox.square(
-                                dimension: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Text(
-                                l10n.hostAddPlayerSaveAll(
-                                  _players.controls.length,
-                                ),
-                              ),
-                      ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
               ),
+            ),
+            AppSheetActionBar(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: state.submitting
+                          ? null
+                          : () => Navigator.pop(context, false),
+                      child: Text(l10n.commonCancel),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: FilledButton(
+                      key: const Key('host-add-player-submit'),
+                      onPressed: state.submitting ? null : _submit,
+                      child: state.submitting
+                          ? const SizedBox.square(
+                              dimension: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              l10n.hostAddPlayerSaveAll(
+                                _players.controls.length,
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -374,7 +389,7 @@ class _PlayerFormCard extends StatelessWidget {
     required this.canRemove,
     required this.nameFocusNode,
     required this.onRemove,
-    required this.onPickUser,
+    required this.onPickPlayer,
     super.key,
   });
 
@@ -385,10 +400,7 @@ class _PlayerFormCard extends StatelessWidget {
   final bool canRemove;
   final FocusNode nameFocusNode;
   final VoidCallback onRemove;
-  final VoidCallback onPickUser;
-
-  FormGroup _form(BuildContext context) =>
-      ReactiveForm.of(context)! as FormGroup;
+  final VoidCallback onPickPlayer;
 
   @override
   Widget build(BuildContext context) {
@@ -405,7 +417,41 @@ class _PlayerFormCard extends StatelessWidget {
               children: [
                 Chip(label: Text('#$number')),
                 const SizedBox(width: AppSpacing.sm),
-                Expanded(child: Text(l10n.hostAddPlayerNewPlayer)),
+                Expanded(
+                  child: Row(
+                    children: [
+                      Text(l10n.hostAddPlayerNewPlayer),
+                      ReactiveValueListenableBuilder<String>(
+                        formControlName: HostPlayerFormControl.profileId,
+                        builder: (context, control, _) {
+                          if (control.value == null || control.value!.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.only(left: AppSpacing.xs),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primaryContainer,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                l10n.rosterPlayerBadge,
+                                style: theme.textTheme.labelSmall?.copyWith(
+                                  color: theme.colorScheme.onPrimaryContainer,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                ),
                 if (canRemove)
                   IconButton(
                     key: ValueKey('host-remove-player-$index'),
@@ -419,20 +465,20 @@ class _PlayerFormCard extends StatelessWidget {
             const SizedBox(height: AppSpacing.sm),
             OutlinedButton.icon(
               key: ValueKey('host-player-user-$index'),
-              onPressed: onPickUser,
+              onPressed: onPickPlayer,
               icon: const Icon(AppIcons.search),
-              label: ReactiveValueListenableBuilder<String>(
-                formControlName: HostPlayerFormControl.userId,
-                builder: (context, control, _) {
-                  final selectedName = control.value == null
-                      ? null
-                      : _form(context).control(HostPlayerFormControl.name).value
-                            as String?;
+              label: ReactiveFormConsumer(
+                builder: (context, form, _) {
+                  final name =
+                      form.control(HostPlayerFormControl.name).value as String?;
+                  final hasLinked =
+                      form.control(HostPlayerFormControl.userId).value != null ||
+                      form.control(HostPlayerFormControl.profileId).value != null;
                   return Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      selectedName?.isNotEmpty == true
-                          ? selectedName!
+                      hasLinked && name?.isNotEmpty == true
+                          ? name!
                           : l10n.hostAddPlayerSelectExisting,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -525,6 +571,33 @@ class _PlayerFormCard extends StatelessWidget {
                 labelText: l10n.hostAddPlayerLevelDescription,
               ),
             ),
+            ReactiveValueListenableBuilder<String>(
+              formControlName: HostPlayerFormControl.profileId,
+              builder: (context, profileIdControl, _) {
+                return ReactiveValueListenableBuilder<String>(
+                  formControlName: HostPlayerFormControl.userId,
+                  builder: (context, userIdControl, _) {
+                    final isManualGuest = (profileIdControl.value == null ||
+                            profileIdControl.value!.isEmpty) &&
+                        (userIdControl.value == null ||
+                            userIdControl.value!.isEmpty);
+                    if (!isManualGuest) return const SizedBox.shrink();
+                    return Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.xs),
+                      child: ReactiveCheckboxListTile(
+                        formControlName: HostPlayerFormControl.saveToRoster,
+                        title: Text(
+                          l10n.rosterSaveToRosterCheckbox,
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                        controlAffinity: ListTileControlAffinity.leading,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
             const SizedBox(height: AppSpacing.sm),
             _ClubFeeSection(state: state),
           ],
@@ -534,125 +607,6 @@ class _PlayerFormCard extends StatelessWidget {
   }
 }
 
-class _UserPicker extends ConsumerStatefulWidget {
-  const _UserPicker({
-    required this.sessionId,
-    required this.existingUserIds,
-    required this.selectedUserIds,
-    required this.onSelected,
-    super.key,
-  });
-
-  final String sessionId;
-  final Set<String> existingUserIds;
-  final Set<String> selectedUserIds;
-  final ValueChanged<HostPlayerUserOption> onSelected;
-
-  @override
-  ConsumerState<_UserPicker> createState() => _UserPickerState();
-}
-
-class _UserPickerState extends ConsumerState<_UserPicker> {
-  static const _searchControl = 'search';
-
-  Timer? _debounce;
-  late final FormGroup _searchForm;
-
-  @override
-  void initState() {
-    super.initState();
-    _searchForm = FormGroup({
-      _searchControl: FormControl<String>(value: ''),
-    });
-  }
-
-  @override
-  void dispose() {
-    _debounce?.cancel();
-    _searchForm.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final state = ref.watch(
-      hostAddPlayersControllerProvider(widget.sessionId),
-    );
-    return AppReactiveForm<void>(
-      formGroup: _searchForm,
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: ReactiveTextField<String>(
-              formControlName: _searchControl,
-              autofocus: true,
-              decoration: InputDecoration(
-                prefixIcon: const Icon(AppIcons.search),
-                hintText: l10n.hostAddPlayerSearchExisting,
-              ),
-              onChanged: (control) {
-                _debounce?.cancel();
-                _debounce = Timer(
-                  const Duration(milliseconds: 400),
-                  () => ref
-                      .read(
-                        hostAddPlayersControllerProvider(
-                          widget.sessionId,
-                        ).notifier,
-                      )
-                      .searchUsers(control.value ?? ''),
-                );
-              },
-            ),
-          ),
-          if (state.loadingUsers) const LinearProgressIndicator(),
-          Expanded(
-            child: state.users.isEmpty && !state.loadingUsers
-                ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSpacing.xl),
-                      child: Text(
-                        l10n.hostAddPlayerNoUsersFound,
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                    itemCount: state.users.length,
-                    itemBuilder: (context, index) {
-                      final user = state.users[index];
-                      final disabled =
-                          widget.existingUserIds.contains(user.id) ||
-                          widget.selectedUserIds.contains(user.id);
-                      return ListTile(
-                        enabled: !disabled,
-                        leading: const CircleAvatar(
-                          child: Icon(AppIcons.user),
-                        ),
-                        title: Text(user.name),
-                        subtitle: Text(
-                          disabled
-                              ? l10n.hostAddPlayerAlreadySelected
-                              : user.email,
-                        ),
-                        onTap: disabled ? null : () => widget.onSelected(user),
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _ClubFeeSection extends StatelessWidget {
   const _ClubFeeSection({required this.state});
@@ -670,16 +624,37 @@ class _ClubFeeSection extends StatelessWidget {
       ),
       child: Column(
         children: [
-          ReactiveSwitchListTile(
-            formControlName: HostPlayerFormControl.clubFeeEnabled,
-            title: Text(l10n.hostAddPlayerClubFee),
-            secondary: const Icon(Icons.attach_money),
-            onChanged: (control) {
-              if (control.value != true) {
-                form.control(HostPlayerFormControl.clubId).value = null;
-              }
-              form.updateValueAndValidity();
-            },
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.xs,
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.attach_money, size: 20),
+                const SizedBox(width: AppSpacing.xs),
+                Expanded(
+                  child: Text(
+                    l10n.hostAddPlayerClubFee,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                  ),
+                ),
+                Transform.scale(
+                  scale: 0.8,
+                  child: ReactiveSwitch(
+                    formControlName: HostPlayerFormControl.clubFeeEnabled,
+                    onChanged: (control) {
+                      if (control.value != true) {
+                        form.control(HostPlayerFormControl.clubId).value = null;
+                      }
+                      form.updateValueAndValidity();
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
           ReactiveValueListenableBuilder<bool>(
             formControlName: HostPlayerFormControl.clubFeeEnabled,

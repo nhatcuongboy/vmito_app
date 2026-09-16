@@ -116,6 +116,7 @@ abstract class SessionFormState with _$SessionFormState {
     @Default(false) bool requirePlayerInfo,
     @Default(true) bool allowGuestJoin,
     @Default(true) bool allowNewPlayers,
+    @Default(false) bool isInternal,
   }) = _SessionFormState;
 
   const SessionFormState._();

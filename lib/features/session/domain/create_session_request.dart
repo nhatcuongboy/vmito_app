@@ -37,6 +37,7 @@ class CreateSessionRequest {
     this.allowGuestJoin = true,
     this.allowNewPlayers = true,
     this.allowZaloContact = false,
+    this.isInternal = false,
     this.requiredLevels = const [],
     this.courtColor,
     this.defaultMatchType = MatchType.doubles,
@@ -78,6 +79,7 @@ class CreateSessionRequest {
   final bool allowGuestJoin;
   final bool allowNewPlayers;
   final bool allowZaloContact;
+  final bool isInternal;
 
   /// Empty means **all levels welcome**. Sent even when empty: on an update it
   /// is how a host reopens a session they had restricted.
@@ -92,7 +94,11 @@ class CreateSessionRequest {
   final List<String> imagePublicIds;
   final SessionFeeConfig? feeConfig;
 
-  CreateSessionRequest copyWith({DateTime? startTime, DateTime? endTime}) =>
+  CreateSessionRequest copyWith({
+    DateTime? startTime,
+    DateTime? endTime,
+    bool? isInternal,
+  }) =>
       CreateSessionRequest(
         name: name,
         sportType: sportType,
@@ -112,6 +118,7 @@ class CreateSessionRequest {
         allowGuestJoin: allowGuestJoin,
         allowNewPlayers: allowNewPlayers,
         allowZaloContact: allowZaloContact,
+        isInternal: isInternal ?? this.isInternal,
         requiredLevels: requiredLevels,
         courtColor: courtColor,
         defaultMatchType: defaultMatchType,
@@ -140,6 +147,7 @@ class CreateSessionRequest {
     'allowGuestJoin': allowGuestJoin,
     'allowNewPlayers': allowNewPlayers,
     'allowZaloContact': allowZaloContact,
+    'isInternal': isInternal,
     'requiredLevels': requiredLevels,
     if (courtColor != null) 'courtColor': courtColor,
     'defaultMatchType': defaultMatchType == MatchType.singles

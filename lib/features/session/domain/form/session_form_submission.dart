@@ -38,6 +38,7 @@ abstract final class SessionFormSubmission {
       allowGuestJoin: state.allowGuestJoin,
       allowNewPlayers: state.allowNewPlayers,
       allowZaloContact: state.allowZaloContact,
+      isInternal: state.isInternal,
       requiredLevels: state.effectiveRequiredLevels,
       courtColor: state.courtColor,
       defaultMatchType: state.defaultMatchType,
