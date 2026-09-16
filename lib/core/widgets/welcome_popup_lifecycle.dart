@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vmito_app/core/router/app_router.dart' show rootNavigatorKey;
+import 'package:vmito_app/core/widgets/first_run_gate.dart';
 import 'package:vmito_app/core/widgets/welcome_popup_dialog.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/welcome_popup/application/welcome_popup_controller.dart';
@@ -35,13 +36,14 @@ class _WelcomePopupLifecycleState extends ConsumerState<WelcomePopupLifecycle> {
   void initState() {
     super.initState();
     // Auth resolves before the popup should show, so it never pops over the
-    // splash screen or the biometric lock gate.
+    // splash screen or the biometric lock gate. It also waits for the city
+    // onboarding sheet to resolve, so the two first-run prompts never stack.
     _authSubscription = ref.listenManual<AuthState>(
       authControllerProvider,
       (_, next) {
         if (_evaluated || next.status == AuthStatus.unknown) return;
         _evaluated = true;
-        unawaited(ref.read(welcomePopupControllerProvider.notifier).evaluate());
+        unawaited(_evaluatePopup());
       },
       fireImmediately: true,
     );
@@ -51,6 +53,12 @@ class _WelcomePopupLifecycleState extends ConsumerState<WelcomePopupLifecycle> {
         if (next.isVisible) unawaited(_showDialog(next));
       },
     );
+  }
+
+  Future<void> _evaluatePopup() async {
+    await ref.read(firstRunGateProvider).resolved;
+    if (!mounted) return;
+    await ref.read(welcomePopupControllerProvider.notifier).evaluate();
   }
 
   Future<void> _showDialog(WelcomePopupState state) async {

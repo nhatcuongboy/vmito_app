@@ -28,8 +28,25 @@ class PushRegistrationManager {
 
   String? _registeredToken;
 
+  /// Registers for push, asking for permission only the first time (when the
+  /// user has never answered). Safe to call repeatedly, e.g. on every sign-in.
   Future<void> sync() async {
-    final settings = await _messaging.requestPermission();
+    final current = await _messaging.getNotificationSettings();
+    final settings =
+        current.authorizationStatus == AuthorizationStatus.notDetermined
+        ? await _messaging.requestPermission()
+        : current;
+    await _afterPermission(settings);
+  }
+
+  /// Asks again from a specific in-app entry point (e.g. Settings), for a
+  /// user who denied the first time. iOS returns the same `denied` answer
+  /// without showing UI once denied; Android may still show the system
+  /// dialog again for a plain (non-permanent) denial.
+  Future<void> requestPermissionAndSync() async =>
+      _afterPermission(await _messaging.requestPermission());
+
+  Future<void> _afterPermission(NotificationSettings settings) async {
     if (settings.authorizationStatus != AuthorizationStatus.authorized &&
         settings.authorizationStatus != AuthorizationStatus.provisional) {
       AppLogger.info('push permission not granted');
@@ -95,3 +112,16 @@ final pushRegistrationManagerProvider = Provider<PushRegistrationManager?>((
     () => ref.read(localeControllerProvider).languageCode,
   );
 });
+
+/// Current push-permission answer, re-checked each time it's watched (e.g.
+/// on opening Settings) since the OS doesn't notify the app of changes made
+/// from outside it.
+final pushAuthorizationStatusProvider =
+    FutureProvider.autoDispose<AuthorizationStatus?>((ref) async {
+      if (!supportsNativePushNotifications || Firebase.apps.isEmpty) {
+        return null;
+      }
+      final settings = await FirebaseMessaging.instance
+          .getNotificationSettings();
+      return settings.authorizationStatus;
+    });

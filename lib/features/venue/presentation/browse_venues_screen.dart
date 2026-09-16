@@ -4,10 +4,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/constants/image_constants.dart';
 import 'package:vmito_app/core/location/device_location_service.dart';
+import 'package:vmito_app/core/location/location_permission_feedback.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/tab_reselection_controller.dart';
@@ -145,26 +145,20 @@ class _BrowseVenuesScreenState extends ConsumerState<BrowseVenuesScreen> {
 
   Future<void> _nearMe() async {
     try {
-      var permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-      }
-      if (permission == LocationPermission.denied ||
-          permission == LocationPermission.deniedForever) {
-        throw StateError('Bạn chưa cấp quyền vị trí.');
-      }
-      final position = await Geolocator.getCurrentPosition();
+      final coordinates = await ref.read(deviceLocationServiceProvider).call();
       final filter = ref
           .read(venueBrowseControllerProvider)
           .filter
           .copyWith(
             sortBy: 'distance',
-            latitude: position.latitude,
-            longitude: position.longitude,
+            latitude: coordinates.latitude,
+            longitude: coordinates.longitude,
           );
       await ref
           .read(venueBrowseControllerProvider.notifier)
           .load(filter: filter);
+    } on LocationPermissionException {
+      if (mounted) showLocationPermissionDeniedSnackBar(context);
     } on Object catch (error) {
       if (mounted) {
         ScaffoldMessenger.of(

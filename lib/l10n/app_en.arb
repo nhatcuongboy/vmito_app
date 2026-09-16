@@ -273,6 +273,9 @@
   "biometricLockedOutError": "Authentication is temporarily locked. Use your device passcode or try again later.",
   "biometricFailedError": "Could not authenticate. Please try again.",
   "settingsNotificationPreferences": "Notification settings",
+  "settingsNotificationsOn": "On",
+  "settingsNotificationsOff": "Off, tap to open Settings",
+  "settingsNotificationsNotDetermined": "Not enabled, tap to enable",
   "settingsHelpFeedback": "Help and feedback",
   "settingsTermsPrivacy": "Terms and privacy",
   "settingsAbout": "About Vmito",
@@ -2541,6 +2544,7 @@
   "venueFilterDistrict": "Ward / Commune / Special zone",
   "venueFilterFavoriteOnly": "Favorite venues only",
   "venueFilterLocationDenied": "Location permission has not been granted.",
+  "locationPermissionOpenSettings": "Open Settings",
   "venueFiltersReset": "Reset",
   "venueFiltersApply": "Apply",
   "transactionSort": "Sort",
@@ -3595,7 +3599,16 @@
   "rosterStatusActive": "Active",
   "rosterStatusPromoted": "Promoted",
   "rosterStatusArchived": "Archived",
-  "rosterPersonalBadge": "Personal",
+  "rosterPersonalBadge": "Walk-in",
+  "rosterPersonalBadgeHint": "This player is not part of any club",
+  "rosterGroupName": "Group {name}",
+  "@rosterGroupName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "rosterPlayerBadge": "Roster",
   "rosterViewStats": "View Stats",
   "rosterPromoteToUser": "Promote to User",

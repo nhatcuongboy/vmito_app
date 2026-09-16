@@ -26,11 +26,19 @@ class NewsListScreen extends ConsumerStatefulWidget {
 
 class _NewsListScreenState extends ConsumerState<NewsListScreen> {
   final _scroll = ScrollController();
+  bool _didLoad = false;
 
   @override
   void initState() {
     super.initState();
     _scroll.addListener(_onScroll);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didLoad) return;
+    _didLoad = true;
     final initialTag = GoRouterState.of(context).uri.queryParameters['tag'];
     unawaited(
       ref.read(newsListControllerProvider.notifier).load(tag: initialTag),

@@ -7,6 +7,7 @@ import 'package:reactive_forms/reactive_forms.dart';
 import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/location/city_names.dart';
 import 'package:vmito_app/core/location/device_location_service.dart';
+import 'package:vmito_app/core/location/location_permission_feedback.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/location/new_admin_units.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
@@ -117,6 +118,13 @@ class _SessionFilterSheetState extends ConsumerState<SessionFilterSheet> {
       if (!mounted) return;
       _coordinates = coordinates;
       control.value = true;
+    } on LocationPermissionException {
+      if (mounted) {
+        showLocationPermissionDeniedSnackBar(
+          context,
+          message: AppLocalizations.of(context).sessionFilterLocationDenied,
+        );
+      }
     } on Object {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

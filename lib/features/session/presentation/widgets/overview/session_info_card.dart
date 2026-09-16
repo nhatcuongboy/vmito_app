@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -53,17 +52,19 @@ class SessionInfoCard extends StatelessWidget {
             _InfoCardHeader(onEdit: onEdit),
             SessionInfoRow(
               icon: AppIcons.sessions,
-              textStyle: theme.textTheme.titleSmall?.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-              label: session.name,
-            ),
-            if (session.isInternal)
-              SessionInfoRow(
-                icon: AppIcons.lock,
-                alignCenter: true,
-                child: Row(
-                  children: [
+              alignCenter: true,
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      session.name,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  if (session.isInternal) ...[
+                    const SizedBox(width: AppSpacing.sm),
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.xs + 2,
@@ -86,45 +87,10 @@ class SessionInfoCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    if (session.accessCode != null) ...[
-                      const SizedBox(width: AppSpacing.sm),
-                      Text(
-                        '${l10n.sessionAccessCode}: ',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: palette.mutedForeground,
-                        ),
-                      ),
-                      Text(
-                        session.accessCode!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          fontFamily: 'monospace',
-                          letterSpacing: 1.0,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      IconButton(
-                        tooltip: l10n.sessionAccessCode,
-                        iconSize: 16,
-                        visualDensity: VisualDensity.compact,
-                        padding: const EdgeInsets.all(4),
-                        constraints: const BoxConstraints(),
-                        icon: const Icon(AppIcons.copy),
-                        onPressed: () async {
-                          await Clipboard.setData(
-                            ClipboardData(text: session.accessCode!),
-                          );
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(l10n.copiedAccessCode)),
-                            );
-                          }
-                        },
-                      ),
-                    ],
                   ],
-                ),
+                ],
               ),
+            ),
             if (session.displayHostName.isNotEmpty)
               SessionInfoRow(
                 icon: AppIcons.user,

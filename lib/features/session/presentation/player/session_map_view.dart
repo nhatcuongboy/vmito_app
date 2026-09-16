@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:vmito_app/core/location/device_location_service.dart';
+import 'package:vmito_app/core/location/location_permission_feedback.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
@@ -172,6 +173,13 @@ class _SessionMapViewState extends ConsumerState<SessionMapView> {
           15,
         ),
       );
+    } on LocationPermissionException {
+      if (mounted) {
+        showLocationPermissionDeniedSnackBar(
+          context,
+          message: AppLocalizations.of(context).sessionMapLocationUnavailable,
+        );
+      }
     } on Object {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -82,7 +82,8 @@ class _RosterScreenState extends ConsumerState<RosterScreen> {
               children: [
                 FilterChip(
                   label: Text(l10n.commonAll),
-                  selected: state.selectedClubFilter == null ||
+                  selected:
+                      state.selectedClubFilter == null ||
                       state.selectedClubFilter == 'all',
                   onSelected: (_) => controller.setClubFilter('all'),
                 ),
@@ -95,7 +96,7 @@ class _RosterScreenState extends ConsumerState<RosterScreen> {
                 for (final club in managedClubs) ...[
                   const SizedBox(width: AppSpacing.xs),
                   FilterChip(
-                    label: Text(club.name),
+                    label: Text(l10n.rosterGroupName(club.name)),
                     selected: state.selectedClubFilter == club.id,
                     onSelected: (_) => controller.setClubFilter(club.id),
                   ),
@@ -111,6 +112,12 @@ class _RosterScreenState extends ConsumerState<RosterScreen> {
               vertical: AppSpacing.xs,
             ),
             child: SegmentedButton<PlayerProfileStatus>(
+              showSelectedIcon: false,
+              style: SegmentedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.xs,
+                ),
+              ),
               segments: [
                 ButtonSegment(
                   value: PlayerProfileStatus.active,
@@ -142,56 +149,52 @@ class _RosterScreenState extends ConsumerState<RosterScreen> {
               child: state.isLoading && state.profiles.isEmpty
                   ? const Center(child: CircularProgressIndicator())
                   : state.error != null && state.profiles.isEmpty
-                      ? AppErrorView(
-                          error: state.error!,
-                          onRetry: controller.loadProfiles,
-                        )
-                      : state.profiles.isEmpty
-                          ? ListView(
+                  ? AppErrorView(
+                      error: state.error!,
+                      onRetry: controller.loadProfiles,
+                    )
+                  : state.profiles.isEmpty
+                  ? ListView(
+                      children: [
+                        SizedBox(
+                          height: MediaQuery.sizeOf(context).height * 0.4,
+                          child: Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                SizedBox(
-                                  height:
-                                      MediaQuery.sizeOf(context).height * 0.4,
-                                  child: Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          AppIcons.user,
-                                          size: 48,
-                                          color: theme.colorScheme.outline,
-                                        ),
-                                        const SizedBox(height: AppSpacing.md),
-                                        Text(
-                                          l10n.rosterEmptyListMessage,
-                                          style: theme.textTheme.bodyMedium
-                                              ?.copyWith(
-                                            color: theme
-                                                .colorScheme.onSurfaceVariant,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
+                                Icon(
+                                  AppIcons.user,
+                                  size: 48,
+                                  color: theme.colorScheme.outline,
+                                ),
+                                const SizedBox(height: AppSpacing.md),
+                                Text(
+                                  l10n.rosterEmptyListMessage,
+                                  style: theme.textTheme.bodyMedium?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
                                   ),
                                 ),
                               ],
-                            )
-                          : ListView.builder(
-                              padding: const EdgeInsets.only(
-                                top: AppSpacing.xs,
-                                bottom: 80,
-                              ),
-                              itemCount: state.profiles.length,
-                              itemBuilder: (context, index) {
-                                final profile = state.profiles[index];
-                                return PlayerProfileCard(
-                                  key: ValueKey(profile.id),
-                                  profile: profile,
-                                  onChanged: controller.loadProfiles,
-                                );
-                              },
                             ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.only(
+                        top: AppSpacing.xs,
+                        bottom: 80,
+                      ),
+                      itemCount: state.profiles.length,
+                      itemBuilder: (context, index) {
+                        final profile = state.profiles[index];
+                        return PlayerProfileCard(
+                          key: ValueKey(profile.id),
+                          profile: profile,
+                          onChanged: controller.loadProfiles,
+                        );
+                      },
+                    ),
             ),
           ),
         ],

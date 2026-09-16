@@ -59,6 +59,7 @@ class _PlayerProfileFormSheetState
 
   late final FormGroup _form;
   bool _submitting = false;
+  late bool _isWalkIn;
 
   bool get _isEditing => widget.profile != null;
 
@@ -66,6 +67,9 @@ class _PlayerProfileFormSheetState
   void initState() {
     super.initState();
     final p = widget.profile;
+    _isWalkIn =
+        !widget.lockClubSelection &&
+        (p?.clubId ?? widget.defaultClubId) == null;
     _form = FormGroup({
       _nameControl: FormControl<String>(
         value: p?.name,
@@ -246,33 +250,72 @@ class _PlayerProfileFormSheetState
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  ReactiveDropdownField<String>(
-                    formControlName: _clubIdControl,
-                    readOnly: widget.lockClubSelection,
-                    decoration: InputDecoration(
-                      labelText: l10n.rosterClubAssignment,
-                      suffixIcon: widget.lockClubSelection
-                          ? const Icon(Icons.lock_outline, size: 18)
-                          : null,
+                  if (widget.lockClubSelection)
+                    ReactiveDropdownField<String>(
+                      formControlName: _clubIdControl,
+                      readOnly: true,
+                      decoration: InputDecoration(
+                        labelText: l10n.rosterClubAssignment,
+                        suffixIcon: const Icon(Icons.lock_outline, size: 18),
+                      ),
+                      items: [
+                        for (final club in managedClubs)
+                          DropdownMenuItem<String>(
+                            value: club.id,
+                            child: Text(l10n.rosterGroupName(club.name)),
+                          ),
+                        if (widget.defaultClubId != null &&
+                            !managedClubs.any(
+                              (c) => c.id == widget.defaultClubId,
+                            ))
+                          DropdownMenuItem<String>(
+                            value: widget.defaultClubId,
+                            child: Text(widget.defaultClubId!),
+                          ),
+                      ],
+                    )
+                  else
+                    Card(
+                      margin: EdgeInsets.zero,
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppSpacing.sm),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SwitchListTile.adaptive(
+                              contentPadding: EdgeInsets.zero,
+                              title: Text(l10n.rosterPersonalBadge),
+                              subtitle: Text(l10n.rosterPersonalBadgeHint),
+                              value: _isWalkIn,
+                              onChanged: (value) => setState(() {
+                                _isWalkIn = value;
+                                if (value) {
+                                  _form.control(_clubIdControl).value = null;
+                                }
+                              }),
+                            ),
+                            if (!_isWalkIn) ...[
+                              const SizedBox(height: AppSpacing.sm),
+                              ReactiveDropdownField<String>(
+                                formControlName: _clubIdControl,
+                                decoration: InputDecoration(
+                                  labelText: l10n.rosterClubAssignment,
+                                ),
+                                items: [
+                                  for (final club in managedClubs)
+                                    DropdownMenuItem<String>(
+                                      value: club.id,
+                                      child: Text(
+                                        l10n.rosterGroupName(club.name),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
                     ),
-                    items: [
-                      if (!widget.lockClubSelection)
-                        DropdownMenuItem<String>(
-                          child: Text(l10n.rosterPersonalBadge),
-                        ),
-                      for (final club in managedClubs)
-                        DropdownMenuItem<String>(
-                          value: club.id,
-                          child: Text(club.name),
-                        ),
-                      if (widget.defaultClubId != null &&
-                          !managedClubs.any((c) => c.id == widget.defaultClubId))
-                        DropdownMenuItem<String>(
-                          value: widget.defaultClubId,
-                          child: Text(widget.defaultClubId!),
-                        ),
-                    ],
-                  ),
                   const SizedBox(height: AppSpacing.md),
                   ReactiveTextField<String>(
                     formControlName: _notesControl,

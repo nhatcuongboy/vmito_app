@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:vmito_app/core/location/device_location_service.dart';
+import 'package:vmito_app/core/location/location_permission_feedback.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
@@ -186,6 +187,13 @@ class _DiscoveryEntityMapViewState
           15,
         ),
       );
+    } on LocationPermissionException {
+      if (mounted) {
+        showLocationPermissionDeniedSnackBar(
+          context,
+          message: AppLocalizations.of(context).discoveryMapLocationUnavailable,
+        );
+      }
     } on Object {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

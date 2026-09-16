@@ -4,12 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/location/device_location_service.dart';
+import 'package:vmito_app/core/location/location_permission_feedback.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/app_shell_scaffold_key.dart';
 import 'package:vmito_app/core/theme/app_colors.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/widgets/city_onboarding_dialog.dart';
+import 'package:vmito_app/core/widgets/first_run_gate.dart';
 import 'package:vmito_app/core/widgets/notification_header_button.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/home/application/home_discovery_presets.dart';
@@ -218,9 +220,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   });
 
   Future<void> _showCityOnboarding() async {
-    final result = await CityOnboardingDialog.maybeShow(context, ref);
-    if (result != null && mounted) {
-      await _onPreferredCityChanged(result.city, result.wards);
+    try {
+      final result = await CityOnboardingDialog.maybeShow(context, ref);
+      if (result != null && mounted) {
+        await _onPreferredCityChanged(result.city, result.wards);
+      }
+    } finally {
+      ref.read(firstRunGateProvider).complete();
     }
   }
 
@@ -524,6 +530,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 latitude: coordinates.latitude,
                 longitude: coordinates.longitude,
               );
+            } on LocationPermissionException {
+              if (mounted) showLocationPermissionDeniedSnackBar(context);
+              return;
             } on Object {
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -580,6 +589,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 longitude: coordinates.longitude,
               ),
             );
+          } on LocationPermissionException {
+            if (mounted) showLocationPermissionDeniedSnackBar(context);
           } on Object {
             if (mounted) {
               ScaffoldMessenger.of(context).showSnackBar(

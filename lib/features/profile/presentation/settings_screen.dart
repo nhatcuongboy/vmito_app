@@ -1,12 +1,15 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/localization/locale_controller.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
+import 'package:vmito_app/core/notifications/push_registration_manager.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/theme_mode_controller.dart';
+import 'package:vmito_app/core/utils/app_settings_launcher.dart';
 import 'package:vmito_app/core/widgets/language_selector.dart';
 import 'package:vmito_app/core/widgets/sign_out_confirmation.dart';
 import 'package:vmito_app/core/widgets/theme_mode_selector.dart';
@@ -30,6 +33,7 @@ class SettingsScreen extends ConsumerWidget {
     final locationPreferences = ref.watch(
       locationPreferencesControllerProvider,
     );
+    final pushStatus = ref.watch(pushAuthorizationStatusProvider).value;
     final themeModeName = switch (themeMode) {
       ThemeMode.light => l10n.themeModeLight,
       ThemeMode.dark => l10n.themeModeDark,
@@ -89,6 +93,22 @@ class SettingsScreen extends ConsumerWidget {
                         value: themeModeName,
                         onTap: () => showThemeModeSelector(context),
                       ),
+                      if (pushStatus != null)
+                        SettingsActionTile(
+                          icon: AppIcons.notifications,
+                          title: l10n.settingsNotificationPreferences,
+                          value: switch (pushStatus) {
+                            AuthorizationStatus.authorized ||
+                            AuthorizationStatus.provisional =>
+                              l10n.settingsNotificationsOn,
+                            AuthorizationStatus.denied ||
+                            AuthorizationStatus.deniedPermanently =>
+                              l10n.settingsNotificationsOff,
+                            AuthorizationStatus.notDetermined =>
+                              l10n.settingsNotificationsNotDetermined,
+                          },
+                          onTap: () => _handleNotificationsTap(ref, pushStatus),
+                        ),
                       SettingsSwitchTile(
                         icon: AppIcons.location,
                         title: l10n.settingsShowNewAddressTitle,
@@ -149,5 +169,27 @@ class SettingsScreen extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+/// A plain [AuthorizationStatus.denied] can still be re-asked in-app; once
+/// the OS reports [AuthorizationStatus.deniedPermanently] it won't show its
+/// dialog again, so that case has to go through the OS Settings app.
+Future<void> _handleNotificationsTap(
+  WidgetRef ref,
+  AuthorizationStatus status,
+) async {
+  switch (status) {
+    case AuthorizationStatus.notDetermined:
+    case AuthorizationStatus.denied:
+      await ref
+          .read(pushRegistrationManagerProvider)
+          ?.requestPermissionAndSync();
+      ref.invalidate(pushAuthorizationStatusProvider);
+    case AuthorizationStatus.deniedPermanently:
+      await openDeviceAppSettings();
+    case AuthorizationStatus.authorized:
+    case AuthorizationStatus.provisional:
+      break;
   }
 }

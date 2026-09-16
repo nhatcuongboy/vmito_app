@@ -173,7 +173,9 @@ class _RosterPickerTabState extends ConsumerState<_RosterPickerTab> {
       _error = null;
     });
     try {
-      final results = await ref.read(rosterServiceProvider).getHostRecentPlayers(
+      final results = await ref
+          .read(rosterServiceProvider)
+          .getHostRecentPlayers(
             clubId: widget.clubId,
             search: query,
           );
@@ -226,36 +228,40 @@ class _RosterPickerTabState extends ConsumerState<_RosterPickerTab> {
     }
 
     return [...players]..sort((a, b) {
-        final prioA = getPriority(a);
-        final prioB = getPriority(b);
-        if (prioA != prioB) return prioA.compareTo(prioB);
+      final prioA = getPriority(a);
+      final prioB = getPriority(b);
+      if (prioA != prioB) return prioA.compareTo(prioB);
 
-        final dateA = a.lastPlayedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-        final dateB = b.lastPlayedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-        final dateCmp = dateB.compareTo(dateA);
-        if (dateCmp != 0) return dateCmp;
+      final dateA = a.lastPlayedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final dateB = b.lastPlayedAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final dateCmp = dateB.compareTo(dateA);
+      if (dateCmp != 0) return dateCmp;
 
-        return b.totalSessions.compareTo(a.totalSessions);
-      });
+      return b.totalSessions.compareTo(a.totalSessions);
+    });
   }
 
   void _submit() {
-    final hostState =
-        ref.read(hostAddPlayersControllerProvider(widget.sessionId));
-    final result = _selected.map((player) {
-      final isMonthly = player.userId != null &&
-          hostState.monthlyMemberUserIds.contains(player.userId);
-      return HostPickedPlayer(
-        name: player.name,
-        userId: player.userId,
-        profileId: player.profileId,
-        clubId: player.clubId,
-        gender: player.gender,
-        level: player.level,
-        phone: player.phone,
-        isMonthlyMember: isMonthly,
-      );
-    }).toList(growable: false);
+    final hostState = ref.read(
+      hostAddPlayersControllerProvider(widget.sessionId),
+    );
+    final result = _selected
+        .map((player) {
+          final isMonthly =
+              player.userId != null &&
+              hostState.monthlyMemberUserIds.contains(player.userId);
+          return HostPickedPlayer(
+            name: player.name,
+            userId: player.userId,
+            profileId: player.profileId,
+            clubId: player.clubId,
+            gender: player.gender,
+            level: player.level,
+            phone: player.phone,
+            isMonthlyMember: isMonthly,
+          );
+        })
+        .toList(growable: false);
     Navigator.pop(context, result);
   }
 
@@ -303,7 +309,8 @@ class _RosterPickerTabState extends ConsumerState<_RosterPickerTab> {
                         ),
                         const SizedBox(height: AppSpacing.sm),
                         OutlinedButton(
-                          onPressed: () => _fetchPlayers(_searchController.text),
+                          onPressed: () =>
+                              _fetchPlayers(_searchController.text),
                           child: Text(l10n.commonRetry),
                         ),
                       ],
@@ -311,133 +318,130 @@ class _RosterPickerTabState extends ConsumerState<_RosterPickerTab> {
                   ),
                 )
               : sortedPlayers.isEmpty && !_loading
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(AppSpacing.xl),
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.xl),
+                    child: Text(
+                      l10n.rosterNoRecentPlayersFound,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.xs,
+                  ),
+                  itemCount: sortedPlayers.length,
+                  separatorBuilder: (_, _) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final player = sortedPlayers[index];
+                    final isAlreadyInSession =
+                        widget.existingProfileIds.contains(player.profileId) ||
+                        (player.userId != null &&
+                            widget.existingUserIds.contains(player.userId));
+                    final isChecked = _selected.any(
+                      (p) => p.profileId == player.profileId,
+                    );
+
+                    return CheckboxListTile(
+                      key: ValueKey('roster-player-${player.profileId}'),
+                      value: isChecked,
+                      enabled: !isAlreadyInSession,
+                      onChanged: isAlreadyInSession
+                          ? null
+                          : (_) => _toggleSelection(player),
+                      secondary: CircleAvatar(
+                        radius: 20,
+                        backgroundColor: theme.colorScheme.primaryContainer,
                         child: Text(
-                          l10n.rosterNoRecentPlayersFound,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
+                          player.name.isNotEmpty
+                              ? player.name[0].toUpperCase()
+                              : '?',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: theme.colorScheme.onPrimaryContainer,
                           ),
                         ),
                       ),
-                    )
-                  : ListView.separated(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.md,
-                        vertical: AppSpacing.xs,
-                      ),
-                      itemCount: sortedPlayers.length,
-                      separatorBuilder: (_, _) => const Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final player = sortedPlayers[index];
-                        final isAlreadyInSession =
-                            widget.existingProfileIds.contains(player.profileId) ||
-                            (player.userId != null &&
-                                widget.existingUserIds.contains(player.userId));
-                        final isChecked = _selected.any(
-                          (p) => p.profileId == player.profileId,
-                        );
-
-                        return CheckboxListTile(
-                          key: ValueKey('roster-player-${player.profileId}'),
-                          value: isChecked,
-                          enabled: !isAlreadyInSession,
-                          onChanged: isAlreadyInSession
-                              ? null
-                              : (_) => _toggleSelection(player),
-                          secondary: CircleAvatar(
-                            radius: 20,
-                            backgroundColor:
-                                theme.colorScheme.primaryContainer,
+                      title: Row(
+                        children: [
+                          Flexible(
                             child: Text(
-                              player.name.isNotEmpty
-                                  ? player.name[0].toUpperCase()
-                                  : '?',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: theme.colorScheme.onPrimaryContainer,
+                              player.name,
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          title: Row(
+                          if (player.gender != null) ...[
+                            const SizedBox(width: AppSpacing.xs),
+                            Icon(genderIcon(player.gender), size: 16),
+                          ],
+                        ],
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 2),
+                          Row(
                             children: [
-                              Flexible(
-                                child: Text(
-                                  player.name,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                              if (player.level != null) ...[
+                                Text(
+                                  l10n.levelName(player.level!),
+                                  style: theme.textTheme.bodySmall,
+                                ),
+                                const SizedBox(width: AppSpacing.sm),
+                              ],
+                              Text(
+                                '${player.totalSessions} sessions',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ),
-                              if (player.gender != null) ...[
+                              if (player.lastPlayedAt != null) ...[
                                 const SizedBox(width: AppSpacing.xs),
-                                Icon(genderIcon(player.gender), size: 16),
+                                Text(
+                                  '• ${Dates.dateOnly(player.lastPlayedAt!)}',
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
                               ],
                             ],
                           ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 2),
-                              Row(
-                                children: [
-                                  if (player.level != null) ...[
-                                    Text(
-                                      l10n.levelName(player.level!),
-                                      style: theme.textTheme.bodySmall,
-                                    ),
-                                    const SizedBox(width: AppSpacing.sm),
-                                  ],
-                                  Text(
-                                    '${player.totalSessions} sessions',
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: theme.colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                  if (player.lastPlayedAt != null) ...[
-                                    const SizedBox(width: AppSpacing.xs),
-                                    Text(
-                                      '• ${Dates.dateOnly(player.lastPlayedAt!)}',
-                                      style:
-                                          theme.textTheme.bodySmall?.copyWith(
-                                        color:
-                                            theme.colorScheme.onSurfaceVariant,
-                                      ),
-                                    ),
-                                  ],
-                                ],
+                          const SizedBox(height: 2),
+                          if (isAlreadyInSession)
+                            Text(
+                              l10n.hostAddPlayerAlreadySelected,
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.error,
                               ),
-                              const SizedBox(height: 2),
-                              if (isAlreadyInSession)
-                                Text(
-                                  l10n.hostAddPlayerAlreadySelected,
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: theme.colorScheme.error,
-                                  ),
-                                )
-                              else if (player.club?.name != null)
-                                Text(
-                                  '[${player.club!.name}]',
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                )
-                              else
-                                Text(
-                                  '[${l10n.rosterPersonalBadge}]',
-                                  style: theme.textTheme.labelSmall?.copyWith(
-                                    color: theme.colorScheme.outline,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                            )
+                          else if (player.club?.name != null)
+                            Text(
+                              '[${l10n.rosterGroupName(player.club!.name)}]',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.primary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            )
+                          else
+                            Text(
+                              '[${l10n.rosterPersonalBadge}]',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: theme.colorScheme.outline,
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
         ),
         AppSheetActionBar(
           child: Row(
@@ -521,8 +525,9 @@ class _SystemUserPickerTabState extends ConsumerState<_SystemUserPickerTab> {
   }
 
   void _selectUser(HostPlayerUserOption user) {
-    final hostState =
-        ref.read(hostAddPlayersControllerProvider(widget.sessionId));
+    final hostState = ref.read(
+      hostAddPlayersControllerProvider(widget.sessionId),
+    );
     final isMonthly = hostState.monthlyMemberUserIds.contains(user.id);
     Navigator.pop(
       context,
@@ -588,8 +593,9 @@ class _SystemUserPickerTabState extends ConsumerState<_SystemUserPickerTab> {
                   itemBuilder: (context, index) {
                     final user = state.users[index];
                     final disabled = widget.existingUserIds.contains(user.id);
-                    final isMonthly =
-                        state.monthlyMemberUserIds.contains(user.id);
+                    final isMonthly = state.monthlyMemberUserIds.contains(
+                      user.id,
+                    );
 
                     return ListTile(
                       key: ValueKey('system-user-${user.id}'),

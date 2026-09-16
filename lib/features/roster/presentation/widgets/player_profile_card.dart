@@ -93,7 +93,8 @@ class PlayerProfileCard extends ConsumerWidget {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: theme.colorScheme.surfaceContainerHighest,
+                                color:
+                                    theme.colorScheme.surfaceContainerHighest,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
@@ -209,7 +210,7 @@ class PlayerProfileCard extends ConsumerWidget {
                 _buildStatItem(
                   context,
                   label: l10n.rosterTier,
-                  value: profile.tier,
+                  value: _tierLabel(l10n, profile.tier),
                   isHighlight: true,
                 ),
               ],
@@ -277,7 +278,7 @@ class PlayerProfileCard extends ConsumerWidget {
           borderRadius: BorderRadius.circular(4),
         ),
         child: Text(
-          clubName,
+          l10n.rosterGroupName(clubName),
           style: theme.textTheme.labelSmall?.copyWith(
             color: theme.colorScheme.onSecondaryContainer,
             fontWeight: FontWeight.w600,
@@ -297,11 +298,22 @@ class PlayerProfileCard extends ConsumerWidget {
       child: Text(
         l10n.rosterPersonalBadge,
         style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.outline,
+          color: theme.colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
   }
+
+  String _tierLabel(AppLocalizations l10n, String tier) =>
+      switch (tier.toUpperCase()) {
+        'BRONZE' => l10n.leaderboardTierBronze,
+        'SILVER' => l10n.leaderboardTierSilver,
+        'GOLD' => l10n.leaderboardTierGold,
+        'PLATINUM' => l10n.leaderboardTierPlatinum,
+        'DIAMOND' => l10n.leaderboardTierDiamond,
+        _ => tier,
+      };
 
   Widget _buildStatItem(
     BuildContext context, {
@@ -341,12 +353,18 @@ class PlayerProfileCard extends ConsumerWidget {
       case 'stats':
         await showPlayerProfileStatsSheet(context, profileId: profile.id);
       case 'promote':
-        final promoted = await showPromotePlayerDialog(context, profile: profile);
+        final promoted = await showPromotePlayerDialog(
+          context,
+          profile: profile,
+        );
         if (promoted == true) {
           onChanged?.call();
         }
       case 'edit':
-        final updated = await showPlayerProfileFormSheet(context, profile: profile);
+        final updated = await showPlayerProfileFormSheet(
+          context,
+          profile: profile,
+        );
         if (updated == true) {
           onChanged?.call();
         }

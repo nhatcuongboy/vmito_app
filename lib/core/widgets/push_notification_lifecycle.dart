@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/notifications/app_local_notifications.dart';
 import 'package:vmito_app/core/notifications/push_registration_manager.dart';
 import 'package:vmito_app/core/utils/logger.dart';
+import 'package:vmito_app/core/widgets/first_run_gate.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/notification/application/notification_controller.dart';
 import 'package:vmito_app/features/notification/domain/notification_routing.dart';
@@ -88,6 +89,11 @@ class _PushNotificationLifecycleState
 
   Future<void> _handleAuth(AuthState auth) async {
     if (!_initialized || auth.status != AuthStatus.authenticated) return;
+    // Wait for the city onboarding sheet to resolve so the push-permission
+    // alert doesn't fight it for the screen on a brand-new install. A no-op
+    // once onboarding has already been resolved on a prior run.
+    await ref.read(firstRunGateProvider).resolved;
+    if (!mounted) return;
     try {
       await ref.read(pushRegistrationManagerProvider)?.sync();
     } on Object catch (error) {

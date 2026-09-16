@@ -1483,48 +1483,38 @@ class _InternalSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return _FormCard(
-      title: l10n.sessionFormInternalTitle,
-      child: ReactiveValueListenableBuilder<bool>(
-        formControlName: SessionFormControl.isInternal,
-        builder: (context, control, _) {
-          final isInternal = control.value ?? false;
-          final palette = Theme.of(context).extension<AppPalette>()!;
-          return InkWell(
-            onTap: () => control.value = !isInternal,
-            borderRadius: BorderRadius.circular(AppRadius.md),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+    final palette = Theme.of(context).extension<AppPalette>()!;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: ReactiveValueListenableBuilder<bool>(
+          formControlName: SessionFormControl.isInternal,
+          builder: (context, control, _) {
+            final isInternal = control.value ?? false;
+            return InkWell(
+              onTap: () => control.value = !isInternal,
+              borderRadius: BorderRadius.circular(AppRadius.md),
               child: Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(AppSpacing.xs),
-                    decoration: BoxDecoration(
-                      color: isInternal
-                          ? Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.1)
-                          : palette.muted.withValues(alpha: 0.5),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      isInternal ? Icons.lock : Icons.lock_open_outlined,
-                      size: 20,
-                      color: isInternal
-                          ? Theme.of(context).colorScheme.primary
-                          : palette.mutedForeground,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.sessionFormInternalTitle,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        Text(
+                          l10n.sessionFormInternalSubtitle,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: palette.mutedForeground),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Text(
-                      l10n.sessionFormInternalSubtitle,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: palette.mutedForeground,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
                   Transform.scale(
                     scale: 0.8,
                     child: Switch.adaptive(
@@ -1536,9 +1526,9 @@ class _InternalSection extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

@@ -272,6 +272,9 @@
   "biometricLockedOutError": "验证暂时被锁定，请使用设备密码或稍后重试。",
   "biometricFailedError": "无法验证，请重试。",
   "settingsNotificationPreferences": "通知设置",
+  "settingsNotificationsOn": "已开启",
+  "settingsNotificationsOff": "已关闭，点击前往设置",
+  "settingsNotificationsNotDetermined": "尚未开启，点击开启",
   "settingsHelpFeedback": "帮助与反馈",
   "settingsTermsPrivacy": "条款与隐私",
   "settingsAbout": "关于 Vmito",
@@ -2539,6 +2542,7 @@
   "venueFilterDistrict": "坊 / 社 / 特区",
   "venueFilterFavoriteOnly": "仅显示收藏场馆",
   "venueFilterLocationDenied": "尚未授予位置权限。",
+  "locationPermissionOpenSettings": "打开设置",
   "venueFiltersReset": "重置",
   "venueFiltersApply": "应用",
   "transactionSort": "排序",
@@ -3445,7 +3449,16 @@
   "rosterStatusActive": "活跃",
   "rosterStatusPromoted": "已升级账号",
   "rosterStatusArchived": "已归档",
-  "rosterPersonalBadge": "个人",
+  "rosterPersonalBadge": "散客",
+  "rosterPersonalBadgeHint": "该球员不属于任何俱乐部",
+  "rosterGroupName": "群组{name}",
+  "@rosterGroupName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "rosterPlayerBadge": "名录",
   "rosterViewStats": "查看统计",
   "rosterPromoteToUser": "升级为用户账号",

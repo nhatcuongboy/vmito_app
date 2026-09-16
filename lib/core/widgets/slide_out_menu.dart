@@ -201,13 +201,6 @@ class SlideOutMenu extends ConsumerWidget {
                               onTap: () => pushTo(AppRoutes.manageClubs),
                             ),
                             _MenuItem(
-                              itemKey: const Key('menu-host-roster'),
-                              icon: Icons.contacts_outlined,
-                              label: l10n.rosterScreenTitle,
-                              isActive: isActive(AppRoutes.roster),
-                              onTap: () => pushTo(AppRoutes.roster),
-                            ),
-                            _MenuItem(
                               itemKey: const Key('menu-host-tournaments'),
                               icon: AppIcons.swords,
                               label: l10n.navTournaments,
@@ -226,6 +219,13 @@ class SlideOutMenu extends ConsumerWidget {
                               label: l10n.reminderTitle,
                               isActive: isActive(AppRoutes.reminders),
                               onTap: () => pushTo(AppRoutes.reminders),
+                            ),
+                            _MenuItem(
+                              itemKey: const Key('menu-host-roster'),
+                              icon: Icons.contacts_outlined,
+                              label: l10n.rosterScreenTitle,
+                              isActive: isActive(AppRoutes.roster),
+                              onTap: () => pushTo(AppRoutes.roster),
                             ),
                           ],
                         ),

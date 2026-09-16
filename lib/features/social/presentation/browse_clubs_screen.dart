@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/constants/image_constants.dart';
 import 'package:vmito_app/core/location/device_location_service.dart';
+import 'package:vmito_app/core/location/location_permission_feedback.dart';
 import 'package:vmito_app/core/location/location_preferences_controller.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/shell/tab_reselection_controller.dart';
@@ -371,6 +372,8 @@ class _BrowseClubsScreenState extends ConsumerState<BrowseClubsScreen> {
             longitude: coordinates.longitude,
           ),
         );
+      } on LocationPermissionException {
+        if (mounted) showLocationPermissionDeniedSnackBar(context);
       } on Object {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(

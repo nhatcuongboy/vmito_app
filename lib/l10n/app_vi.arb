@@ -287,6 +287,9 @@
   "biometricLockedOutError": "Xác thực đang tạm khóa. Hãy dùng mã khóa thiết bị hoặc thử lại sau.",
   "biometricFailedError": "Không thể xác thực. Vui lòng thử lại.",
   "settingsNotificationPreferences": "Cài đặt thông báo",
+  "settingsNotificationsOn": "Đã bật",
+  "settingsNotificationsOff": "Đã tắt, nhấn để mở Cài đặt",
+  "settingsNotificationsNotDetermined": "Chưa bật, nhấn để bật",
   "settingsHelpFeedback": "Trợ giúp và phản hồi",
   "settingsTermsPrivacy": "Điều khoản và chính sách",
   "settingsAbout": "Về Vmito",
@@ -708,7 +711,7 @@
       }
     }
   },
-  "sessionManagingClub": "CLB quản lý",
+  "sessionManagingClub": "Nhóm quản lý",
   "sessionAllLevels": "Mọi trình độ",
   "sessionGetDirections": "Chỉ đường",
   "sessionShareAction": "Chia sẻ",
@@ -1505,10 +1508,10 @@
   "hostAddPlayerGender": "Giới tính",
   "hostAddPlayerLevelRequired": "Vui lòng chọn trình độ",
   "hostAddPlayerLevelDescription": "Mô tả trình độ hoặc ghi chú",
-  "hostAddPlayerClubFee": "Phí cố định CLB",
-  "hostAddPlayerClub": "Thuộc CLB",
-  "hostAddPlayerClubRequired": "Vui lòng chọn CLB",
-  "hostAddPlayerNoClubFee": "Chưa có CLB nào cấu hình phí cố định theo buổi cho tháng này.",
+  "hostAddPlayerClubFee": "Phí cố định nhóm",
+  "hostAddPlayerClub": "Thuộc nhóm",
+  "hostAddPlayerClubRequired": "Vui lòng chọn nhóm",
+  "hostAddPlayerNoClubFee": "Chưa có nhóm nào cấu hình phí cố định theo buổi cho tháng này.",
   "hostAddPlayerClubFeeAmount": "{amount} VNĐ / buổi",
   "@hostAddPlayerClubFeeAmount": {
     "placeholders": {
@@ -1517,7 +1520,7 @@
       }
     }
   },
-  "hostAddPlayerClubFeeHint": "Khoản thu của người chơi này sẽ dùng phí cố định theo buổi mà CLB đã cấu hình cho tháng diễn ra kèo.",
+  "hostAddPlayerClubFeeHint": "Khoản thu của người chơi này sẽ dùng phí cố định theo buổi mà nhóm đã cấu hình cho tháng diễn ra kèo.",
   "hostAddPlayerAddAnother": "Thêm người chơi",
   "hostAddPlayerRemove": "Xóa người chơi",
   "hostAddPlayerSaveAll": "Thêm ({count})",
@@ -1728,7 +1731,7 @@
   "socialJoined": "Bạn đã tham gia nhóm",
   "socialRequestPending": "Yêu cầu đang chờ duyệt",
   "socialProfile": "Hồ sơ người chơi",
-  "socialSessions": "Buổi chơi",
+  "socialSessions": "Kèo",
   "socialRating": "Điểm",
   "socialReviews": "Đánh giá",
   "socialNoReviews": "Chưa có đánh giá",
@@ -2601,6 +2604,7 @@
   "venueFilterDistrict": "Phường / Xã / Đặc khu",
   "venueFilterFavoriteOnly": "Chỉ sân yêu thích",
   "venueFilterLocationDenied": "Bạn chưa cấp quyền truy cập vị trí.",
+  "locationPermissionOpenSettings": "Mở Cài đặt",
   "venueFiltersReset": "Đặt lại",
   "venueFiltersApply": "Áp dụng",
   "transactionSort": "Sắp xếp",
@@ -3655,9 +3659,18 @@
   "rosterSearchPlaceholder": "Tìm kiếm theo tên, SĐT...",
   "rosterAddPlayerAction": "Thêm người chơi",
   "rosterStatusActive": "Hoạt động",
-  "rosterStatusPromoted": "Đã cấp tài khoản",
+  "rosterStatusPromoted": "Đã có tài khoản",
   "rosterStatusArchived": "Lưu trữ",
-  "rosterPersonalBadge": "Cá nhân",
+  "rosterPersonalBadge": "Vãng lai",
+  "rosterPersonalBadgeHint": "Người chơi không thuộc câu lạc bộ nào",
+  "rosterGroupName": "Nhóm {name}",
+  "@rosterGroupName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "rosterPlayerBadge": "Danh bạ",
   "rosterViewStats": "Xem thống kê",
   "rosterPromoteToUser": "Nâng cấp tài khoản",
@@ -3671,7 +3684,7 @@
     }
   },
   "rosterDeleteSuccess": "Đã xóa người chơi khỏi danh bạ",
-  "rosterTotalSessions": "Buổi chơi",
+  "rosterTotalSessions": "Kèo",
   "rosterPoints": "Điểm số",
   "rosterTier": "Hạng",
   "rosterEmptyListMessage": "Chưa có người chơi nào trong danh bạ.",
@@ -3680,7 +3693,7 @@
   "rosterPlayerName": "Họ và tên",
   "rosterPlayerNameHint": "Nhập tên người chơi",
   "rosterPlayerNameRequired": "Vui lòng nhập tên người chơi",
-  "rosterClubAssignment": "Thuộc CLB",
+  "rosterClubAssignment": "Thuộc nhóm",
   "rosterNotesLabel": "Ghi chú",
   "rosterNotesHint": "Ghi chú về người chơi (trình độ, thói quen...)",
   "rosterCreateSuccess": "Đã thêm người chơi vào danh bạ thành công",
@@ -3703,7 +3716,7 @@
   "rosterNoSessionHistory": "Chưa tham gia buổi chơi nào.",
   "clubGuestsTabTitle": "Thành viên khách",
   "clubAddGuestAction": "Thêm thành viên khách",
-  "clubGuestsEmpty": "Chưa có thành viên khách nào trong CLB.",
+  "clubGuestsEmpty": "Chưa có thành viên khách nào trong nhóm.",
   "rosterPickFromRosterTitle": "Chọn từ danh bạ",
   "rosterPickFromRosterButton": "Chọn từ danh bạ",
   "rosterNoRecentPlayersFound": "Không tìm thấy người chơi nào trong danh bạ gần đây.",
