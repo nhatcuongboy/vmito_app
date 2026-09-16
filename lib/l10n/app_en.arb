@@ -1,7 +1,7 @@
 {
   "@@locale": "en",
   "appName": "Vmito",
-  "appSlogan": "CONNECTING PASSION - ELEVATING EXPERIENCE",
+  "appSlogan": "Connecting passion · Elevating experience",
   "commonRetry": "Retry",
   "commonCancel": "Cancel",
   "commonConfirm": "Confirm",
@@ -1685,6 +1685,46 @@
   "socialComments": "Comments",
   "socialNoComments": "No comments yet",
   "socialCommentHint": "Write a comment…",
+  "socialCommentsCount": "{count} comments",
+  "@socialCommentsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "socialSharesCount": "{count} shares",
+  "@socialSharesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "socialCommentsNewest": "Newest",
+  "socialReply": "Reply",
+  "socialReplyingTo": "Replying to {name}",
+  "@socialReplyingTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "socialCommentAsHint": "Comment as {name}",
+  "@socialCommentAsHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "socialDeleteComment": "Delete comment",
+  "socialDeleteCommentConfirm": "Delete this comment? This cannot be undone.",
+  "socialNoCommentsHint": "Be the first to comment",
+  "socialSeeMore": "See more",
+  "socialSeeLess": "See less",
+  "socialCommentLoadError": "Couldn't load comments",
   "socialRepost": "Repost to feed",
   "socialShareOutside": "Share with another app",
   "socialReportPost": "Report post",

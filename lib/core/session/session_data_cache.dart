@@ -18,6 +18,7 @@ import 'package:vmito_app/features/session_hosting/application/hosted_sessions_c
 import 'package:vmito_app/features/session_hosting/application/player_statistics_providers.dart';
 import 'package:vmito_app/features/social/application/club_management_controller.dart';
 import 'package:vmito_app/features/social/application/newsfeed_badge_controller.dart';
+import 'package:vmito_app/features/social/application/post_comments_controller.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/tournament/application/tournament_browse_controller.dart';
 import 'package:vmito_app/features/tournament/application/tournament_detail_controller.dart';
@@ -52,7 +53,7 @@ void invalidateSessionData(ProviderContainer container) {
     showShuttlecockCountProvider,
     favoriteControllerProvider,
     feedControllerProvider,
-    postCommentsProvider,
+    postCommentsControllerProvider,
     postDetailProvider,
     clubsControllerProvider,
     clubDetailProvider,

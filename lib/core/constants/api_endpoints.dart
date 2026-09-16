@@ -50,6 +50,7 @@ abstract final class ApiEndpoints {
   static String postReport(String id) => '/posts/$id/report';
   static String postLike(String id) => '/posts/$id/like';
   static String postComments(String id) => '/posts/$id/comments';
+  static String postComment(String commentId) => '/posts/comments/$commentId';
   static String postShare(String id) => '/posts/$id/share';
   static String userPosts(String userId) => '/posts/user/$userId';
   static const leaderboard = '/leaderboard';

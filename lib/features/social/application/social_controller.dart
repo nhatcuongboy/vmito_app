@@ -153,19 +153,15 @@ class FeedController extends Notifier<FeedState> {
     }
   }
 
-  Future<void> addComment(String postId, String content) async {
-    await _service.createComment(postId, content);
-    SocialPost? post;
-    for (final item in state.posts) {
-      if (item.id == postId) {
-        post = item;
-        break;
+  /// Patches the comment count after the comments sheet mutates, so the card
+  /// reflects the server total without refetching the feed.
+  void setCommentCount(String postId, int count) {
+    for (final post in state.posts) {
+      if (post.id == postId) {
+        _replace(postId, post.copyWith(commentCount: count));
+        return;
       }
     }
-    if (post != null) {
-      _replace(postId, post.copyWith(commentCount: post.commentCount + 1));
-    }
-    ref.invalidate(postCommentsProvider(postId));
   }
 
   Future<void> repost(String postId) async {
@@ -205,12 +201,6 @@ final feedControllerProvider = NotifierProvider<FeedController, FeedState>(
 
 // The callable family type is intentionally inferred; flutter_riverpod does
 // not export the concrete FutureProviderFamily implementation type.
-// ignore: specify_nonobvious_property_types
-final postCommentsProvider = FutureProvider.family<List<SocialComment>, String>(
-  (ref, postId) => ref.watch(socialServiceProvider).comments(postId),
-);
-
-// Same callable family implementation detail as postCommentsProvider above.
 // ignore: specify_nonobvious_property_types
 final postDetailProvider = FutureProvider.family<SocialPost, String>(
   (ref, postId) => ref.watch(socialServiceProvider).postById(postId),
@@ -481,3 +471,15 @@ final ratingEligibilityProvider =
     FutureProvider.family<RatingEligibility, String>((ref, sessionId) {
       return ref.watch(socialServiceProvider).ratingEligibility(sessionId);
     });
+
+/// The feed's copy of a post, or null when the post is not in the feed (a
+/// profile tab or deep link). Surfaces that outlive the card — the comments
+/// sheet, the image viewer — read this so likes and counts stay live.
+// ignore: specify_nonobvious_property_types
+final feedPostProvider = Provider.family<SocialPost?, String>(
+  (ref, postId) => ref.watch(
+    feedControllerProvider.select(
+      (state) => state.posts.where((post) => post.id == postId).firstOrNull,
+    ),
+  ),
+);

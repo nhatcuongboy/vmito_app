@@ -1684,6 +1684,46 @@
   "socialComments": "评论",
   "socialNoComments": "暂无评论",
   "socialCommentHint": "写评论…",
+  "socialCommentsCount": "{count} 条评论",
+  "@socialCommentsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "socialSharesCount": "{count} 次分享",
+  "@socialSharesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "socialCommentsNewest": "最新",
+  "socialReply": "回复",
+  "socialReplyingTo": "正在回复 {name}",
+  "@socialReplyingTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "socialCommentAsHint": "以 {name} 身份评论",
+  "@socialCommentAsHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "socialDeleteComment": "删除评论",
+  "socialDeleteCommentConfirm": "删除这条评论？此操作无法撤销。",
+  "socialNoCommentsHint": "来发表第一条评论吧",
+  "socialSeeMore": "查看更多",
+  "socialSeeLess": "收起",
+  "socialCommentLoadError": "无法加载评论",
   "socialRepost": "转发到动态",
   "socialShareOutside": "分享到其他应用",
   "socialReportPost": "举报帖子",

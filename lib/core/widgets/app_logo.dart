@@ -7,7 +7,7 @@ import 'package:vmito_app/l10n/app_localizations.dart';
 /// Combines the shuttlecock icon (`assets/icons/main-logo.png`) with two stylized
 /// text lines beside it:
 /// - Brand text: `"vmito"` with the signature brand-green dot on the letter 'i'.
-/// - Slogan text: Localized uppercase slogan using Montserrat font styling.
+/// - Slogan text: Localized slogan using Montserrat font styling.
 ///
 /// Adapts automatically to light mode and dark mode, and scales all typography
 /// and geometry proportionally based on [height].
@@ -139,7 +139,7 @@ class AppLogo extends StatelessWidget {
       height: 1,
     );
 
-    final sloganText = (slogan ?? l10n.appSlogan).toUpperCase();
+    final sloganText = slogan ?? l10n.appSlogan;
     final sloganTextStyle = TextStyle(
       fontFamily: 'Montserrat',
       fontFamilyFallback: const ['Roboto', 'sans-serif'],

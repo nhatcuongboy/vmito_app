@@ -319,16 +319,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       ),
     ),
     actions: [
-      if (isAuthenticated) ...[
+      if (isAuthenticated)
         ?_buildCreateAction(context, l10n, canCreateTournament),
-        IconButton(
-          key: const Key('home-search-button'),
-          tooltip: l10n.homeSearchTooltip,
-          icon: const Icon(AppIcons.search),
-          onPressed: _openSearch,
-        ),
-        const NotificationHeaderButton(),
-      ] else
+      IconButton(
+        key: const Key('home-search-button'),
+        tooltip: l10n.homeSearchTooltip,
+        icon: const Icon(AppIcons.search),
+        onPressed: _openSearch,
+      ),
+      if (isAuthenticated)
+        const NotificationHeaderButton()
+      else
         Tooltip(
           message: l10n.authSignIn,
           child: OutlinedButton.icon(

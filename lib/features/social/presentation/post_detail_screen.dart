@@ -4,6 +4,7 @@ import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
+import 'package:vmito_app/features/social/presentation/widgets/comments/post_comments_sheet.dart';
 import 'package:vmito_app/features/social/presentation/widgets/social_post_card.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
@@ -26,7 +27,8 @@ class PostDetailScreen extends ConsumerWidget {
             SocialPostCard(post: value),
             const SizedBox(height: AppSpacing.md),
             FilledButton.icon(
-              onPressed: () => showCommentsSheet(context, postId),
+              onPressed: () =>
+                  showCommentsSheet(context, postId: postId, post: value),
               icon: const Icon(AppIcons.chat),
               label: Text(AppLocalizations.of(context).socialComments),
             ),

@@ -93,19 +93,23 @@ class SocialService {
     );
   }
 
-  Future<List<SocialComment>> comments(String postId) async {
+  Future<SocialCommentPage> comments(
+    String postId, {
+    int page = 1,
+    int limit = 20,
+  }) async {
     final response = await _client.get<Map<String, dynamic>>(
       ApiEndpoints.postComments(postId),
-      queryParameters: const {'page': 1, 'limit': 100},
+      queryParameters: {'page': page, 'limit': limit},
     );
-    final payload = _payload(response.data);
-    final raw = payload is Map<String, dynamic>
-        ? payload['comments'] as List<dynamic>? ?? const []
-        : payload as List<dynamic>? ?? const [];
-    return raw
-        .whereType<Map<String, dynamic>>()
-        .map(SocialComment.fromJson)
-        .toList(growable: false);
+    return SocialCommentPage.fromJson(_mapPayload(response.data), page: page);
+  }
+
+  Future<void> deleteComment(String commentId) async {
+    await _client.delete<void>(
+      ApiEndpoints.postComment(commentId),
+      options: apiOptions(skipGlobalError: true),
+    );
   }
 
   Future<SocialComment> createComment(String postId, String content) async {
@@ -164,7 +168,7 @@ class SocialService {
     final raw = switch (payload) {
       final List<dynamic> list => list,
       final Map<String, dynamic> map =>
-          map['data'] as List<dynamic>? ?? const <dynamic>[],
+        map['data'] as List<dynamic>? ?? const <dynamic>[],
       _ => const <dynamic>[],
     };
     return raw

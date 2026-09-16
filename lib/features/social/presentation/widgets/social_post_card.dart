@@ -14,10 +14,12 @@ import 'package:vmito_app/features/auth/application/auth_controller.dart';
 import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/features/social/domain/social_post.dart';
 import 'package:vmito_app/features/social/presentation/widgets/activity_post_content.dart';
+import 'package:vmito_app/features/social/presentation/widgets/comments/post_comments_sheet.dart';
+import 'package:vmito_app/features/social/presentation/widgets/post_actions.dart';
 import 'package:vmito_app/features/social/presentation/widgets/post_avatar.dart';
+import 'package:vmito_app/features/social/presentation/widgets/post_image_viewer.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
-import 'package:vmito_app/shared/widgets/app_lightbox.dart';
 
 // ---------------------------------------------------------------------------
 // Public entry point
@@ -77,7 +79,8 @@ class SocialPostCard extends ConsumerWidget {
             ),
 
             // ── Activity headline / body ────────────────────────────────────
-            if (isActivity) ActivityPostContent(post: post),
+            if (isActivity)
+              ActivityPostContent(post: post, onPostChanged: onPostChanged),
 
             // ── Regular text content ────────────────────────────────────────
             if (!isActivity && post.content.trim().isNotEmpty)
@@ -93,7 +96,7 @@ class SocialPostCard extends ConsumerWidget {
 
             // ── Image grid ─────────────────────────────────────────────────
             if (!isActivity && post.images.isNotEmpty)
-              _ImageGrid(images: post.images),
+              _ImageGrid(post: post, onPostChanged: onPostChanged),
 
             // ── Original (shared) post ──────────────────────────────────────
             if (post.originalPost case final original?)
@@ -510,36 +513,43 @@ class _LocationBadge extends StatelessWidget {
 
 /// Image grid — 1 image full width, 2+ images in a 2-column grid.
 class _ImageGrid extends StatelessWidget {
-  const _ImageGrid({required this.images});
+  const _ImageGrid({required this.post, this.onPostChanged});
 
-  final List<SocialPostImage> images;
+  final SocialPost post;
+  final ValueChanged<SocialPost>? onPostChanged;
 
   @override
   Widget build(BuildContext context) {
-    final isSingle = images.length == 1;
+    final isSingle = post.images.length == 1;
     return Padding(
       padding: const EdgeInsets.only(top: 12),
       child: isSingle
-          ? _SingleImage(images: images)
-          : _MultiImageGrid(images: images),
+          ? _SingleImage(post: post, onPostChanged: onPostChanged)
+          : _MultiImageGrid(post: post, onPostChanged: onPostChanged),
     );
   }
 }
 
 class _SingleImage extends StatelessWidget {
-  const _SingleImage({required this.images});
+  const _SingleImage({required this.post, this.onPostChanged});
 
-  final List<SocialPostImage> images;
+  final SocialPost post;
+  final ValueChanged<SocialPost>? onPostChanged;
 
   @override
   Widget build(BuildContext context) {
-    final imageUrls = images.map((image) => image.url).toList(growable: false);
     return GestureDetector(
       key: const Key('post-image-single'),
       behavior: HitTestBehavior.opaque,
-      onTap: () => unawaited(showAppLightbox(context, images: imageUrls)),
+      onTap: () => unawaited(
+        showPostImageViewer(
+          context,
+          post: post,
+          onPostChanged: onPostChanged,
+        ),
+      ),
       child: CachedNetworkImage(
-        imageUrl: images.first.url,
+        imageUrl: post.images.first.url,
         height: 320,
         width: double.infinity,
         fit: BoxFit.cover,
@@ -550,11 +560,14 @@ class _SingleImage extends StatelessWidget {
 }
 
 class _MultiImageGrid extends StatelessWidget {
-  const _MultiImageGrid({required this.images});
-  final List<SocialPostImage> images;
+  const _MultiImageGrid({required this.post, this.onPostChanged});
+
+  final SocialPost post;
+  final ValueChanged<SocialPost>? onPostChanged;
+
   @override
   Widget build(BuildContext context) {
-    final imageUrls = images.map((image) => image.url).toList(growable: false);
+    final images = post.images;
     return GridView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -569,10 +582,11 @@ class _MultiImageGrid extends StatelessWidget {
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () => unawaited(
-            showAppLightbox(
+            showPostImageViewer(
               context,
-              images: imageUrls,
+              post: post,
               initialIndex: index,
+              onPostChanged: onPostChanged,
             ),
           ),
           child: Stack(
@@ -701,14 +715,8 @@ class _OriginalPostCard extends StatelessWidget {
                 child: GestureDetector(
                   key: Key('shared-post-image-${post.id}'),
                   behavior: HitTestBehavior.opaque,
-                  onTap: () => unawaited(
-                    showAppLightbox(
-                      context,
-                      images: post.images
-                          .map((image) => image.url)
-                          .toList(growable: false),
-                    ),
-                  ),
+                  onTap: () =>
+                      unawaited(showPostImageViewer(context, post: post)),
                   child: CachedNetworkImage(
                     imageUrl: post.images.first.url,
                     height: 160,
@@ -776,7 +784,8 @@ class _EngagementRow extends StatelessWidget {
           // Comments
           if (post.commentCount > 0) ...[
             GestureDetector(
-              onTap: () => showCommentsSheet(context, post.id),
+              onTap: () =>
+                  showCommentsSheet(context, postId: post.id, post: post),
               child: Text(
                 '${post.commentCount} ${l10n.socialCommentAction}',
                 style: TextStyle(
@@ -859,7 +868,8 @@ class _ActionBar extends StatelessWidget {
           Expanded(
             child: _ActionButton(
               key: Key('comments-${post.id}'),
-              onPressed: () => showCommentsSheet(context, post.id),
+              onPressed: () =>
+                  showCommentsSheet(context, postId: post.id, post: post),
               isDark: isDark,
               activeColor: const Color(0xFF16A34A),
               hoverColor: const Color(0xFFF0FDF4),
@@ -901,23 +911,8 @@ class _ActionBar extends StatelessWidget {
     );
   }
 
-  Future<void> _toggleLike(BuildContext context) async {
-    final updated = post.copyWith(
-      isLiked: !post.isLiked,
-      likeCount: post.likeCount + (post.isLiked ? -1 : 1),
-    );
-    onPostChanged?.call(updated);
-    try {
-      await ref.read(feedControllerProvider.notifier).toggleLike(post.id);
-    } on Object catch (error) {
-      onPostChanged?.call(post);
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(error.toString())),
-        );
-      }
-    }
-  }
+  Future<void> _toggleLike(BuildContext context) =>
+      togglePostLike(context, ref, post, onPostChanged: onPostChanged);
 
   Future<void> _showShareActions(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
@@ -1061,125 +1056,4 @@ class _LikedIcon extends StatelessWidget {
     ),
     child: const Icon(AppIcons.favoriteFilled, size: 12, color: Colors.white),
   );
-}
-
-// ---------------------------------------------------------------------------
-// Comments sheet (unchanged from original)
-// ---------------------------------------------------------------------------
-
-Future<void> showCommentsSheet(BuildContext context, String postId) =>
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (_) => _CommentsSheet(postId: postId),
-    );
-
-class _CommentsSheet extends ConsumerStatefulWidget {
-  const _CommentsSheet({required this.postId});
-
-  final String postId;
-
-  @override
-  ConsumerState<_CommentsSheet> createState() => _CommentsSheetState();
-}
-
-class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
-  final _controller = TextEditingController();
-  bool _submitting = false;
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final comments = ref.watch(postCommentsProvider(widget.postId));
-    return SafeArea(
-      child: Padding(
-        padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-          bottom: MediaQuery.viewInsetsOf(context).bottom + 8,
-        ),
-        child: SizedBox(
-          height: MediaQuery.sizeOf(context).height * .72,
-          child: Column(
-            children: [
-              Text(
-                l10n.socialComments,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: comments.when(
-                  data: (items) => items.isEmpty
-                      ? Center(child: Text(l10n.socialNoComments))
-                      : ListView.builder(
-                          itemCount: items.length,
-                          itemBuilder: (context, index) {
-                            final comment = items[index];
-                            return ListTile(
-                              leading: PostAvatar(
-                                name: comment.user.name,
-                                imageUrl: comment.user.image,
-                                size: 36,
-                              ),
-                              title: Text(comment.user.name),
-                              subtitle: Text(comment.content),
-                            );
-                          },
-                        ),
-                  error: (error, _) => Center(child: Text(error.toString())),
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                ),
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      key: const Key('comment-field'),
-                      controller: _controller,
-                      maxLength: 500,
-                      decoration: InputDecoration(
-                        hintText: l10n.socialCommentHint,
-                        counterText: '',
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: _submitting ? null : _submit,
-                    icon: _submitting
-                        ? const SizedBox.square(
-                            dimension: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(AppIcons.send),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<void> _submit() async {
-    final content = _controller.text.trim();
-    if (content.isEmpty) return;
-    setState(() => _submitting = true);
-    try {
-      await ref
-          .read(feedControllerProvider.notifier)
-          .addComment(widget.postId, content);
-      _controller.clear();
-    } finally {
-      if (mounted) setState(() => _submitting = false);
-    }
-  }
 }

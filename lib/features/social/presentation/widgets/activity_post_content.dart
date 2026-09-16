@@ -5,7 +5,7 @@ import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/social/domain/social_post.dart';
-import 'package:vmito_app/shared/widgets/app_lightbox.dart';
+import 'package:vmito_app/features/social/presentation/widgets/post_image_viewer.dart';
 
 // ---------------------------------------------------------------------------
 // Public widget
@@ -19,9 +19,14 @@ import 'package:vmito_app/shared/widgets/app_lightbox.dart';
 ///
 /// Only handles the activity types that the current mobile API exposes.
 class ActivityPostContent extends StatelessWidget {
-  const ActivityPostContent({required this.post, super.key});
+  const ActivityPostContent({
+    required this.post,
+    this.onPostChanged,
+    super.key,
+  });
 
   final SocialPost post;
+  final ValueChanged<SocialPost>? onPostChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -129,7 +134,9 @@ class ActivityPostContent extends StatelessWidget {
           if (_getAvatarImageUrl(meta, post) case final imgUrl?)
             _FullImage(
               url: imgUrl,
+              post: post,
               isDark: isDark,
+              onPostChanged: onPostChanged,
             ),
         ],
       ),
@@ -140,7 +147,9 @@ class ActivityPostContent extends StatelessWidget {
           if (_getCoverPhotoUrl(meta, post) case final coverUrl?)
             _FullImage(
               url: coverUrl,
+              post: post,
               isDark: isDark,
+              onPostChanged: onPostChanged,
             ),
         ],
       ),
@@ -454,10 +463,17 @@ class _GreenIconBox extends StatelessWidget {
 
 /// Full-width image used for avatar/cover photo updates.
 class _FullImage extends StatelessWidget {
-  const _FullImage({required this.url, required this.isDark});
+  const _FullImage({
+    required this.url,
+    required this.post,
+    required this.isDark,
+    this.onPostChanged,
+  });
 
   final String url;
+  final SocialPost post;
   final bool isDark;
+  final ValueChanged<SocialPost>? onPostChanged;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -465,7 +481,12 @@ class _FullImage extends StatelessWidget {
     child: GestureDetector(
       key: const Key('activity-post-image'),
       behavior: HitTestBehavior.opaque,
-      onTap: () => showAppLightbox(context, images: [url]),
+      onTap: () => showPostImageViewer(
+        context,
+        post: post,
+        images: [url],
+        onPostChanged: onPostChanged,
+      ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: Container(

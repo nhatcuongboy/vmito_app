@@ -260,7 +260,7 @@ void main() {
       48,
     );
     expect(find.byIcon(AppIcons.login), findsOneWidget);
-    expect(find.byKey(const Key('home-search-button')), findsNothing);
+    expect(find.byKey(const Key('home-search-button')), findsOneWidget);
     expect(find.byType(SearchBar), findsNothing);
     expect(find.byType(FloatingActionButton), findsNothing);
     expect(find.byKey(const Key('home-create-session-button')), findsNothing);

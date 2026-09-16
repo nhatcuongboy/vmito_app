@@ -67,8 +67,6 @@ class SlideOutMenu extends ConsumerWidget {
     final isSignedIn = isAuthenticated && user != null;
     final isAiAssistantEnabled =
         isSignedIn && ref.watch(aiAssistantFeatureEnabledProvider);
-    final canViewHostFinance =
-        (user?.isHost ?? false) || (user?.isAdmin ?? false);
 
     void openAiAssistant() {
       final rootNavigator = Navigator.of(context, rootNavigator: true);
@@ -207,13 +205,12 @@ class SlideOutMenu extends ConsumerWidget {
                               isActive: isActive(AppRoutes.hostTournaments),
                               onTap: () => pushTo(AppRoutes.hostTournaments),
                             ),
-                            if (canViewHostFinance)
-                              _MenuItem(
-                                icon: AppIcons.billing,
-                                label: l10n.transactionDashboardTitle,
-                                isActive: isActive(AppRoutes.transactions),
-                                onTap: () => pushTo(AppRoutes.transactions),
-                              ),
+                            _MenuItem(
+                              icon: AppIcons.billing,
+                              label: l10n.transactionDashboardTitle,
+                              isActive: isActive(AppRoutes.transactions),
+                              onTap: () => pushTo(AppRoutes.transactions),
+                            ),
                             _MenuItem(
                               icon: AppIcons.reminders,
                               label: l10n.reminderTitle,

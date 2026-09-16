@@ -139,6 +139,37 @@ class SocialComment {
   final DateTime createdAt;
 }
 
+class SocialCommentPage {
+  const SocialCommentPage({
+    required this.comments,
+    required this.total,
+    required this.page,
+    required this.hasMore,
+  });
+
+  factory SocialCommentPage.fromJson(
+    Map<String, dynamic> json, {
+    required int page,
+  }) {
+    final raw = json['comments'] as List<dynamic>? ?? const [];
+    final comments = raw
+        .whereType<Map<String, dynamic>>()
+        .map(SocialComment.fromJson)
+        .toList(growable: false);
+    return SocialCommentPage(
+      comments: comments,
+      total: (json['total'] as num?)?.toInt() ?? comments.length,
+      page: (json['page'] as num?)?.toInt() ?? page,
+      hasMore: json['hasMore'] as bool? ?? false,
+    );
+  }
+
+  final List<SocialComment> comments;
+  final int total;
+  final int page;
+  final bool hasMore;
+}
+
 class SocialPostPage {
   const SocialPostPage({
     required this.posts,

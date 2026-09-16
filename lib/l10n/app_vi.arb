@@ -4,7 +4,7 @@
   "@appName": {
     "description": "Product name. Not translated."
   },
-  "appSlogan": "KẾT NỐI ĐAM MÊ - NÂNG TẦM TRẢI NGHIỆM",
+  "appSlogan": "Kết nối đam mê · Nâng tầm trải nghiệm",
   "@appSlogan": {
     "description": "App slogan displayed below the logo"
   },
@@ -1699,6 +1699,46 @@
   "socialComments": "Bình luận",
   "socialNoComments": "Chưa có bình luận",
   "socialCommentHint": "Viết bình luận…",
+  "socialCommentsCount": "{count} bình luận",
+  "@socialCommentsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "socialSharesCount": "{count} lượt chia sẻ",
+  "@socialSharesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "socialCommentsNewest": "Mới nhất",
+  "socialReply": "Trả lời",
+  "socialReplyingTo": "Đang trả lời {name}",
+  "@socialReplyingTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "socialCommentAsHint": "Bình luận với tên {name}",
+  "@socialCommentAsHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "socialDeleteComment": "Xóa bình luận",
+  "socialDeleteCommentConfirm": "Xóa bình luận này? Hành động này không thể hoàn tác.",
+  "socialNoCommentsHint": "Hãy là người đầu tiên bình luận",
+  "socialSeeMore": "Xem thêm",
+  "socialSeeLess": "Thu gọn",
+  "socialCommentLoadError": "Không tải được bình luận",
   "socialRepost": "Chia sẻ lên bảng tin",
   "socialShareOutside": "Chia sẻ qua ứng dụng khác",
   "socialReportPost": "Báo cáo bài viết",

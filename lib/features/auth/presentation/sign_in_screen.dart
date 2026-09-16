@@ -268,17 +268,17 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: AppSpacing.xl),
+                    const SizedBox(height: AppSpacing.lg),
                     Center(
                       child: AppLogo(
-                        height: 100,
+                        height: 85,
                         axis: Axis.vertical,
                         vmitoFontSize: 48,
-                        sloganFontSize: 11,
+                        sloganFontSize: 13,
                         semanticLabel: l10n.appName,
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.xxl),
+                    const SizedBox(height: AppSpacing.xl),
 
                     if (biometricOffer != null) ...[
                       BiometricAccountCard(

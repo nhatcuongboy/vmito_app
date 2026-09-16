@@ -132,6 +132,7 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   swagger_dart_code_generator: ^4.1.1
+  flutter_launcher_icons: ^0.14.4
 
 flutter:
   uses-material-design: true
@@ -141,3 +142,15 @@ flutter:
     - assets/images/
     - assets/icons/
     - assets/fonts/
+
+# Regenerate with `dart run flutter_launcher_icons`. Source images are
+# full-bleed (no baked-in rounding/padding) — iOS/Android apply their own
+# corner masks, so a source with pre-rounded corners or a white margin would
+# show a visible double border or dead space on the home screen.
+flutter_launcher_icons:
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/icons/generated/app_icon.png"
+  adaptive_icon_background: "assets/icons/generated/adaptive_bg.png"
+  adaptive_icon_foreground: "assets/icons/generated/adaptive_fg.png"
