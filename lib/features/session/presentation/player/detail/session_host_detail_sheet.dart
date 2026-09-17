@@ -6,9 +6,12 @@ import 'package:go_router/go_router.dart';
 import 'package:vmito_app/core/router/app_routes.dart';
 import 'package:vmito_app/core/utils/avatar_url.dart';
 import 'package:vmito_app/core/widgets/user_avatar.dart';
+import 'package:vmito_app/features/auth/application/auth_controller.dart';
+import 'package:vmito_app/features/chat/domain/chat_mode.dart';
 import 'package:vmito_app/features/session/application/player/host_detail_controller.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_host_detail_sections.dart';
+import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/shared/widgets/app_lightbox.dart';
 
 /// The web app's "Thông tin Host" modal (`AppHostDetail.tsx`), as a sheet.
@@ -71,6 +74,7 @@ class _SessionHostDetailSheet extends ConsumerWidget {
                   phone: phone == null || phone.isEmpty ? null : phone,
                   allowZaloContact: session.allowZaloContact,
                   onOpenProfile: () => _openProfile(context),
+                  onMessage: _canMessage(ref) ? () => _openChat(context) : null,
                 ),
               ),
             ],
@@ -86,6 +90,31 @@ class _SessionHostDetailSheet extends ConsumerWidget {
       context.pushNamed(
         AppRoutes.namePublicProfile,
         pathParameters: {'id': hostId},
+      ),
+    );
+  }
+
+  bool _canMessage(WidgetRef ref) {
+    if (hostId == ref.read(currentUserProvider)?.id) return false;
+    // Same gate as the public-profile "Nhắn tin" CTA — hidden whenever chat
+    // is disabled, the host hasn't consented, or either side blocked.
+    return ref
+        .watch(publicUserProvider(hostId))
+        .maybeWhen(
+          data: (profile) => profile.chatMode != ChatMode.unavailable,
+          orElse: () => false,
+        );
+  }
+
+  void _openChat(BuildContext context) {
+    Navigator.of(context).pop();
+    unawaited(
+      context.push(
+        AppRoutes.chatComposeFor(
+          targetUserId: hostId,
+          targetName: session.displayHostName,
+          targetImage: session.host?.image,
+        ),
       ),
     );
   }

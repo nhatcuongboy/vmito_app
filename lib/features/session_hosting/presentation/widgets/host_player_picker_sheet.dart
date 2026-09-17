@@ -97,27 +97,27 @@ class _HostPlayerPickerSheetState
           TabBar(
             tabs: [
               Tab(
-                key: const Key('host-picker-tab-roster'),
-                text: l10n.rosterPickFromRosterButton,
-              ),
-              Tab(
                 key: const Key('host-picker-tab-system'),
                 text: l10n.hostAddPlayerSelectExisting,
+              ),
+              Tab(
+                key: const Key('host-picker-tab-roster'),
+                text: l10n.rosterPickFromRosterButton,
               ),
             ],
           ),
           Expanded(
             child: TabBarView(
               children: [
+                _SystemUserPickerTab(
+                  sessionId: widget.sessionId,
+                  clubId: widget.clubId,
+                  existingUserIds: widget.existingUserIds,
+                ),
                 _RosterPickerTab(
                   sessionId: widget.sessionId,
                   clubId: widget.clubId,
                   existingProfileIds: widget.existingProfileIds,
-                  existingUserIds: widget.existingUserIds,
-                ),
-                _SystemUserPickerTab(
-                  sessionId: widget.sessionId,
-                  clubId: widget.clubId,
                   existingUserIds: widget.existingUserIds,
                 ),
               ],

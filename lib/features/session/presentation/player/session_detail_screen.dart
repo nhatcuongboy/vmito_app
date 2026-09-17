@@ -12,6 +12,7 @@ import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
+import 'package:vmito_app/features/chat/domain/chat_mode.dart';
 import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorite_button.dart';
 import 'package:vmito_app/features/registration/application/my_registration_controller.dart';
@@ -27,6 +28,7 @@ import 'package:vmito_app/features/session/presentation/player/detail/session_de
 import 'package:vmito_app/features/session/presentation/player/detail/session_host_detail_sheet.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_recommendations.dart';
 import 'package:vmito_app/features/session/presentation/player/detail/session_reference_video.dart';
+import 'package:vmito_app/features/social/application/social_controller.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 import 'package:vmito_app/shared/widgets/detail_hero_header.dart';
@@ -114,12 +116,31 @@ class _SessionDetailScreenState extends ConsumerState<SessionDetailScreen> {
             ),
           );
         },
-        data: (session) => _Body(
-          session: session,
-          registrationStatus: registrationStatus,
-          onRefresh: () =>
-              ref.refresh(sessionDetailProvider(widget.sessionId).future),
-        ),
+        data: (session) {
+          final hostId = session.hostAccountId;
+          final currentUserId = ref.watch(currentUserProvider)?.id;
+          // Mirrors the public-profile "Nhắn tin" gate exactly: hidden unless
+          // chat is enabled, the host has consented and neither side has
+          // blocked the other. `publicUserProvider` is the same cache the
+          // profile screen uses, so a host the viewer has already opened
+          // resolves this instantly instead of showing a fresh spinner.
+          final canMessageHost =
+              hostId != null &&
+              hostId != currentUserId &&
+              ref
+                  .watch(publicUserProvider(hostId))
+                  .maybeWhen(
+                    data: (profile) => profile.chatMode != ChatMode.unavailable,
+                    orElse: () => false,
+                  );
+          return _Body(
+            session: session,
+            registrationStatus: registrationStatus,
+            canMessageHost: canMessageHost,
+            onRefresh: () =>
+                ref.refresh(sessionDetailProvider(widget.sessionId).future),
+          );
+        },
       ),
       bottomNavigationBar: session.whenOrNull(
         data: (session) => SessionDetailBottomBar(
@@ -136,11 +157,16 @@ class _Body extends StatefulWidget {
   const _Body({
     required this.session,
     required this.registrationStatus,
+    required this.canMessageHost,
     required this.onRefresh,
   });
 
   final Session session;
   final RegistrationStatus? registrationStatus;
+
+  /// Pre-resolved by the parent `ConsumerState` (needs `ref` for
+  /// `publicUserProvider`, which this plain `State` doesn't have).
+  final bool canMessageHost;
   final Future<void> Function() onRefresh;
 
   @override
@@ -290,6 +316,9 @@ class _BodyState extends State<_Body> {
                         onOpenMap: _mapUrl(widget.session) == null
                             ? null
                             : () => _openMap(widget.session),
+                        onMessageHost: widget.canMessageHost
+                            ? () => _messageHost(widget.session)
+                            : null,
                         onCallHost:
                             widget.session.isCrawled ||
                                 _hostPhone(widget.session) == null
@@ -344,6 +373,20 @@ class _BodyState extends State<_Body> {
   static String? _hostPhone(Session session) {
     final phone = session.hostPhone?.trim();
     return phone == null || phone.isEmpty ? null : phone;
+  }
+
+  void _messageHost(Session session) {
+    final hostId = session.hostAccountId;
+    if (hostId == null) return;
+    unawaited(
+      context.push(
+        AppRoutes.chatComposeFor(
+          targetUserId: hostId,
+          targetName: session.displayHostName,
+          targetImage: session.host?.image,
+        ),
+      ),
+    );
   }
 
   static Uri? _mapUrl(Session session) {

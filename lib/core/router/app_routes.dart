@@ -121,6 +121,42 @@ abstract final class AppRoutes {
   ).toString();
   static String publicProfile(String id) => '/user/$id';
 
+  static const chatInbox = '/chat';
+  static const chatNew = '/chat/new';
+
+  /// `requestId` is the `ChatConversation` id (not the Stream channel id) —
+  /// only known right after `POST /chat/requests` creates it. There is no
+  /// backend lookup from channel id back to conversation id, so Cancel on
+  /// `ChatChannelScreen` is only offered in that fresh-navigation window,
+  /// not when the same pending channel is reopened later from the inbox.
+  static String chatChannel(String channelId, {String? requestId}) => Uri(
+    path: '/chat/channel/$channelId',
+    queryParameters: requestId == null ? null : {'requestId': requestId},
+  ).toString();
+
+  /// A chat compose flow started for one specific target — the public
+  /// profile "Nhắn tin" CTA, or a "message host" button on a session, host
+  /// detail sheet, etc. — instead of the free-form contacts search. Carries
+  /// the already-known name/image (same pattern as [homeForVenue]).
+  /// `chatMode` is optional: pass it when already known (public profile,
+  /// which already fetched the full `PublicProfile`) to skip a redundant
+  /// fetch; omit it and `NewChatScreen` resolves it itself.
+  static String chatComposeFor({
+    required String targetUserId,
+    required String targetName,
+    String? chatMode,
+    String? targetImage,
+  }) => Uri(
+    path: chatNew,
+    queryParameters: {
+      'target': targetUserId,
+      'targetName': targetName,
+      'chatMode': ?chatMode,
+      if (targetImage != null && targetImage.isNotEmpty)
+        'targetImage': targetImage,
+    },
+  ).toString();
+
   /// True for the feed root and one post detail, but not club-management
   /// routes that happen to share the `/feed` shell branch.
   static bool isFeedLocation(String location) {
@@ -201,6 +237,9 @@ abstract final class AppRoutes {
   static const namePublicProfile = 'publicProfile';
   static const nameReminders = 'reminders';
   static const nameRoster = 'roster';
+  static const nameChatInbox = 'chatInbox';
+  static const nameChatNew = 'chatNew';
+  static const nameChatChannel = 'chatChannel';
 
   /// Routes reachable without an account.
   ///

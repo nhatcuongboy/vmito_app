@@ -18,6 +18,7 @@ import 'package:vmito_app/core/storage/token_storage.dart';
 import 'package:vmito_app/core/theme/theme_mode_controller.dart';
 import 'package:vmito_app/core/utils/logger.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
+import 'package:vmito_app/features/chat/application/chat_session_controller.dart';
 import 'package:vmito_app/features/court/application/court_display_mode_controller.dart';
 import 'package:vmito_app/features/home/application/home_search_history.dart';
 import 'package:vmito_app/features/session/application/player/my_sessions_search_history.dart';
@@ -85,6 +86,9 @@ Future<void> bootstrap() async {
           await container
               .read(pushRegistrationManagerProvider)
               ?.unregister(unregisterServer: unregisterServer);
+          await container
+              .read(chatSessionControllerProvider.notifier)
+              .disconnectAndClear();
         },
       ),
       sessionDataCleanupProvider.overrideWithValue(

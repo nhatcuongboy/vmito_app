@@ -1,3 +1,5 @@
+import 'package:vmito_app/features/chat/domain/chat_mode.dart';
+
 class PublicProfile {
   const PublicProfile({
     required this.id,
@@ -10,6 +12,7 @@ class PublicProfile {
     this.level,
     this.levelDescription,
     this.createdAt,
+    this.chatMode = ChatMode.unavailable,
   });
 
   factory PublicProfile.fromJson(Map<String, dynamic> json) => PublicProfile(
@@ -23,6 +26,7 @@ class PublicProfile {
     level: (json['level'] as num?)?.toInt(),
     levelDescription: json['levelDescription'] as String?,
     createdAt: DateTime.tryParse(json['createdAt'] as String? ?? ''),
+    chatMode: ChatModeWire.fromWire(json['chatMode'] as String?),
   );
 
   final String id;
@@ -35,6 +39,10 @@ class PublicProfile {
   final int? level;
   final String? levelDescription;
   final DateTime? createdAt;
+
+  /// Set by `vmito-be`'s `ChatService.getPublicChatMode`; drives the
+  /// "Nhắn tin" CTA on `PublicProfileScreen`.
+  final ChatMode chatMode;
 }
 
 class RatingStats {

@@ -10,6 +10,7 @@ import 'package:vmito_app/core/notifications/push_registration_manager.dart';
 import 'package:vmito_app/core/utils/logger.dart';
 import 'package:vmito_app/core/widgets/first_run_gate.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
+import 'package:vmito_app/features/chat/application/active_chat_channel.dart';
 import 'package:vmito_app/features/notification/application/notification_controller.dart';
 import 'package:vmito_app/features/notification/domain/notification_routing.dart';
 
@@ -104,6 +105,17 @@ class _PushNotificationLifecycleState
   }
 
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
+    final isChatMessage = isChatPushPayload(message.data);
+    if (isChatMessage) {
+      // Stream already appended this message to the open channel's own
+      // message list; a local banner for it would be a visible duplicate.
+      final openChannelId = ref.read(activeChatChannelIdProvider);
+      if (openChannelId != null &&
+          openChannelId == chatPushChannelId(message.data)) {
+        return;
+      }
+    }
+
     final notification = message.notification;
     final title = notification?.title ?? message.data['title']?.toString();
     final body =
@@ -126,9 +138,13 @@ class _PushNotificationLifecycleState
                 : AppNotificationChannel.general,
           );
     }
-    unawaited(
-      ref.read(notificationControllerProvider.notifier).refreshUnreadCount(),
-    );
+    // Chat messages drive their own unread count off the Stream client
+    // (`ChatNavBadge`), not Vmito's notification-center counter.
+    if (!isChatMessage) {
+      unawaited(
+        ref.read(notificationControllerProvider.notifier).refreshUnreadCount(),
+      );
+    }
   }
 
   void _openMessage(RemoteMessage message) =>

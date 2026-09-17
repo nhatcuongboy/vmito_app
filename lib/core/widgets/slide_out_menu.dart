@@ -429,14 +429,23 @@ class _ProfileHeader extends StatelessWidget {
           ),
           child: Row(
             children: [
-              CircleAvatar(
-                radius: 22,
-                foregroundImage: hasImage ? NetworkImage(user.image!) : null,
-                child: Text(
-                  initials,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    height: 20 / 16,
+              Container(
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.25),
+                    width: 2,
+                  ),
+                ),
+                child: CircleAvatar(
+                  radius: 22,
+                  foregroundImage: hasImage ? NetworkImage(user.image!) : null,
+                  child: Text(
+                    initials,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      height: 20 / 16,
+                    ),
                   ),
                 ),
               ),
@@ -455,12 +464,27 @@ class _ProfileHeader extends StatelessWidget {
                         height: 20 / 16,
                       ),
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      roleLabel,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.extension<AppPalette>()!.mutedForeground,
-                        fontWeight: FontWeight.w500,
+                    const SizedBox(height: 4),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(AppRadius.pill),
+                        border: Border.all(
+                          color: theme.colorScheme.primary.withValues(alpha: 0.18),
+                        ),
+                      ),
+                      child: Text(
+                        roleLabel,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontSize: 12,
+                          height: 16 / 12,
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ],
@@ -552,18 +576,20 @@ class _MenuItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final palette = theme.extension<AppPalette>()!;
-    final featuredColor = theme.brightness == Brightness.dark
+    final isDark = theme.brightness == Brightness.dark;
+
+    final featuredColor = isDark
         ? const Color(0xFFE9D5FF)
-        : const Color(0xFF6D28D9);
-    // Inactive rows: zinc-700 text / zinc-600 icon in light mode, lifted to
-    // zinc-300 / zinc-400 in dark mode to keep the same text-over-icon
-    // hierarchy legible against a dark surface.
-    final inactiveTextColor = theme.brightness == Brightness.dark
-        ? const Color(0xFFD4D4D8)
-        : const Color(0xFF3F3F46);
-    final inactiveIconColor = theme.brightness == Brightness.dark
-        ? const Color(0xFFA1A1AA)
-        : const Color(0xFF52525B);
+        : const Color(0xFF7C3AED);
+
+    // Modern slate tones for high-end readability and clean look
+    final inactiveTextColor = isDark
+        ? const Color(0xFFF1F5F9)
+        : const Color(0xFF1E293B);
+    final inactiveIconColor = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
+
     final color = isFeatured
         ? featuredColor
         : isActive
@@ -600,15 +626,15 @@ class _MenuItem extends StatelessWidget {
                 borderRadius: radius,
                 border: Border.all(
                   color: isActive
-                      ? theme.colorScheme.primary.withValues(alpha: 0.34)
+                      ? theme.colorScheme.primary.withValues(alpha: 0.24)
                       : Colors.transparent,
                 ),
                 gradient: isActive
                     ? LinearGradient(
                         colors: [
-                          theme.colorScheme.primary.withValues(alpha: 0.15),
-                          theme.colorScheme.primary.withValues(alpha: 0.07),
-                          palette.brandSurface.withValues(alpha: 0.28),
+                          theme.colorScheme.primary.withValues(alpha: 0.12),
+                          theme.colorScheme.primary.withValues(alpha: 0.05),
+                          palette.brandSurface.withValues(alpha: 0.20),
                         ],
                         stops: const [0, 0.62, 1],
                       )
@@ -617,10 +643,10 @@ class _MenuItem extends StatelessWidget {
                     ? [
                         BoxShadow(
                           color: theme.colorScheme.primary.withValues(
-                            alpha: 0.08,
+                            alpha: 0.06,
                           ),
-                          blurRadius: 20,
-                          offset: const Offset(0, 7),
+                          blurRadius: 14,
+                          offset: const Offset(0, 4),
                         ),
                       ]
                     : null,
@@ -674,7 +700,7 @@ class _MenuItem extends StatelessWidget {
                           decoration: BoxDecoration(
                             color: isActive
                                 ? theme.colorScheme.primary
-                                : palette.muted.withValues(alpha: 0.7),
+                                : Colors.transparent,
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
                               color: isActive
@@ -688,8 +714,8 @@ class _MenuItem extends StatelessWidget {
                                     BoxShadow(
                                       color: theme.colorScheme.primary
                                           .withValues(alpha: 0.2),
-                                      blurRadius: 13,
-                                      offset: const Offset(0, 5),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
                                     ),
                                   ]
                                 : null,

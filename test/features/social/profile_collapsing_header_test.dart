@@ -484,6 +484,8 @@ Future<void> _pumpHeader(
               onMenuTap: onMenuTap ?? _doNothing,
               onShare: _doNothing,
               onSettings: _doNothing,
+              chatInboxTooltip: 'Tin nhắn',
+              onOpenChatInbox: _doNothing,
               coverProgress: null,
               onChangeCover: _doNothing,
               onViewCover: null,

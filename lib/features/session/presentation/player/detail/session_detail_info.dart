@@ -42,6 +42,7 @@ Widget sessionDetailInfoPreview() => MaterialApp(
           host: const SessionHost(id: 'preview-host', name: 'Ngọc Trâm'),
         ),
         onOpenMap: null,
+        onMessageHost: null,
         onCallHost: null,
         onZaloHost: null,
         onOpenHost: null,
@@ -57,6 +58,7 @@ class SessionDetailInfo extends StatelessWidget {
   const SessionDetailInfo({
     required this.session,
     required this.onOpenMap,
+    required this.onMessageHost,
     required this.onCallHost,
     required this.onZaloHost,
     required this.onOpenHost,
@@ -66,6 +68,10 @@ class SessionDetailInfo extends StatelessWidget {
 
   final Session session;
   final VoidCallback? onOpenMap;
+
+  /// In-app chat with the host — only for a "kèo Vmito" (`hostAccountId !=
+  /// null`), never for a crawled/imported session.
+  final VoidCallback? onMessageHost;
   final VoidCallback? onCallHost;
   final VoidCallback? onZaloHost;
   final VoidCallback? onOpenHost;
@@ -106,6 +112,7 @@ class SessionDetailInfo extends StatelessWidget {
         Divider(height: AppSpacing.lg, color: palette.border),
         _HostRow(
           session: session,
+          onMessage: onMessageHost,
           onCall: onCallHost,
           onZalo: onZaloHost,
           onOpenHost: onOpenHost,
@@ -360,6 +367,7 @@ String _sessionVenueDisplayName(String name, AppLocalizations l10n) {
 class _HostRow extends StatelessWidget {
   const _HostRow({
     required this.session,
+    required this.onMessage,
     required this.onCall,
     required this.onZalo,
     required this.onOpenHost,
@@ -367,6 +375,7 @@ class _HostRow extends StatelessWidget {
   });
 
   final Session session;
+  final VoidCallback? onMessage;
   final VoidCallback? onCall;
   final VoidCallback? onZalo;
   final VoidCallback? onOpenHost;
@@ -439,8 +448,17 @@ class _HostRow extends StatelessWidget {
               ),
               onPressed: onZalo!,
             ),
+          if (onMessage != null) ...[
+            const SizedBox(width: AppSpacing.xs),
+            _ContactButton(
+              key: const Key('session-detail-message-host'),
+              tooltip: l10n.chatMessageButton,
+              iconWidget: const Icon(AppIcons.chat, size: 18),
+              onPressed: onMessage!,
+            ),
+          ],
           if (onCall != null) ...[
-            const SizedBox(width: AppSpacing.sm),
+            const SizedBox(width: AppSpacing.xs),
             _ContactButton(
               tooltip: l10n.sessionCallHost,
               iconWidget: const Icon(AppIcons.phone, size: 18),
@@ -458,6 +476,7 @@ class _ContactButton extends StatelessWidget {
     required this.tooltip,
     required this.iconWidget,
     required this.onPressed,
+    super.key,
   });
 
   final String tooltip;

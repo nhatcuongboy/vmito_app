@@ -1,4 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vmito_app/features/chat/application/active_chat_channel.dart';
+import 'package:vmito_app/features/chat/application/chat_requests_controller.dart';
+import 'package:vmito_app/features/chat/application/chat_session_controller.dart';
 import 'package:vmito_app/features/court/application/match_history_provider.dart';
 import 'package:vmito_app/features/favorite/application/favorite_controller.dart';
 import 'package:vmito_app/features/leaderboard/application/leaderboard_controller.dart';
@@ -104,6 +107,9 @@ void invalidateSessionData(ProviderContainer container) {
     venueBrowseControllerProvider,
     venueDetailProvider,
     venuePriceBooksProvider,
+    chatSessionControllerProvider,
+    chatRequestsControllerProvider,
+    activeChatChannelIdProvider,
   ];
 
   // The callback receiver is intentionally the container, not this local list.

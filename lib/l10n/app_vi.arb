@@ -3762,5 +3762,57 @@
   "rosterNoRecentPlayersFound": "Không tìm thấy người chơi nào trong danh bạ gần đây.",
   "rosterAddToSessionAction": "Thêm vào buổi chơi",
   "rosterSaveToRosterCheckbox": "Lưu vào danh bạ người chơi",
-  "commonAll": "Tất cả"
+  "commonAll": "Tất cả",
+  "chatMenuLabel": "Tin nhắn",
+  "chatUnreadCount": "{count, plural, other{{count} tin nhắn chưa đọc}}",
+  "@chatUnreadCount": {
+    "description": "Screen-reader announcement for the chat drawer badge.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatInboxTitle": "Tin nhắn",
+  "chatNewTitle": "Cuộc trò chuyện mới",
+  "chatEmptyMessages": "Chưa có cuộc trò chuyện nào. Nhấn nút ở trên để bắt đầu.",
+  "chatUnavailableTitle": "Chat hiện không khả dụng",
+  "chatUnavailableBody": "Tính năng nhắn tin đang tạm ngừng hoặc chưa được bật cho tài khoản của bạn. Vui lòng thử lại sau.",
+  "chatConsentTitle": "Bắt đầu nhắn tin",
+  "chatConsentBody": "Để nhắn tin với người chơi khác trên Vmito, bạn cần đồng ý với điều khoản trò chuyện dưới đây.",
+  "chatConsentTermsPrefix": "Tôi đồng ý với ",
+  "chatConsentTermsConnector": " và ",
+  "chatConsentTermsSuffix": " của Vmito khi sử dụng tính năng nhắn tin.",
+  "chatConsentCheckboxRequired": "Bạn cần đồng ý điều khoản để tiếp tục.",
+  "chatConsentSubmit": "Đồng ý & bắt đầu nhắn tin",
+  "chatConsentError": "Không thể xử lý yêu cầu. Vui lòng thử lại.",
+  "chatPendingRequestsSection": "Yêu cầu trò chuyện đang chờ",
+  "chatDeclineAction": "Từ chối",
+  "chatDeclineConfirmTitle": "Từ chối yêu cầu trò chuyện?",
+  "chatDeclineConfirmBody": "Từ chối yêu cầu trò chuyện từ {name}?",
+  "@chatDeclineConfirmBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chatSearchHint": "Tìm theo tên người chơi",
+  "chatSearchMinChars": "Nhập ít nhất 2 ký tự để tìm kiếm.",
+  "chatSearchEmpty": "Không tìm thấy người chơi nào.",
+  "chatSendRequestHint": "{name} chưa sẵn sàng nhắn tin. Gửi một tin nhắn để mời họ bắt đầu trò chuyện.",
+  "@chatSendRequestHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chatSendRequestPlaceholder": "Nhập tin nhắn của bạn…",
+  "chatSendRequestSubmit": "Gửi yêu cầu",
+  "chatPendingBannerSender": "Đang chờ phản hồi. Bạn có thể hủy yêu cầu này bất cứ lúc nào.",
+  "chatPendingBannerRecipient": "Cuộc trò chuyện này đang chờ được kích hoạt.",
+  "chatCancelAction": "Hủy yêu cầu",
+  "chatMessageButton": "Nhắn tin",
+  "chatTargetUnavailable": "Không thể nhắn tin cho người này lúc này."
 }

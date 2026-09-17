@@ -331,4 +331,19 @@ abstract final class ApiEndpoints {
   /// Streams the AI assistant's plain-text response. Body carries the prior
   /// `messages`, optional `pageContext`, and the selected `language`.
   static const aiChat = '/ai/chat';
+
+  // --- Chat (Stream Chat) -----------------------------------------------
+  /// The backend never proxies message bodies — these only cover consent,
+  /// contact discovery and the request/decline/cancel handshake before a
+  /// conversation is active on Stream. See `vmito-be/src/chat/`.
+  static const chatSession = '/chat/session';
+  static const chatConsent = '/chat/consent';
+  static const chatContacts = '/chat/contacts';
+  static const chatRequests = '/chat/requests';
+  static String chatRequestDecline(String id) => '/chat/requests/$id/decline';
+  static String chatRequestCancel(String id) => '/chat/requests/$id/cancel';
+  static const chatDirect = '/chat/direct';
+  static const chatBlocks = '/chat/blocks';
+  static String chatUnblock(String targetUserId) =>
+      '/chat/blocks/$targetUserId';
 }

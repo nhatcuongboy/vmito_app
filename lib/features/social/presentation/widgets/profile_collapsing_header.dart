@@ -8,6 +8,7 @@ import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/theme/app_typography.dart';
 import 'package:vmito_app/core/widgets/emoji_safe_text.dart';
 import 'package:vmito_app/core/widgets/user_avatar.dart';
+import 'package:vmito_app/features/chat/presentation/widgets/chat_nav_badge.dart';
 import 'package:vmito_app/features/social/domain/public_profile.dart';
 import 'package:vmito_app/features/social/presentation/widgets/profile_header_geometry.dart';
 
@@ -28,6 +29,10 @@ class ProfileCollapsingHeader extends StatelessWidget {
     required this.coverProgress,
     required this.onChangeCover,
     required this.onViewCover,
+    this.chatInboxTooltip,
+    this.onOpenChatInbox,
+    this.messageTooltip,
+    this.onMessage,
     super.key,
   });
 
@@ -46,6 +51,18 @@ class ProfileCollapsingHeader extends StatelessWidget {
   final int? coverProgress;
   final VoidCallback? onChangeCover;
   final VoidCallback? onViewCover;
+
+  /// The owner's own chat inbox — replaces the old drawer entry. Shown next
+  /// to Settings, only `if (isOwner)`. Null hides it too — chat disabled
+  /// (`/chat/session`'s `enabled == false`), same signal `onMessage` below
+  /// uses for other profiles.
+  final String? chatInboxTooltip;
+  final VoidCallback? onOpenChatInbox;
+
+  /// Null hides the action — owner viewing their own profile, or
+  /// `chatMode == ChatMode.unavailable`.
+  final String? messageTooltip;
+  final VoidCallback? onMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -110,6 +127,20 @@ class ProfileCollapsingHeader extends StatelessWidget {
         },
       ),
       actions: [
+        if (onMessage != null)
+          _ToolbarColor(
+            scrollOffset: scrollOffset,
+            builder: (color) => IconButton(
+              key: const ValueKey('profile-message-button'),
+              tooltip: messageTooltip,
+              constraints: const BoxConstraints.tightFor(
+                width: AppSizes.minTapTarget,
+                height: AppSizes.minTapTarget,
+              ),
+              onPressed: onMessage,
+              icon: Icon(AppIcons.chat, color: color),
+            ),
+          ),
         _ToolbarColor(
           scrollOffset: scrollOffset,
           builder: (color) => IconButton(
@@ -122,6 +153,20 @@ class ProfileCollapsingHeader extends StatelessWidget {
             icon: Icon(AppIcons.share, color: color),
           ),
         ),
+        if (isOwner && onOpenChatInbox != null)
+          _ToolbarColor(
+            scrollOffset: scrollOffset,
+            builder: (color) => IconButton(
+              key: const ValueKey('profile-chat-inbox-button'),
+              tooltip: chatInboxTooltip,
+              constraints: const BoxConstraints.tightFor(
+                width: AppSizes.minTapTarget,
+                height: AppSizes.minTapTarget,
+              ),
+              onPressed: onOpenChatInbox,
+              icon: ChatNavBadge(icon: AppIcons.chat, color: color),
+            ),
+          ),
         if (isOwner)
           _ToolbarColor(
             scrollOffset: scrollOffset,

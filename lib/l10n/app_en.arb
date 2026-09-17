@@ -3700,5 +3700,57 @@
   "rosterNoRecentPlayersFound": "No recent players found in roster.",
   "rosterAddToSessionAction": "Add to Session",
   "rosterSaveToRosterCheckbox": "Save to player roster",
-  "commonAll": "All"
+  "commonAll": "All",
+  "chatMenuLabel": "Messages",
+  "chatUnreadCount": "{count, plural, =1{1 unread message} other{{count} unread messages}}",
+  "@chatUnreadCount": {
+    "description": "Screen-reader announcement for the chat drawer badge.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatInboxTitle": "Messages",
+  "chatNewTitle": "New conversation",
+  "chatEmptyMessages": "No conversations yet. Tap the button above to start one.",
+  "chatUnavailableTitle": "Chat unavailable",
+  "chatUnavailableBody": "Messaging is temporarily unavailable or not yet enabled for your account. Please try again later.",
+  "chatConsentTitle": "Start messaging",
+  "chatConsentBody": "To message other Vmito players, you need to agree to the chat terms below.",
+  "chatConsentTermsPrefix": "I agree to the ",
+  "chatConsentTermsConnector": " and ",
+  "chatConsentTermsSuffix": " for using the messaging feature.",
+  "chatConsentCheckboxRequired": "You need to agree to the terms to continue.",
+  "chatConsentSubmit": "Agree & start messaging",
+  "chatConsentError": "Couldn't process your request. Please try again.",
+  "chatPendingRequestsSection": "Pending message requests",
+  "chatDeclineAction": "Decline",
+  "chatDeclineConfirmTitle": "Decline this request?",
+  "chatDeclineConfirmBody": "Decline the message request from {name}?",
+  "@chatDeclineConfirmBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chatSearchHint": "Search by player name",
+  "chatSearchMinChars": "Type at least 2 characters to search.",
+  "chatSearchEmpty": "No players found.",
+  "chatSendRequestHint": "{name} isn't ready to chat yet. Send a message to invite them to start a conversation.",
+  "@chatSendRequestHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chatSendRequestPlaceholder": "Type your message…",
+  "chatSendRequestSubmit": "Send request",
+  "chatPendingBannerSender": "Waiting for a reply. You can cancel this request at any time.",
+  "chatPendingBannerRecipient": "This conversation is waiting to be activated.",
+  "chatCancelAction": "Cancel request",
+  "chatMessageButton": "Message",
+  "chatTargetUnavailable": "This person isn't available to message right now."
 }

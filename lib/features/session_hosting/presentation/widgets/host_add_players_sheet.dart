@@ -116,6 +116,11 @@ class _HostAddPlayersSheetState extends ConsumerState<_HostAddPlayersSheet> {
         hostPlayerRowForm(defaultLevel: _defaultLevel),
       ]),
     });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final firstRow = _players.controls.first as FormGroup;
+      _nameFocusNode(firstRow).requestFocus();
+    });
     unawaited(
       Future<void>.microtask(
         () => ref
@@ -466,7 +471,15 @@ class _PlayerFormCard extends StatelessWidget {
             OutlinedButton.icon(
               key: ValueKey('host-player-user-$index'),
               onPressed: onPickPlayer,
-              icon: const Icon(AppIcons.search),
+              style: OutlinedButton.styleFrom(
+                alignment: Alignment.centerLeft,
+                foregroundColor: theme.colorScheme.onSurfaceVariant,
+                side: BorderSide(color: theme.dividerColor),
+              ),
+              icon: Icon(
+                AppIcons.search,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
               label: ReactiveFormConsumer(
                 builder: (context, form, _) {
                   final name =
@@ -481,6 +494,11 @@ class _PlayerFormCard extends StatelessWidget {
                           ? name!
                           : l10n.hostAddPlayerSelectExisting,
                       overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: hasLinked
+                            ? theme.colorScheme.onSurface
+                            : theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   );
                 },
@@ -571,6 +589,8 @@ class _PlayerFormCard extends StatelessWidget {
                 labelText: l10n.hostAddPlayerLevelDescription,
               ),
             ),
+            const SizedBox(height: AppSpacing.sm),
+            _ClubFeeSection(state: state),
             ReactiveValueListenableBuilder<String>(
               formControlName: HostPlayerFormControl.profileId,
               builder: (context, profileIdControl, _) {
@@ -583,7 +603,7 @@ class _PlayerFormCard extends StatelessWidget {
                             userIdControl.value!.isEmpty);
                     if (!isManualGuest) return const SizedBox.shrink();
                     return Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.xs),
+                      padding: const EdgeInsets.only(top: AppSpacing.sm),
                       child: ReactiveCheckboxListTile(
                         formControlName: HostPlayerFormControl.saveToRoster,
                         title: Text(
@@ -592,14 +612,16 @@ class _PlayerFormCard extends StatelessWidget {
                         ),
                         controlAffinity: ListTileControlAffinity.leading,
                         contentPadding: EdgeInsets.zero,
+                        visualDensity: const VisualDensity(
+                          horizontal: -4,
+                          vertical: -4,
+                        ),
                       ),
                     );
                   },
                 );
               },
             ),
-            const SizedBox(height: AppSpacing.sm),
-            _ClubFeeSection(state: state),
           ],
         ),
       ),

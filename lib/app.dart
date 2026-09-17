@@ -7,6 +7,7 @@ import 'package:vmito_app/core/theme/app_theme.dart';
 import 'package:vmito_app/core/theme/theme_mode_controller.dart';
 import 'package:vmito_app/core/widgets/app_error_listener.dart';
 import 'package:vmito_app/core/widgets/app_lock_gate.dart';
+import 'package:vmito_app/core/widgets/chat_lifecycle.dart';
 import 'package:vmito_app/core/widgets/court_call_listener.dart';
 import 'package:vmito_app/core/widgets/newsfeed_badge_lifecycle.dart';
 import 'package:vmito_app/core/widgets/push_notification_lifecycle.dart';
@@ -45,15 +46,17 @@ class VmitoApp extends ConsumerWidget {
       // Sits above every route so unhandled API errors surface anywhere.
       builder: (context, child) => AppLockGate(
         child: SocketIdentityLifecycle(
-          child: PushNotificationLifecycle(
-            router: router,
-            child: NewsfeedBadgeLifecycle(
+          child: ChatLifecycle(
+            child: PushNotificationLifecycle(
               router: router,
-              child: CourtCallListener(
+              child: NewsfeedBadgeLifecycle(
                 router: router,
-                child: WelcomePopupLifecycle(
-                  child: AppErrorListener(
-                    child: child ?? const SizedBox.shrink(),
+                child: CourtCallListener(
+                  router: router,
+                  child: WelcomePopupLifecycle(
+                    child: AppErrorListener(
+                      child: child ?? const SizedBox.shrink(),
+                    ),
                   ),
                 ),
               ),

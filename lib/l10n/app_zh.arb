@@ -3550,5 +3550,57 @@
   "rosterNoRecentPlayersFound": "名录中未找到近期球员。",
   "rosterAddToSessionAction": "添加到场次",
   "rosterSaveToRosterCheckbox": "保存到球员名录",
-  "commonAll": "全部"
+  "commonAll": "全部",
+  "chatMenuLabel": "消息",
+  "chatUnreadCount": "{count, plural, other{{count} 条未读消息}}",
+  "@chatUnreadCount": {
+    "description": "Screen-reader announcement for the chat drawer badge.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "chatInboxTitle": "消息",
+  "chatNewTitle": "新对话",
+  "chatEmptyMessages": "暂无对话。点击上方按钮开始一段新对话。",
+  "chatUnavailableTitle": "聊天功能暂不可用",
+  "chatUnavailableBody": "消息功能暂时不可用，或尚未为您的账号启用。请稍后再试。",
+  "chatConsentTitle": "开始聊天",
+  "chatConsentBody": "要与其他 Vmito 球员聊天，您需要同意以下聊天条款。",
+  "chatConsentTermsPrefix": "我同意 Vmito 的",
+  "chatConsentTermsConnector": "和",
+  "chatConsentTermsSuffix": "，并将其用于消息功能。",
+  "chatConsentCheckboxRequired": "请先同意条款才能继续。",
+  "chatConsentSubmit": "同意并开始聊天",
+  "chatConsentError": "无法处理您的请求，请重试。",
+  "chatPendingRequestsSection": "待处理的聊天请求",
+  "chatDeclineAction": "拒绝",
+  "chatDeclineConfirmTitle": "拒绝此请求？",
+  "chatDeclineConfirmBody": "拒绝来自 {name} 的聊天请求？",
+  "@chatDeclineConfirmBody": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chatSearchHint": "按球员姓名搜索",
+  "chatSearchMinChars": "请输入至少 2 个字符进行搜索。",
+  "chatSearchEmpty": "未找到相关球员。",
+  "chatSendRequestHint": "{name} 尚未准备好聊天。发送一条消息邀请对方开始对话。",
+  "@chatSendRequestHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "chatSendRequestPlaceholder": "输入消息内容…",
+  "chatSendRequestSubmit": "发送请求",
+  "chatPendingBannerSender": "正在等待对方回复。您可以随时取消此请求。",
+  "chatPendingBannerRecipient": "此对话正在等待激活。",
+  "chatCancelAction": "取消请求",
+  "chatMessageButton": "发消息",
+  "chatTargetUnavailable": "暂时无法向该用户发送消息。"
 }

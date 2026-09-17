@@ -9,6 +9,10 @@ import 'package:vmito_app/features/auth/presentation/forgot_password_screen.dart
 import 'package:vmito_app/features/auth/presentation/reset_password_screen.dart';
 import 'package:vmito_app/features/auth/presentation/sign_in_screen.dart';
 import 'package:vmito_app/features/auth/presentation/sign_up_screen.dart';
+import 'package:vmito_app/features/chat/domain/chat_mode.dart';
+import 'package:vmito_app/features/chat/presentation/chat_channel_screen.dart';
+import 'package:vmito_app/features/chat/presentation/chat_inbox_screen.dart';
+import 'package:vmito_app/features/chat/presentation/new_chat_screen.dart';
 import 'package:vmito_app/features/court/presentation/live_session_screen.dart';
 import 'package:vmito_app/features/favorite/domain/favorite_summary.dart';
 import 'package:vmito_app/features/favorite/presentation/favorites_screen.dart';
@@ -232,6 +236,34 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => PublicProfileScreen(
           userId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.chatInbox,
+        name: AppRoutes.nameChatInbox,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const ChatInboxScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.chatNew,
+        name: AppRoutes.nameChatNew,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => NewChatScreen(
+          targetUserId: state.uri.queryParameters['target'],
+          targetName: state.uri.queryParameters['targetName'],
+          targetImage: state.uri.queryParameters['targetImage'],
+          targetChatMode: state.uri.queryParameters['chatMode'] == null
+              ? null
+              : ChatModeWire.fromWire(state.uri.queryParameters['chatMode']),
+        ),
+      ),
+      GoRoute(
+        path: '/chat/channel/:channelId',
+        name: AppRoutes.nameChatChannel,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => ChatChannelScreen(
+          channelId: state.pathParameters['channelId']!,
+          requestId: state.uri.queryParameters['requestId'],
         ),
       ),
       GoRoute(

@@ -63,6 +63,16 @@ String getPushNotificationTargetRoute(
   Map<String, dynamic> data, {
   UserRole? userRole,
 }) {
+  // A Stream-originated payload (an actual chat message) carries `cid`
+  // (`vmito_dm:<channelId>`) instead of Vmito's own `route`/`type` fields —
+  // Stream sends this push directly, bypassing vmito-be's notification
+  // pipeline entirely. See `isChatPushPayload`.
+  final cid = data['cid']?.toString();
+  if (cid != null && cid.isNotEmpty) {
+    final channelId = cid.contains(':') ? cid.split(':').last : cid;
+    if (channelId.isNotEmpty) return AppRoutes.chatChannel(channelId);
+  }
+
   final explicitRoute = data['route']?.toString();
   if (explicitRoute != null &&
       explicitRoute.startsWith('/') &&
@@ -95,4 +105,21 @@ String getPushNotificationTargetRoute(
   });
   return getNotificationTargetRoute(notification, userRole: userRole) ??
       AppRoutes.notifications;
+}
+
+/// True for an FCM payload Stream sent directly (a chat message), as opposed
+/// to one from vmito-be's own notification pipeline. Used by
+/// `PushNotificationLifecycle` to skip the Vmito unread-count refresh and to
+/// compare against the currently open channel before showing a local banner.
+bool isChatPushPayload(Map<String, dynamic> data) {
+  final cid = data['cid']?.toString();
+  return cid != null && cid.isNotEmpty;
+}
+
+/// The Stream channel id from a chat push payload's `cid`, or null.
+String? chatPushChannelId(Map<String, dynamic> data) {
+  if (!isChatPushPayload(data)) return null;
+  final cid = data['cid']!.toString();
+  final channelId = cid.contains(':') ? cid.split(':').last : cid;
+  return channelId.isEmpty ? null : channelId;
 }

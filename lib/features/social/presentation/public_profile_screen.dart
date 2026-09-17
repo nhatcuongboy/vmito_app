@@ -21,6 +21,8 @@ import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/core/widgets/app_error_view.dart';
 import 'package:vmito_app/core/widgets/emoji_safe_text.dart';
 import 'package:vmito_app/features/auth/application/auth_controller.dart';
+import 'package:vmito_app/features/chat/application/chat_session_controller.dart';
+import 'package:vmito_app/features/chat/domain/chat_mode.dart';
 import 'package:vmito_app/features/profile/application/profile_controller.dart';
 import 'package:vmito_app/features/profile/data/profile_image_picker.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
@@ -229,6 +231,12 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
     final labels = publicProfileTabLabels(l10n);
     final safeAreaTop = MediaQuery.paddingOf(context).top;
     final mutations = ref.watch(profileControllerProvider);
+    // Same signal `onMessage` below uses for other profiles — chatMode is
+    // always UNAVAILABLE for self, so the owner's own inbox entry instead
+    // gates on the feature being enabled at all (`/chat/session`'s `enabled`).
+    final chatEnabled = ref.watch(
+      chatSessionControllerProvider.select((state) => state.session?.enabled ?? false),
+    );
     return Stack(
       children: [
         NestedScrollView(
@@ -265,6 +273,25 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
                 );
               },
               onSettings: () => context.pushNamed(AppRoutes.nameSettings),
+              chatInboxTooltip: l10n.chatInboxTitle,
+              onOpenChatInbox: _isOwner && chatEnabled
+                  ? () => unawaited(context.push(AppRoutes.chatInbox))
+                  : null,
+              messageTooltip: l10n.chatMessageButton,
+              onMessage:
+                  _isOwner ||
+                      widget.bundle.profile.chatMode == ChatMode.unavailable
+                  ? null
+                  : () => unawaited(
+                      context.push(
+                        AppRoutes.chatComposeFor(
+                          targetUserId: widget.userId,
+                          targetName: widget.bundle.profile.name,
+                          targetImage: widget.bundle.profile.image,
+                          chatMode: widget.bundle.profile.chatMode.wireValue,
+                        ),
+                      ),
+                    ),
               coverProgress: mutations.coverProgress,
               onChangeCover: _isOwner
                   ? () => _pickProfileImage(avatar: false)

@@ -6,6 +6,7 @@ import 'package:vmito_app/core/theme/app_spacing.dart';
 import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/features/news/domain/article.dart';
 import 'package:vmito_app/features/news/presentation/widgets/news_category_label.dart';
+import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 
 /// A single article, single-column. [featured] renders a taller cover for
@@ -95,16 +96,11 @@ class _Cover extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final palette = Theme.of(context).extension<AppPalette>()!;
-    if (coverImage == null || coverImage!.isEmpty) {
-      return ColoredBox(
-        color: palette.muted,
-        child: Center(
-          child: Icon(AppIcons.news, size: 32, color: palette.mutedForeground),
-        ),
-      );
-    }
+    final url = coverImage?.trim().isNotEmpty ?? false
+        ? coverImage!
+        : Session.defaultCoverPhoto;
     return CachedNetworkImage(
-      imageUrl: coverImage!,
+      imageUrl: url,
       fit: BoxFit.cover,
       placeholder: (context, url) => ColoredBox(color: palette.muted),
       errorWidget: (context, url, error) => ColoredBox(

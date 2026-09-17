@@ -19,6 +19,7 @@ class SessionHostDetailBody extends StatelessWidget {
     required this.phone,
     required this.allowZaloContact,
     required this.onOpenProfile,
+    this.onMessage,
     super.key,
   });
 
@@ -26,6 +27,10 @@ class SessionHostDetailBody extends StatelessWidget {
   final String? phone;
   final bool allowZaloContact;
   final VoidCallback onOpenProfile;
+
+  /// In-app chat with the host. Unlike call/Zalo this needs no phone number,
+  /// so it can show even when [phone] is null.
+  final VoidCallback? onMessage;
 
   @override
   Widget build(BuildContext context) {
@@ -46,9 +51,13 @@ class SessionHostDetailBody extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
           ],
           _RatingCard(stats: value, isLoading: stats.isLoading),
-          if (phone case final phone?) ...[
+          if (phone != null || onMessage != null) ...[
             const SizedBox(height: AppSpacing.md),
-            _Actions(phone: phone, allowZaloContact: allowZaloContact),
+            _Actions(
+              phone: phone,
+              allowZaloContact: allowZaloContact,
+              onMessage: onMessage,
+            ),
           ],
           const SizedBox(height: AppSpacing.md),
           _ViewProfileButton(onPressed: onOpenProfile),
@@ -321,37 +330,64 @@ class _RatingPlaceholder extends StatelessWidget {
 }
 
 class _Actions extends StatelessWidget {
-  const _Actions({required this.phone, required this.allowZaloContact});
+  const _Actions({
+    required this.phone,
+    required this.allowZaloContact,
+    this.onMessage,
+  });
 
-  final String phone;
+  final String? phone;
   final bool allowZaloContact;
+  final VoidCallback? onMessage;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final phone = this.phone;
+    final showZalo = allowZaloContact && phone != null;
 
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _ActionButton(
-            key: const Key('host-detail-call'),
-            icon: const Icon(AppIcons.phone, size: 18),
-            label: l10n.sessionHostCall,
-            background: AppColors.success,
-            onPressed: () => launchUrl(Uri(scheme: 'tel', path: phone)),
-          ),
+        Row(
+          children: [
+            if (phone != null)
+              Expanded(
+                child: _ActionButton(
+                  key: const Key('host-detail-call'),
+                  icon: const Icon(AppIcons.phone, size: 18),
+                  label: l10n.sessionHostCall,
+                  background: AppColors.success,
+                  onPressed: () => launchUrl(Uri(scheme: 'tel', path: phone)),
+                ),
+              ),
+            if (onMessage != null) ...[
+              if (phone != null) const SizedBox(width: 12),
+              Expanded(
+                child: _ActionButton(
+                  key: const Key('host-detail-message'),
+                  icon: const Icon(AppIcons.send, size: 18),
+                  label: l10n.chatMessageButton,
+                  background: AppColors.info,
+                  onPressed: onMessage!,
+                ),
+              ),
+            ],
+          ],
         ),
-        if (allowZaloContact) ...[
-          const SizedBox(width: 12),
-          Expanded(
-            child: _ActionButton(
-              key: const Key('host-detail-zalo'),
-              icon: const Icon(AppIcons.chat, size: 18),
-              label: l10n.sessionHostZalo,
-              background: _zaloBlue,
-              onPressed: () => launchUrl(
-                _zaloUri(phone),
-                mode: LaunchMode.externalApplication,
+        if (showZalo) ...[
+          const SizedBox(height: 12),
+          Center(
+            child: FractionallySizedBox(
+              widthFactor: 0.6,
+              child: _ActionButton(
+                key: const Key('host-detail-zalo'),
+                icon: const Icon(AppIcons.chat, size: 18),
+                label: l10n.sessionHostZalo,
+                background: _zaloBlue,
+                onPressed: () => launchUrl(
+                  _zaloUri(phone),
+                  mode: LaunchMode.externalApplication,
+                ),
               ),
             ),
           ),
