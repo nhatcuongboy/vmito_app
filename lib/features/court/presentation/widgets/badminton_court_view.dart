@@ -238,13 +238,12 @@ class _BadmintonCourtViewState extends State<BadmintonCourtView> {
       isActive:
           (widget.mode.isSelection && seat == widget.activeSlot) ||
           player.id == widget.highlightedPlayerId,
-      onTap: () {
-        if (widget.mode.isSelection && widget.onSlotTap != null) {
-          widget.onSlotTap!(seat);
-        } else {
-          _handlePlayerTap(seat, player, pairNumber);
-        }
-      },
+      onTap: widget.mode.isSelection
+          ? null
+          : () => _handlePlayerTap(seat, player, pairNumber),
+        onRemove: widget.mode.isSelection && widget.onSlotTap != null
+          ? () => widget.onSlotTap!(seat)
+          : null,
     );
   }
 

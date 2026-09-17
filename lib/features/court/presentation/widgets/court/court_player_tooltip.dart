@@ -32,7 +32,9 @@ class CourtPlayerTooltipOverlay extends StatelessWidget {
     final viewPadding = MediaQuery.paddingOf(context);
 
     const cardWidth = 268.0;
-    const cardHeight = 175.0;
+    final note = player.levelDescription?.trim();
+    final hasNote = note != null && note.isNotEmpty;
+    final cardHeight = hasNote ? 220.0 : 175.0;
     const arrowWidth = 14.0;
     const arrowHeight = 7.0;
     const gap = 6.0;
@@ -260,6 +262,15 @@ class CourtPlayerTooltipOverlay extends StatelessWidget {
                             ),
                           ],
                         ),
+                        if (hasNote) ...[
+                          const SizedBox(height: 12),
+                          _TooltipInfoCell(
+                            label: l10n.hostPlayerDetailLevelDescription
+                                .toUpperCase(),
+                            value: note,
+                            maxLines: 2,
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -289,10 +300,12 @@ class _TooltipInfoCell extends StatelessWidget {
   const _TooltipInfoCell({
     required this.label,
     required this.value,
+    this.maxLines = 1,
   });
 
   final String label;
   final String value;
+  final int maxLines;
 
   @override
   Widget build(BuildContext context) {
@@ -317,7 +330,7 @@ class _TooltipInfoCell extends StatelessWidget {
         const SizedBox(height: 3),
         Text(
           value,
-          maxLines: 1,
+          maxLines: maxLines,
           overflow: TextOverflow.ellipsis,
           style: theme.textTheme.bodyMedium?.copyWith(
             fontSize: 14,

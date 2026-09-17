@@ -7,17 +7,16 @@ import 'package:vmito_app/core/localization/localized_values.dart';
 import 'package:vmito_app/core/network/api_exception.dart';
 import 'package:vmito_app/core/theme/app_icons.dart';
 import 'package:vmito_app/core/theme/app_spacing.dart';
-import 'package:vmito_app/core/utils/formatters.dart';
 import 'package:vmito_app/features/session/domain/host_player.dart';
 import 'package:vmito_app/features/session/domain/session.dart';
 import 'package:vmito_app/features/session_hosting/application/host_add_players_controller.dart';
+import 'package:vmito_app/features/session_hosting/presentation/widgets/host_player_form.dart';
 import 'package:vmito_app/features/session_hosting/presentation/widgets/host_player_picker_sheet.dart';
 import 'package:vmito_app/l10n/app_localizations.dart';
 import 'package:vmito_app/shared/models/session_player.dart';
 import 'package:vmito_app/shared/widgets/app_dialog.dart';
 import 'package:vmito_app/shared/widgets/app_full_height_modal.dart';
 import 'package:vmito_app/shared/widgets/app_reactive_form.dart';
-import 'package:vmito_app/shared/widgets/app_required_label.dart';
 import 'package:vmito_app/shared/widgets/app_sheet_action_bar.dart';
 import 'package:vmito_app/shared/widgets/app_sheet_header.dart';
 import 'package:vmito_domain/vmito_domain.dart';
@@ -218,22 +217,23 @@ class _HostAddPlayersSheetState extends ConsumerState<_HostAddPlayersSheet> {
     }
 
     for (final player in selected.skip(1)) {
-      final newRow = hostPlayerRowForm(
-        defaultLevel: player.level ?? _defaultLevel,
-        profileId: player.profileId,
-        saveToRoster: player.profileId == null,
-      )..patchValue({
-          HostPlayerFormControl.name: player.name,
-          HostPlayerFormControl.gender: player.gender ?? Gender.male,
-          if (player.level != null) HostPlayerFormControl.level: player.level,
-          if (player.levelDescription != null)
-            HostPlayerFormControl.levelDescription: player.levelDescription,
-          HostPlayerFormControl.phone: player.phone ?? '',
-          HostPlayerFormControl.userId: player.userId,
-          HostPlayerFormControl.profileId: player.profileId,
-          if (player.profileId != null)
-            HostPlayerFormControl.saveToRoster: false,
-        });
+      final newRow =
+          hostPlayerRowForm(
+            defaultLevel: player.level ?? _defaultLevel,
+            profileId: player.profileId,
+            saveToRoster: player.profileId == null,
+          )..patchValue({
+            HostPlayerFormControl.name: player.name,
+            HostPlayerFormControl.gender: player.gender ?? Gender.male,
+            if (player.level != null) HostPlayerFormControl.level: player.level,
+            if (player.levelDescription != null)
+              HostPlayerFormControl.levelDescription: player.levelDescription,
+            HostPlayerFormControl.phone: player.phone ?? '',
+            HostPlayerFormControl.userId: player.userId,
+            HostPlayerFormControl.profileId: player.profileId,
+            if (player.profileId != null)
+              HostPlayerFormControl.saveToRoster: false,
+          });
 
       if (sessionClubId != null &&
           player.isMonthlyMember &&
@@ -326,7 +326,7 @@ class _HostAddPlayersSheetState extends ConsumerState<_HostAddPlayersSheet> {
                     final row = array.controls[index] as FormGroup;
                     return AppReactiveForm<void>(
                       formGroup: row,
-                      child: _PlayerFormCard(
+                      child: HostPlayerForm(
                         key: ValueKey(row),
                         index: index,
                         number: _firstPlayerNumber + index,
@@ -380,396 +380,6 @@ class _HostAddPlayersSheetState extends ConsumerState<_HostAddPlayersSheet> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _PlayerFormCard extends StatelessWidget {
-  const _PlayerFormCard({
-    required this.index,
-    required this.number,
-    required this.levels,
-    required this.state,
-    required this.canRemove,
-    required this.nameFocusNode,
-    required this.onRemove,
-    required this.onPickPlayer,
-    super.key,
-  });
-
-  final int index;
-  final int number;
-  final List<int> levels;
-  final HostAddPlayersState state;
-  final bool canRemove;
-  final FocusNode nameFocusNode;
-  final VoidCallback onRemove;
-  final VoidCallback onPickPlayer;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Chip(label: Text('#$number')),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: Row(
-                    children: [
-                      Text(l10n.hostAddPlayerNewPlayer),
-                      ReactiveValueListenableBuilder<String>(
-                        formControlName: HostPlayerFormControl.profileId,
-                        builder: (context, control, _) {
-                          if (control.value == null || control.value!.isEmpty) {
-                            return const SizedBox.shrink();
-                          }
-                          return Padding(
-                            padding: const EdgeInsets.only(left: AppSpacing.xs),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
-                              ),
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.primaryContainer,
-                                borderRadius: BorderRadius.circular(4),
-                              ),
-                              child: Text(
-                                l10n.rosterPlayerBadge,
-                                style: theme.textTheme.labelSmall?.copyWith(
-                                  color: theme.colorScheme.onPrimaryContainer,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                if (canRemove)
-                  IconButton(
-                    key: ValueKey('host-remove-player-$index'),
-                    tooltip: l10n.hostAddPlayerRemove,
-                    color: theme.colorScheme.error,
-                    onPressed: onRemove,
-                    icon: const Icon(AppIcons.delete),
-                  ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            OutlinedButton.icon(
-              key: ValueKey('host-player-user-$index'),
-              onPressed: onPickPlayer,
-              style: OutlinedButton.styleFrom(
-                alignment: Alignment.centerLeft,
-                foregroundColor: theme.colorScheme.onSurfaceVariant,
-                side: BorderSide(color: theme.dividerColor),
-              ),
-              icon: Icon(
-                AppIcons.search,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-              label: ReactiveFormConsumer(
-                builder: (context, form, _) {
-                  final name =
-                      form.control(HostPlayerFormControl.name).value as String?;
-                  final hasLinked =
-                      form.control(HostPlayerFormControl.userId).value != null ||
-                      form.control(HostPlayerFormControl.profileId).value != null;
-                  return Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      hasLinked && name?.isNotEmpty == true
-                          ? name!
-                          : l10n.hostAddPlayerSelectExisting,
-                      overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: hasLinked
-                            ? theme.colorScheme.onSurface
-                            : theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            ReactiveTextField<String>(
-              key: ValueKey('host-player-name-$index'),
-              formControlName: HostPlayerFormControl.name,
-              focusNode: nameFocusNode,
-              textInputAction: TextInputAction.next,
-              decoration: InputDecoration(
-                label: AppRequiredLabel(l10n.hostAddPlayerName),
-              ),
-              validationMessages: {
-                ValidationMessage.required: (_) =>
-                    l10n.hostAddPlayerNameRequired,
-              },
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            ReactiveTextField<String>(
-              formControlName: HostPlayerFormControl.phone,
-              keyboardType: TextInputType.phone,
-              textInputAction: TextInputAction.done,
-              decoration: InputDecoration(labelText: l10n.authSignUpPhone),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: ReactiveDropdownField<Gender>(
-                    formControlName: HostPlayerFormControl.gender,
-                    decoration: InputDecoration(
-                      labelText: l10n.hostAddPlayerGender,
-                    ),
-                    items: [
-                      DropdownMenuItem(
-                        value: Gender.male,
-                        child: Text(
-                          l10n.genderMale,
-                          style: const TextStyle(fontWeight: FontWeight.normal),
-                        ),
-                      ),
-                      DropdownMenuItem(
-                        value: Gender.female,
-                        child: Text(
-                          l10n.genderFemale,
-                          style: const TextStyle(fontWeight: FontWeight.normal),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(
-                  child: ReactiveDropdownField<int>(
-                    formControlName: HostPlayerFormControl.level,
-                    decoration: InputDecoration(
-                      labelText: l10n.registrationLevel,
-                    ),
-                    validationMessages: {
-                      ValidationMessage.required: (_) =>
-                          l10n.hostAddPlayerLevelRequired,
-                    },
-                    items: [
-                      for (final level in levels)
-                        DropdownMenuItem(
-                          value: level,
-                          child: Text(
-                            l10n.levelName(level),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.normal,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            ReactiveTextField<String>(
-              formControlName: HostPlayerFormControl.levelDescription,
-              minLines: 1,
-              maxLines: 2,
-              decoration: InputDecoration(
-                labelText: l10n.hostAddPlayerLevelDescription,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            _ClubFeeSection(state: state),
-            ReactiveValueListenableBuilder<String>(
-              formControlName: HostPlayerFormControl.profileId,
-              builder: (context, profileIdControl, _) {
-                return ReactiveValueListenableBuilder<String>(
-                  formControlName: HostPlayerFormControl.userId,
-                  builder: (context, userIdControl, _) {
-                    final isManualGuest = (profileIdControl.value == null ||
-                            profileIdControl.value!.isEmpty) &&
-                        (userIdControl.value == null ||
-                            userIdControl.value!.isEmpty);
-                    if (!isManualGuest) return const SizedBox.shrink();
-                    return Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.sm),
-                      child: ReactiveCheckboxListTile(
-                        formControlName: HostPlayerFormControl.saveToRoster,
-                        title: Text(
-                          l10n.rosterSaveToRosterCheckbox,
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                        controlAffinity: ListTileControlAffinity.leading,
-                        contentPadding: EdgeInsets.zero,
-                        visualDensity: const VisualDensity(
-                          horizontal: -4,
-                          vertical: -4,
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-
-class _ClubFeeSection extends StatelessWidget {
-  const _ClubFeeSection({required this.state});
-
-  final HostAddPlayersState state;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final form = ReactiveForm.of(context)! as FormGroup;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        border: Border.all(color: Theme.of(context).dividerColor),
-        borderRadius: BorderRadius.circular(AppRadius.md),
-      ),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.md,
-              vertical: AppSpacing.xs,
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.attach_money, size: 20),
-                const SizedBox(width: AppSpacing.xs),
-                Expanded(
-                  child: Text(
-                    l10n.hostAddPlayerClubFee,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
-                  ),
-                ),
-                Transform.scale(
-                  scale: 0.8,
-                  child: ReactiveSwitch(
-                    formControlName: HostPlayerFormControl.clubFeeEnabled,
-                    onChanged: (control) {
-                      if (control.value != true) {
-                        form.control(HostPlayerFormControl.clubId).value = null;
-                      }
-                      form.updateValueAndValidity();
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-          ReactiveValueListenableBuilder<bool>(
-            formControlName: HostPlayerFormControl.clubFeeEnabled,
-            builder: (context, enabled, _) {
-              if (enabled.value != true) return const SizedBox.shrink();
-              if (state.loadingClubData) {
-                return const Padding(
-                  padding: EdgeInsets.all(AppSpacing.md),
-                  child: LinearProgressIndicator(),
-                );
-              }
-              if (state.clubs.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.md,
-                    0,
-                    AppSpacing.md,
-                    AppSpacing.md,
-                  ),
-                  child: Text(l10n.hostAddPlayerNoClubFee),
-                );
-              }
-              return Padding(
-                padding: const EdgeInsets.fromLTRB(
-                  AppSpacing.md,
-                  0,
-                  AppSpacing.md,
-                  AppSpacing.md,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    ReactiveFormConsumer(
-                      builder: (context, _, _) => ReactiveDropdownField<String>(
-                        formControlName: HostPlayerFormControl.clubId,
-                        decoration: InputDecoration(
-                          labelText: l10n.hostAddPlayerClub,
-                          errorText:
-                              form.touched && form.hasError('clubRequired')
-                              ? l10n.hostAddPlayerClubRequired
-                              : null,
-                        ),
-                        items: [
-                          for (final club in state.clubs)
-                            DropdownMenuItem(
-                              value: club.id,
-                              child: Text(club.name),
-                            ),
-                        ],
-                      ),
-                    ),
-                    ReactiveFormConsumer(
-                      builder: (context, form, _) {
-                        final clubId =
-                            form.control(HostPlayerFormControl.clubId).value
-                                as String?;
-                        final gender =
-                            form.control(HostPlayerFormControl.gender).value
-                                as Gender?;
-                        final fee = clubId == null
-                            ? null
-                            : state.feesByClubId[clubId]?.feeForGender(
-                                gender == Gender.female ? 'FEMALE' : 'MALE',
-                              );
-                        if (fee == null) return const SizedBox.shrink();
-                        return Padding(
-                          padding: const EdgeInsets.only(top: AppSpacing.sm),
-                          child: Text(
-                            l10n.hostAddPlayerClubFeeAmount(
-                              Money.vndPlain(
-                                fee,
-                                locale: Localizations.localeOf(
-                                  context,
-                                ).languageCode,
-                              ),
-                            ),
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      l10n.hostAddPlayerClubFeeHint,
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ],
       ),
     );
   }

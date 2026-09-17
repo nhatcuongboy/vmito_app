@@ -80,6 +80,7 @@ class _PlayerDetailContent extends ConsumerWidget {
 
   final String sessionId;
   final PlayerDetail player;
+  static const _showJoinInfo = false;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -259,7 +260,7 @@ class _PlayerDetailContent extends ConsumerWidget {
             ),
           ),
         ],
-        if (player.joinCode?.isNotEmpty ?? false) ...[
+        if (_showJoinInfo && (player.joinCode?.isNotEmpty ?? false)) ...[
           const SizedBox(height: AppSpacing.sm),
           _JoinInfo(player: player),
         ],

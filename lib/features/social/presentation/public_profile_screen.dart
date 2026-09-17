@@ -235,7 +235,9 @@ class _ProfileTabsState extends ConsumerState<_ProfileTabs>
     // always UNAVAILABLE for self, so the owner's own inbox entry instead
     // gates on the feature being enabled at all (`/chat/session`'s `enabled`).
     final chatEnabled = ref.watch(
-      chatSessionControllerProvider.select((state) => state.session?.enabled ?? false),
+      chatSessionControllerProvider.select(
+        (state) => state.session?.enabled ?? false,
+      ),
     );
     return Stack(
       children: [

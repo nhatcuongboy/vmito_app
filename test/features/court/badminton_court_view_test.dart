@@ -308,7 +308,7 @@ void main() {
       expect(tapped, [1]);
     });
 
-    testWidgets('a filled seat is tappable so a mis-pick is one tap to fix', (
+    testWidgets('a filled seat ignores taps so only the remove button clears it', (
       tester,
     ) async {
       const court = Court(id: 'c', courtNumber: 1);
@@ -332,7 +332,7 @@ void main() {
       );
 
       await tester.tap(find.text('An'));
-      expect(tapped, [0]);
+      expect(tapped, isEmpty);
     });
 
     testWidgets('shows a level badge and an explicit remove button', (

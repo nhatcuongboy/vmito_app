@@ -44,6 +44,7 @@ abstract class SessionPlayer with _$SessionPlayer {
   const factory SessionPlayer({
     required String id,
     String? userId,
+    String? profileId,
     String? createdByUserId,
     @JsonKey(includeToJson: false) Map<String, dynamic>? user,
     String? name,

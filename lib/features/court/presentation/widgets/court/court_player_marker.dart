@@ -20,6 +20,7 @@ class CourtPlayerMarker extends StatelessWidget {
     required this.pairNumber,
     this.isActive = false,
     this.onTap,
+    this.onRemove,
     super.key,
   });
 
@@ -35,6 +36,7 @@ class CourtPlayerMarker extends StatelessWidget {
   final bool isActive;
 
   final VoidCallback? onTap;
+  final VoidCallback? onRemove;
 
   @override
   Widget build(BuildContext context) {
@@ -110,11 +112,11 @@ class CourtPlayerMarker extends StatelessWidget {
             ),
           ),
         ),
-        if (mode.isSelection && onTap != null)
+        if (mode.isSelection && onRemove != null)
           Positioned(
             right: -6,
             bottom: -6,
-            child: _RemoveSelectionButton(onPressed: onTap!),
+            child: _RemoveSelectionButton(onPressed: onRemove!),
           ),
       ],
     );

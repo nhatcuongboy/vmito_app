@@ -64,8 +64,7 @@ class HostPlayerDraft {
 
   factory HostPlayerDraft.fromForm(FormGroup form) => HostPlayerDraft(
     userId: form.control(HostPlayerFormControl.userId).value as String?,
-    profileId:
-        form.control(HostPlayerFormControl.profileId).value as String?,
+    profileId: form.control(HostPlayerFormControl.profileId).value as String?,
     saveToRoster:
         form.control(HostPlayerFormControl.saveToRoster).value as bool?,
     name: form.control(HostPlayerFormControl.name).value as String? ?? '',
@@ -137,8 +136,7 @@ class HostPlayerEditDraft extends HostPlayerDraft {
 
   factory HostPlayerEditDraft.fromForm(FormGroup form) => HostPlayerEditDraft(
     userId: form.control(HostPlayerFormControl.userId).value as String?,
-    profileId:
-        form.control(HostPlayerFormControl.profileId).value as String?,
+    profileId: form.control(HostPlayerFormControl.profileId).value as String?,
     saveToRoster:
         form.control(HostPlayerFormControl.saveToRoster).value as bool?,
     name: form.control(HostPlayerFormControl.name).value as String? ?? '',
@@ -201,6 +199,12 @@ FormGroup hostPlayerRowForm({
 FormGroup hostPlayerEditForm(SessionPlayer player) => FormGroup(
   {
     HostPlayerFormControl.userId: FormControl<String>(value: player.userId),
+    HostPlayerFormControl.profileId: FormControl<String>(
+      value: player.profileId,
+    ),
+    HostPlayerFormControl.saveToRoster: FormControl<bool>(
+      value: player.profileId == null && player.userId == null,
+    ),
     HostPlayerFormControl.name: FormControl<String>(
       value: player.name,
       validators: [Validators.required],
